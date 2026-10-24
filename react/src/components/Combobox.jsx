@@ -7,7 +7,8 @@ import { Chip } from './Chip.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
-import { inMs, own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
+import { own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
+import { Rows, usePanelMotion } from './motion.js'
 import { singular } from './format.js'
 
 const VARIANT = {
@@ -260,38 +261,21 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 		if (next.length) onChange?.([...value, ...next])
 		type('')
 	}
-	// a chip the reader adds grows in; one they remove is still drawn for --motion-out as it shrinks away
-	const [before, setBefore] = useState(value)
-	const [added, setAdded] = useState(() => new Set())
-	if (before !== value) {
-		const fresh = value.filter(t => !before.includes(t))
-		if (fresh.length) setAdded(was => new Set([...was, ...fresh]))
-		setBefore(value)
-	}
-	const [leaving, setLeaving] = useState([])
-	const remove = token => {
-		if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-			setLeaving(was => [...was, { token, at: value.indexOf(token) }])
-			const out = inMs('--motion-out', 0)
-			setTimeout(() => setLeaving(was => was.filter(l => l.token !== token)), out)
-		}
-		onChange?.(value.filter(t => t !== token))
-	}
-	const drawn = [...value]
-	for (const { token, at } of leaving) if (!value.includes(token)) drawn.splice(Math.min(at, drawn.length), 0, token)
+	// a chip the reader adds grows in; one they remove shrinks out and the others close up (Rows)
+	const remove = token => onChange?.(value.filter(t => t !== token))
 	const add = () => addAll([typed])
 	const shown = suggests && open && options.length > 0
 	const holder = useRef(null)
 	const input = useRef(null)
 	usePanelPlace(holder, listbox.panel, shown, options.length)
+	const closing = usePanelMotion(listbox.panel, shown)
 	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
 	const field = (
 		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) { input.current?.focus(); setOpen(true) } }} {...box}>
-			{drawn.map(token => (
+			<Rows count={value.length} kind="chip">{value.map(token => (
 				<Chip
 					key={token}
 					{...(token === marked ? { color: 'success' } : {})}
-					{...(!value.includes(token) ? { 'data-leaving': 'true', 'aria-hidden': 'true', inert: true } : added.has(token) ? { 'data-added': 'true' } : {})}
 					trail={<>
 						{trails?.[token]}
 						<IconButton
@@ -304,7 +288,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 				>
 					{token}
 				</Chip>
-			))}
+			))}</Rows>
 			<input
 				ref={input}
 				id={id}
@@ -358,7 +342,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 	const boxed = end ? <span className="sp-field__wrap">{field}<span className="sp-field__trail">{end}</span></span> : field
 	if (!suggests) return boxed
 	return (
-		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} ref={holder}>
+		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} {...(closing ? { 'data-closing': 'true' } : {})} ref={holder}>
 			{boxed}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
 			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
@@ -436,6 +420,8 @@ function ComboboxOne({
 	const { setActive } = box
 	useEffect(() => { setActive(-1) }, [query, setActive])
 	usePanelPlace(root, box.panel, isOpen && !touch, options.length)
+	// the panel fades out as it closes: the box keeps it drawn until then
+	const closing = usePanelMotion(box.panel, isOpen && !touch)
 
 	const onKeys = ev => {
 		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
@@ -492,6 +478,7 @@ function ComboboxOne({
 			ref={root}
 			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'))}
 			data-open={isOpen ? 'true' : 'false'}
+			{...(closing ? { 'data-closing': 'true' } : {})}
 			{...rest}
 		>
 			{searchable

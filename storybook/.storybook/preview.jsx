@@ -4,6 +4,8 @@ import { ShellTouch } from '../../react/src/components/Shell.jsx'
 import { useShellShape } from '../../react/src/app/useMedia.js'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
+import { MotionGlobalConfig } from 'motion/react'
+import { MotionShell } from '../../react/src/components/motion.js'
 import '../../react/src/styles/fonts.css'
 import '../../react/src/styles/tokens.css'
 import '../../react/src/styles/components.css'
@@ -18,6 +20,11 @@ const withTheme = (Story, { globals }) => {
 	document.body.classList.add('sp')
 	return <Story />
 }
+
+// the app's one Motion setting, as main.jsx puts it around the app
+const withMotion = Story => <MotionShell><Story /></MotionShell>
+// under npm test every move ends at once, so a story's checks read the state it ends in, never a frame mid-fade
+if (globalThis.__vitest_browser__) MotionGlobalConfig.skipAnimations = true
 
 // a page story brings the app's own router, and a router cannot sit inside another
 const withRouter = (Story, { parameters }) => parameters.ownRouter ? <Story /> : <MemoryRouter><Story /></MemoryRouter>
@@ -56,7 +63,7 @@ const failOnConsoleError = () => {
 
 export default {
 	tags: ['autodocs'],
-	decorators: [withDrawnParts, withShape, withRouter, withTheme],
+	decorators: [withDrawnParts, withShape, withRouter, withMotion, withTheme],
 	argTypesEnhancers: [shownArgTypes, variantArgTypes, drawnArgTypes, typeArgTypes, lookArgTypes],
 	beforeEach: () => { reported = [] },
 	afterEach: failOnConsoleError,

@@ -5,8 +5,8 @@ import { Pill } from '../../react/src/components/Pill.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Segmented } from '../../react/src/components/Segmented.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { expect, fn, userEvent } from 'storybook/test'
-import { knownAccessibilityFaults } from './controls.js'
+import { expect, fn, userEvent, waitFor } from 'storybook/test'
+import { knownAccessibilityFaults, useHeld } from './controls.js'
 
 // The card's words are plain text controls; the story lays them out as the app does.
 const words = { title: { control: 'text', description: 'The first line the story puts inside' }, subtitle: { control: 'text', description: 'The second line' } }
@@ -151,4 +151,27 @@ export const ToolbarAndFooter = {
 			<ListFooter><span className="sp-meta">Showing 1 of 18</span></ListFooter>
 		</Card>
 	)
+}
+
+export const Folding = {
+	args: { open: true, onToggle: fn() },
+	argTypes: { open: { control: 'boolean', description: 'Toolbar\'s `expanded` and CardBody\'s `open`: the body unfolded' }, onToggle: { description: 'The toolbar pressed' } },
+	render: ({ onToggle, ...args }) => {
+		const [open, setOpen] = useHeld(args, 'open')
+		return (
+			<Card variant="flush">
+				<Toolbar variant="toggle" expanded={open} onClick={() => { setOpen(!open); onToggle() }} chevron={<Icon name="chevron-down" />}>
+					<span className="sp-title">Order details</span>
+				</Toolbar>
+				<CardBody open={open}><span className="sp-data">Indbo Møbler · 4.129,00 kr.</span></CardBody>
+			</Card>
+		)
+	},
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Order details' }))
+		await expect(args.onToggle).toHaveBeenCalled()
+		await waitFor(() => expect(canvas.queryByText('Indbo Møbler · 4.129,00 kr.')).toBeNull())
+		await userEvent.click(canvas.getByRole('button', { name: 'Order details' }))
+		await canvas.findByText('Indbo Møbler · 4.129,00 kr.')
+	}
 }

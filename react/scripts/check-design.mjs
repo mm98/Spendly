@@ -4,7 +4,7 @@
 // against the app's own source. Exits 1 on any finding.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, relative, dirname, resolve } from 'node:path'
+import { join, relative, dirname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseAst } from 'rolldown/parseAst'
 
@@ -35,7 +35,7 @@ const walk = dir => readdirSync(dir).flatMap(name => {
 const checked = walk(src).filter(p => /\.(jsx?|mjs)$/.test(p))
 const rel = p => relative(root, p)
 
-const parsed = new Map(checked.map(p => [p, parseAst(read(p), { lang: p.endsWith('.jsx') ? 'jsx' : 'js' }, p)]))
+const parsed = new Map(checked.map(p => [p, parseAst(read(p), { lang: p.endsWith('.jsx') || p.includes(`${sep}components${sep}`) ? 'jsx' : 'js' }, p)]))
 
 const visit = (node, fn, above = []) => {
 	if (!node || typeof node !== 'object') return
@@ -93,8 +93,11 @@ for (const [p, ast] of parsed) {
 			for (const c of s.split(/\s+/).filter(Boolean))
 				if ((literal || c.startsWith('sp-')) && c !== 'sp' && !cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css, app.css or a page layout file`)
 	})
-	// a class chosen from a variant map or join() never sits in a className literal
+	// a class chosen from a variant map or join() never sits in a className literal; a layoutId is a name, not a class
+	const ids = new Set()
+	visit(ast, n => { if (n.type === 'JSXAttribute' && n.name?.name === 'layoutId' && n.value) for (const s of stringsIn(n.value)) ids.add(s) })
 	for (const s of stringsIn(ast)) {
+		if (ids.has(s)) continue
 		const parts = s.trim().split(/\s+/)
 		if (parts.length && parts.every(c => /^sp-[\w-]+$/.test(c)))
 			for (const c of parts) if (!cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css, app.css or a page layout file`)
@@ -211,7 +214,12 @@ const placed = c => {
 	if (c.type === 'ParenthesizedExpression') return placed(c.expression)
 	return []
 }
-const tagOf = el => el.openingElement.name.name
+// a Motion element (m.div, Reorder.Item) is drawn as the plain element it names
+const tagOf = el => {
+	const name = el.openingElement.name
+	if (name.type !== 'JSXMemberExpression') return name.name
+	return name.object.name === 'm' ? name.property.name : name.object.name === 'Reorder' ? 'div' : undefined
+}
 
 /* ---- a card's head is CardHeader, and nothing else draws one ---- */
 
@@ -668,8 +676,11 @@ for (const [p, ast] of parsed) {
 			if (!words.some(w => cls.includes(w.replace(/s$/, '')))) fail('one word per object', 'src/components', `${n} renders .${cls}`)
 		}
 
-	// only an arrangement: no classed element of its own, other components, and no decision
+	// only an arrangement: no classed element of its own, other components, and no decision.
+	// The two that only give what they hold Motion's settings or its presence are not arrangements.
+	const MOTION_WRAPPERS = ['Leaving', 'MotionShell']
 	for (const e of exports) {
+		if (MOTION_WRAPPERS.includes(e.n)) continue
 		let own = false, decides = false
 		const kids = new Set()
 		visit(e.fn.body, n => {
@@ -1391,6 +1402,9 @@ const DESIGN_RULES = {
 	'references resolve': 'references resolve',
 	'classes resolve': 'classes resolve',
 	'tokens defined': 'tokens defined',
+	'a turned icon turns about its own box': COPY,
+	'a narrow field fills a half': COPY,
+	'a floating layer is never trapped under a stacking context': NOT_CHECKED,
 	'a readout sits on the plot bars': 'a readout sits on the plot bars',
 	'an open list is not faded': COPY,
 	'every fade is a token': COPY,

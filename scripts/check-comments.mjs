@@ -6,6 +6,7 @@
 // what changed" shape as api/scripts/check-queries.mjs.
 
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 
 const MAX_NEW_COMMENT_LINES = 2;
 
@@ -42,11 +43,19 @@ const growth = new Map();
 let added = { inBlock: false, typed: false };
 let removed = { inBlock: false, typed: false };
 
-// byte copies of design/styles: their prose is the design's, and design:check holds them equal
+// byte copies of design/styles and design/react_handoff: their prose is the design's
 const DESIGN_COPIES = ["react/src/styles/components.css", "react/src/styles/tokens.css"];
+const HANDOFF = /^react\/src\/components\/([^/]+)$/;
+
+function isDesignCopy(path) {
+	if (DESIGN_COPIES.includes(path)) return true;
+	const name = path.match(HANDOFF)?.[1];
+	const twin = name && `design/react_handoff/${name}`;
+	return Boolean(twin && existsSync(twin) && existsSync(path) && readFileSync(twin, "utf8") === readFileSync(path, "utf8"));
+}
 
 function isSourceFile(path) {
-	return EXTENSIONS.some(ext => path.endsWith(ext)) && !DESIGN_COPIES.includes(path);
+	return EXTENSIONS.some(ext => path.endsWith(ext)) && !isDesignCopy(path);
 }
 
 // Whether a line opens, continues or closes a block comment, carried across lines because a

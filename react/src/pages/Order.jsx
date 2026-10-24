@@ -136,7 +136,7 @@ function OrderView({ order, touch, onGone }) {
 						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind].filter(Boolean).join(dot)}</span>
 					</span>
 				</Toolbar>
-				<CardBody>{sums}</CardBody>
+				<CardBody open={!folded}>{sums}</CardBody>
 			</Card>
 		)
 		: (

@@ -184,6 +184,7 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 	const actions = useShellShape() === 'touch' && Boolean(src) && !failed
 	const input = (
 		<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
+			aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
 			onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 	)
 	return (
@@ -203,7 +204,6 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={actions ? undefined : id}
-				aria-label={actions ? undefined : failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
 				data-tip={actions ? undefined : what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}

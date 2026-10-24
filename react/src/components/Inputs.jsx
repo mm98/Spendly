@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber } from './format.js'
-import { Spinner, inMs } from './Utilities.jsx'
+import { Spinner } from './Utilities.jsx'
+import { pace, useStill } from './motion.js'
 
 const TEXT = {
 	default: null,
@@ -93,15 +94,16 @@ export function PasswordField({ ...rest }) {
 	// overlay the reader sees and a screen reader does not; the field keeps its value
 	const [shuffle, setShuffle] = useState(null)
 	const run = useRef(0)
+	// the shell's one reduced-motion setting; the shuffle stays its own, since it changes letters, not style
+	const still = useStill()
 	const toggle = () => {
 		const next = !shown
 		const text = String(rest.value ?? '')
-		const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 		if (still || !text || text.length > 40) { setShown(next); return }
 		const id = ++run.current
 		const target = next ? text : '\u2022'.repeat(text.length)
 		const from = next ? '\u2022'.repeat(text.length) : text
-		const ms = 2 * inMs('--motion-in', 180)
+		const ms = 2 * pace().in * 1000
 		const start = performance.now()
 		const frame = now => {
 			if (id !== run.current) return

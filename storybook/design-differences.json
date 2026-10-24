@@ -1,12 +1,6 @@
 {
-	"files": {
-		"Combobox.jsx": { "hash": "61e1dad3494eb73b" },
-		"Inputs.jsx": { "hash": "8727bed40de0c91d" },
-		"List.jsx": { "hash": "68d827183aba7714" },
-		"ListItem.jsx": { "hash": "90bcdb5cb27249bc" },
-		"Shell.jsx": { "hash": "f10a336dadf75ec1" }
-	},
-	"appOnly": ["Failed.jsx", "Icon.jsx", "Reorder.js", "icons.js", "tabler.js"],
+	"files": {},
+	"appOnly": ["Failed.jsx", "Icon.jsx", "icons.js", "tabler.js"],
 	"propUse": [
 		"react/src/pages/Budget.jsx: <Segmented value> is given a number",
 		"react/src/pages/BudgetCheck.jsx: <BulkBar count> is given text",

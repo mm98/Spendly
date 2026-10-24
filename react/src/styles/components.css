@@ -2056,7 +2056,13 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
    It turns the icon inside, not the slot: the trigger's prefix word shares the slot's
    class, and the field's slot already holds a transform that centres it. */
 .sp-combobox__trigger > .sp-combobox__chevron:last-child > *,
-.sp-combobox .sp-field__chevron > * { transition: transform 120ms ease; }
+.sp-combobox .sp-field__chevron > * {
+  transition: transform 120ms ease;
+  /* the icon may be the slot itself (a drawn page puts the svg there, so its child is the path):
+     a path turns about its own box, or it swings out of the svg's corner and vanishes */
+  transform-box: fill-box;
+  transform-origin: center;
+}
 .sp-combobox__trigger[aria-expanded="true"] > .sp-combobox__chevron:last-child > *,
 .sp-combobox[data-open="true"] .sp-field__chevron > * { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
@@ -2086,7 +2092,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   max-height: var(--list-max);
   overflow-y: auto;
 }
-.sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
+.sp-combobox[data-open="true"] .sp-combobox__panel,
+.sp-combobox[data-closing="true"] .sp-combobox__panel { display: flex; }
 /* the panel overlays: it is anchored under the trigger and never changes the layout behind it */
 
 .sp-combobox__group {
@@ -2308,39 +2315,6 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
 /* the sidebar leaves the flow while it peeks, so the page keeps the column it was in
    rather than sliding left into the rail's */
 .sp-shell--collapsed:has(.sp-sidebar--peek) > *:not(.sp-sidebar) { grid-column: 2; }
-/* The words arrive with the column rather than appearing fully formed in it, so the
-   whole thing reads as one movement. Both the grip and the hover peek use this: the
-   slide belongs to the sidebar, not to either control. */
-@keyframes sp-sidebar-slide-in {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: none; }
-}
-.sp-sidebar--slide-in .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark),
-.sp-sidebar--slide-in .sp-sidebar__brand > *:not(.sp-mark),
-.sp-sidebar--slide-in .sp-sidebar__group {
-  animation: sp-sidebar-slide-in 180ms ease-out both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sp-sidebar--slide-in .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark),
-  .sp-sidebar--slide-in .sp-sidebar__brand > *:not(.sp-mark),
-  .sp-sidebar--slide-in .sp-sidebar__group { animation: none; }
-}
-/* and they leave the same way - the column holds its width until the words are gone,
-   so closing is the opening run backwards rather than a disappearance */
-@keyframes sp-sidebar-slide-out {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateX(-10px); }
-}
-.sp-sidebar--slide-out .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark),
-.sp-sidebar--slide-out .sp-sidebar__brand > *:not(.sp-mark),
-.sp-sidebar--slide-out .sp-sidebar__group {
-  animation: sp-sidebar-slide-out 140ms ease-in both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sp-sidebar--slide-out .sp-nav-item > *:not(.sp-nav-item__icon):not(.sp-mark),
-  .sp-sidebar--slide-out .sp-sidebar__brand > *:not(.sp-mark),
-  .sp-sidebar--slide-out .sp-sidebar__group { animation: none; }
-}
 .sp-shell--collapsed .sp-sidebar--peek,
 .sp-sidebar--rail.sp-sidebar--peek {
   position: absolute;
@@ -3611,22 +3585,25 @@ button.sp-bars__col { cursor: pointer; }
 /* ---------- attachments - LOCKED c16 ---------- */
 
 .sp-strip-wrap { position: relative; }
+/* The fade covers the strip's whole scrolling box: the 4 of room the strip keeps on every side
+   and the names under the tiles, so nothing scrolls out from under it at the edge or below it.
+   Its button stays centred on the tiles. */
 .sp-strip-nav.sp-strip-nav {
   position: absolute;
-  top: 0;
-  height: var(--mark-xlarge);
+  top: calc(var(--sp-4) * -1);
+  bottom: calc(var(--sp-4) * -1);
   z-index: 2;
   display: flex;
-  align-items: center;
-  width: 44px;
-  padding: 0;
+  align-items: flex-start;
+  width: calc(44px + var(--sp-4));
+  padding: 0 var(--sp-4);
   border: 0;
   background: none;
   color: var(--ink-3);
   cursor: pointer;
 }
-.sp-strip-nav[data-strip="prev"] { left: 0; justify-content: flex-start; }
-.sp-strip-nav[data-strip="next"] { right: 0; justify-content: flex-end; }
+.sp-strip-nav[data-strip="prev"] { left: calc(var(--sp-4) * -1); justify-content: flex-start; }
+.sp-strip-nav[data-strip="next"] { right: calc(var(--sp-4) * -1); justify-content: flex-end; }
 .sp-strip-nav::before {
   content: "";
   position: absolute;
@@ -3636,6 +3613,9 @@ button.sp-bars__col { cursor: pointer; }
 .sp-strip-nav[data-strip="next"]::before { background: linear-gradient(to left, var(--surface) 35%, transparent); }
 .sp-strip-nav > svg {
   position: relative;
+  /* centred on the tiles, which start 4 below the fade's top edge */
+  margin-top: calc(var(--sp-4) + var(--mark-xlarge) / 2);
+  translate: 0 -50%;
   display: grid;
   place-items: center;
   box-sizing: content-box;
@@ -3731,7 +3711,8 @@ label.sp-mark--empty { cursor: pointer; }
 label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 
 .sp-menu--floating { display: none; }
-[data-open="true"] > .sp-menu--floating { display: flex; }
+[data-open="true"] > .sp-menu--floating,
+[data-closing="true"] > .sp-menu--floating { display: flex; }
 
 /* an attachment names itself under its tile */
 .sp-attachment { display: flex; flex-direction: column; gap: var(--sp-6); width: var(--mark-xlarge); flex: none; }
@@ -3745,7 +3726,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   left: 0;
   z-index: 6;
 }
-.sp-period__anchor:has(:checked) > .sp-period__custom { display: block; }
+.sp-period__anchor:has(:checked) > .sp-period__custom,
+.sp-period__anchor[data-closing="true"] > .sp-period__custom { display: block; }
 
 .sp-range {
   width: 470px;
@@ -3926,7 +3908,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   border-radius: var(--r-card);
   box-shadow: 0 14px 34px rgba(29, 42, 34, 0.14);
 }
-[data-open="true"] > .sp-calendar { display: block; }
+[data-open="true"] > .sp-calendar,
+[data-closing="true"] > .sp-calendar { display: block; }
 .sp-calendar .sp-range__month { gap: var(--sp-8); }
 
 /* the same grid, scrolling, inside a sheet */
@@ -5651,6 +5634,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    page scaffolding - .os-halves, .st-pair and .bg-halves, one profile under three
    names - so it is one utility now. */
 .sp-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
+/* A half is already the narrower column, so a narrow field in one fills it: capped at
+   --field-w it ended short of its own note and of the card's edge (Settings 11b). */
+.sp-halves > .sp-field > .sp-combobox--narrow,
+.sp-halves > .sp-field > .sp-segmented--narrow { max-width: none; }
 
 /* a NumberField that lives in a table cell (Budget 21b): it reads as the cell's figure
    until it is clicked or focused, then shows the field's border and ring at the cell's
@@ -6143,225 +6130,42 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__formats { font-size: var(--t-13); color: var(--ink-2); line-height: var(--lh); text-wrap: pretty; }
 
 /* ---------- motion ----------
-   What opens, folds or slides, at the --motion-* pace. Nothing here changes how a
-   component looks at rest: each rule states only the way in and the way out, so every
-   component's open and closed drawings stay as they were. All of it sits behind
-   prefers-reduced-motion: no-preference, so a reader who asks for less motion gets
-   the old instant change.
+   CSS keeps what moves the same in every browser: hover and colour, check boxes and radios,
+   the chevrons' turn, submenus, the tab bar's colour, gauges and bars, and the calendar's month
+   slide. Motion (react/src/components/motion.js) runs the rest at the same tokens: parts leaving
+   the page, a marker or a row moving to a new place, height folds, reordering and page changes.
+   What it needs from the stylesheet is below; nothing here changes a component at rest.
 
-   Three mechanisms, by how the component shows itself:
-   - A part that stays mounted and is shown by an attribute (the combobox panel, a
-     menu let out of its anchor, the date field's calendar, a card's folding body, the
-     segmented thumb) animates both ways from CSS alone.
-   - A part mounted when it opens (a dialog, a sheet, a popover, a facet group's
-     values, an added row) animates in from @starting-style.
-   - Its way out needs it kept mounted for --motion-out with data-leaving="true",
-     then removed. The component does that; CSS only draws it. */
-@media (prefers-reduced-motion: no-preference) {
+   A panel that stays mounted and is shown by its host's data-open (the combobox panel, a menu let
+   out of its anchor, the date field's calendar, the period picker's Custom range) is kept drawn by
+   data-closing="true" on the host while its fade out runs; see each panel's own show rule. */
 
-  /* A floating panel opens from its trigger (the range picker too, under the
-     PeriodPicker's Custom): it fades in and drops the last
-     --motion-rise into place, and closes back the way it came. Placed above its
-     trigger (data-place="up") it rises instead. */
-  .sp-combobox__panel,
-  [data-open] > .sp-menu--floating,
-  [data-open] > .sp-calendar,
-  .sp-period__custom,
-  .sp-popover {
-    --sp-motion-from: calc(var(--motion-rise) * -1);
-    transition:
-      opacity var(--motion-out) var(--ease-exit),
-      translate var(--motion-out) var(--ease-exit),
-      display var(--motion-out) allow-discrete;
-  }
-  [data-place="up"] { --sp-motion-from: var(--motion-rise); }
-  .sp-combobox[data-open="true"] .sp-combobox__panel,
-  [data-open="true"] > .sp-menu--floating,
-  [data-open="true"] > .sp-calendar,
-  .sp-period__anchor:has(> .sp-period__preset :checked) > .sp-period__custom,
-  .sp-popover {
-    transition:
-      opacity var(--motion-in) var(--ease-enter),
-      translate var(--motion-in) var(--ease-enter),
-      display var(--motion-in) allow-discrete;
-  }
-  @starting-style {
-    .sp-combobox[data-open="true"] .sp-combobox__panel,
-    [data-open="true"] > .sp-menu--floating,
-    [data-open="true"] > .sp-calendar,
-    .sp-period__anchor:has(> .sp-period__preset :checked) > .sp-period__custom,
-    .sp-popover { opacity: 0; translate: 0 var(--sp-motion-from); }
-  }
-  .sp-combobox[data-open="false"] .sp-combobox__panel,
-  [data-open="false"] > .sp-menu--floating,
-  [data-open="false"] > .sp-calendar,
-  .sp-period__anchor:not(:has(> .sp-period__preset :checked)) > .sp-period__custom,
-  .sp-popover[data-leaving="true"] {
-    opacity: 0;
-    translate: 0 var(--sp-motion-from);
-    transition:
-      opacity var(--motion-out) var(--ease-exit),
-      translate var(--motion-out) var(--ease-exit),
-      display var(--motion-out) allow-discrete;
-  }
-
-  /* The scrim fades under a dialog or a sheet; the dialog grows the last 2% into
-     place over it, and a sheet rises from the bottom edge. Its drag moves it by
-     transform, so the slide uses translate and the two add up. */
-  .sp-scrim,
-  .sp-scrim--dialog > .sp-dialog,
-  .sp-sheet {
-    transition:
-      opacity var(--motion-in) var(--ease-enter),
-      scale var(--motion-in) var(--ease-enter),
-      translate var(--motion-in) var(--ease-enter);
-  }
-  @starting-style {
-    .sp-scrim { opacity: 0; }
-    .sp-scrim--dialog > .sp-dialog { opacity: 0; scale: 0.98; }
-    .sp-sheet { translate: 0 100%; }
-  }
-  .sp-scrim[data-leaving="true"],
-  .sp-scrim[data-leaving="true"] > .sp-dialog,
-  .sp-sheet[data-leaving="true"] {
-    transition:
-      opacity var(--motion-out) var(--ease-exit),
-      scale var(--motion-out) var(--ease-exit),
-      translate var(--motion-out) var(--ease-exit);
-  }
-  .sp-scrim[data-leaving="true"] { opacity: 0; }
-  .sp-scrim[data-leaving="true"] > .sp-dialog { scale: 0.98; }
-  .sp-sheet[data-leaving="true"] { translate: 0 100%; }
-
-  /* A row the reader just added (data-added="true" on its first render) drops in;
-     one they removed fades out where it stood (data-leaving="true"). */
-  .sp-list-item[data-added="true"],
-  .sp-record[data-added="true"],
-  tr[data-added="true"] {
-    transition:
-      opacity var(--motion-in) var(--ease-enter),
-      translate var(--motion-in) var(--ease-enter);
-  }
-  @starting-style {
-    .sp-list-item[data-added="true"],
-    .sp-record[data-added="true"],
-    tr[data-added="true"] { opacity: 0; translate: 0 calc(var(--motion-rise) * -1); }
-  }
-  .sp-list-item[data-leaving="true"],
-  .sp-record[data-leaving="true"],
-  tr[data-leaving="true"] {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--motion-out) var(--ease-exit);
-  }
-
-  /* Folding by height, where the browser can animate to auto. Elsewhere a fold is
-     the instant change it was. The fold clips while it moves and lets its contents
-     out again once open, so a menu inside a card body is never cut off. */
-  @supports (interpolate-size: allow-keywords) {
-    .sp-list__toolbar--toggle + .sp-card__body {
-      interpolate-size: allow-keywords;
-      transition:
-        height var(--motion-in) var(--ease-enter),
-        padding-block var(--motion-in) var(--ease-enter),
-        opacity var(--motion-in) var(--ease-enter),
-        display var(--motion-in) allow-discrete,
-        overflow 0s var(--motion-in) allow-discrete;
-    }
-    @starting-style {
-      .sp-list__toolbar--toggle[aria-expanded="true"] + .sp-card__body { height: 0; padding-block: 0; opacity: 0; overflow: clip; }
-    }
-    .sp-list__toolbar--toggle[aria-expanded="false"] + .sp-card__body {
-      height: 0;
-      padding-block: 0;
-      opacity: 0;
-      overflow: clip;
-      transition:
-        height var(--motion-out) var(--ease-exit),
-        padding-block var(--motion-out) var(--ease-exit),
-        opacity var(--motion-out) var(--ease-exit),
-        display var(--motion-out) allow-discrete,
-        overflow 0s allow-discrete;
-    }
-    /* a facet group's values mount as it unfolds, so they grow in from nothing */
-    .sp-field-group:has(> .sp-field-group__head .sp-field-group__fold[aria-expanded="true"]) > :not(.sp-field-group__head) {
-      interpolate-size: allow-keywords;
-      transition:
-        height var(--motion-in) var(--ease-enter),
-        opacity var(--motion-in) var(--ease-enter),
-        overflow 0s var(--motion-in) allow-discrete;
-    }
-    @starting-style {
-      .sp-field-group:has(> .sp-field-group__head .sp-field-group__fold[aria-expanded="true"]) > :not(.sp-field-group__head) { height: 0; opacity: 0; overflow: clip; }
-    }
-    .sp-list-item[data-leaving="true"] {
-      interpolate-size: allow-keywords;
-      height: 0;
-      min-height: 0;
-      padding-block: 0;
-      overflow: clip;
-      transition:
-        opacity var(--motion-out) var(--ease-exit),
-        height var(--motion-out) var(--ease-exit),
-        min-height var(--motion-out) var(--ease-exit),
-        padding-block var(--motion-out) var(--ease-exit);
-    }
-  }
-
-  /* The selection slides to the option picked, on the two controls that draw one
-     green option in a row of them: the segmented control and the period picker's
-     window sizes. The green is drawn once, behind the options, anchored to the checked
-     one; where the browser cannot anchor, each option draws its own green as before. */
-  @supports (anchor-name: --a) and (anchor-scope: --a) {
-    .sp-segmented,
-    .sp-period__presets { position: relative; isolation: isolate; anchor-scope: --sp-selection-on; }
-    .sp-segmented__item,
-    .sp-period__preset { z-index: 1; }
-    .sp-segmented__item:has(:checked),
-    .sp-period__preset:has(> input:checked) { anchor-name: --sp-selection-on; background: none; }
-    .sp-segmented:has(> .sp-segmented__item :checked)::after,
-    .sp-period__presets:has(> .sp-period__preset > input:checked, > .sp-period__anchor > .sp-period__preset > input:checked)::after {
-      content: "";
-      position: absolute;
-      z-index: 0;
-      position-anchor: --sp-selection-on;
-      top: anchor(top);
-      bottom: anchor(bottom);
-      left: anchor(left);
-      right: anchor(right);
-      border-radius: var(--r-tile);
-      background: var(--green);
-      pointer-events: none;
-      transition:
-        left var(--motion-in) var(--ease-enter),
-        right var(--motion-in) var(--ease-enter);
-    }
-  }
-  /* The same slide, down a column: a set of choice rows that picks one (radio rows, as
-     in a popover's list) moves its green tint from the old row to the new. Rows that
-     pick several (checkboxes) each keep their own tint. */
-  @supports (anchor-name: --a) and (anchor-scope: --a) {
-    :has(> .sp-choice--row > input[type="radio"]) { position: relative; isolation: isolate; anchor-scope: --sp-choice-on; }
-    .sp-choice--row:has(> input[type="radio"]) { position: relative; z-index: 1; }
-    .sp-choice--row:has(> input[type="radio"]:checked) { anchor-name: --sp-choice-on; background: none; }
-    :has(> .sp-choice--row > input[type="radio"]:checked)::after {
-      content: "";
-      position: absolute;
-      z-index: 0;
-      position-anchor: --sp-choice-on;
-      top: anchor(top);
-      bottom: anchor(bottom);
-      left: anchor(left);
-      right: anchor(right);
-      border-radius: var(--r-tile);
-      background: var(--green-tint);
-      pointer-events: none;
-      transition:
-        top var(--motion-in) var(--ease-enter),
-        bottom var(--motion-in) var(--ease-enter);
-    }
-  }
+/* The selection drawn once and moved to the option picked: the segmented control, the period
+   picker's window sizes, a set of radio rows, the sidebar's current row. Motion moves it (layoutId).
+   The option holding it draws no ground of its own; the marker sits under its words. An option
+   is its own stacking context, never the row of options, so a panel the row holds stays on top. */
+.sp-marker {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--r-tile);
+  background: var(--green);
+  pointer-events: none;
 }
+.sp-segmented__item:has(> .sp-marker),
+.sp-period__preset:has(> .sp-marker),
+.sp-choice--row:has(> .sp-marker),
+.sp-nav-item:has(> .sp-marker) { position: relative; isolation: isolate; background: none; }
+.sp-choice--row > .sp-marker { background: var(--green-tint); }
+.sp-nav-item > .sp-marker { border-radius: var(--r-field); background: var(--shell-current); }
+.sp-nav-item--light > .sp-marker { background: var(--green-tint-2); }
+
+/* What folds by height (a card's body, a facet group's values): its parts keep the gap they had
+   when they sat straight in their parent. Motion sets its height and clips it only while it moves. */
+.sp-fold { display: flex; flex-direction: column; gap: inherit; min-width: 0; }
+
+/* A list moved by hand draws no box of its own: its rows are the page's list's rows. */
+.sp-reorder { display: contents; }
 
 /* ---------- motion, second pass ----------
    Same pace, same rule: nothing here changes a component at rest, and all of it sits
@@ -6413,9 +6217,11 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   .sp-menu li:has(> .sp-menu__sub) > .sp-menu__sub > * {
     opacity: 0;
     translate: calc(var(--sp-sub-from) / 2) 0;
+    /* closing, the items leave with their panel: they hold until it has faded, then reset unseen,
+       so the panel never stands empty while its items go first */
     transition:
-      opacity var(--motion-out) var(--ease-exit),
-      translate var(--motion-out) var(--ease-exit);
+      opacity 0s linear calc(var(--submenu-delay) + var(--motion-out)),
+      translate 0s linear calc(var(--submenu-delay) + var(--motion-out));
   }
   .sp-menu__sub > * { --sp-stagger: 0ms; }
   .sp-menu__sub > :nth-child(2) { --sp-stagger: 20ms; }
@@ -6462,31 +6268,6 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   /* The tab bar has no marker to slide, so its current item's colour crosses over. */
   .sp-tabbar__item { transition: color var(--motion-in) var(--ease-enter); }
 
-  /* The sidebar's current row: its ground slides from the row it left to the row it
-     reached, as the segmented selection does, in either sidebar (dark or light). */
-  @supports (anchor-name: --a) and (anchor-scope: --a) {
-    :has(> .sp-nav-item[aria-current="page"]) { position: relative; isolation: isolate; anchor-scope: --sp-nav-on; }
-    :has(> .sp-nav-item[aria-current="page"]) > .sp-nav-item { position: relative; z-index: 1; }
-    .sp-nav-item[aria-current="page"] { anchor-name: --sp-nav-on; background: none; }
-    :has(> .sp-nav-item[aria-current="page"])::after {
-      content: "";
-      position: absolute;
-      z-index: 0;
-      position-anchor: --sp-nav-on;
-      top: anchor(top);
-      bottom: anchor(bottom);
-      left: anchor(left);
-      right: anchor(right);
-      border-radius: var(--r-field);
-      background: var(--shell-current);
-      pointer-events: none;
-      transition:
-        top var(--motion-in) var(--ease-enter),
-        bottom var(--motion-in) var(--ease-enter);
-    }
-    :has(> .sp-nav-item--light[aria-current="page"])::after { background: var(--green-tint-2); }
-  }
-
   /* A gauge fills and a bar rises from nothing when it first shows, and moves to its
      new length when its figure changes. */
   .sp-gauge__fill,
@@ -6499,40 +6280,6 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
     .sp-gauge__over { width: 0; }
     .sp-bars__bar,
     .sp-bars__stack { height: 0; }
-  }
-
-  /* What replaces a skeleton fades in where the skeleton stood. The component that
-     swaps them marks the arriving content data-loaded="true"; content that was there
-     from the start is not marked and does not fade. */
-  [data-loaded="true"] { transition: opacity var(--motion-in) var(--ease-enter); }
-  @starting-style {
-    [data-loaded="true"] { opacity: 0; }
-  }
-
-  /* While a row is carried, the rows it passes ease aside rather than jump. The drag
-     measures each row before and after the move and sets the difference as its
-     translate; the transition takes it back to nothing (data-reordering on the list). */
-  [data-reordering="true"] > .sp-list-item:not(.sp-list-item--carried) {
-    transition: translate var(--motion-in) var(--ease-enter);
-  }
-
-  /* A chip the reader adds grows in; one they remove shrinks out, held for
-     --motion-out with data-leaving="true", as a row is. */
-  .sp-chip[data-added="true"] {
-    transition:
-      opacity var(--motion-in) var(--ease-enter),
-      scale var(--motion-in) var(--ease-enter);
-  }
-  @starting-style {
-    .sp-chip[data-added="true"] { opacity: 0; scale: 0.8; }
-  }
-  .sp-chip[data-leaving="true"] {
-    opacity: 0;
-    scale: 0.8;
-    pointer-events: none;
-    transition:
-      opacity var(--motion-out) var(--ease-exit),
-      scale var(--motion-out) var(--ease-exit);
   }
 
   /* A calendar stepped to the next month slides its days in from the right, to the

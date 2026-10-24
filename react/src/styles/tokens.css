@@ -78,7 +78,7 @@
   --sp-16: 16px;
 
   /* ---- radius ---- */
-  --submenu-delay: 500ms;   /* a rest, not a pass-through, opens a submenu */
+  --submenu-delay: 200ms;   /* a rest, not a pass-through, opens a submenu */
   --r-marker: 4px;         /* checkbox, 24px mark */
   --r-tile: 8px;           /* chip, option tile, 36px mark */
   --r-field: 9px;          /* field, button, 42px mark */
@@ -203,7 +203,9 @@
   --ease-enter: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --motion-rise: 4px;      /* how far a panel travels from its trigger as it opens */
-
+  --motion-slide: 10px;    /* how far the sidebar's labels travel as the column opens and closes */
+  /* Motion reads these from :root through react/src/components/motion.js; no number above is
+     written a second time in code. */
   /* ---- elevation: menus and sheets only ---- */
   --shadow-menu: 0 6px 16px rgba(27, 26, 23, 0.08);
   --shadow-sheet: 0 -8px 24px rgba(27, 26, 23, 0.12);

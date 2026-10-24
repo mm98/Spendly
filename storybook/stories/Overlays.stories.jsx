@@ -188,9 +188,8 @@ export const DialogClosingWithTheFade = {
 		const page = canvasElement.ownerDocument.body
 		await userEvent.click(page.querySelector('[role="dialog"] button'))
 		await expect(args.onCancel).toHaveBeenCalledOnce()
-		await waitFor(() => expect(page.querySelector('.sp-scrim[data-leaving="true"] [role="dialog"]')).not.toBeNull())
 		await waitFor(() => expect(page.querySelector('[role="dialog"]')).toBeNull())
-		await expect(args.onClosed).toHaveBeenCalledOnce()
+		await waitFor(() => expect(args.onClosed).toHaveBeenCalledOnce())
 	}
 }
 

@@ -144,8 +144,7 @@ export const SheetClosingWithTheFade = {
 		const page = canvasElement.ownerDocument.body
 		await userEvent.click([...page.querySelectorAll('.sp-sheet button')].find(b => b.textContent === 'Apply'))
 		await expect(args.onApply).toHaveBeenCalledOnce()
-		await waitFor(() => expect(page.querySelector('.sp-sheet[data-leaving="true"]')).not.toBeNull())
 		await waitFor(() => expect(page.querySelector('.sp-sheet')).toBeNull())
-		await expect(args.onClosed).toHaveBeenCalledOnce()
+		await waitFor(() => expect(args.onClosed).toHaveBeenCalledOnce())
 	}
 }

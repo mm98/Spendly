@@ -1,5 +1,10 @@
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
+import { m, useRow } from './motion.js'
+import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
+
+// a row arrives, leaves and glides to its place inside Rows; as a link it is the router's link, moving
+const MLink = m.create(Link)
 
 const VARIANT = {
 	default: null,
@@ -58,6 +63,10 @@ export function ListItem({
 	...rest
 }) {
 	reject(rest, 'ListItem')
+	const moves = useRow()
+	// in a ReorderList the row is carried by its handle, or picked up from the keyboard
+	const moving = useMovingRow()
+	if (moving?.state) variant = moving.state
 	if (selected !== undefined && !['outline', 'card'].includes(variant))
 		console.error('<ListItem> selected belongs to the outline and card variants')
 	// sticky is the card variant and then some, so it carries the card's class as well
@@ -72,8 +81,14 @@ export function ListItem({
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),
 		...(selected !== undefined ? { 'aria-selected': selected ? 'true' : 'false' } : {}),
+		...(moving ? {} : moves),
 		...rest
 	}
+	const grip = moving ? moving.handle : {}
+	// called, never mounted as a component of its own, so the row is not drawn anew on each render
+	const box = inner => moving
+		? <Reorder.Item as="div" {...itemOf(moving, moves)} className={classes} {...attrs}>{inner}</Reorder.Item>
+		: <m.div className={classes} {...attrs}>{inner}</m.div>
 	// a row that opens and also moves is a plain box: the handle and the open target side by side,
 	// never a button inside a button (Components, Ordering by hand)
 	if (handle && variant !== 'add' && (to || onClick)) {
@@ -84,22 +99,22 @@ export function ListItem({
 				{children}
 			</>
 		)
-		return (
-			<div className={classes} {...attrs}>
-				<button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button>
+		return box(
+			<>
+				<button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button>
 				{to
 					? <Link className="sp-list-item__open" to={to} data-go={to}>{inside}</Link>
 					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
 				{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
 				{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
-			</div>
+			</>
 		)
 	}
 	const body = (
 		<>
 			{/* an add row holds the handle's column empty, so it lines up under rows that can move */}
 			{handle && variant === 'add' ? <span className="sp-list-item__handle" aria-hidden="true" />
-				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
+				: handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button> : null}
 			{mark}
 			{/* the count leads what it counts, as the attention row draws it (Components) */}
 			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
@@ -108,10 +123,10 @@ export function ListItem({
 			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 		</>
 	)
-	if (to) return <Link className={classes} to={to} data-go={to} {...attrs}>{body}</Link>
+	if (to) return <MLink className={classes} to={to} data-go={to} {...attrs}>{body}</MLink>
 	if (onClick || variant === 'add')
-		return <button type="button" className={classes} onClick={onClick} {...attrs}>{body}</button>
-	return <div className={classes} {...attrs}>{body}</div>
+		return <m.button type="button" className={classes} onClick={onClick} {...attrs}>{body}</m.button>
+	return box(body)
 }
 
 /** The heading over a set of rows that carries a total (c33, sp-list-head): on the rows' inset,

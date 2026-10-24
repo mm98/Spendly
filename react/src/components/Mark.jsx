@@ -94,13 +94,18 @@ export function Mark({
 	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { style: { background: chosen } }
 	// its glyph or initials take whichever ink reads better on the fill
 	if (chosen) paint['data-ink'] = inkFor(chosen)
-	if (!derives && !rest['aria-label'])
+	// a mark that is a file picker's label is not a picture: the input inside it is the control, and
+	// it carries the name, so the mark takes neither a role nor a name of its own
+	const picker = as === 'label'
+	if (picker && rest['aria-label']) console.error('<Mark as="label"> the file input inside it carries the name: an aria-label on the mark is not read')
+	if (!derives && !rest['aria-label'] && !picker)
 		console.error('<Mark> needs a name: a string child it derives from, or an aria-label')
-	// a name on a span or label is read only with a role, so a named mark is an image unless hidden
+	// a name on a span is read only with a role, so a named mark is an image unless hidden
 	const hidden = rest['aria-hidden'] === true || rest['aria-hidden'] === 'true'
-	const named = derives && !rest['aria-label']
-		? { role: 'img', 'aria-label': children }
-		: rest['aria-label'] && !rest.role && !hidden && !onClick ? { role: 'img' } : {}
+	const named = picker ? {}
+		: derives && !rest['aria-label']
+			? { role: 'img', 'aria-label': children }
+			: rest['aria-label'] && !rest.role && !hidden && !onClick ? { role: 'img' } : {}
 	const body = (
 		<>
 			{shown}
@@ -124,7 +129,10 @@ export function Mark({
 	if (onClick)
 		return <button type="button" className={classes} onClick={onClick} {...paint} {...named} {...rest}>{body}</button>
 	// a mark that wraps a file input is the picker's own hit target
-	if (as === 'label') return <label className={classes} {...paint} {...named} {...rest}>{body}</label>
+	if (picker) {
+		const { 'aria-label': unread, ...box } = rest
+		return <label className={classes} {...paint} {...box}>{body}</label>
+	}
 	return <span className={classes} {...paint} {...named} {...rest}>{body}</span>
 }
 

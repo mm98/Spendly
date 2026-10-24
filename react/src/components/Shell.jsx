@@ -7,7 +7,9 @@ import { Icon } from './Icon.jsx'
 import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
-import { Kbd, Leaves } from './Utilities.jsx'
+import { Kbd } from './Utilities.jsx'
+import { PRESENCE, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
+import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { Button } from './Button.jsx'
 
 /** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
@@ -76,31 +78,50 @@ const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__b
 
 /** @param {object} props
     @param {keyof typeof BODY} [props.layout] `default`; `rail` puts a filter rail before the content; `split` puts a panel after it; `fill` fills the height.
+    @param {string} [props.page] Which page this is, such as its path: a new value runs the page change.
     @param {import('react').ReactNode} [props.children] The page. */
-export function ShellContent({ layout = 'default', children, ...rest }) {
+export function ShellContent({ layout = 'default', page, children, ...rest }) {
 	reject(rest, 'ShellContent')
-	return <main className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</main>
+	const classes = join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))
+	if (page === undefined) return <main className={classes} {...rest}>{children}</main>
+	// a new page fades in and rises into place; the one it replaces goes at once, so nothing waits on it
+	return <m.main key={page} className={classes} {...PRESENCE.page()} {...rest}>{children}</m.main>
 }
 
 const SIDEBAR = {
 	default: null,
 	rail: 'sp-sidebar--rail',
-	peek: 'sp-sidebar--rail sp-sidebar--peek',
-	'slide-in': 'sp-sidebar--slide-in',
-	'slide-out': 'sp-sidebar--slide-out'
+	peek: 'sp-sidebar--rail sp-sidebar--peek'
 }
 
-const MOTION = { in: 'sp-sidebar--slide-in', out: 'sp-sidebar--slide-out' }
+const MOTION = { in: 'in', out: 'out' }
 
-/** `motion` runs the labels in as the column opens, or out before it closes (9i).
+/** `motion` runs the labels in as the column opens, or out before it closes (9i); `onMotionEnd` is
+    called when the run is over, which is when the shell narrows the column after `out`.
     @param {object} props
-    @param {keyof typeof SIDEBAR} [props.variant] `default`; `rail` is narrow, with icons only; `peek` shows the labels over the page; `slide-in` and `slide-out` run while it opens and closes.
+    @param {keyof typeof SIDEBAR} [props.variant] `default`; `rail` is narrow, with icons only; `peek` shows the labels over the page.
     @param {keyof typeof MOTION} [props.motion] Run the labels in as the menu opens (`in`), or out before it closes (`out`).
+    @param {() => void} [props.onMotionEnd] Called once the labels have run in or out.
+    @param {import('react').Ref<HTMLElement>} [props.ref]
     @param {import('react').ReactNode} [props.children] The brand, the menu rows, group titles, dividers and the grip. */
-export function Sidebar({ variant = 'default', motion, children, ...rest }) {
+export function Sidebar({ variant = 'default', motion, onMotionEnd, ref, children, ...rest }) {
 	reject(rest, 'Sidebar')
+	const box = useRef(null)
+	const still = useStill()
+	const ended = useRef(onMotionEnd)
+	ended.current = onMotionEnd
+	const bind = useCallback(el => {
+		box.current = el
+		if (typeof ref === 'function') ref(el)
+		else if (ref) ref.current = el
+	}, [ref])
+	useLayoutEffect(() => {
+		if (!motion || !box.current) return
+		pick(MOTION, motion, 'motion', 'Sidebar')
+		return slideLabels(box.current, motion, still, () => ended.current?.())
+	}, [motion, still])
 	return (
-		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'), motion && pick(MOTION, motion, 'motion', 'Sidebar'))} {...rest}>
+		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} ref={bind} {...rest}>
 			{children}
 		</nav>
 	)
@@ -178,11 +199,17 @@ const NAV = {
 export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
 	reject(rest, 'NavItem')
 	const [hint, tipEvents] = useTip(tip)
+	// a saved view in a ReorderList is carried by its handle, or picked up from the keyboard
+	const moving = useMovingRow()
+	// and arrives and leaves as the ReorderList's other rows do
+	const moves = useRow()
+	if (moving?.state) variant = moving.state
+	const grip = moving ? moving.handle : {}
 	const classes = join('sp-nav-item', pick(NAV, variant, 'variant', 'NavItem'))
 	const body = (
 		<>
 			{handle
-				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button></span>
+				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button></span>
 				: mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
 			{/* a long name ends in an ellipsis on one line (9f); an empty box would push the sub text away */}
 			{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
@@ -195,6 +222,9 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 			{hint}
 		</>
 	)
+	// the current row's ground is drawn once and moves to the row reached; dark and light rows move apart
+	const light = variant !== 'default' && variant !== 'action'
+	const here = current ? <m.span className="sp-marker" layoutId={light ? 'sp-nav-on-light' : 'sp-nav-on'} transition={glide()} aria-hidden="true" /> : null
 	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest, ref }
 	// a row that opens and also moves: the handle and the open target side by side (Components, Ordering by hand)
 	if (handle && !control && (to || onClick)) {
@@ -208,21 +238,25 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 				{trail}
 			</>
 		)
-		const here = current ? { 'aria-current': 'page' } : {}
-		return (
-			<span className={classes} {...state}>
-				<span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button></span>
+		const page = current ? { 'aria-current': 'page' } : {}
+		const row = inner => moving
+			? <Reorder.Item as="span" {...itemOf(moving, moves)} className={classes} {...state}>{inner}</Reorder.Item>
+			: <span className={classes} {...state}>{inner}</span>
+		return row(
+			<>
+				{here}
+				<span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button></span>
 				{to
-					? <Link className="sp-list-item__open" to={to} data-go={to} onClick={onClick} {...here}>{inside}</Link>
+					? <Link className="sp-list-item__open" to={to} data-go={to} onClick={onClick} {...page}>{inside}</Link>
 					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
 				{hint}
-			</span>
+			</>
 		)
 	}
-	if (control) return <label className={classes} {...state}>{body}</label>
-	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
-	if (!onClick) return <span className={classes} {...state}>{body}</span>
-	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
+	if (control) return <label className={classes} {...state}>{here}{body}</label>
+	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{here}{body}</Link>
+	if (!onClick) return <span className={classes} {...state}>{here}{body}</span>
+	return <button type="button" className={classes} onClick={onClick} {...state}>{here}{body}</button>
 }
 
 /* A menu a sidebar row opens, fixed to the window so the sidebar's scroll cannot clip it, placed against
@@ -301,6 +335,10 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
     @param {string} [props.tip] The tooltip when the menu is a narrow rail. */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
+	// named by the words it draws, in their order, so a reader who says what they see reaches it;
+	// on the rail, where none are drawn, the same words are its name
+	if ('aria-label' in rest) { console.error('<SidebarAccount> is named by the name and email it draws: an aria-label is not taken'); delete rest['aria-label'] }
+	const named = [name, email].filter(Boolean).join(' ')
 	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
 	const bind = useCallback(el => { block.current = el; button.current = el }, [block, button])
 	const split = email.lastIndexOf('@')
@@ -316,7 +354,7 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 	const chevron = <span className="sp-combobox__chevron" aria-hidden="true"><Icon name="chevron-up" size={14} /></span>
 	return (
 		<>
-			<NavItem ref={bind} mark={mark} tip={expanded ? null : tip} onClick={onClick} aria-haspopup="menu"
+			<NavItem ref={bind} mark={mark} tip={expanded ? null : tip} onClick={onClick} aria-haspopup="menu" aria-label={named}
 				aria-expanded={expanded ? 'true' : 'false'} onKeyDown={opener} trail={chevron}
 				{...rest}>
 				{label}
@@ -350,9 +388,9 @@ function useTip(tip) {
     @param {import('react').ReactNode} [props.children] The sheet or the dialog. */
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
-	// under a Leaving (Overlays.jsx) the dimmed page fades with what it holds
-	const leaving = useContext(Leaves)
-	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...(leaving ? { 'data-leaving': 'true' } : {})} {...rest}>{children}</div>
+	// under a Leaving (Overlays.jsx) the dimmed page fades with what it holds, and takes no more presses
+	const leaving = useGoing()
+	return <m.div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...PRESENCE.scrim()} {...(leaving ? { inert: true } : {})} {...rest}>{children}</m.div>
 }
 
 /* ---------- command palette (c24) ---------- */

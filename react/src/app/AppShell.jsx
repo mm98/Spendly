@@ -129,7 +129,7 @@ export function AppShell() {
 	if (layout === 'rail' && shape !== 'wide') body = 'default'
 	else if (layout === 'dock') body = touch ? 'default' : 'fill'
 	const content = (
-		<ShellContent layout={body}>
+		<ShellContent layout={body} page={pathname}>
 			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : <ConfirmBanner />}
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>
@@ -217,7 +217,7 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
-		<Sidebar aria-label="Sections" ref={fold.box} variant={fold.over ? 'peek' : 'default'} motion={fold.motion}>
+		<Sidebar aria-label="Sections" ref={fold.box} variant={fold.over ? 'peek' : 'default'} motion={fold.motion} onMotionEnd={fold.motionEnd}>
 			{rail
 				? <>{brand}<SidebarDivider /></>
 				: <SidebarBrand>{brand}<span>Spendly</span></SidebarBrand>}
@@ -245,8 +245,6 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 	)
 }
 
-const SLIDE_IN_MS = 180
-const SLIDE_OUT_MS = 140
 const readFold = () => peek(getSettings)?.sidebar === 'rail'
 
 /* The grip (9i): on a wide window it folds the sidebar, kept with the account's settings. Below
@@ -256,11 +254,7 @@ function useFold(shape, visit) {
 	const [over, setOver] = useState(false)
 	const [motion, setMotion] = useState(null)
 	const box = useRef(null)
-	const timer = useRef(0)
-	const still = useMedia('(prefers-reduced-motion: reduce)')
 	const wide = shape === 'wide'
-	const later = (fn, ms) => { clearTimeout(timer.current); timer.current = setTimeout(fn, still ? 0 : ms) }
-	useEffect(() => () => clearTimeout(timer.current), [])
 
 	const keep = value => {
 		setFolded(value)
@@ -271,15 +265,15 @@ function useFold(shape, visit) {
 		if (wide) keep(false)
 		else setOver(true)
 		setMotion('in')
-		later(() => setMotion(null), SLIDE_IN_MS)
 	}
-	const close = () => {
-		setMotion('out')
-		later(() => {
+	// the column narrows once the labels have left (onMotionEnd)
+	const close = () => setMotion('out')
+	const motionEnd = () => {
+		if (motion === 'out') {
 			if (wide) keep(true)
 			else setOver(false)
-			setMotion(null)
-		}, SLIDE_OUT_MS)
+		}
+		setMotion(null)
 	}
 	const closeNow = useRef(close)
 	closeNow.current = close
@@ -298,7 +292,7 @@ function useFold(shape, visit) {
 	const collapsed = wide ? folded : true
 	// while it closes, the labels leave from the full width before the rail takes it back
 	const rail = collapsed && !over
-	return { box, collapsed, rail, over, motion, toggle: () => (rail ? open() : close()) }
+	return { box, collapsed, rail, over, motion, motionEnd, toggle: () => (rail ? open() : close()) }
 }
 
 /* The one scrolling part of the sidebar. The fade at its foot shows only while there is more
@@ -404,7 +398,7 @@ function Account({ rail, short, asks, onShortcuts }) {
 	const picture = user.data?.picture || null
 	if (!email) return null
 	return (
-		<SidebarAccount name={name} picture={picture} email={email} expanded={open} tip={rail ? name || email : undefined} aria-label={name ? `${name}, ${email}` : email}
+		<SidebarAccount name={name} picture={picture} email={email} expanded={open} tip={rail ? name || email : undefined}
 			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu name={name} email={email} short={short} asks={asks} onShortcuts={onShortcuts} onClose={close} />} />
 	)
 }

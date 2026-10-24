@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import { componentJsScan, jsxInComponentJs } from '../../react/vite.config.js'
 
 // The app's own React and router, never a second copy: hooks fail when a component and the
 // renderer each load their own React. react/ needs `npm ci` first.
@@ -23,7 +24,8 @@ export default {
 	viteFinal: config => ({
 		...config,
 		// the app's own JSX transform (react/vite.config.js), and fast refresh in dev
-		plugins: [...(config.plugins ?? []), react()],
+		plugins: [jsxInComponentJs(), ...(config.plugins ?? []), react()],
+		optimizeDeps: { ...config.optimizeDeps, rolldownOptions: { ...config.optimizeDeps?.rolldownOptions, ...componentJsScan.rolldownOptions } },
 		resolve: {
 			...config.resolve,
 			alias: [
@@ -33,7 +35,8 @@ export default {
 				{ find: /^react\/(.*)$/, replacement: app('node_modules/react/$1') },
 				{ find: /^react-dom$/, replacement: app('node_modules/react-dom') },
 				{ find: /^react-dom\/(.*)$/, replacement: app('node_modules/react-dom/$1') },
-				{ find: /^react-router$/, replacement: app('node_modules/react-router') }
+				{ find: /^react-router$/, replacement: app('node_modules/react-router') },
+				{ find: /^motion\/react$/, replacement: app('node_modules/motion/react') }
 			]
 		},
 		// the dev server serves only files under its root unless told: react/ sits beside it

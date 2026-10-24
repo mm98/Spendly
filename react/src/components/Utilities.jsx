@@ -1,19 +1,6 @@
-import { createContext, useEffect } from 'react'
+import { useEffect } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-
-/** A duration token in milliseconds, whichever unit the stylesheet wrote it in: a build may write
-    180ms as .18s. */
-export function inMs(token, fallback) {
-	const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
-	const n = parseFloat(raw)
-	if (!Number.isFinite(n)) return fallback
-	return raw.endsWith('ms') ? n : raw.endsWith('s') ? n * 1000 : n
-}
-
-/** True inside a Leaving whose part is closing: the Dialog, Sheet, Popover and Scrim under it mark
-    themselves data-leaving="true" and take no more presses. Internal. */
-export const Leaves = createContext(false)
 
 /** @param {object} props
     @param {import('react').ReactNode} [props.children] The lines, one under the other. */
