@@ -8,3 +8,4 @@ ds-bundle/
 
 # the language model api/scripts/fetch-model.mjs keeps for category suggestions
 api/.models/
+.design-sync/.cache-*.log

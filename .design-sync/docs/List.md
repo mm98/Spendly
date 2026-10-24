@@ -1,7 +1,7 @@
 ---
 category: Lists
 ---
-A list of records drawn as a table: a summary line, a head row, one row per record from a template, and a foot that counts and loads more.
+A list of records drawn as a table: a summary line, a head row, one row per record from a template, and a foot that counts and loads more. With `body="cards"`, record cards as a grid instead, with a head above it and a footer under it, each at the grid's width.
 
 ## Props
 
@@ -19,6 +19,13 @@ A list of records drawn as a table: a summary line, a head row, one row per reco
 - `total` with `onLoadMore`: the server pages. `data` is what is loaded, `total` is how many there are, and Load more calls `onLoadMore`
 - `headless`: no head row; each cell then carries its column's width itself
 - `locale`: whose way of grouping thousands the counts use; the browser's when absent
+- `body`: `'table'` (default) or `'cards'`
+
+With `body="cards"`, `List` takes only these:
+
+- `head`: above the grid: a `ListToolbar loose`, or a `BulkBar loose` while cards are picked
+- `footer`: under the grid, usually a `ListMore loose`
+- `children`: `Record`s
 
 ## Parts
 
@@ -68,5 +75,14 @@ Slot parts render nothing on their own; `List` reads them. They go as direct chi
 			<ListCell cell="amount"><span className="sp-amount">{o.amount}</span></ListCell>
 		</>
 	)}</ListRow>
+</List>
+```
+
+```jsx
+<List body="cards"
+	head={<ListToolbar loose><strong className="sp-data">3 orders</strong></ListToolbar>}
+	footer={<ListMore loose shown={3} total={18} pageSize={3} onMore={loadNext} />}
+>
+	{orders.map(o => <Record key={o.ref} title={o.name} subtitle={o.ref} amount={o.amount} />)}
 </List>
 ```

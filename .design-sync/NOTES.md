@@ -38,10 +38,12 @@
 - `Calendar` shows only its frame with caller content: the month grid (`Month`) is internal to DatePickers.jsx and not exported.
 - `Selected` is not on the global (see above), so List's bulk-bar slot and PeriodPicker's comparison area are not shown.
 - A searchable Combobox does not show its search text at rest.
+- Combobox is one card (`cardMode: single`): its widest cell does not fit the grid.
 
 ## Re-sync risks
 
-- `dtsPropsFor` and `docs/*.md` are hand-written from the component source. A prop added, renamed or removed in `react/src/components` does not fail the build; it silently makes the `.d.ts` and the doc wrong. On every re-sync, diff `react/src/components` since the last sync and update both for each changed component.
+- `dtsPropsFor` comes from the components' JSDoc. A prop added, renamed or removed does not fail the build; it silently makes the `.d.ts` wrong. On every re-sync run `node .design-sync/tools/dts-from-jsdoc.mjs`, then `node .design-sync/tools/dts-merge.mjs`, and read its report: it adds new props and keeps the ones the JSDoc does not name (aria and pass-through props), so a removed prop is taken out by hand.
+- `docs/*.md` are hand-written from the component source. On every re-sync, diff `react/src/components` since the last sync and update the doc of each changed component.
 - `componentSrcMap` excludes parts by name. A new export in `react/src/components` becomes a new card automatically; decide whether it is a card or a part.
 - `entry/styles.js` mirrors the stylesheet imports in `react/src/main.jsx`. If main.jsx adds or reorders a stylesheet, change it here too.
 - Preview content with dates is fixed in 2026, but several components still read today (quick ranges, presets, the today mark), so those cards can drift with the calendar.

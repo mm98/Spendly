@@ -19,7 +19,7 @@ The foot of a list that grows by pages: "Showing 20 of 64", and Load more while 
 - Renders nothing while `total` is not more than `pageSize`.
 - Load more is gone once `shown` reaches `total`, never disabled.
 - After Load more, focus goes to the first record it brought.
-- `List` draws its own; use `ListMore` under `Records` or a set of `ListItem` cards.
+- `List` draws its own; use `ListMore` under `List body="cards"` or a set of `ListItem` cards.
 
 ## Example
 

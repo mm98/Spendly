@@ -1,7 +1,7 @@
 ---
 category: Forms
 ---
-The control for choosing one value from a list: a trigger that opens a panel of options. Never a native select, because an option can carry a status dot, a mark, a meta value and a check.
+The control for choosing one value from a list: a trigger that opens a panel of options. With `multiple`, a field of typed values shown as chips, each with its own remove button, and an input after them to add one more. Never a native select, because an option can carry a status dot, a mark, a meta value and a check.
 
 ## Props
 
@@ -15,6 +15,16 @@ The control for choosing one value from a list: a trigger that opens a panel of 
 - `placeholder`: in a searchable trigger
 - `noun`: plural name of the options, for the count read out as they narrow ("vendors")
 - `disabled`, `autoFocus`, `id`, `aria-label`
+
+With `multiple`:
+
+- `value`: the list of values (default `[]`); `onChange(values)` receives the whole new list
+- `placeholder`: in the add input ("Add…")
+- `marked`: one value drawn in green, as the name that matched
+- `trails`: maps a value to a mark drawn before its remove, e.g. a status dot
+- `end`: a button at the field's right end; the chips keep clear of it
+- `children`: `ComboboxOption`s offered in a panel as the reader types; with `onSearch(text)` to filter them and `noun` (plural) for the count read out
+- `danger`: marks the input invalid
 
 ## Parts
 
@@ -30,6 +40,7 @@ The control for choosing one value from a list: a trigger that opens a panel of 
 - `searchable` needs `onSearch`, and a query belongs only to a searchable one. Both are reported.
 - Picking an option applies it and closes the panel; focus stays on the trigger.
 - On touch the panel opens as a sheet from the bottom edge.
+- With `multiple`: only Enter or a new line ends a value, never a comma, since a name can hold one. Backspace in the empty input removes the last value. A pasted list adds one value per line. The same value is never added twice. An added chip grows in and a removed one shrinks out.
 
 ## Example
 
@@ -40,5 +51,11 @@ The control for choosing one value from a list: a trigger that opens a panel of 
 		<ComboboxOption selected={vendor === 'Indbo Møbler'} meta="7 orders" onSelect={() => setVendor('Indbo Møbler')}>Indbo Møbler</ComboboxOption>
 		<ComboboxOption selected={vendor === 'HAY'} meta="3 orders" onSelect={() => setVendor('HAY')}>HAY</ComboboxOption>
 	</Combobox>
+</Field>
+```
+
+```jsx
+<Field label="Other names for this vendor">
+	<Combobox multiple value={names} onChange={setNames} placeholder="Add…" />
 </Field>
 ```

@@ -15,7 +15,7 @@ What can be done to the records picked: the count, then the actions. It takes th
 ## Rules
 
 - Takes no `className` or `style`.
-- `List` draws its own bulk bar; use `BulkBar` over `Records` or a page's own set.
+- `List` draws its own bulk bar; use `BulkBar` over `List body="cards"` or a page's own set.
 
 ## Example
 
