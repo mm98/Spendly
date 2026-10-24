@@ -1,0 +1,105 @@
+import { Card, CardBody, CardHeader, Cards, Toolbar, ListFooter } from '../../react/src/components/Card.jsx'
+import { Well, Halves } from '../../react/src/components/Well.jsx'
+import { Button } from '../../react/src/components/Button.jsx'
+import { Pill } from '../../react/src/components/Pill.jsx'
+import { Mark } from '../../react/src/components/Mark.jsx'
+import { Segmented } from '../../react/src/components/Segmented.jsx'
+import { Icon } from '../../react/src/components/Icon.jsx'
+
+export default {
+	title: 'Layout/Card',
+	component: Card,
+	argTypes: {
+		variant: { control: 'inline-radio', options: ['default', 'flush', 'row', 'shell'] },
+		color: { control: 'inline-radio', options: ['default', 'warning', 'danger'] }
+	},
+	args: { children: [<span key="t" className="sp-title">A card</span>, <span key="s" className="sp-subtitle">Its second line.</span>] }
+}
+
+export const Plain = {}
+export const Warning = { args: { color: 'warning', children: [<span key="t" className="sp-title">Warning</span>, <span key="s" className="sp-subtitle">Something to deal with.</span>] } }
+export const Danger = { args: { color: 'danger', children: [<span key="t" className="sp-title">Danger</span>, <span key="s" className="sp-subtitle">Something that failed.</span>] } }
+
+export const Heads = {
+	render: () => (
+		<Cards>
+			<Card><CardHeader name="Needs a look" /><span className="sp-data">2 categories over their limit</span></Card>
+			<Card><CardHeader name="Drafts" meta="newest 3" actions={[{ label: 'All 5', to: '/orders' }]} /><span className="sp-data">Indbo Møbler · 19/08</span></Card>
+			<Card><CardHeader name="Top vendors" aside="August · top 8 of 10" /><span className="sp-data">Indbo Møbler · 24.310 kr.</span></Card>
+			<Card><CardHeader name="Items · 2" aside="1 line needs attention" asideTone="danger" /><span className="sp-data">Lounge chair · 2 × 4.129,00</span></Card>
+			<Card><CardHeader name="Spend by month" control={<Segmented name="head" options={[{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }]} defaultValue="s" />} /><span className="sp-data">Jan to Aug</span></Card>
+			<Card><CardHeader name="Spend, August" status={<Pill color="danger">2.100 over</Pill>} /><span className="sp-stat__figure">24.100 kr.</span></Card>
+			<Card><CardHeader name="August 2026" onDismiss={() => {}} dismissLabel="Hide the August summary" /><span className="sp-data">61.480 kr. across 18 orders</span></Card>
+		</Cards>
+	)
+}
+
+export const Footers = {
+	render: () => (
+		<Cards>
+			<Card footer={<Button>Save</Button>}>
+				<span className="sp-title">One action</span>
+				<span className="sp-subtitle">It fills the footer.</span>
+			</Card>
+			<Card footerLayout="split" footerCommits footer={[<Button key="a" variant="text">Cancel</Button>, <Button key="b">Save</Button>]}>
+				<span className="sp-title">A pair</span>
+				<span className="sp-subtitle">Equal halves, both at the committing size.</span>
+			</Card>
+			<Card variant="flush">
+				<CardBody>
+					<span className="sp-title">Flush</span>
+					<span className="sp-subtitle">No gap and no padding of its own.</span>
+				</CardBody>
+			</Card>
+		</Cards>
+	)
+}
+
+export const ShellAndLink = {
+	render: () => (
+		<Cards>
+			<Card variant="shell">
+				<span className="sp-section-label">August</span>
+				<span className="sp-stat__figure">61.480,00 kr.</span>
+				<span className="sp-meta">Across 18 orders</span>
+			</Card>
+			<Card chevron={<Icon name="chevron-right" />} to="/orders">
+				<span className="sp-title">A card that opens</span>
+				<span className="sp-subtitle">The whole card is the link.</span>
+			</Card>
+			<Card variant="row">
+				<Mark size="medium" fill="solid">Indbo Møbler</Mark>
+				<div className="sp-stack">
+					<span className="sp-title">Row</span>
+					<span className="sp-subtitle">The card lays its children in a line.</span>
+				</div>
+			</Card>
+		</Cards>
+	)
+}
+
+export const Wells = {
+	render: () => (
+		<Cards>
+			<Card><Well><span className="sp-title">Default</span><span className="sp-subtitle">Its own thing inside the card.</span></Well></Card>
+			<Card><Well variant="quiet"><span className="sp-data">18 records</span><span className="sp-subtitle">Tighter, for a pair of lines.</span></Well></Card>
+			<Card><Well color="danger"><span className="sp-title">Danger</span><span className="sp-subtitle">What went wrong.</span></Well></Card>
+			<Card>
+				<Halves>
+					<Well variant="quiet"><span className="sp-meta">Budget</span><span className="sp-data">40.000 kr.</span></Well>
+					<Well variant="quiet"><span className="sp-meta">Spent</span><span className="sp-data">31.250 kr.</span></Well>
+				</Halves>
+			</Card>
+		</Cards>
+	)
+}
+
+export const ToolbarAndFooter = {
+	render: () => (
+		<Card variant="flush">
+			<Toolbar><span className="sp-section-label">Recent orders</span></Toolbar>
+			<CardBody><span className="sp-data">Indbo Møbler · 4.129,00 kr.</span></CardBody>
+			<ListFooter><span className="sp-meta">Showing 1 of 18</span></ListFooter>
+		</Card>
+	)
+}
