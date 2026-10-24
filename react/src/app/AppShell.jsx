@@ -129,7 +129,7 @@ export function AppShell() {
 	if (layout === 'rail' && shape !== 'wide') body = 'default'
 	else if (layout === 'dock') body = touch ? 'default' : 'fill'
 	const content = (
-		<ShellContent layout={body} page={pathname}>
+		<ShellContent layout={body}>
 			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : <ConfirmBanner />}
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>

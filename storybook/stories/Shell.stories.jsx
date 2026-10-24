@@ -57,7 +57,7 @@ export const SidebarAndTopBar = {
 				<TopBar>
 					<SearchInput value={search} onChange={setSearch} placeholder="Search orders, vendors, items…" aria-label="Search" kbd={<Kbd>Ctrl K</Kbd>} />
 				</TopBar>
-				<ShellContent page={here}>
+				<ShellContent>
 					<Cards>
 						<Card><span className="sp-section-label">August</span><span className="sp-stat__figure">61.480,00 kr.</span></Card>
 						<Card><span className="sp-section-label">July</span><span className="sp-stat__figure">54.120,00 kr.</span></Card>

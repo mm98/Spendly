@@ -6133,7 +6133,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    CSS keeps what moves the same in every browser: hover and colour, check boxes and radios,
    the chevrons' turn, submenus, the tab bar's colour, gauges and bars, and the calendar's month
    slide. Motion (react/src/components/motion.js) runs the rest at the same tokens: parts leaving
-   the page, a marker or a row moving to a new place, height folds, reordering and page changes.
+   the page, a marker or a row moving to a new place, height folds and reordering.
    What it needs from the stylesheet is below; nothing here changes a component at rest.
 
    A panel that stays mounted and is shown by its host's data-open (the combobox panel, a menu let

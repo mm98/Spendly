@@ -78,14 +78,12 @@ const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__b
 
 /** @param {object} props
     @param {keyof typeof BODY} [props.layout] `default`; `rail` puts a filter rail before the content; `split` puts a panel after it; `fill` fills the height.
-    @param {string} [props.page] Which page this is, such as its path: a new value runs the page change.
-    @param {import('react').ReactNode} [props.children] The page. */
-export function ShellContent({ layout = 'default', page, children, ...rest }) {
+    @param {import('react').ReactNode} [props.children] The page. A page switch replaces it at once:
+    the body stays mounted, nothing fades or rises, and only the sidebar's marker moves. */
+export function ShellContent({ layout = 'default', children, ...rest }) {
 	reject(rest, 'ShellContent')
 	const classes = join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))
-	if (page === undefined) return <main className={classes} {...rest}>{children}</main>
-	// a new page fades in and rises into place; the one it replaces goes at once, so nothing waits on it
-	return <m.main key={page} className={classes} {...PRESENCE.page()} {...rest}>{children}</m.main>
+	return <main className={classes} {...rest}>{children}</main>
 }
 
 const SIDEBAR = {
