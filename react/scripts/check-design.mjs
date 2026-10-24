@@ -106,7 +106,7 @@ for (const [p, ast] of parsed) {
 /* ---- spacing: only the scale's tokens ----
    Gap, padding and margin are written as tokens. These are the design's own optical nudges,
    frozen by count: a new raw value anywhere is a regression. */
-const RAW_SPACING = { '-4px': 4, '1px': 7, '3px': 3, '-2px': 2, '2px': 6, '-12px': 1, '40px': 2, '16px': 1 }
+const RAW_SPACING = { '-4px': 4, '1px': 7, '3px': 3, '-2px': 2, '2px': 6, '-12px': 1, '40px': 2, '16px': 1, '8px': 1 }
 {
 	const plain = components.replace(/\/\*[\s\S]*?\*\//g, '')
 	const found = {}

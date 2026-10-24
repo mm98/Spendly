@@ -60,17 +60,13 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## For Claude Design: touch rules found in an iPhone run
+## For Claude Design: a long conversation's bar is wider than 8px in Chrome
 
-- **Where:** `react/src/styles/app.css`, the three rules at the end of the file, from "on touch a
-  facet group's whole head" to "a facet switch's options". Found 23 Oct 2026, iPhone 15 in WebKit.
-- **What the reader saw:**
-  - In Filters, a group heading looked 48px tall, but only its 18px line of text opened or closed it.
-  - On Budget, an amount beside a long row name broke into three lines: "400.", "00", "kr.".
-  - On Check a bank statement, "Other amount" was cut off in the four-way switch on a phone.
-- **To take into `design/`:**
-  - On touch, `.sp-field-group__fold` stretches to the head's height, and its press area takes in
-    the legend's padding under it.
-  - A `.sp-sum__value` beside a label does not shrink, up to 60% of the row; the label wraps.
-  - `.sp-segmented--facet` columns are `minmax(max-content, 1fr)`.
-  Then the app's rules and this entry go.
+- **Where:** Ask, a conversation longer than the page, on a computer.
+- **What the reader sees:** in Chrome and Edge the thread was 2px narrower than the field under it.
+- **Found:** `scrollbar-width: thin` draws a 10px bar in Blink, and Blink then ignores the 8px
+  `::-webkit-scrollbar`. The inset beside the bar counts on 8px. Firefox draws thin at 8px.
+- **The rule `app.css` adds:** where `::-webkit-scrollbar` is supported, `.sp-shell__body .sp-chat__scroll`
+  takes `scrollbar-width: auto; scrollbar-color: auto`, so Blink and Safari draw the 8px bar the
+  stylesheet already gives. Remove it from the end of `react/src/styles/app.css` once `design/` has it.
+- **Found:** 2026-10-24.

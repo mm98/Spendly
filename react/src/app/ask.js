@@ -2,8 +2,8 @@ import { useSyncExternalStore } from 'react'
 import { askQuestion, getAskFileStates, getChat } from '../api/client.js'
 
 /* The chats opened in this visit (24a, 24f), so an answer still coming when the page is left lands in its chat.
-   A turn is { id, question, answer, made, state, doing }; `made` holds what the answer made by maker and id
-   (file, chart), and `doing` says what is being made.
+   A turn is { id, question, answer, made, state, doing, askedAt, answeredAt }; `made` holds what the answer made
+   by maker and id (file, chart), `doing` says what is being made, and the two times are epoch seconds or null.
    A chat the server has not named yet is the draft, shown at /ask. */
 
 let owner = null
@@ -113,6 +113,8 @@ export function forgetChat(id) {
 	emit()
 }
 
+const nowSeconds = () => Math.floor(Date.now() / 1000)
+
 function send(body, key) {
 	const controller = new AbortController()
 	const run = { controller, chatId: body.chatId, key }
@@ -132,14 +134,15 @@ function send(body, key) {
 		patch(run.chatId, run.key, { id: step.turn })
 		run.key = step.turn
 	}).then(
-		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, made: out.made ?? {}, doing: null }),
+		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, made: out.made ?? {}, doing: null, answeredAt: nowSeconds() }),
 		error => {
 			if (error.status === 404 && error.body?.gone) {
 				chats.set(run.chatId, { id: run.chatId, status: 'gone', turns: [] })
 				return emit()
 			}
 			// a stopped question keeps its place without an answer, and so does one the day's limit refused
-			patch(run.chatId, run.key, { state: controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed', doing: null })
+			const state = controller.signal.aborted || error.status === 429 ? 'stopped' : 'failed'
+			patch(run.chatId, run.key, { state, doing: null, answeredAt: state === 'failed' ? nowSeconds() : null })
 		}
 	).finally(() => {
 		if (asking !== run) return
@@ -152,7 +155,7 @@ function send(body, key) {
 export function ask(question) {
 	if (asking || !question.trim()) return
 	const key = nextKey--
-	const turn = { id: key, question: question.trim(), state: 'working' }
+	const turn = { id: key, question: question.trim(), state: 'working', askedAt: nowSeconds() }
 	edit(shownId, turns => [...turns, turn])
 	send({ chatId: shownId, question: turn.question }, key)
 }
@@ -173,7 +176,7 @@ export const useAsking = () => useSyncExternalStore(subscribe, () => !!asking)
 /** Asks a failed turn's question again, in its own place. */
 export function askAgain(id) {
 	if (asking || !shownId) return
-	patch(shownId, id, { state: 'working', doing: null })
+	patch(shownId, id, { state: 'working', doing: null, answeredAt: null })
 	send({ chatId: shownId, retry: id }, id)
 }
 
