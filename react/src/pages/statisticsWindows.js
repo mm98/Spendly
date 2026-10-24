@@ -194,7 +194,8 @@ export function chartOf(view) {
 		const week = isoWeekOf(at).week
 		const running = view.todayIndex != null && view.todayIndex >= start && view.todayIndex < end
 		return {
-			key: from,
+			// by position, so a bar moves to its new height when the period changes
+			key: `${unit} ${i}`,
 			from,
 			to,
 			// more than a week of days is named by date: thirty weekday names do not fit their columns
