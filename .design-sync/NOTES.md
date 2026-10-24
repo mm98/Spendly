@@ -16,6 +16,7 @@
 - Playwright: `.ds-sync` needs `playwright@1.63.0` (matches chromium-1243 in `/opt/pw-browsers`); run with `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`. `@types/react` lives in `.ds-sync/node_modules`, not `react/node_modules`; the `[DTS_REACT]` warning is harmless here because no `.d.ts` is read.
 - Build: `node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules react/node_modules --out ./ds-bundle`
 - `react/src/components/motion.js` holds JSX in a `.js` file, which the converter's bundler refuses. `buildCmd` (`node .design-sync/tools/motion-for-bundle.mjs`) writes a JSX-free copy to `.design-sync/.cache/motion.js`, and `.design-sync/bundle-tsconfig.json` maps `./motion.js` to that copy. Never fork `lib/bundle.mjs` for this.
+- `resync.mjs` does not run `buildCmd`. Run `node .design-sync/tools/motion-for-bundle.mjs` before the driver, or the build stops at `../.cache/motion.js`.
 
 ## Preview authoring
 
