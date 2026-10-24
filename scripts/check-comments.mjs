@@ -39,8 +39,8 @@ let failures = 0;
 // Net growth per file, comments against code: a rewrite that replaces prose with prose nets
 // nothing and is judged only on length, below.
 const growth = new Map();
-let inAddedBlock = false;
-let inRemovedBlock = false;
+let added = { inBlock: false, typed: false };
+let removed = { inBlock: false, typed: false };
 
 // byte copies of design/styles: their prose is the design's, and design:check holds them equal
 const DESIGN_COPIES = ["react/src/styles/components.css", "react/src/styles/tokens.css"];
@@ -50,16 +50,18 @@ function isSourceFile(path) {
 }
 
 // Whether a line opens, continues or closes a block comment, carried across lines because a
-// block comment's inner lines have no marker of their own.
-function classify(text, inBlock) {
+// block comment's inner lines have no marker of their own. A JSDoc tag and the rest of its block
+// are a type declaration, not prose: `typed`, and counted as code.
+function classify(text, { inBlock, typed }) {
 	const trimmed = text.trim();
-	if (!trimmed) return { comment: inBlock, inBlock, blank: true };
+	if (!trimmed) return { comment: inBlock && !typed, inBlock, typed, blank: true };
 	const opens = trimmed.startsWith("/*");
 	const comment = inBlock || opens || trimmed.startsWith("//");
+	const tagged = (inBlock || opens) && (typed || /^(\/\*\*|\*)?\s*@(param|typedef|type)\b/.test(trimmed));
 	let next = inBlock;
 	if (opens && !trimmed.includes("*/")) next = true;
 	else if (inBlock && trimmed.includes("*/")) next = false;
-	return { comment, inBlock: next, blank: false };
+	return { comment: comment && !tagged, inBlock: next, typed: next && tagged, blank: false };
 }
 
 function tally(side, comment) {
@@ -78,7 +80,7 @@ function checkRun(removedBudget) {
 	// a skipped file's lines are dropped here, or the next file would be judged on them
 	if (!file || !isSourceFile(file) || run.length === 0) { run = []; return; }
 	const limit = Math.max(MAX_NEW_COMMENT_LINES, removedBudget);
-	let inBlock = false;
+	let state = { inBlock: false, typed: false };
 	let commentStart = null;
 	let commentLines = [];
 
@@ -99,8 +101,8 @@ function checkRun(removedBudget) {
 
 	for (const { lineNo, text } of run) {
 		const trimmed = text.trim();
-		const { comment, inBlock: next } = classify(text, inBlock);
-		inBlock = next;
+		const { comment, ...next } = classify(text, state);
+		state = next;
 		if (comment && trimmed) {
 			if (commentLines.length === 0) commentStart = lineNo;
 			commentLines.push(trimmed);
@@ -116,7 +118,8 @@ for (const raw of diff.split("\n")) {
 	if (raw.startsWith("+++ b/")) {
 		checkRun(hunkCommentsRemoved);
 		file = raw.slice(6);
-		inAddedBlock = inRemovedBlock = false;
+		added = { inBlock: false, typed: false };
+		removed = { inBlock: false, typed: false };
 		continue;
 	}
 	if (raw.startsWith("@@")) {
@@ -124,20 +127,21 @@ for (const raw of diff.split("\n")) {
 		const m = raw.match(/\+(\d+)/);
 		newLine = m ? Number(m[1]) : 0;
 		hunkCommentsRemoved = 0;
-		inAddedBlock = inRemovedBlock = false;
+		added = { inBlock: false, typed: false };
+		removed = { inBlock: false, typed: false };
 		continue;
 	}
 	if (raw.startsWith("+") && !raw.startsWith("+++")) {
-		const { comment, inBlock, blank } = classify(raw.slice(1), inAddedBlock);
-		inAddedBlock = inBlock;
+		const { comment, blank, ...next } = classify(raw.slice(1), added);
+		added = next;
 		if (!blank) tally("+", comment);
 		run.push({ lineNo: newLine, text: raw.slice(1) });
 		newLine++;
 		continue;
 	}
 	if (raw.startsWith("-") && !raw.startsWith("---")) {
-		const { comment, inBlock, blank } = classify(raw.slice(1), inRemovedBlock);
-		inRemovedBlock = inBlock;
+		const { comment, blank, ...next } = classify(raw.slice(1), removed);
+		removed = next;
 		if (!blank) tally("-", comment);
 		if (comment && !blank) hunkCommentsRemoved++;
 		continue;
