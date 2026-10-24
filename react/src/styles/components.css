@@ -5136,17 +5136,36 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover__list,
 .sp-palette__body,
 .sp-chat__scroll,
+.sp-combobox__panel,
+.sp-field-group__values,
+.sp-chat__start,
+.sp-chat__help,
+.sp-chat__field,
+.sp-chat__figures,
 .sp-calendar--sheet { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .sp-menu--scrolls::-webkit-scrollbar,
 .sp-popover__list::-webkit-scrollbar,
 .sp-palette__body::-webkit-scrollbar,
 .sp-chat__scroll::-webkit-scrollbar,
+.sp-combobox__panel::-webkit-scrollbar,
+.sp-field-group__values::-webkit-scrollbar,
+.sp-chat__start::-webkit-scrollbar,
+.sp-chat__help::-webkit-scrollbar,
+.sp-chat__field::-webkit-scrollbar,
+.sp-chat__figures::-webkit-scrollbar,
 .sp-calendar--sheet::-webkit-scrollbar { width: 8px; }
+.sp-chat__figures::-webkit-scrollbar { height: 8px; }
 .sp-chat__scroll::-webkit-scrollbar-track { background: none; }
 .sp-menu--scrolls::-webkit-scrollbar-thumb,
 .sp-popover__list::-webkit-scrollbar-thumb,
 .sp-palette__body::-webkit-scrollbar-thumb,
 .sp-chat__scroll::-webkit-scrollbar-thumb,
+.sp-combobox__panel::-webkit-scrollbar-thumb,
+.sp-field-group__values::-webkit-scrollbar-thumb,
+.sp-chat__start::-webkit-scrollbar-thumb,
+.sp-chat__help::-webkit-scrollbar-thumb,
+.sp-chat__field::-webkit-scrollbar-thumb,
+.sp-chat__figures::-webkit-scrollbar-thumb,
 .sp-calendar--sheet::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
   border: 2px solid transparent;

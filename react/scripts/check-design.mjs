@@ -1388,6 +1388,7 @@ const DESIGN_RULES = {
 	'an answer is one text size': COPY,
 	'a conversation is the body size': COPY,
 	'a wide answer table scrolls in its frame': COPY,
+	'every scrolling region shows the shared bar': COPY,
 	'the tab bar fits the screen': COPY,
 	'the theme is set in Settings only': 'the theme is set in Settings only',
 	'nothing but search in the top bar': NOT_CHECKED,
