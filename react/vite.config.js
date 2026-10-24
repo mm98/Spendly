@@ -30,12 +30,16 @@ export const jsxInComponentJs = () => ({
 	}
 })
 
+// the scan for packages to bundle ahead does not run plugins: it reads the same files as markup
+export const componentJsScan = { rolldownOptions: { moduleTypes: { '.js': 'jsx' } } }
+
 // /.well-known/change-password is answered by the API, as it is when the API serves the build
 const api = { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true }
 
 export default defineConfig({
 	base: './',
 	plugins: [jsxInComponentJs(), react(), stripHtmlComments()],
+	optimizeDeps: componentJsScan,
 	// the commit this bundle was built from (the Dockerfile passes GIT_SHA);
 	// null anywhere else, which the update notice reads as "nothing to be out of date with"
 	define: { __BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null) },
