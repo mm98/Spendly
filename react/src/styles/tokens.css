@@ -110,6 +110,7 @@
   /* ---- control sizes ---- */
   --control-h: 42px;       /* every field and button on desktop */
   --control-h-touch: 48px; /* the same on mobile */
+  --chip-h-touch: 36px;    /* a suggestion chip under a field on touch (c6), drawn smaller than the touch height it is tapped in */
   --btn-h-small: 34px;     /* the small button (c6), and xsmall on touch; a card's head link and the add row take it */
   --row-h: 32px;           /* an option in a pickable list on desktop (c5): scanned and picked, not typed in */
   --row-h-touch: 44px;     /* the same on mobile, a finger's minimum; rows touch, each is still its own target */

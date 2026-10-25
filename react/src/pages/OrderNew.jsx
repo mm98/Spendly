@@ -516,6 +516,8 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 function Start({ scanOnly, file, from, picking }) {
 	const navigate = useNavigate()
 	const counts = useApi(getCounts)
+	// a phone cannot drop a file: its zone is a tap that opens the picker (3a, step 1 · phone)
+	const touch = useShellShape() === 'touch'
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)
@@ -571,13 +573,13 @@ function Start({ scanOnly, file, from, picking }) {
 			<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
 			<EmptyBody>
 				{reads
-					? 'Drop a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.'
-					: 'Drop a PDF or a photo and it is attached to a new order. You type in the details.'}
+					? `${touch ? 'Add' : 'Drop'} a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.`
+					: `${touch ? 'Add' : 'Drop'} a PDF or a photo and it is attached to a new order. You type in the details.`}
 			</EmptyBody>
 			<div className="oc-narrow">
-				<FileDrop accept={FILE_TYPES} onFiles={send} action="Select a receipt">
+				<FileDrop accept={FILE_TYPES} onFiles={send} action={touch ? undefined : 'Select a receipt'}>
 					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
-					<span className="sp-title">Drop receipt here</span>
+					<span className="sp-title">{touch ? 'Add a receipt' : 'Drop receipt here'}</span>
 					<span className="sp-meta">PDF, JPG, PNG, WebP or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
 				</FileDrop>
 				{refused ? <div className="oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
@@ -586,7 +588,7 @@ function Start({ scanOnly, file, from, picking }) {
 					: (
 						<>
 							<div className="sp-divider">or</div>
-							<div className="oc-choices">
+							<div className={touch ? 'oc-choices oc-choices--stack' : 'oc-choices'}>
 								<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
 								{copyable
 									? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />

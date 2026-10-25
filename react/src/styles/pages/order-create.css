@@ -11,7 +11,8 @@
 		gap: var(--sp-12);
 		text-align: left;
 	}
-	.sp-touch .oc-choices { grid-template-columns: minmax(0, 1fr); }
+	/* on a phone the ways to start stack, one card a row */
+	.oc-choices--stack { grid-template-columns: minmax(0, 1fr); }
 	/* a notice under the drop zone reads from its left edge, not centred like the zone */
 	.oc-left { text-align: left; }
 
