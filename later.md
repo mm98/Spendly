@@ -4,6 +4,18 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## The design does not say yet that the arrow keys page Statistics
+
+- **Where:** `design/Order statistics.dc.html`, the period control; the app's `react/src/pages/Statistics.jsx`.
+- **What the reader sees:** on Statistics the left and right arrow keys step to the previous or next
+  period, the same way they step the months on Budget. They do nothing while a field or a list has
+  the focus, while a modifier key is held, on a custom range, or past the newest period.
+- **What was found:** Budget's design says this for its months; the Statistics design does not
+  mention the keyboard for periods. The behaviour was added because the user asked for it.
+- **Proposed shape:** Claude Design adds the same sentence to the Statistics period control, and
+  this entry goes.
+- **Found:** 2026-10-25.
+
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.

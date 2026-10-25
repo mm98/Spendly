@@ -120,7 +120,8 @@ Everything that needs you, on one page.
 ![Statistics for the month, by day and by category](docs/statistics.png)
 
 - **Periods** - 30 days, week, month, quarter, year or your own dates, with shortcuts for this
-  month, last month, year to date and all time.
+  month, last month, year to date and all time. Step to the previous or next period with the arrows
+  beside its name, or with the left and right arrow keys.
 - **Count** expenses only, refunds only, or net of refunds, and compare with the same period a year earlier.
   A returned order and an order of the kind Sold are money back; every other order is money paid.
 - **Figures** - total spend, orders, median order and saved, each with its change.
