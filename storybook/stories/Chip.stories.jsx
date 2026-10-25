@@ -14,7 +14,18 @@ export default {
 export const Outline = {}
 export const Solid = { args: { variant: 'solid' } }
 export const Dashed = { args: { variant: 'dashed', children: 'No category' } }
-export const Danger = { args: { color: 'danger', children: 'Over the limit' } }
+export const Suggestion = {
+	args: { variant: 'suggestion', children: '+ Lighting', onClick: fn(), touch: true },
+	argTypes: { touch: { control: 'boolean', description: 'Drawn as on a phone (the shell\'s `sp-touch`)' } },
+	render: ({ touch, ...args }) => <div className={touch ? 'sp-touch' : undefined}><Chip {...args} /></div>,
+	play: async ({ args, canvas }) => {
+		const chip = canvas.getByRole('button', { name: '+ Lighting' })
+		await expect(chip.getBoundingClientRect().height).toBe(36)
+		await userEvent.click(chip)
+		await expect(args.onClick).toHaveBeenCalledOnce()
+	}
+}
+export const Danger ={ args: { color: 'danger', children: 'Over the limit' } }
 export const Clickable = {
 	args: { onClick: fn() },
 	play: async ({ args, canvas }) => {

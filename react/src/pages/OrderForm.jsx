@@ -181,8 +181,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const [lines, setLines] = useState(back?.lines ?? mine?.lines ?? seed.lines)
 	const [editing, setEditing] = useState(() => {
 		if (back) return back.editing
-		// a copy is nearly always changed in its first line, so that line opens ready to type in
-		if (creating && origin.copy && !origin.draftId && seed.lines.length) return { key: seed.lines[0].key, isNew: false, values: { ...seed.lines[0] } }
+		// a copy is nearly always changed in its first line, so that line opens ready to type in; on a
+		// phone that editor would cover the copy, which opens with no line open (3b, what you land on · phone)
+		if (creating && origin.copy && !origin.draftId && seed.lines.length && !touch) return { key: seed.lines[0].key, isNew: false, values: { ...seed.lines[0] } }
 		return creating && !seed.lines.length && !scan ? newEditing() : null
 	})
 	// the vendor is the first field, unless a line opened with the form and holds the cursor
@@ -562,7 +563,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<div className="sp-row-flex sp-wrap sp-gap-6">
 							<span className="sp-meta">Suggested from the items</span>
 							{suggestions.map(sg => (
-								<Chip key={sg.name} variant="dashed" onClick={() => takeSuggestion(sg)}>{sg.isNew ? `+ New: ${sg.name}` : `+ ${sg.name}`}</Chip>
+								<Chip key={sg.name} variant="suggestion" onClick={() => takeSuggestion(sg)}>{sg.isNew ? `+ New: ${sg.name}` : `+ ${sg.name}`}</Chip>
 							))}
 						</div>
 					)

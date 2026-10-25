@@ -201,6 +201,7 @@ function DiscardScan({ file, onKeep, onDiscard }) {
 export function Reading({ file, documentKey, onCancel, onDiscard }) {
 	const [asking, setAsking] = useState(false)
 	const scan = Boolean(onDiscard)
+	const touch = useShellShape() === 'touch'
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [progress, setProgress] = useState(null)
 	useEffect(() => (documentKey ? watchScanProgress(documentKey, setProgress) : undefined), [documentKey])
@@ -224,41 +225,69 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 			<span className="sp-data">{text}</span>
 		</div>
 	)
+	const name = file.name
+		? (
+			<div className="sp-row-flex sp-gap-12">
+				<span className="sp-title sp-truncate">{file.name}</span>
+				{meta ? <span className="sp-meta sp-nowrap">{meta}</span> : null}
+			</div>
+		)
+		: null
+	const steps = (
+		<>
+			<Gauge value={value} aria-label={sending ? 'Sending the receipt' : 'Reading the receipt'} />
+			<div className="sp-stack sp-gap-8">
+				{found ? done('Vendor and date found') : null}
+				{lines ? done(lines === 1 ? '1 line found' : `${lines} lines found`) : null}
+				<div className="sp-row-flex sp-gap-8">
+					<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
+					<strong className="sp-data">{doing}</strong>
+				</div>
+				{reads && file.key
+					? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
+					: null}
+			</div>
+		</>
+	)
+	const leave = scan
+		? <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => setAsking(true)}>Discard</Button>
+		: <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={onCancel}>Cancel</Button>
 	return (
 		<div className="oc-narrow">
 			<Card aria-busy="true">
-				<div className="oc-row-top">
-					<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
-						{thumb ? <img src={thumb} alt="" /> : kindWord(file)}
-					</div>
-					<div className="oc-read">
-						{file.name
-							? (
-								<div className="sp-row-flex sp-gap-12">
-									<span className="sp-title sp-truncate">{file.name}</span>
-									{meta ? <span className="sp-meta sp-nowrap">{meta}</span> : null}
-								</div>
-							)
-							: null}
-						<Gauge value={value} aria-label={sending ? 'Sending the receipt' : 'Reading the receipt'} />
-						<div className="sp-stack sp-gap-8">
-							{found ? done('Vendor and date found') : null}
-							{lines ? done(lines === 1 ? '1 line found' : `${lines} lines found`) : null}
-							<div className="sp-row-flex sp-gap-8">
-								<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
-								<strong className="sp-data">{doing}</strong>
+				{touch
+					? (
+						// on a phone the receipt is a mark beside its name, so the steps get the card's width (3a, step 2 · phone)
+						<div className="sp-stack sp-gap-12">
+							<div className="sp-row-flex sp-gap-12">
+								<Mark size="large" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label={file.name ?? 'The receipt'}>
+									{thumb ? <img src={thumb} alt="" /> : <span>{kindWord(file)}</span>}
+								</Mark>
+								{file.name
+									? (
+										<span className="sp-stacked sp-grow">
+											<span className="sp-title sp-truncate">{file.name}</span>
+											{meta ? <span className="sp-meta">{meta}</span> : null}
+										</span>
+									)
+									: null}
 							</div>
-							{reads && file.key
-								? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
-								: null}
+							{steps}
+							{leave}
 						</div>
-						<div className="oc-read__foot">
-							{scan
-								? <Button variant="outline" size="small" onClick={() => setAsking(true)}>Discard</Button>
-								: <Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>}
+					)
+					: (
+						<div className="oc-row-top">
+							<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
+								{thumb ? <img src={thumb} alt="" /> : kindWord(file)}
+							</div>
+							<div className="oc-read">
+								{name}
+								{steps}
+								<div className="oc-read__foot">{leave}</div>
+							</div>
 						</div>
-					</div>
-				</div>
+					)}
 			</Card>
 			{slow
 				? (
@@ -487,6 +516,8 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 function Start({ scanOnly, file, from, picking }) {
 	const navigate = useNavigate()
 	const counts = useApi(getCounts)
+	// a phone cannot drop a file: its zone is a tap that opens the picker (3a, step 1 · phone)
+	const touch = useShellShape() === 'touch'
 	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)
@@ -542,13 +573,13 @@ function Start({ scanOnly, file, from, picking }) {
 			<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
 			<EmptyBody>
 				{reads
-					? 'Drop a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.'
-					: 'Drop a PDF or a photo and it is attached to a new order. You type in the details.'}
+					? `${touch ? 'Add' : 'Drop'} a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.`
+					: `${touch ? 'Add' : 'Drop'} a PDF or a photo and it is attached to a new order. You type in the details.`}
 			</EmptyBody>
 			<div className="oc-narrow">
-				<FileDrop accept={FILE_TYPES} onFiles={send} action="Select a receipt">
+				<FileDrop accept={FILE_TYPES} onFiles={send} action={touch ? undefined : 'Select a receipt'}>
 					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
-					<span className="sp-title">Drop receipt here</span>
+					<span className="sp-title">{touch ? 'Add a receipt' : 'Drop receipt here'}</span>
 					<span className="sp-meta">PDF, JPG, PNG, WebP or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
 				</FileDrop>
 				{refused ? <div className="oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
@@ -557,7 +588,7 @@ function Start({ scanOnly, file, from, picking }) {
 					: (
 						<>
 							<div className="sp-divider">or</div>
-							<div className="oc-choices">
+							<div className={touch ? 'oc-choices oc-choices--stack' : 'oc-choices'}>
 								<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
 								{copyable
 									? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />

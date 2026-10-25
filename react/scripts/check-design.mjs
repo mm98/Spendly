@@ -568,6 +568,13 @@ for (const [p, ast] of parsed) {
 					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(attr(n, 'aria-label')) ?? '(not a word)'}"`)
 			}
 
+			// a chip that adds a value under a field ("+ Lighting") is the suggestion chip, smaller on touch
+			if (tag === 'Chip' && n.closingElement) {
+				const inner = text.slice(n.openingElement.end, n.closingElement.start).trim()
+				if (/(^|[`'"])\+ /.test(inner) && literal(attr(n, 'variant')) !== 'suggestion')
+					fail('a suggestion chip is sp-chip--suggestion', lineOf(n), `<Chip variant="${literal(attr(n, 'variant')) ?? 'outline'}"> adds a value`)
+			}
+
 			// the shortcut badge is the top bar's search only
 			if ((tag === 'Controls' || /\bsp-controls\b/.test(classOf(n)))) visit(n.children, k => {
 				if (k.type === 'JSXElement' && (attr(k, 'kbd') || tagOf(k) === 'Kbd' || tagOf(k) === 'kbd'))
@@ -1412,6 +1419,7 @@ const DESIGN_RULES = {
 	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,
 	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
+	'a suggestion chip is sp-chip--suggestion': 'a suggestion chip is sp-chip--suggestion',
 	'balanced markup': DESIGN,
 	'no inline styles': 'no inline style in a page',
 	'unique ids': 'unique ids',
