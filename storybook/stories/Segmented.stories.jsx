@@ -28,6 +28,15 @@ export const Three = {
 	args: { name: 'view', value: 'list', options: THREE },
 	argTypes: { value: { control: 'inline-radio', options: THREE.map(o => o.value) } }
 }
+export const Small = {
+	args: { ...TwoOptions.args, name: 'small', size: 'small' },
+	argTypes: TwoOptions.argTypes,
+	play: async ({ canvas }) => {
+		const group = canvas.getByRole('radio', { name: 'Total' }).closest('.sp-segmented')
+		const small = getComputedStyle(document.documentElement).getPropertyValue('--btn-h-small').trim()
+		await expect(`${group.getBoundingClientRect().height}px`).toBe(small)
+	}
+}
 export const Fill = { ...Three, args: { ...Three.args, name: 'fill', variant: 'fill' } }
 export const Months = {
 	args: { name: 'month', value: 'Aug', fixed: true, options: MONTHS.map(m => ({ value: m, label: m })) },

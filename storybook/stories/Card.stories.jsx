@@ -64,7 +64,7 @@ export const Heads = {
 			<Card><CardHeader name="Drafts" meta="newest 3" actions={[{ label: 'All 5', to: '/orders' }]} /><span className="sp-data">Indbo Møbler · 19/08</span></Card>
 			<Card><CardHeader name="Top vendors" aside="August · top 8 of 10" /><span className="sp-data">Indbo Møbler · 24.310 kr.</span></Card>
 			<Card><CardHeader name="Items · 2" aside="1 line needs attention" asideTone="danger" /><span className="sp-data">Lounge chair · 2 × 4.129,00</span></Card>
-			<Card><CardHeader name="Spend by month" control={<Segmented name="head" options={[{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }]} defaultValue="s" />} /><span className="sp-data">Jan to Aug</span></Card>
+			<Card><CardHeader name="Spend by month" control={<Segmented name="head" size="small" options={[{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }]} defaultValue="s" />} /><span className="sp-data">Jan to Aug</span></Card>
 			<Card><CardHeader name="Spend, August" status={<Pill color="danger">2.100 over</Pill>} /><span className="sp-stat__figure">24.100 kr.</span></Card>
 			<Card><CardHeader name="August 2026" onDismiss={() => {}} dismissLabel="Hide the August summary" /><span className="sp-data">61.480 kr. across 18 orders</span></Card>
 		</Cards>

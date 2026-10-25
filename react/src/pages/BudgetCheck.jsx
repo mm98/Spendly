@@ -319,7 +319,7 @@ function PickOnly({ value, options, onPick, ...rest }) {
 /** A budget row picked by typing or from the list of one side of the payment's year, with what each
     holds that month. It takes focus as it opens; Escape on its closed list puts it away. */
 function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled }) {
-	// opened after it is drawn: on touch, a list open from the first draw does not yet know its field, and its first tap closes it
+	// opened after the field takes focus, so the open list moves focus last
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	useEffect(() => {
