@@ -32,10 +32,10 @@ const sheet = { year: 2026, groups: [
 	{ kind: 'expense', name: 'Home', lines: [
 		{ id: 'a', name: 'Telefon', months: months(159) },
 		{ id: 'b', name: 'Bil', months: months(4449.48) },
-		{ id: 'c', name: 'Vand', months: months(229) },
+		{ id: 'c', seriesId: 'c', name: 'Vand', months: months(229) },
 		{ id: 'd', name: 'El', months: months(350) }] }] }
 const links = [
-	{ pattern: paymentKey('Betalingsservice VANDVÆRK Aftalenr. 987654321'), kind: 'expense', line: 'Vand' },
+	{ pattern: paymentKey('Betalingsservice VANDVÆRK Aftalenr. 987654321'), kind: 'expense', line: 'Vand', lineSeriesId: 'c' },
 	{ pattern: 'udligning erhvervskonto', kind: 'expense', line: null },
 	{ pattern: onceKey(payments[9]), kind: 'expense', line: null }
 ]
@@ -81,6 +81,24 @@ assert.deepEqual([fee.amount, fee.out], [2, null])
 // A date that cannot be read leaves that line out; the format comes from the others.
 assert.deepEqual(dateFormatsFor(['2026-10-02', '2026-10-01', 'Closing balance']), ['ymd'])
 assert.deepEqual(dateFormatsFor(['igår', 'idag']), [])
+
+// A placed payment finds its row by the row's series: after a rename, in another year, and among two rows of one name.
+const water = payments[2]
+const placedOn = (lines, link = links[0]) => {
+	const year = { year: 2026, groups: [{ kind: 'expense', name: 'Home', lines }] }
+	const [p] = checkPayments([water], new Map([[2026, year]]), [link])
+	return [p.status, p.lineId]
+}
+const sameAmount = { id: 't', seriesId: 't', name: 'Avis', months: months(229) }
+assert.deepEqual(placedOn([sameAmount, { id: 'c', seriesId: 'c', name: 'Vandværket', months: months(229) }]), ['match', 'c'])
+assert.deepEqual(placedOn([sameAmount, { id: 'c27', seriesId: 'c', name: 'Vand og afløb', months: months(229) }]), ['match', 'c27'])
+assert.deepEqual(placedOn([
+	{ id: 'x', seriesId: 'x', name: 'Vand', months: months(229) },
+	{ id: 'c', seriesId: 'c', name: 'Vand', months: months(229) }]), ['match', 'c'])
+// A row with no series of the link's, as in a year built by hand, is found by the name.
+assert.deepEqual(placedOn([{ id: 'h', seriesId: 'h', name: 'vand', months: months(229) }]), ['match', 'h'])
+assert.deepEqual(placedOn([{ id: 'h', seriesId: 'h', name: 'Vand', months: months(229) }],
+	{ ...links[0], lineSeriesId: null }), ['match', 'h'])
 
 // A one-time mark holds for that payment alone, not for a later one with the same text.
 const later = { ...payments[9], date: '2026-10-12' }

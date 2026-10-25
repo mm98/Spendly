@@ -71,8 +71,10 @@ const linkKey = body => ({
 router.get('/links', (req, res) => res.json(links(req)))
 
 router.put('/links', (req, res) => {
-	const line = req.body?.line == null ? null : budgetText(req.body.line, BUDGET_TEXT.row)
-	saveLink(req.user.id, { ...linkKey(req.body), line })
+	// a page still open from an earlier version sends the row's name and no lineId: refused, not stored as left out
+	if (!req.body || !('lineId' in req.body)) throw refuse(400, 'Spendly has changed. Reload the page and place the payment again.')
+	const lineId = req.body.lineId == null ? null : String(req.body.lineId)
+	saveLink(req.user.id, { ...linkKey(req.body), lineId })
 	res.json(links(req))
 })
 

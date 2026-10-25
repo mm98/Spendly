@@ -64,8 +64,9 @@ function groupPayments(list) {
 		groups.set(id, g)
 	}
 	return [...groups.values()].map(g => {
-		const hints = g.payments.filter(p => p.status === 'near').map(p => p.line)
-		const suggestion = hints.sort((a, b) => hints.filter(h => h === b).length - hints.filter(h => h === a).length)[0] ?? null
+		const hints = g.payments.filter(p => p.status === 'near').map(p => p.lineId)
+		const best = hints.sort((a, b) => hints.filter(h => h === b).length - hints.filter(h => h === a).length)[0]
+		const suggestion = best ? { id: best, name: g.payments.find(p => p.lineId === best).line } : null
 		const dates = g.payments.map(p => p.date).sort()
 		return {
 			...g, suggestion, total: g.payments.reduce((n, p) => n + p.amount, 0), first: dates[0], last: dates[dates.length - 1],
@@ -318,9 +319,13 @@ function PickOnly({ value, options, onPick, ...rest }) {
 /** A budget row picked by typing or from the list of one side of the payment's year, with what each
     holds that month. It takes focus as it opens; Escape on its closed list puts it away. */
 function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled }) {
-	const [open, setOpen] = useState(true)
+	// opened after it is drawn: on touch, a list open from the first draw does not yet know its field, and its first tap closes it
+	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
-	useEffect(() => { document.getElementById(id)?.focus() }, [id])
+	useEffect(() => {
+		document.getElementById(id)?.focus()
+		setOpen(true)
+	}, [id])
 	const short = monthNames('short')[month]
 	const groups = (sheet?.groups ?? []).filter(g => g.kind === kind)
 		.map(g => ({ ...g, lines: g.lines.filter(l => l.name.toLocaleLowerCase('da').includes(query.trim().toLocaleLowerCase('da'))) }))
@@ -340,7 +345,7 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 						return (
 							<ComboboxOption key={l.id} disabled={disabled}
 								meta={value != null ? `${money(value)} in ${short}` : `No amount in ${short}`}
-								onSelect={() => onPick(l.name)}>{l.name}</ComboboxOption>
+								onSelect={() => onPick(l)}>{l.name}</ComboboxOption>
 						)
 					})
 				]) : <ComboboxEmpty>No row has that name.</ComboboxEmpty>}
@@ -428,11 +433,11 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		try {
 			let latest = null
 			for (const g of list) {
-				if (once) for (const p of g.payments) latest = await saveBankLink({ pattern: onceKey(p), kind: g.kind, line: null })
-				else latest = await saveBankLink({ pattern: g.key, kind: g.kind, line })
+				if (once) for (const p of g.payments) latest = await saveBankLink({ pattern: onceKey(p), kind: g.kind, lineId: null })
+				else latest = await saveBankLink({ pattern: g.key, kind: g.kind, lineId: line?.id ?? null })
 			}
 			if (latest) setLinks(latest)
-			const what = once ? 'Left out once' : line ? `On ${line}` : 'Always left out'
+			const what = once ? 'Left out once' : line ? `On ${line.name}` : 'Always left out'
 			setRecent(r => [...r.filter(x => !list.some(g => g.id === x.id)), ...list.map(g => ({ ...g, saved: what, once }))])
 			setPicked(new Set())
 			setOpen(null)
@@ -534,17 +539,17 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		return line({
 			key: g.id, group: g.id, title: g.text, subtitle: when(g), total: g.total,
 			check: <Check checked={picked.has(g.id)} aria-label={`Select ${g.text || 'this text'}`} onChange={() => toggle(setPicked, g.id)} />,
-			note: g.noSheet ? `There is no budget for ${g.payments[0].date.slice(0, 4)}.` : g.suggestion ? `Close to ${g.suggestion} in amount.` : null,
+			note: g.noSheet ? `There is no budget for ${g.payments[0].date.slice(0, 4)}.` : g.suggestion ? `Close to ${g.suggestion.name} in amount.` : null,
 			ink: g.noSheet ? 'sp-ink-danger' : 'sp-ink-warning',
 			buttons: [
-				g.suggestion ? small(`Use ${g.suggestion}`, () => saveGroups([g], g.suggestion)) : null,
+				g.suggestion ? small(`Use ${g.suggestion.name}`, () => saveGroups([g], g.suggestion)) : null,
 				g.noSheet ? null : small('Pick from budget', () => setOpen(open === g.id ? null : g.id), { 'aria-expanded': open === g.id ? 'true' : 'false', 'data-opener': `pick:${g.id}` }),
 				small('Always leave out', () => saveGroups([g], null)),
 				small('Leave out once', () => saveGroups([g], null, true))
 			],
 			children: open === g.id
 				? <RowPicker id={`bank-place-${g.id}`} label="All payments with this text go to" kind={g.kind} sheet={sheetOf(last)}
-					month={monthOf(last)} disabled={busy} onPick={name => saveGroups([g], name)} onClose={() => setOpen(null)} />
+					month={monthOf(last)} disabled={busy} onPick={row => saveGroups([g], row)} onClose={() => setOpen(null)} />
 				: null
 		})
 	}
@@ -566,7 +571,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
 		children: open === p.row
 			? <RowPicker id={`bank-payment-${p.row}`} label="All payments with this text go to" kind={kindOf(p)} sheet={sheetOf(p)}
-				month={monthOf(p)} disabled={busy} onPick={name => saveGroups(groupPayments([p]), name)} onClose={() => setOpen(null)} />
+				month={monthOf(p)} disabled={busy} onPick={row => saveGroups(groupPayments([p]), row)} onClose={() => setOpen(null)} />
 			: null
 	})
 
@@ -591,7 +596,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 				) : null}
 				{chosen.length && bulkOpen && oneKind ? (
 					<RowPicker id="bank-bulk" label="Put them all on" kind={chosen[0].kind} sheet={sheetOf(chosen[0].payments.at(-1))}
-						month={monthOf(chosen[0].payments.at(-1))} disabled={busy} onPick={name => saveGroups(chosen, name)}
+						month={monthOf(chosen[0].payments.at(-1))} disabled={busy} onPick={row => saveGroups(chosen, row)}
 						onClose={() => { setBulkOpen(false); document.querySelector('[data-opener="bulk"]')?.focus() }} />
 				) : null}
 				{groups.length ? (

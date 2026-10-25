@@ -2991,7 +2991,7 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT l.id, l.group_id, l.name, l.account_id, g.year_id, y.year FROM budget_lines l JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id WHERE l.id = ? AND l.user_id = ?": {
+		"SELECT l.id, l.group_id, l.name, l.account_id, l.series_id, g.year_id, y.year FROM budget_lines l JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id WHERE l.id = ? AND l.user_id = ?": {
 			"plan": [
 				"SEARCH l USING INDEX sqlite_autoindex_budget_lines_1 (id=?)",
 				"SEARCH g USING INDEX sqlite_autoindex_budget_groups_1 (id=?)",
@@ -3004,7 +3004,7 @@
 				"sqlite_autoindex_budget_years_1"
 			]
 		},
-		"SELECT l.id, l.group_id, l.name, l.account_id, l.position, a.month, a.expected, a.real FROM budget_lines l LEFT JOIN budget_line_amounts a ON a.line_id = l.id WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)": {
+		"SELECT l.id, l.group_id, l.name, l.account_id, l.series_id, l.position, a.month, a.expected, a.real FROM budget_lines l LEFT JOIN budget_line_amounts a ON a.line_id = l.id WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)": {
 			"plan": [
 				"SCAN l",
 				"LIST SUBQUERY 1",
@@ -3014,6 +3014,19 @@
 			],
 			"findings": [],
 			"indexes": []
+		},
+		"SELECT l.name, l.series_id, l.position, g.kind, g.position AS group_position, y.year FROM budget_years y JOIN budget_groups g ON g.year_id = y.id JOIN budget_lines l ON l.group_id = g.id WHERE y.user_id = ?": {
+			"plan": [
+				"SCAN l",
+				"SEARCH g USING INDEX sqlite_autoindex_budget_groups_1 (id=?)",
+				"BLOOM FILTER ON y (id=?)",
+				"SEARCH y USING INDEX sqlite_autoindex_budget_years_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_budget_groups_1",
+				"sqlite_autoindex_budget_years_1"
+			]
 		},
 		"SELECT made_files_count FROM user_ask_days WHERE user_id = ? AND day = ?": {
 			"plan": [
@@ -4375,7 +4388,7 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
-		"SELECT pattern, kind, line_name FROM budget_bank_links WHERE user_id = ?": {
+		"SELECT pattern, kind, line_name, line_series_id FROM budget_bank_links WHERE user_id = ?": {
 			"plan": [
 				"SEARCH budget_bank_links USING PRIMARY KEY (user_id=?)"
 			],

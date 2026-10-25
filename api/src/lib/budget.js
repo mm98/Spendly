@@ -12,7 +12,7 @@ const notFound = what => Object.assign(new Error(`No such ${what}.`), { status: 
 const selectYears = db.prepare('SELECT year FROM budget_years WHERE user_id = ? ORDER BY year')
 const selectYear = db.prepare('SELECT id, year FROM budget_years WHERE user_id = ? AND year = ?')
 const selectGroups = db.prepare('SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?')
-const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.position, a.month, a.expected, a.real
+const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.series_id, l.position, a.month, a.expected, a.real
 	FROM budget_lines l LEFT JOIN budget_line_amounts a ON a.line_id = l.id
 	WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)`)
 const selectAccounts = db.prepare('SELECT id, name, position, grey FROM budget_accounts WHERE user_id = ?')
@@ -21,7 +21,7 @@ const selectAccountUse = db.prepare('SELECT account_id FROM budget_lines WHERE u
 
 const selectGroup = db.prepare(`SELECT g.id, g.kind, g.year_id, y.year FROM budget_groups g
 	JOIN budget_years y ON y.id = g.year_id WHERE g.id = ? AND g.user_id = ?`)
-const selectLine = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, g.year_id, y.year FROM budget_lines l
+const selectLine = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.series_id, g.year_id, y.year FROM budget_lines l
 	JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id
 	WHERE l.id = ? AND l.user_id = ?`)
 const selectSiblingGroups = db.prepare(
@@ -35,8 +35,11 @@ const countMonthAmounts = db.prepare(`SELECT count(*) AS due FROM budget_line_am
 const insertYear = db.prepare('INSERT INTO budget_years (id, user_id, year) VALUES (?, ?, ?)')
 const insertGroup = db.prepare(`INSERT INTO budget_groups (id, user_id, year_id, kind, name, position)
 	VALUES (?, ?, ?, ?, ?, ?)`)
-const insertLine = db.prepare(`INSERT INTO budget_lines (id, user_id, group_id, name, account_id, position)
-	VALUES (?, ?, ?, ?, ?, ?)`)
+const insertLine = db.prepare(`INSERT INTO budget_lines (id, user_id, group_id, name, account_id, series_id, position)
+	VALUES (?, ?, ?, ?, ?, ?, ?)`)
+const selectLineSeries = db.prepare(`SELECT l.name, l.series_id, l.position, g.kind, g.position AS group_position, y.year
+	FROM budget_years y JOIN budget_groups g ON g.year_id = y.id JOIN budget_lines l ON l.group_id = g.id
+	WHERE y.user_id = ?`)
 const insertAccount = db.prepare('INSERT INTO budget_accounts (id, user_id, name, position) VALUES (?, ?, ?, ?)')
 const upsertAmount = db.prepare(`INSERT INTO budget_line_amounts (line_id, month, expected, real) VALUES (?, ?, ?, ?)
 	ON CONFLICT (line_id, month) DO UPDATE SET expected = excluded.expected, real = excluded.real`)
@@ -53,9 +56,11 @@ const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE i
 const setAccountGrey = db.prepare('UPDATE budget_accounts SET grey = ? WHERE id = ? AND user_id = ?')
 const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
 const deleteAccountRow = db.prepare('DELETE FROM budget_accounts WHERE id = ? AND user_id = ?')
-const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM budget_bank_links WHERE user_id = ?')
-const upsertLink = db.prepare(`INSERT INTO budget_bank_links (user_id, pattern, kind, line_name) VALUES (?, ?, ?, ?)
-	ON CONFLICT (user_id, pattern, kind) DO UPDATE SET line_name = excluded.line_name`)
+const selectLinks = db.prepare('SELECT pattern, kind, line_name, line_series_id FROM budget_bank_links WHERE user_id = ?')
+const upsertLink = db.prepare(`INSERT INTO budget_bank_links (user_id, pattern, kind, line_name, line_series_id)
+	VALUES (?, ?, ?, ?, ?)
+	ON CONFLICT (user_id, pattern, kind) DO UPDATE SET line_name = excluded.line_name, line_series_id = excluded.line_series_id`)
+const renameLinkedLine = db.prepare('UPDATE budget_bank_links SET line_name = ? WHERE user_id = ? AND line_series_id = ?')
 const deleteLinkRow = db.prepare('DELETE FROM budget_bank_links WHERE user_id = ? AND pattern = ? AND kind = ?')
 
 /* ---- reading ---- */
@@ -87,8 +92,8 @@ export function readYear(userId, year) {
 	for (const r of selectLines.all(userId, userId, found.id)) {
 		let line = lines.get(r.id)
 		if (!line) {
-			line = { id: r.id, groupId: r.group_id, name: r.name, accountId: r.account_id, position: r.position,
-				months: emptyMonths() }
+			line = { id: r.id, groupId: r.group_id, name: r.name, accountId: r.account_id, seriesId: r.series_id,
+				position: r.position, months: emptyMonths() }
 			lines.set(r.id, line)
 		}
 		if (r.month) line.months[r.month - 1] = { expected: r.expected, real: r.real }
@@ -98,7 +103,7 @@ export function readYear(userId, year) {
 		.map(g => ({
 			id: g.id, kind: g.kind, name: g.name,
 			lines: [...lines.values()].filter(l => l.groupId === g.id).sort(byPosition)
-				.map(({ id, name, accountId, months }) => ({ id, name, accountId, months }))
+				.map(({ id, name, accountId, seriesId, months }) => ({ id, name, accountId, seriesId, months }))
 		}))
 	return { year: found.year, groups, accounts: listAccounts(userId) }
 }
@@ -110,9 +115,10 @@ const writeMonth = (lineId, month, { expected, real }) => {
 	else upsertAmount.run(lineId, month, expected ?? null, real ?? null)
 }
 
+// A row with no series of its own starts one.
 const addLineRow = (userId, groupId, line, position) => {
 	const id = newId('bl')
-	insertLine.run(id, userId, groupId, line.name, line.accountId ?? null, position)
+	insertLine.run(id, userId, groupId, line.name, line.accountId ?? null, line.seriesId ?? id, position)
 	line.months?.forEach((m, i) => { if (m.expected != null || m.real != null) writeMonth(id, i + 1, m) })
 	return id
 }
@@ -124,17 +130,38 @@ const addGroupRows = (userId, yearId, group, position) => {
 	return id
 }
 
+const lineKey = (kind, name) => `${kind}:${name.trim().toLocaleLowerCase('da')}`
+
+/* The series a written row continues: the stored row of the same kind and name, in the year it
+   replaces first, then the newest year. Each series is taken once per year. */
+function seriesFinder(userId, year) {
+	const stored = selectLineSeries.all(userId).sort((a, b) => (b.year === year) - (a.year === year) || b.year - a.year
+		|| a.group_position - b.group_position || a.position - b.position)
+	const series = new Map()
+	for (const l of stored) if (!series.has(lineKey(l.kind, l.name))) series.set(lineKey(l.kind, l.name), l.series_id)
+	const taken = new Set()
+	return (kind, name) => {
+		const found = series.get(lineKey(kind, name))
+		if (!found || taken.has(found)) return null
+		taken.add(found)
+		return found
+	}
+}
+
 /** Writes whole years, each replacing a year already stored under the same number. Rows name
     their account; a name the list does not hold yet is added to its end. */
 export const replaceYears = db.transaction((userId, years, accounts = []) => {
 	const named = [...accounts, ...years.flatMap(y => y.groups.flatMap(g => g.lines.map(l => l.account)))]
 	const ids = ensureAccounts(userId, named.filter(Boolean))
 	for (const year of years) {
+		const seriesOf = seriesFinder(userId, year.year)
 		deleteYearRow.run(userId, year.year)
 		const yearId = newId('by')
 		insertYear.run(yearId, userId, year.year)
 		year.groups.forEach((group, i) => addGroupRows(userId, yearId, {
-			...group, lines: group.lines.map(l => ({ ...l, accountId: l.account ? ids.get(accountKey(l.account)) : null }))
+			...group, lines: group.lines.map(l => ({
+				...l, accountId: l.account ? ids.get(accountKey(l.account)) : null, seriesId: seriesOf(group.kind, l.name)
+			}))
 		}, i))
 	}
 })
@@ -211,6 +238,7 @@ export const updateLine = db.transaction((userId, lineId, patch) => {
 	if (patch.name != null || patch.accountId !== undefined)
 		updateLineText.run(patch.name ?? line.name, patch.accountId !== undefined ? patch.accountId : line.account_id,
 			lineId, userId)
+	if (patch.name != null && patch.name !== line.name) renameLinkedLine.run(patch.name, userId, line.series_id)
 	if (patch.months) patch.months.forEach((m, i) => writeMonth(lineId, i + 1, m))
 	if (patch.month != null) {
 		const was = selectAmount.get(lineId, patch.month) ?? { expected: null, real: null }
@@ -286,10 +314,15 @@ export function deleteAccount(userId, id) {
 
 /* ---- bank payments the reader has placed ---- */
 
-/** What each remembered payment text is in the budget: a row's name, or null for none. */
-export const listLinks = userId =>
-	selectLinks.all(userId).map(({ pattern, kind, line_name: line }) => ({ pattern, kind, line }))
+/** What each remembered payment text is in the budget: a row's series and name, or null for none. */
+export const listLinks = userId => selectLinks.all(userId)
+	.map(({ pattern, kind, line_name: line, line_series_id: lineSeriesId }) => ({ pattern, kind, line, lineSeriesId }))
 
-export const saveLink = (userId, { pattern, kind, line }) => upsertLink.run(userId, pattern, kind, line)
+/** Places a payment text on the row `lineId`, which finds that row in every year; null leaves it out. */
+export function saveLink(userId, { pattern, kind, lineId }) {
+	const line = lineId == null ? null : selectLine.get(lineId, userId)
+	if (lineId != null && !line) throw notFound('row')
+	upsertLink.run(userId, pattern, kind, line?.name ?? null, line?.series_id ?? null)
+}
 
 export const forgetLink = (userId, { pattern, kind }) => deleteLinkRow.run(userId, pattern, kind)
