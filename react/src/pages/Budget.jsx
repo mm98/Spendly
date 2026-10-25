@@ -621,14 +621,15 @@ function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, on
 		)
 		: undefined
 	const well = at => (
+		// one row, a column each: a well that leaves keeps its last column and slides out over its neighbour
 		<m.div key={at} custom={strip.way} variants={STRIP} initial="arrive" animate="shown" exit="leave" layout="position"
-			transition={into(2)}>
+			transition={into(2)} style={{ gridRow: 1, gridColumn: at - from + 1 }}>
 			{/* the shape is edited in the month in front only, so no control is drawn twice (21c) */}
 			<MonthWell month={at} editing={editing && at === month} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
 		</m.div>
 	)
 	const wells = (
-		<AnimatePresence mode="popLayout" initial={false} custom={strip.way} onExitComplete={strip.settled}>
+		<AnimatePresence initial={false} custom={strip.way} onExitComplete={strip.settled}>
 			{(count === 1 ? [from] : [from, from + 1]).map(well)}
 		</AnimatePresence>
 	)
