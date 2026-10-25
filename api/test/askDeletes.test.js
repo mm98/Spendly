@@ -114,7 +114,7 @@ test('the one-time cleanup removes only rows that hold no bytes and belong to no
 	const inChat = addFile(chat, { failed: true })
 	const kept = addFile(null)
 	const leftover = addFile(null, { failed: true })
-	const sql = readFileSync(new URL('../src/migrations/273_user_ask_files_shown_nowhere.sql', import.meta.url), 'utf8')
+	const sql = readFileSync(new URL('../src/migrations/275_user_ask_files_shown_nowhere.sql', import.meta.url), 'utf8')
 	db.exec(sql)
 	assert.equal(fileRow(leftover.id), undefined)
 	assert.ok(fileRow(inChat.id))
