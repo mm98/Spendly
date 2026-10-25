@@ -59,17 +59,3 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
-
-## Budget's month wells do not use popLayout
-
-- **Where:** Budget, months view (`react/src/pages/Budget.jsx`, `react/src/styles/pages/budget.css`),
-  against the Motion note under Budget 21a in `design/Budget.dc.html`.
-- **What the reader sees:** nothing; the months slide sideways as drawn.
-- **What was found:** the note builds the wells with `AnimatePresence mode="popLayout"`. popLayout
-  lifts a leaving well out with a `<style>` element it adds to the page, and the server's CSP refuses
-  it, so in production the new month was placed below the others and then rose. The build puts every
-  well in one grid row instead, a column each, and a leaving well keeps its last column.
-- **Rule for `design/`:** the month wells sit in one row, a column each; a well that leaves shares
-  its column with the one taking its place. Nothing in the app may depend on a `<style>` element
-  added at run time.
-- **Found:** 2026-10-25.
