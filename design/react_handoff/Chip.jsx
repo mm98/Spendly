@@ -5,6 +5,7 @@ const VARIANT = {
 	outline: null,
 	solid: 'sp-chip--solid',
 	dashed: 'sp-chip--dashed',
+	suggestion: 'sp-chip--dashed sp-chip--suggestion',
 	pill: 'sp-chip--pill',
 	facet: 'sp-chip--facet'
 }
@@ -12,7 +13,7 @@ const VARIANT = {
 const COLOR = { default: null, danger: 'danger', success: 'success' }
 
 /** @param {object} props
-    @param {keyof typeof VARIANT} [props.variant] `outline` has a border, `solid` a fill, `dashed` a dashed border, `pill` is the small round one a reader taps, `facet` the one they tick in a filter.
+    @param {keyof typeof VARIANT} [props.variant] `outline` has a border, `solid` a fill, `dashed` a dashed border, `suggestion` the dashed chip a reader taps to add a value under a field (36px on touch, with a 48px tap area), `pill` is the small round one a reader taps, `facet` the one they tick in a filter.
     @param {keyof typeof COLOR} [props.color] `default`, or `danger` and `success` for a value that is wrong or done.
     @param {import('react').ReactNode} [props.trail] A small control at the end of the chip, such as the button that removes the value.
     @param {'checkbox' | 'radio'} [props.inputType] Facet only. `checkbox` lets several chips be picked, `radio` only one in the group.

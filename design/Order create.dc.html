@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261025k">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025d">
+<link rel="stylesheet" href="styles/components.css?v=v20261025m">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
-<link rel="stylesheet" href="styles/pages/order-create.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/order-create.css?v=v20261025a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
@@ -145,6 +145,119 @@
         </div>
       </div>
     </div>
+  </div>
+
+
+  <div class="doc-specimens sp-touch">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Step 1 · phone</span>
+      <div class="sp-phone sp-touch">
+        <div class="sp-topbar">
+          <div class="sp-picker__search sp-grow">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search orders">
+          </div>
+        </div>
+        <div class="sp-empty sp-gap-16">
+          <span class="sp-empty__title">Start from a receipt, or from scratch</span>
+          <span class="sp-empty__body">Add a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.</span>
+          <div class="oc-narrow">
+          <label class="sp-filedrop sp-gap-12">
+            <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/gif">
+            <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg></span>
+            <span class="sp-title">Add a receipt</span>
+            <span class="sp-meta">PDF, JPG, PNG, WebP or GIF · up to 25 MB per file</span>
+          </label>
+          <div class="sp-divider">or</div>
+          <div class="oc-choices oc-choices--stack">
+            <a class="sp-card" href="#3a">
+              <span class="sp-sum-head">
+                <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+                <span class="sp-alert__body">
+                  <span class="sp-title">Empty order</span>
+                  <span class="sp-subtitle">Type the details yourself.</span>
+                </span>
+                <span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+              </span>
+            </a>
+            <a class="sp-card" href="#3b">
+              <span class="sp-sum-head">
+                <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></span>
+                <span class="sp-alert__body">
+                  <span class="sp-title">Copy an order</span>
+                  <span class="sp-subtitle">Same vendor, same lines, new date.</span>
+                </span>
+                <span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+              </span>
+            </a>
+          </div>
+          </div>
+        </div>
+        <nav class="sp-tabbar sp-tabbar--band" aria-label="Sections">
+          <a class="sp-tabbar__item" href="Home.dc.html"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span>Home</span></a>
+          <a class="sp-tabbar__item" href="#3a" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span>Orders</span></a>
+          <a class="sp-tabbar__item" href="Order statistics.dc.html"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span>Statistics</span></a>
+          <a class="sp-tabbar__item" href="#3a"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span>More</span></a>
+        </nav>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Step 2 · phone</span>
+      <div class="sp-phone sp-touch">
+        <div class="sp-topbar">
+          <div class="sp-picker__search sp-grow">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search orders">
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-stack sp-gap-12">
+            <div class="sp-row-flex sp-gap-12">
+              <span class="sp-mark sp-mark--large sp-mark--photo" aria-hidden="true"></span>
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">faktura-indbo-4471.pdf</span>
+                <span class="sp-meta">PDF · 1,4 MB · 2 pages</span>
+              </span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="68" min="0" max="100" aria-label="Reading the receipt"></meter>
+              <span class="sp-gauge__fill" data-fill="68"></span>
+            </span>
+            <div class="sp-stack sp-gap-8">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+                <span class="sp-data">Vendor and date found</span>
+              </div>
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+                <span class="sp-data">4 lines found</span>
+              </div>
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><span class="sp-spinner"></span></span>
+                <strong class="sp-data">Reading the lines…</strong>
+              </div>
+              <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.</span>
+            </div>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button>
+          </div>
+        </div>
+        <nav class="sp-tabbar sp-tabbar--band" aria-label="Sections">
+          <a class="sp-tabbar__item" href="Home.dc.html"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span>Home</span></a>
+          <a class="sp-tabbar__item" href="#3a" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span>Orders</span></a>
+          <a class="sp-tabbar__item" href="Order statistics.dc.html"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span>Statistics</span></a>
+          <a class="sp-tabbar__item" href="#3a"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span>More</span></a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation - steps 1 and 2 on a phone</span>
+    <div class="doc-note"><b>The phone keeps the app's own frame:</b> the search top bar and the tab bar with Orders current, as every phone page at the first level (Navigation shell <a href="Navigation shell.dc.html#2b">2b</a>). No Back: the tab bar is the way out, and leaving during step 2 keeps the scan in Drafts.</div>
+    <div class="doc-note"><b>Step 1: the zone says Add a receipt and carries no button.</b> A phone cannot drop a file, so the word Drop goes, and the whole zone is the tap target: it is the same label around the one file input, and the phone's picker offers camera, photos and files. The body reads "Add a PDF or a photo" for the same reason. The two other ways to start stack in one column (<code>oc-choices--stack</code>), each card at full width.</div>
+    <div class="doc-note"><b>Step 2: the receipt is a large mark beside the file name, not the 156 x 220 preview.</b> The preview left about 160px for the text on a phone, so the file name truncated to its first letters and every step wrapped. The mark (<code>sp-mark--large sp-mark--photo</code>) shows the receipt's first page, cropped, as an order row shows its photo. The file name truncates at the card's width; the gauge, the steps and the hint run the full width under it.</div>
+    <div class="doc-note"><b>Discard is a full-width outline button at the bottom of the card</b> (<code>sp-btn--block</code>), as every button in a phone card is (<a href="#3c">3c</a>).</div>
+    <div class="doc-note"><b>The switch is the phone breakpoint, below 640px</b>, the same one that brings in the tab bar. Above it, steps 1 and 2 are drawn as on desktop.</div>
   </div>
 
   <div class="doc-specimen">
@@ -312,8 +425,8 @@
                 </div>
                 <div class="sp-row-flex sp-wrap sp-gap-6">
                   <span class="sp-field__help">Suggested from the items</span>
-                  <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
-                  <button type="button" class="sp-chip sp-chip--dashed"><span>+ New: Seating</span></button>
+                  <button type="button" class="sp-chip sp-chip--dashed sp-chip--suggestion"><span>+ Lighting</span></button>
+                  <button type="button" class="sp-chip sp-chip--dashed sp-chip--suggestion"><span>+ New: Seating</span></button>
                 </div>
               </div>
               <div class="sp-fields">
@@ -376,6 +489,7 @@
         </div>
       </div>
     </div>
+
 
   <div class="doc-specimen">
     <span class="doc-specimen__label">The same screen, saved</span>
@@ -596,7 +710,7 @@
               </div>
               <div class="sp-row-flex sp-wrap sp-gap-6">
                 <span class="sp-field__help">Suggested from the items</span>
-                <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
+                <button type="button" class="sp-chip sp-chip--dashed sp-chip--suggestion"><span>+ Lighting</span></button>
               </div>
             </div>
           </div>
@@ -641,8 +755,8 @@
               </div>
               <div class="sp-row-flex sp-wrap sp-gap-6">
                 <span class="sp-field__help">Suggested from the items</span>
-                <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
-                <button type="button" class="sp-chip sp-chip--dashed"><span>+ New: Seating</span></button>
+                <button type="button" class="sp-chip sp-chip--dashed sp-chip--suggestion"><span>+ Lighting</span></button>
+                <button type="button" class="sp-chip sp-chip--dashed sp-chip--suggestion"><span>+ New: Seating</span></button>
               </div>
             </div>
           </div>
@@ -979,6 +1093,150 @@
       </div>
     </div>
   </div>
+
+  <div class="doc-specimens sp-touch">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">The picker · phone</span>
+      <div class="sp-phone sp-touch">
+        <div class="sp-scrim"></div>
+        <div class="sp-sheet" role="dialog" aria-label="Copy an order">
+          <span class="sp-sheet__handle" aria-hidden="true"></span>
+          <span class="sp-heading">Copy an order</span>
+          <span class="sp-dialog__body">The vendor, category and item lines are copied, with each item's photo. The date becomes today, the status resets, and the receipt stays on the original order.</span>
+          <div class="sp-picker__search">
+            <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+            <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search by vendor or item…" aria-label="Search previous orders">
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-combobox__group">You order these often</span>
+            <button type="button" class="sp-combobox__option">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Indbo Møbler</span>
+                <span class="sp-meta sp-truncate">4 lines · Nordal vase, Stol - eg, Bord…</span>
+              </span>
+              <span class="sp-stacked sp-cell-amount">
+                <span class="sp-amount">7.635,00</span>
+                <span class="sp-meta">6 times · last 12 Aug</span>
+              </span>
+            </button>
+            <button type="button" class="sp-combobox__option">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Ferm Living</span>
+                <span class="sp-meta sp-truncate">1 line · Pude, uld</span>
+              </span>
+              <span class="sp-stacked sp-cell-amount">
+                <span class="sp-amount">890,00</span>
+                <span class="sp-meta">4 times · last 28 Jul</span>
+              </span>
+            </button>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-combobox__group">Recent</span>
+            <button type="button" class="sp-combobox__option">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Hay</span>
+                <span class="sp-meta sp-truncate">2 lines · Stol × 2</span>
+              </span>
+              <span class="sp-stacked sp-cell-amount">
+                <span class="sp-amount">3.240,00</span>
+                <span class="sp-meta">3 Aug</span>
+              </span>
+            </button>
+            <button type="button" class="sp-combobox__option">
+              <span class="sp-stacked sp-grow">
+                <span class="sp-title sp-truncate">Muuto</span>
+                <span class="sp-meta sp-truncate">3 lines · Lampe, Skål, Plakat</span>
+              </span>
+              <span class="sp-stacked sp-cell-amount">
+                <span class="sp-amount">5.120,00</span>
+                <span class="sp-meta">1 Aug</span>
+              </span>
+            </button>
+          </div>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">What you land on · phone</span>
+      <div class="sp-phone sp-touch">
+        <div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stacked sp-grow">
+            <span class="sp-title sp-truncate">New order</span>
+            <span class="sp-meta sp-truncate">Indbo Møbler · Today</span>
+          </div>
+        </div>
+        <div class="sp-alert" data-color="success">
+          <span class="sp-alert__mark" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__note">Copied from <b>Indbo Møbler, 12 Aug</b> - the receipt stays on that order.</span>
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">Items · 4</span></div>
+          <div class="sp-stack sp-gap-8">
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Nordal vase, large</span>
+                  <span class="sp-subtitle">1 × 1.495,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.495,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Stol - eg</span>
+                  <span class="sp-subtitle">2 × 2.120,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.240,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Bord</span>
+                  <span class="sp-subtitle">1 × 1.600,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.600,00 kr.</span></div>
+              </div>
+              <div class="sp-list-item">
+                <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Lysestage</span>
+                  <span class="sp-subtitle">1 × 300,00 kr.</span>
+                </span>
+                <span class="sp-grow"></span>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">300,00 kr.</span></div>
+              </div>
+              <button type="button" class="sp-list-item sp-list-item--add">
+                <span class="sp-mark sp-mark--medium sp-mark--add" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span>
+                <span class="sp-title sp-truncate">Add item</span>
+              </button>
+          </div>
+        </div>
+        <div class="sp-card sp-card--flush">
+          <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Order details</span>
+              <span class="sp-meta">Today · Decor · Expense</span>
+            </span>
+            <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+          </button>
+        </div>
+        <div class="sp-savebar"><span class="sp-subtitle sp-grow">Total 7.635,00 kr.</span><button type="button" class="sp-btn sp-btn--outline">Discard</button><button type="button" class="sp-btn">Create</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation - 3b on a phone</span>
+    <div class="doc-note"><b>The picker is a sheet below 640px</b>, the dialog's phone form (<a href="Components.dc.html#c13">c13</a>): the same heading, body, search and two groups, with Cancel as a full-width button at the bottom. Dragging the sheet down is Cancel. Tapping an order opens the copy at once.</div>
+    <div class="doc-note"><b>What you land on is the phone edit screen</b> (<a href="Order editing layouts.dc.html#1c">1c</a>) with the copy notice under the top bar, without its Discard: Discard is in the save bar beside Create, so the notice only names the source. The title is New order and the line under it reads the vendor and Today. The copy has no attachments, so the Attachments card is not shown until a file is added.</div>
+  </div>
 </section>
 
 <section class="doc-section">
@@ -1065,6 +1323,59 @@
         <div class="doc-note">Both can fire on one upload. When they do, this screen comes first - it is certain, and it is the only one of the two that can run before the scanner is called at all.</div>
       </div>
     </div>
+  </div>
+
+  <div class="doc-specimens sp-touch">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Stage 2, replaced · phone</span>
+      <div class="sp-phone sp-touch">
+        <div class="sp-topbar sp-topbar--touch">
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <div class="sp-stacked sp-grow">
+            <span class="sp-title sp-truncate">Scanned before</span>
+            <span class="sp-meta sp-truncate">kvittering-indbo-12082026.pdf</span>
+          </div>
+        </div>
+        <div class="sp-card sp-gap-16">
+          <div class="sp-list-item sp-list-item--top">
+            <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+            <div class="sp-stacked sp-grow">
+              <span class="sp-title sp-truncate">Indbo Møbler</span>
+              <span class="sp-meta">SPENDLY-447 · 12/08/2026 · 4 lines · 7.635,00 kr.</span>
+            </div>
+          </div>
+          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
+        </div>
+        <span class="sp-section-label">If that is not what you meant</span>
+        <div class="sp-card sp-gap-16">
+          <div class="sp-list-item sp-list-item--top">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">New order from the saved reading</span>
+              <span class="sp-meta">Starts a new order with the same lines, ready for you to check and change.</span>
+            </div>
+          </div>
+          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Use the reading</button></div>
+        </div>
+        <div class="sp-card sp-gap-16">
+          <div class="sp-list-item sp-list-item--top">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">Read it again</span>
+              <span class="sp-meta">Use this if the lines came out wrong last time.</span>
+            </div>
+          </div>
+          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Scan again</button></div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard the upload</button>
+          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation - 3c on a phone</span>
+    <div class="doc-note"><b>The same screen as the phone frame in <a href="Mobile screens.dc.html#7a">7a</a></b>, drawn here beside the screen it belongs to. Back and the title Scanned before, with the file name under it. Each choice is its own card with its button full width under the text, and Discard the upload closes the page.</div>
   </div>
 </section>
 

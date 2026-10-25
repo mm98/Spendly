@@ -13,6 +13,8 @@
     gap: var(--sp-12);
     text-align: left;
   }
+  /* on a phone the ways to start stack, one card a row */
+  .oc-choices--stack { grid-template-columns: minmax(0, 1fr); }
   /* a row whose first child is a fixed preview reads aligned to the text it labels,
      never centred against a block of it */
   /* its own row rather than .sp-row-flex + an override: the helper centres its

@@ -1193,6 +1193,14 @@
   }
 
 
+  /* A suggestion under a field ("+ Lighting", "+ New: Seating") carries sp-chip--suggestion,
+     so on touch it is drawn at 36px with a 48px tap area. Caught: the suggestions under an
+     order's Categories took the 48px touch height and stood taller than the field's chips. */
+  for (const [f, s] of Object.entries(src))
+    for (const m of s.matchAll(/<button[^>]*class="([^"]*\bsp-chip\b[^"]*)"[^>]*><span>\+ /g))
+      if (!m[1].split(/\s+/).includes('sp-chip--suggestion')) fail('a suggestion chip is sp-chip--suggestion', f.replace('.dc.html', ''), m[1]);
+
+
   /* An order's details form lists its fields in one order on every page and in every
      action, create or edit: Vendor, Date, Kind, Status, Categories, Reference, Note,
      Discount, Shipping fee. Order create and Order editing layouts had drifted into
