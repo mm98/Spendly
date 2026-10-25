@@ -9,7 +9,7 @@ import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuLabel, MenuSeparator, Popover, Leaving } from '../components/Overlays.jsx'
+import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuHostOf, MenuItem, MenuLabel, MenuSeparator, Popover, Leaving } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { SaveBar, Sheet } from '../components/Touch.jsx'
 import { Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
@@ -62,6 +62,28 @@ export function RowMenu({ noun, label, open, onToggle, onClose, panel, children 
 			<Leaving>{panel ? panel(box) : null}</Leaving>
 			{panel ? null : <Menu position="floating" aria-label={label}>{children}</Menu>}
 		</Anchor>
+	)
+}
+
+/** A record's card on a phone (c1, touch): a tap opens the record, a long press opens its menu as a
+    sheet. A press on the page behind the sheet presses the card, which then closes it. `panel` is as RowMenu's. */
+export function CardMenu({ label, to, open, onOpen, onClose, panel, menu, children }) {
+	const box = useRef(null)
+	const touch = useShellShape() === 'touch'
+	// the menu closes on Escape and a press outside; a picker an item opens is a sheet with its own way out
+	useDismiss(box, open && !panel, onClose)
+	if (!touch) return <Card to={to}>{children}</Card>
+	return (
+		<div ref={box}>
+			<MenuHostOf open={open} box={box}>
+				<Card to={to} onLongPress={onOpen} aria-haspopup="menu" aria-expanded={open || panel ? 'true' : 'false'}
+					onClick={ev => { if (open || panel) { ev.preventDefault(); onClose() } }}>
+					{children}
+				</Card>
+				<Leaving>{panel ? panel(box) : null}</Leaving>
+				{panel ? null : <Menu position="floating" aria-label={label}>{menu}</Menu>}
+			</MenuHostOf>
+		</div>
 	)
 }
 

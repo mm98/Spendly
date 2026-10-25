@@ -16,6 +16,8 @@ import { Button } from './Button.jsx'
 export const ShellTouch = createContext(false)
 // on a phone, the top bar's slot: a selection bar takes it, edge to edge (c11, c12)
 export const ShellHead = createContext(null)
+// whether the menu is the narrow rail, where a row's words are hidden and the row has to carry its name
+const SidebarRail = createContext(false)
 
 /** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
     floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it.
@@ -48,6 +50,7 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 	   the page rather than mounting it again and losing what the reader had not saved. */
 	return (
 		<ShellTouch.Provider value={touch}>
+		<SidebarRail.Provider value={!touch && collapsed}>
 		<ShellHead.Provider value={touch ? head : null}>
 			<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
 				{touch ? null : menu}
@@ -62,6 +65,7 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 				{touch && !cover ? tabbar : null}
 			</div>
 		</ShellHead.Provider>
+		</SidebarRail.Provider>
 		</ShellTouch.Provider>
 	)
 }
@@ -106,6 +110,9 @@ export function Sidebar({ variant = 'default', motion, onMotionEnd, ref, childre
 	reject(rest, 'Sidebar')
 	const box = useRef(null)
 	const still = useStill()
+	// a rail hides the words, a peek shows them over the page; a default sidebar follows the shell
+	const shellRail = useContext(SidebarRail)
+	const rail = variant === 'rail' ? true : variant === 'peek' ? false : shellRail
 	const ended = useRef(onMotionEnd)
 	ended.current = onMotionEnd
 	const bind = useCallback(el => {
@@ -119,9 +126,11 @@ export function Sidebar({ variant = 'default', motion, onMotionEnd, ref, childre
 		return slideLabels(box.current, motion, still, () => ended.current?.())
 	}, [motion, still])
 	return (
-		<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} ref={bind} {...rest}>
-			{children}
-		</nav>
+		<SidebarRail.Provider value={rail}>
+			<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} ref={bind} {...rest}>
+				{children}
+			</nav>
+		</SidebarRail.Provider>
 	)
 }
 
@@ -196,6 +205,13 @@ const NAV = {
     @param {import('react').ReactNode} [props.children] The row's label. */
 export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
 	reject(rest, 'NavItem')
+	/* A row with words is named by what it draws, its words and its count, and carries no name of its
+	   own: a given name never matches the drawn text exactly ("All orders 441" against "All orders441").
+	   The rail hides the words, so only there the row carries them as its name. */
+	const rail = useContext(SidebarRail)
+	const words = typeof children === 'string' || typeof children === 'number' ? [children, count].filter(v => v != null).join(' ') : null
+	if (words && 'aria-label' in rest) { console.error('<NavItem> is named by the words it draws and its count: an aria-label is not taken'); delete rest['aria-label'] }
+	if (rail && words && !control && !(handle && (to || onClick))) rest['aria-label'] = words
 	const [hint, tipEvents] = useTip(tip)
 	// a saved view in a ReorderList is carried by its handle, or picked up from the keyboard
 	const moving = useMovingRow()
@@ -333,8 +349,9 @@ function useSidebarMenu({ expanded, onClick, onDismiss }) {
     @param {string} [props.tip] The tooltip when the menu is a narrow rail. */
 export function SidebarAccount({ name, picture, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
-	// named by the words it draws, in their order, so a reader who says what they see reaches it;
+	// named by the words it draws, in their order, and no name of its own;
 	// on the rail, where none are drawn, the same words are its name
+	const rail = useContext(SidebarRail)
 	if ('aria-label' in rest) { console.error('<SidebarAccount> is named by the name and email it draws: an aria-label is not taken'); delete rest['aria-label'] }
 	const named = [name, email].filter(Boolean).join(' ')
 	const { block, button, opener, drawn } = useSidebarMenu({ expanded, onClick, onDismiss })
@@ -352,7 +369,7 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 	const chevron = <span className="sp-combobox__chevron" aria-hidden="true"><Icon name="chevron-up" size={14} /></span>
 	return (
 		<>
-			<NavItem ref={bind} mark={mark} tip={expanded ? null : tip} onClick={onClick} aria-haspopup="menu" aria-label={named}
+			<NavItem ref={bind} mark={mark} tip={expanded ? null : tip} onClick={onClick} aria-haspopup="menu" {...(rail ? { 'aria-label': named } : {})}
 				aria-expanded={expanded ? 'true' : 'false'} onKeyDown={opener} trail={chevron}
 				{...rest}>
 				{label}

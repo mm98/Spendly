@@ -136,7 +136,8 @@ Everything that needs you, on one page.
 - **A yearly plan** with income and costs, in groups and rows, with an expected amount for each
   month and the real amount once you know it.
 - **Months or the whole year** - one month in front with what is left over and how much of the
-  income is used, or the whole year as a sheet.
+  income is used, or the whole year as a sheet. Press a month to move to it, or use the left and
+  right arrow keys.
 - **Start next year** as a copy of this one, or **import** a year from Excel.
 - **The sidebar counts this month's payments** - every cost row with an amount this month, paid or
   not.
@@ -196,8 +197,9 @@ Everything that needs you, on one page.
 
 - **Dark mode** everywhere, switched from search or Settings.
 - **On a phone** - a tab bar for Home, Orders, Statistics and More, sheets from the bottom for
-  filters and choices, full-screen pictures, and touch-sized controls. Add Spendly to the home
-  screen and it opens like an app.
+  filters and choices, full-screen pictures, and touch-sized controls. Hold a finger on an order,
+  a vendor, a category or a bookmark to open its menu. Add Spendly to the home screen and it opens
+  like an app.
 - **Every page remembers where you were**, scroll position included.
 - **Things move gently.** Menus, lists, calendars and dialogs open with a short slide and fade,
   figures count to their new value, and content fades in where its placeholder stood. A device set

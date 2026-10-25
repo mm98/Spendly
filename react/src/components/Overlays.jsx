@@ -43,7 +43,8 @@ export function MenuHostOf({ open, box, children }) {
 export function useMenuPlace(box, open) {
 	const touch = useContext(ShellTouch)
 	const menu = useMemo(() => ({ get current() { return box.current?.querySelector(':scope > .sp-menu--floating') ?? null } }), [box])
-	usePanelPlace(box, menu, open && !touch)
+	// a scroll of the page closes it, as its own button would (c9)
+	usePanelPlace(box, menu, open && !touch, undefined, () => menuTrigger(menu.current)?.click())
 	// the menu fades out as it closes, where it stood: the host spreads data-closing so it stays drawn until then
 	const closing = usePanelMotion(menu, open && !touch)
 	usePanelRest(menu, open && !touch, closing)

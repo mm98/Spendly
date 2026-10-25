@@ -18,7 +18,7 @@ import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
 import { VendorMark } from '../app/categoryMark.jsx'
 import {
-	Bar, ConfirmDelete, MergeDialog, MergePicker, RowMenu, SortControl, archiveVendor, deleteNote, isGone, sayFailure, useRefocus
+	Bar, CardMenu, ConfirmDelete, MergeDialog, MergePicker, RowMenu, SortControl, archiveVendor, deleteNote, isGone, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
@@ -90,6 +90,27 @@ export default function Vendors() {
 	const shown = vendors.data?.vendors ?? []
 	const matched = vendors.data?.matched ?? 0
 	const refocus = useRefocus(vendors.data?.vendors, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
+
+	// one record's menu, the same from its row's kebab and from a long press on its phone card
+	const closeMenu = () => { setMenuFor(null); setPicking(null) }
+	const mergePanel = v => picking === v.id
+		? box => <MergePicker kind="vendor" source={v} anchor={box} onClose={() => setPicking(null)}
+			onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
+		: null
+	const menuItems = v => (
+		<>
+			<MenuItem icon="external-link" to={`/orders?vendor=${v.id}`}>Open in the order list</MenuItem>
+			<MenuItem icon="pencil" to={`/vendors/${v.id}/edit`}>Edit vendor</MenuItem>
+			<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(v.id) }}>Merge into…</MenuItem>
+			<MenuSeparator />
+			{v.archived
+				? <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, false) }}>Unarchive</MenuItem>
+				: <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, true) }}>Archive</MenuItem>}
+			{v.orders === 0
+				? <MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(v) }}>Delete</MenuItem>
+				: null}
+		</>
+	)
 
 	const remove = () => {
 		setBusy(true)
@@ -207,7 +228,8 @@ export default function Vendors() {
 	else if (cards) body = (
 		<>
 			{shown.map(v => (
-				<Card key={v.id} to={`/vendors/${v.id}/edit`}>
+				<CardMenu key={v.id} to={`/vendors/${v.id}/edit`} label={v.name} open={menuFor === v.id}
+					onOpen={() => { setPicking(null); setMenuFor(v.id) }} onClose={closeMenu} panel={mergePanel(v)} menu={menuItems(v)}>
 					<div className="sp-cell-flex">
 						<VendorMark name={v.name} colour={v.colour} />
 						<Stacked>
@@ -216,7 +238,7 @@ export default function Vendors() {
 						</Stacked>
 						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
 					</div>
-				</Card>
+				</CardMenu>
 			))}
 			<ListMore loose shown={shown.length} total={matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		</>
@@ -252,21 +274,8 @@ export default function Vendors() {
 					<ListCell key="m" cell="menu">
 						<RowMenu noun="Vendor" label={v.name} open={menuFor === v.id}
 							onToggle={() => { setPicking(null); setMenuFor(menuFor === v.id ? null : v.id) }}
-							onClose={() => { setMenuFor(null); setPicking(null) }}
-							panel={picking === v.id
-								? box => <MergePicker kind="vendor" source={v} anchor={box} onClose={() => setPicking(null)}
-									onPick={target => { setPicking(null); setMerging({ source: v, target }) }} />
-								: null}>
-							<MenuItem icon="external-link" to={`/orders?vendor=${v.id}`}>Open in the order list</MenuItem>
-							<MenuItem icon="pencil" to={`/vendors/${v.id}/edit`}>Edit vendor</MenuItem>
-							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(v.id) }}>Merge into…</MenuItem>
-							<MenuSeparator />
-							{v.archived
-								? <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, false) }}>Unarchive</MenuItem>
-								: <MenuItem icon="archive" onClick={() => { setMenuFor(null); setArchived(v, true) }}>Archive</MenuItem>}
-							{v.orders === 0
-								? <MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(v) }}>Delete</MenuItem>
-								: null}
+							onClose={closeMenu} panel={mergePanel(v)}>
+							{menuItems(v)}
 						</RowMenu>
 					</ListCell>
 				]}

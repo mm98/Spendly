@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { knownAccessibilityFaults, useHeld } from './controls.js'
+import { useHeld } from './controls.js'
 import { List, Caption, Selected, ListHead, ListRow, ListCell, Controls, Filters, Crumb, Crumbs, Record, ListMore, BulkBar, ListToolbar } from '../../react/src/components/List.jsx'
 import { Card, CardHeader } from '../../react/src/components/Card.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
@@ -136,7 +136,6 @@ export const DrillPath = {
 const BOOKMARKS = Array.from({ length: 9 }, (_, i) => ({ id: i, name: ['Lounge chair', 'Pendant lamp', 'Rug, 200 × 300', 'Side table'][i % 4], site: ['hay.dk', 'muuto.com', 'bolia.com'][i % 3], category: ['Furniture', 'Lighting', 'Decor'][i % 3] }))
 
 export const Cards_ = {
-	parameters: { a11y: knownAccessibilityFaults },
 	name: 'Cards',
 	args: { pageSize: 6, onOpen: fn() },
 	argTypes: { pageSize: { control: { type: 'range', min: 1, max: 9 }, description: 'ListMore\'s pageSize' } },

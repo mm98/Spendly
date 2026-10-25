@@ -915,9 +915,9 @@ function CategoryCard({ view, known, name, onOpen }) {
 
 /** A row a reader presses to drill into what it names: the row itself is the button, in the
     state of a row that opens (4a). Without `onPick` it is the plain row. */
-function Pick({ onPick, label, className, children }) {
+function Pick({ onPick, className, children }) {
 	if (!onPick) return <div className={className}>{children}</div>
-	return <button type="button" className={`${className} sp-row-opens`} onClick={onPick} aria-label={label}>{children}</button>
+	return <button type="button" className={`${className} sp-row-opens`} onClick={onPick}>{children}</button>
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or the top
@@ -960,7 +960,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 		const pick = !entry.other && onOpen ? () => onOpen(entry.id ?? 'none') : undefined
 		const gauge = <Gauge thin={touch} value={share(Math.abs(entry.amount), most)} remainder={entry.other} negative={entry.amount < 0} aria-label={entry.name} />
 		return (
-			<Pick key={entry.id ?? 'none'} onPick={pick} label={`${entry.name}, ${currency(entry.amount, 0)}`} className={touch ? 'sp-stack' : 'sp-stack sp-gap-6'}>
+			<Pick key={entry.id ?? 'none'} onPick={pick} className={touch ? 'sp-stack' : 'sp-stack sp-gap-6'}>
 				{touch
 					? (
 						<>
@@ -1050,7 +1050,7 @@ function StatusCard({ view, flow = 'expenses', onOpen }) {
 			{shown.map(status => {
 				const count = view ? counts.get(status) ?? 0 : null
 				return (
-					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} label={`${nameOf(status)}, ${counted(count ?? 0, 'order')}`} className="sp-stack sp-gap-6">
+					<Pick key={status} onPick={onOpen && count ? () => onOpen(status) : undefined} className="sp-stack sp-gap-6">
 						<div className="sp-row-flex sp-gap-8">
 							<span className="sp-data">{nameOf(status)}</span>
 							<span className="sp-grow" />

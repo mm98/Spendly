@@ -2,7 +2,7 @@ import { expect, fn, userEvent, waitFor } from 'storybook/test'
 import { Check, Radio, Switch, Choice, FieldGroup, FieldGroupValues, FieldGroupMore, Picker } from '../../react/src/components/Choice.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { knownAccessibilityFaults, useHeld } from './controls.js'
+import { useHeld } from './controls.js'
 
 const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 const GLYPHS = ['armchair', 'lamp', 'flower', 'bookmark', 'shopping-bag', 'receipt', 'tag', 'diamond']
@@ -58,12 +58,10 @@ export const AppliesAtOnce = box({
 })
 export const Disabled = box({ args: { disabled: true, children: 'Disabled' } })
 export const Described = box({
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { box: 'radio', variant: 'described', children: 'Skip duplicates', description: 'Rows that match an existing order are skipped.' }
 })
 
 export const Groups = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { legend: 'Where the amount comes from', variant: 'row' },
 	argTypes: { legend: { control: 'text', description: 'The group\'s `legend`' } },
 	render: ({ legend, variant }) => (

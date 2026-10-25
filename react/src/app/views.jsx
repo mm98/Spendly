@@ -58,8 +58,7 @@ export function SidebarViews({ rail, savedId }) {
 		<>
 			{shown.map(view => (
 				<NavItem key={view.id} to={viewLink(view)} mark={<ViewMark query={view.query} />} current={savedId === view.id}
-					count={countBadge(view.count)} countColor={viewCountColor(view)}
-					aria-label={`${view.name}, ${countBadge(view.count)}`}>{view.name}</NavItem>
+					count={countBadge(view.count)} countColor={viewCountColor(view)}>{view.name}</NavItem>
 			))}
 			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} current={openPast} /> : null}
 		</>

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router'
 import { IconButton } from '../components/Button.jsx'
 import { Check, Choice } from '../components/Choice.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
-import { Anchor, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Anchor, Menu, MenuHostOf, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Record } from '../components/List.jsx'
+import { ListItem } from '../components/ListItem.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
@@ -204,6 +205,26 @@ export function RowMenu({ order, touch, onDelete }) {
 	)
 }
 
+/** A phone's order row (2c, c1): a tap opens the order, a long press opens its menu as a sheet. A press
+    on the page behind the sheet presses the row, which then closes it. */
+export function PressedRow({ order, mark, onOpen, onDelete, children }) {
+	const [open, setOpen] = useState(false)
+	const box = useRef(null)
+	const close = useCallback(() => setOpen(false), [])
+	useDismiss(box, open, close)
+	return (
+		<div ref={box} className="ol-press">
+			<MenuHostOf open={open} box={box}>
+				<ListItem variant="card" mark={mark} aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'}
+					onClick={() => (open ? close() : onOpen(order))} onLongPress={() => setOpen(true)}>
+					{children}
+				</ListItem>
+				{open ? <OrderMenuItems order={order} touch close={close} onDelete={onDelete} /> : null}
+			</MenuHostOf>
+		</div>
+	)
+}
+
 /** One order as a card (2c): its first three line photos, then the row's facts; the card's menu
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
@@ -215,6 +236,7 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 	return (
 		<Record
 			onClick={() => onOpen(order)}
+			onLongPress={() => onMenu(order.id)}
 			void={cancelled}
 			photos={photos.length || !order.vendorImage
 				? photos.map(p => <img key={p.attachmentId} src={itemAttachmentFileUrl(order.id, p.itemId, p.attachmentId)} alt="" />)

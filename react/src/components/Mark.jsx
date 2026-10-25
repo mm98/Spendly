@@ -129,7 +129,8 @@ export function Mark({
 		)
 	}
 	if (onClick)
-		return <button type="button" className={classes} onClick={onClick} {...paint} {...named} {...rest}>{body}</button>
+		// a button is already a control with a role: it takes the name, never the picture's role
+		return <button type="button" className={classes} onClick={onClick} {...paint} {...(named['aria-label'] ? { 'aria-label': named['aria-label'] } : {})} {...rest}>{body}</button>
 	// a mark that wraps a file input is the picker's own hit target
 	if (picker) {
 		const { 'aria-label': unread, ...box } = rest

@@ -331,8 +331,7 @@ function ScanReceipt({ rail }) {
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	if (held)
 		return (
-			<NavItem icon="camera" tip="Available once your email is confirmed" tabIndex={0} aria-disabled="true"
-				aria-label="Scan receipt, available once your email is confirmed">Scan receipt</NavItem>
+			<NavItem icon="camera" tip="Available once your email is confirmed" tabIndex={0} aria-disabled="true">Scan receipt</NavItem>
 		)
 	return <Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>
 }
@@ -340,13 +339,12 @@ function ScanReceipt({ rail }) {
 /* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button. It is
    current while a new order is made, until it is saved (9a). */
 function NewOrder({ rail, current }) {
-	return <NavItem icon="plus" current={current} to="/orders/new" tip={rail ? 'New order' : undefined} aria-label="New order">New order</NavItem>
+	return <NavItem icon="plus" current={current} to="/orders/new" tip={rail ? 'New order' : undefined}>New order</NavItem>
 }
 
-/* A count is read with its destination; on the rail the label is the tile's only name. */
 function Row({ rail, count, children, ...rest }) {
 	const shown = count == null ? count : countBadge(count)
-	return <NavItem tip={rail ? children : undefined} aria-label={shown != null ? `${children}, ${shown}` : children} count={shown} {...rest}>{children}</NavItem>
+	return <NavItem tip={rail ? children : undefined} count={shown} {...rest}>{children}</NavItem>
 }
 
 /* A count the sidebar has not received yet renders as nothing, never as a zero (9e). */

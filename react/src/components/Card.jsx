@@ -1,4 +1,4 @@
-import { Children, createContext, useContext } from 'react'
+import { Children, createContext, useContext, useRef } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
@@ -21,6 +21,38 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
 const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__footer--stack' }
 
+// a touch held this long on a row opens its record menu (c1); one that travels this far first is a scroll
+const HOLD_MS = 500
+const SCROLLED = 8
+
+/* A long press on a touch row: a finger held still for HOLD_MS calls `onLongPress`, and the tap that
+   ends it opens nothing. A pointer has its menu button, so only a touch counts. One hook for every
+   part a phone list draws its rows with: Card, ListItem and Record. */
+export function useLongPress(onLongPress) {
+	const timer = useRef(null)
+	const fired = useRef(false)
+	if (!onLongPress) return {}
+	const stop = () => { clearTimeout(timer.current); timer.current = null }
+	return {
+		'data-long-press': '',
+		onPointerDown: ev => {
+			fired.current = false
+			if (ev.pointerType !== 'touch') return
+			const x0 = ev.clientX, y0 = ev.clientY
+			const move = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > SCROLLED) end() }
+			const end = () => { stop(); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end) }
+			timer.current = setTimeout(() => { end(); fired.current = true; navigator.vibrate?.(10); onLongPress() }, HOLD_MS)
+			window.addEventListener('pointermove', move)
+			window.addEventListener('pointerup', end)
+			window.addEventListener('pointercancel', end)
+		},
+		// the press that opened the menu does not also open the record
+		onClickCapture: ev => { if (fired.current) { fired.current = false; ev.preventDefault(); ev.stopPropagation() } },
+		// a long press on Android is a context menu, which the record menu replaces
+		onContextMenu: ev => { if (fired.current || timer.current) ev.preventDefault() }
+	}
+}
+
 /** @param {object} props
     @param {keyof typeof VARIANT} [props.variant] `default`; `flush` has no padding; `row` lays its parts in a row; `shell` is the card the app frame draws; `path` is the Showing bar; `float` and `float-wide` float on the page, as the sign-in card does.
     @param {keyof typeof COLOR} [props.color] A tint for a card that needs attention: `warning` (amber) or `danger`.
@@ -31,6 +63,7 @@ const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__f
     @param {boolean} [props.footerCommits] The footer closes a decision, so every button on it takes the full size.
     @param {import('react').ReactNode} [props.after] A part drawn under the footer.
     @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a card that opens or folds.
+    @param {() => void} [props.onLongPress] On touch, a row held still opens its record menu: this opens it (c1).
     @param {import('react').ReactNode} [props.children] The card's parts: a CardHeader first, then what the card shows. */
 export function Card({
 	variant = 'default',
@@ -44,10 +77,12 @@ export function Card({
 	// set under the footer, apart from the commits
 	after,
 	chevron,
+	onLongPress,
 	children,
 	...rest
 }) {
 	reject(rest, 'Card')
+	const held = useLongPress(onLongPress)
 	const classes = join('sp-card', pick(VARIANT, variant, 'variant', 'Card'), spread && 'sp-card--spread')
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
 	const actions = Children.toArray(footer)
@@ -76,14 +111,17 @@ export function Card({
 			{after}
 		</>
 	)
-	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...rest}>{body}</Link>
-	return <div className={classes} {...paint} {...rest}>{body}</div>
+	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...held} {...rest}>{body}</Link>
+	return <div className={classes} {...paint} {...held} {...rest}>{body}</div>
 }
 
 /* true only where Card places its own head */
 const HeadSlot = createContext(false)
 
 const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink-danger' }
+
+// the head's buttons: small in a card, xsmall in a rail heading (Order list 2b, 2d)
+const ACTION_SIZE = { small: 'small', xsmall: 'xsmall' }
 
 /** A card's head (c10): one slot per view, drawn in a fixed order, so it cannot be assembled by hand.
     Only a child of Card; `actions` are at most two `{ label, to, href, onClick, held }`;
@@ -96,6 +134,7 @@ const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink
     @param {import('react').ReactNode} [props.control] At the right end: one control that changes what the card shows, such as a Segmented or a Switch.
     @param {import('react').ReactNode} [props.status] At the right end: one Pill.
     @param {{ label: string, to?: string, href?: string, onClick?: () => void, held?: boolean }[]} [props.actions] At most two small buttons at the right end: each with its words, and an address or a click. A held one keeps its place but is hidden.
+    @param {keyof typeof ACTION_SIZE} [props.actionSize] The size of the action buttons: `small` in a card, `xsmall` in a rail heading.
     @param {() => void} [props.onDismiss] Closes the card; renders the close button last.
     @param {string} [props.dismissLabel] The name of the close button, such as Hide the August summary. */
 export function CardHeader({
@@ -106,6 +145,7 @@ export function CardHeader({
 	control,
 	status,
 	actions,
+	actionSize = 'small',
 	onDismiss,
 	dismissLabel = 'Close',
 	...rest
@@ -118,6 +158,7 @@ export function CardHeader({
 	const list = Array.isArray(actions) ? actions.filter(Boolean) : actions ? [actions] : []
 	if (list.length > 2) console.error('<CardHeader> three actions is a menu, not a head')
 	const end = aside || control || status || list.length || onDismiss
+	const size = pick(ACTION_SIZE, actionSize, 'actionSize', 'CardHeader')
 	return (
 		<div className="sp-card__head" {...rest}>
 			<span className="sp-section-label">{name}</span>
@@ -127,7 +168,7 @@ export function CardHeader({
 			{control || null}
 			{status || null}
 			{list.slice(0, 2).map(a => {
-				const button = <Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
+				const button = <Button key={a.label} variant="outline" size={size} to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
 				return a.held ? <span key={a.label} className="sp-held">{button}</span> : button
 			})}
 			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel} onClick={onDismiss} /> : null}
