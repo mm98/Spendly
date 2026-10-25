@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { m, useRow } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
+import { useLongPress } from './Card.jsx'
 
 // a row arrives, leaves and glides to its place inside Rows; as a link it is the router's link, moving
 const MLink = m.create(Link)
@@ -39,6 +40,7 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
     @param {boolean} [props.setting] The row holds a setting: it keeps its ground when an option in it is ticked.
     @param {() => void} [props.onClick] Renders a button.
     @param {string} [props.to] An address inside the app. The row is drawn as a link.
+    @param {() => void} [props.onLongPress] On touch, a row held still opens its record menu: this opens it (c1). As Card.
     @param {import('react').ReactNode} [props.children] What the row says. */
 export function ListItem({
 	variant = 'default',
@@ -59,11 +61,13 @@ export function ListItem({
 	setting = false,
 	onClick,
 	to,
+	onLongPress,
 	children,
 	...rest
 }) {
 	reject(rest, 'ListItem')
 	const moves = useRow()
+	const held = useLongPress(onLongPress)
 	// in a ReorderList the row is carried by its handle, or picked up from the keyboard
 	const moving = useMovingRow()
 	if (moving?.state) variant = moving.state
@@ -82,6 +86,7 @@ export function ListItem({
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),
 		...(selected !== undefined ? { 'aria-selected': selected ? 'true' : 'false' } : {}),
 		...(moving ? {} : moves),
+		...held,
 		...rest
 	}
 	const grip = moving ? moving.handle : {}

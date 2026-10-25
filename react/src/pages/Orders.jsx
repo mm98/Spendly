@@ -33,7 +33,7 @@ import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { linesCsv, linesOf, saveCsv } from '../app/ordersCsv.js'
 import { DeleteOrder } from './DeleteOrder.jsx'
 import { BulkActions, useStatusName } from './OrderBulk.jsx'
-import { OrderCard, RowMenu, orderName } from './OrderMenu.jsx'
+import { OrderCard, PressedRow, RowMenu, orderName } from './OrderMenu.jsx'
 import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
 
@@ -370,7 +370,7 @@ export default function OrderList() {
 	const facetData = { amountScale: amountScale.data?.amountScale }
 	const filtersCard = (
 		<Card>
-			<CardHeader name="Filters" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
+			<CardHeader name="Filters" actionSize="xsmall" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
 			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>
 	)
@@ -494,7 +494,7 @@ export default function OrderList() {
 			: null
 		if (narrow)
 			body = (
-				<OrderCards data={data} size={size} summary={summary} touch={touch} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore}
+				<OrderCards data={data} size={size} summary={summary} touch={touch} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
 					bulk={touch || !chosen.length ? null : <BulkBar loose count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar>} />
 			)
 		else if (view === 'cards')
@@ -813,7 +813,7 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 
 /** At 640 of list column and under, rows become the 2i card, two lines: in a narrow column with its box;
     on a phone without it, since a phone does not select (2c, Mobile screens). */
-function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore }) {
+function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore, onDelete }) {
 	const { typeOf } = useStatusTypes()
 	return (
 		<>
@@ -826,7 +826,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 				return (
 					touch
 						? (
-							<ListItem key={o.id} variant="card" mark={<OrderPhoto order={o} />} onClick={() => onOpen(o)}>
+							<PressedRow key={o.id} order={o} mark={<OrderPhoto order={o} />} onOpen={onOpen} onDelete={onDelete}>
 								<Stacked>
 									<Line>
 										<span className="sp-title sp-truncate sp-grow">{vendorName(o)}</span>
@@ -837,7 +837,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 										{saving}
 									</Line>
 								</Stacked>
-							</ListItem>
+							</PressedRow>
 						)
 						: (
 							<div key={o.id} className="ol-pickable">

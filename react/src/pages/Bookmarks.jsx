@@ -283,6 +283,7 @@ export default function Bookmarks() {
 						<Record
 							key={bookmark.id}
 							onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}
+							onLongPress={() => setMenuFor(bookmark.id)}
 							href={href ?? undefined}
 							hrefLabel={href ? `Open ${bookmark.name} at ${site}` : undefined}
 							photos={bookmark.photoId

@@ -63,22 +63,34 @@ const unknown = ASKED?.filter(p => !every.includes(p)) ?? []
 if (unknown.length) throw new Error(`no such page in PAGES: ${unknown.join(', ')}`)
 const paths = (ASKED ?? every).map(p => p.replace(/:(\w+)/g, (_, kind) => ids[kind]))
 let failed = 0
-for (const [size, device] of SIZES) {
-	const ctx = await browser.newContext({ ...device, ...READER, storageState })
+const ready = page => page.waitForFunction(() => document.querySelector('.sp-shell__page') && !document.querySelector('.sp-skeleton, [aria-busy="true"]'))
+const measure = async (page, size, path) => {
+	const scroll = await page.evaluate(() => {
+		const el = document.scrollingElement
+		return { sideways: el.scrollWidth - el.clientWidth, down: el.scrollHeight - el.clientHeight, fill: !!document.querySelector('.sp-shell__body--fill') }
+	})
+	const faults = [scroll.sideways > 0 && `scrolls ${scroll.sideways}px sideways`, scroll.fill && scroll.down > 0 && `scrolls ${scroll.down}px down`].filter(Boolean)
+	if (faults.length) { failed++; console.error(`FAIL ${size} ${path}: ${faults.join(', ')}`) }
+}
+// a phone is a touch device, which no window size makes: it has its own context. The desktop sizes share one
+// window, so each page loads once and is then measured at every width
+for (const sizes of [SIZES.slice(0, 1), SIZES.slice(1)]) {
+	const ctx = await browser.newContext({ ...sizes[0][1], ...READER, storageState })
 	ctx.setDefaultTimeout(10000)
 	const page = await ctx.newPage()
 	for (const path of paths) {
 		// a change of hash alone does not load the page, and the old page would be measured
 		await page.goto('about:blank')
+		await page.setViewportSize(sizes[0][1].viewport)
 		await page.goto(`${ORIGIN}/#${path}`)
-		await page.waitForLoadState('networkidle')
-		await page.waitForFunction(() => document.querySelector('.sp-shell__page') && !document.querySelector('.sp-skeleton, [aria-busy="true"]'))
-		const scroll = await page.evaluate(() => {
-			const el = document.scrollingElement
-			return { sideways: el.scrollWidth - el.clientWidth, down: el.scrollHeight - el.clientHeight, fill: !!document.querySelector('.sp-shell__body--fill') }
-		})
-		const faults = [scroll.sideways > 0 && `scrolls ${scroll.sideways}px sideways`, scroll.fill && scroll.down > 0 && `scrolls ${scroll.down}px down`].filter(Boolean)
-		if (faults.length) { failed++; console.error(`FAIL ${size} ${path}: ${faults.join(', ')}`) }
+		await ready(page)
+		for (const [size, device] of sizes) {
+			await page.setViewportSize(device.viewport)
+			// the layout and anything a new width loads settle before the page is measured
+			await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))))
+			await ready(page)
+			await measure(page, size, path)
+		}
 	}
 	await ctx.close()
 }

@@ -158,7 +158,6 @@ Everything that needs you, on one page.
 - **Categories** - an icon from a large library, a colour, and a **monthly limit**. Each row shows
   this month against its limit. Spendly warns you when a limit you type would have been passed in
   most of the last 12 months.
-- **On a phone**, hold a finger on a vendor or a category to open its menu.
 - **Spend** for a vendor or a category is money paid, as in Statistics' "Expenses only". A returned
   order and an order of the kind Sold are listed and counted as orders, but add nothing to it. The
   same holds for the total over the order list.
@@ -198,8 +197,9 @@ Everything that needs you, on one page.
 
 - **Dark mode** everywhere, switched from search or Settings.
 - **On a phone** - a tab bar for Home, Orders, Statistics and More, sheets from the bottom for
-  filters and choices, full-screen pictures, and touch-sized controls. Add Spendly to the home
-  screen and it opens like an app.
+  filters and choices, full-screen pictures, and touch-sized controls. Hold a finger on an order,
+  a vendor, a category or a bookmark to open its menu. Add Spendly to the home screen and it opens
+  like an app.
 - **Every page remembers where you were**, scroll position included.
 - **Things move gently.** Menus, lists, calendars and dialogs open with a short slide and fade,
   figures count to their new value, and content fades in where its placeholder stood. A device set

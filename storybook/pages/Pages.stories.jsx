@@ -6,7 +6,6 @@ import { forgetAll } from '../../react/src/api/useApi.js'
 import kept from './answers.json'
 import { PAGE_STATES, nameOf, pathOf, pressOn } from './states.js'
 import { serveAnswers, setClock } from './serve.js'
-import { knownAccessibilityFaults } from '../stories/controls.js'
 
 // The app's own pages, drawn by its own routes and shell from answers kept from a real account
 // (pages/states.js says which, scripts/record-pages.mjs keeps them). A part looks right on its own
@@ -25,7 +24,6 @@ export default {
 		layout: 'fullscreen',
 		ownRouter: true,
 		controls: { disable: true },
-		a11y: knownAccessibilityFaults,
 		chromatic: {
 			modes: {
 				'computer light': { viewport: 'desktop', theme: 'light' },

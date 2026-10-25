@@ -7,7 +7,7 @@ import { Menu, MenuItem, MenuSeparator } from '../../react/src/components/Overla
 import { Kbd } from '../../react/src/components/Utilities.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
+import { iconControl, useHeld } from './controls.js'
 
 export default {
 	title: 'Shell/Desktop',
@@ -18,7 +18,6 @@ export default {
 }
 
 export const SidebarAndTopBar = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { collapsed: false, accountOpen: false, noReceipt: 4, onSignOut: fn(), onMotionEnd: fn() },
 	argTypes: {
 		collapsed: { description: 'Shell\'s `collapsed`: the sidebar drawn as a rail' },
@@ -81,7 +80,7 @@ export const SidebarAndTopBar = {
 export const OneNavItem = {
 	args: { children: 'All orders', icon: 'receipt', count: 18, current: false, variant: 'default', tip: 'All orders', handle: 'none', handleLabel: 'Move All orders', onClick: fn() },
 	argTypes: { icon: iconControl, handle: { control: 'select', options: ['none', 'grip'], mapping: { none: undefined, grip: <Icon name="grip-vertical" size={12} /> } } },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: NavItem, layout: 'padded' },
+	parameters: { variantsOf: NavItem, layout: 'padded' },
 	// drawn on the sidebar's own ground, where a NavItem always sits
 	render: args => <div className="sp-sidebar" style={{ width: 240 }}><NavItem {...args} /></div>
 }

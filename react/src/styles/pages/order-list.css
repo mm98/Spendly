@@ -25,6 +25,8 @@
 		cursor: pointer;
 	}
 	.ol-pick-room { flex: none; width: var(--box); }
+	/* a phone's order row and its menu, the row as wide as the list */
+	.ol-press { display: flex; flex-direction: column; }
 
 	/* the facets scroll between the sheet's heading and its Apply row (18b), 12 apart as the sheet's
 	   parts are; the body reaches the sheet's edges so no focus ring or touch target is cut */

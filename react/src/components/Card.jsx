@@ -26,8 +26,9 @@ const HOLD_MS = 500
 const SCROLLED = 8
 
 /* A long press on a touch row: a finger held still for HOLD_MS calls `onLongPress`, and the tap that
-   ends it opens nothing. A pointer has its menu button, so only a touch counts. */
-function useLongPress(onLongPress) {
+   ends it opens nothing. A pointer has its menu button, so only a touch counts. One hook for every
+   part a phone list draws its rows with: Card, ListItem and Record. */
+export function useLongPress(onLongPress) {
 	const timer = useRef(null)
 	const fired = useRef(false)
 	if (!onLongPress) return {}
@@ -119,6 +120,9 @@ const HeadSlot = createContext(false)
 
 const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink-danger' }
 
+// the head's buttons: small in a card, xsmall in a rail heading (Order list 2b, 2d)
+const ACTION_SIZE = { small: 'small', xsmall: 'xsmall' }
+
 /** A card's head (c10): one slot per view, drawn in a fixed order, so it cannot be assembled by hand.
     Only a child of Card; `actions` are at most two `{ label, to, href, onClick, held }`;
     a `held` action is hidden but keeps its place, so the head does not change height.
@@ -130,6 +134,7 @@ const ASIDE = { default: 'sp-meta', note: 'sp-note', danger: 'sp-subtitle sp-ink
     @param {import('react').ReactNode} [props.control] At the right end: one control that changes what the card shows, such as a Segmented or a Switch.
     @param {import('react').ReactNode} [props.status] At the right end: one Pill.
     @param {{ label: string, to?: string, href?: string, onClick?: () => void, held?: boolean }[]} [props.actions] At most two small buttons at the right end: each with its words, and an address or a click. A held one keeps its place but is hidden.
+    @param {keyof typeof ACTION_SIZE} [props.actionSize] The size of the action buttons: `small` in a card, `xsmall` in a rail heading.
     @param {() => void} [props.onDismiss] Closes the card; renders the close button last.
     @param {string} [props.dismissLabel] The name of the close button, such as Hide the August summary. */
 export function CardHeader({
@@ -140,6 +145,7 @@ export function CardHeader({
 	control,
 	status,
 	actions,
+	actionSize = 'small',
 	onDismiss,
 	dismissLabel = 'Close',
 	...rest
@@ -152,6 +158,7 @@ export function CardHeader({
 	const list = Array.isArray(actions) ? actions.filter(Boolean) : actions ? [actions] : []
 	if (list.length > 2) console.error('<CardHeader> three actions is a menu, not a head')
 	const end = aside || control || status || list.length || onDismiss
+	const size = pick(ACTION_SIZE, actionSize, 'actionSize', 'CardHeader')
 	return (
 		<div className="sp-card__head" {...rest}>
 			<span className="sp-section-label">{name}</span>
@@ -161,7 +168,7 @@ export function CardHeader({
 			{control || null}
 			{status || null}
 			{list.slice(0, 2).map(a => {
-				const button = <Button key={a.label} variant="outline" size="small" to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
+				const button = <Button key={a.label} variant="outline" size={size} to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
 				return a.held ? <span key={a.label} className="sp-held">{button}</span> : button
 			})}
 			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel} onClick={onDismiss} /> : null}

@@ -95,7 +95,7 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 			footer={edited && mode === 'rest'
 				? [<Button key="u" variant="outline" fullWidth onClick={update}>Update</Button>, <Button key="r" variant="outline" fullWidth onClick={revert}>Revert</Button>]
 				: null}>
-			<CardHeader name="Views" actions={[slot]} />
+			<CardHeader name="Views" actionSize="xsmall" actions={[slot]} />
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
 			<div className="sp-nav-list">
 				{mode === 'editing'
