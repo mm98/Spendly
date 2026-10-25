@@ -5366,8 +5366,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    sets the height and the card is exactly as tall as a controls bar beside it. */
 .sp-card--row { flex-direction: row; align-items: center; gap: var(--sp-12); }
 .sp-card--row > .sp-stack { gap: var(--sp-2); }
-/* a row held for its menu selects no text and opens no link preview */
-.sp-card[data-long-press] { -webkit-touch-callout: none; user-select: none; }
+/* a row held for its menu selects no text and opens no link preview: a Card, a ListItem or a Record */
+.sp-card[data-long-press],
+.sp-list-item[data-long-press],
+.sp-record[data-long-press] { -webkit-touch-callout: none; user-select: none; }
 /* a card carrying something the user must deal with - see .sp-card[data-color="warning"] above,
    which is the attention surface every other component uses */
 /* a footer holding a stack rather than a row of buttons - c10 variant */

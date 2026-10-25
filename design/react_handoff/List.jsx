@@ -7,7 +7,7 @@ import { within } from './Utilities.jsx'
 import { Rows, m, useRow } from './motion.js'
 import { Check } from './Choice.jsx'
 import { Button, IconButton } from './Button.jsx'
-import { Cards, ListFooter } from './Card.jsx'
+import { Cards, ListFooter, useLongPress } from './Card.jsx'
 import { Icon } from './Icon.jsx'
 import { ShellHead } from './Shell.jsx'
 import { formatNumber, singular } from './format.js'
@@ -580,9 +580,11 @@ export function Crumbs({ root, children, ...rest }) {
     @param {import('react').ReactNode | import('react').ReactNode[]} [props.meta] One or two grey lines, such as the date.
     @param {import('react').ReactNode} [props.amount] The amount, at the end.
     @param {() => void} [props.onClick]
-    @param {boolean} [props.void] The record does not count, such as a cancelled order. It is drawn faded. */
-export function Record({ photos = [], empty, faded = false, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, ...rest }) {
+    @param {boolean} [props.void] The record does not count, such as a cancelled order. It is drawn faded.
+    @param {() => void} [props.onLongPress] On touch, a record held still opens its menu: this opens it (c1). As Card. */
+export function Record({ photos = [], empty, faded = false, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, headChips = false, meta, amount, onClick, void: isVoid = false, onLongPress, ...rest }) {
 	reject(rest, 'Record')
+	const held = useLongPress(onLongPress)
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
 	const closing = useMenuPlace(menuBox, !!menu?.open)
@@ -595,7 +597,7 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	const lines = [].concat(meta ?? [])
 	const chipBox = chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null
 	return (
-		<m.article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...moves} {...rest}>
+		<m.article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...moves} {...held} {...rest}>
 			{href
 				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={!photos.length && typeof empty === 'string' ? `${empty}. ${hrefLabel}` : hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
