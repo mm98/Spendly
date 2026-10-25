@@ -436,7 +436,7 @@ for (const [method, path, body] of [
 	['POST', '/budget/accounts', { name: 'Holiday' }],
 	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
 	['DELETE', `/budget/accounts/${account.id}`],
-	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
+	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', lineId: line.id }],
 	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense'],
 	['PUT', `/orders/${ids.order}`, { ...asSaved, note: 'Saved from its copy', revision: order.revision, clientKey: 'check-put' }],
 	['POST', '/orders', { ...asSaved, items: asSaved.items.map(({ id, ...i }) => i), clientKey: 'check-post' }],

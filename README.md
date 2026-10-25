@@ -142,7 +142,8 @@ Everything that needs you, on one page.
   not.
 - **Check a bank statement** - load your bank's CSV file and Spendly matches each payment against
   the budget, then saves the real amounts. The file is read in your browser and never sent
-  anywhere. It works with any bank's export.
+  anywhere. It works with any bank's export. A payment you place on a row is remembered for later
+  files, in every year made as a copy, and after the row is renamed.
 
 ### Vendors and categories
 
