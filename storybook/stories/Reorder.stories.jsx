@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { expect, fn, userEvent } from 'storybook/test'
+import { expect, fn, userEvent, waitFor } from 'storybook/test'
 import { ReorderList } from '../../react/src/components/Reorder.jsx'
 import { ListItem } from '../../react/src/components/ListItem.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
@@ -43,5 +43,28 @@ export const ByHand = {
 		await expect(next.map(i => i.name)).toEqual(['Food', 'Housing', 'Transport', 'Savings'])
 		await expect(item.name).toBe('Housing')
 		await expect(to).toBe(1)
+	}
+}
+
+// a mouse that carries a row by its handle; Motion reads only real-shaped pointer events
+const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+	bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'mouse', pointerId: 1, isPrimary: true,
+	button: 0, buttons: type === 'pointerup' ? 0 : 1
+}))
+
+export const Carried = {
+	play: async ({ args, canvas, canvasElement }) => {
+		const handle = canvas.getByRole('button', { name: 'Move Housing' })
+		const box = handle.getBoundingClientRect()
+		const x = box.x + box.width / 2, y = box.y + box.height / 2
+		pointer(handle, 'pointerdown', x, y)
+		pointer(handle, 'pointermove', x, y + 3)
+		await new Promise(done => setTimeout(done, 50))
+		await expect(canvasElement.querySelector('.sp-list-item--carried')).toBeNull()
+		pointer(handle, 'pointermove', x, y + 40)
+		await waitFor(() => expect(canvasElement.querySelector('.sp-list-item--carried')).not.toBeNull())
+		pointer(window, 'pointerup', x, y + 40)
+		await waitFor(() => expect(canvasElement.querySelector('.sp-list-item--carried')).toBeNull())
+		await expect(args.onMove).toHaveBeenCalledTimes(1)
 	}
 }

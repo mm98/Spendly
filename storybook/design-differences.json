@@ -1,5 +1,9 @@
 {
-	"files": {},
+	"files": {
+		"Reorder.jsx": {
+			"hash": "18995a2498549313"
+		}
+	},
 	"appOnly": [
 		"Failed.jsx",
 		"Icon.jsx",

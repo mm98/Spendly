@@ -7,6 +7,8 @@ import { Rows } from './motion.js'
 const HOLD_MS = 200
 // a touch that travels this far before the hold is up is a scroll, not a pickup
 const SCROLLED = 8
+// a pointer moves this far before a drag begins, so a loose click on the handle does not move the row
+const THRESHOLD = 4
 
 const Moving = createContext(null)
 
@@ -111,11 +113,11 @@ function Slot({ children, onPress, ...row }) {
 		onPointerDown: ev => {
 			if (ev.button > 0) return
 			const start = ev.nativeEvent
-			if (ev.pointerType !== 'touch') { ev.preventDefault(); return controls.start(start) }
+			if (ev.pointerType !== 'touch') { ev.preventDefault(); return controls.start(start, { distanceThreshold: THRESHOLD }) }
 			const x0 = ev.clientX, y0 = ev.clientY
 			const move = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > SCROLLED) stop() }
 			const stop = () => { clearTimeout(hold.current); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }
-			hold.current = setTimeout(() => { stop(); navigator.vibrate?.(10); controls.start(start) }, HOLD_MS)
+			hold.current = setTimeout(() => { stop(); navigator.vibrate?.(10); controls.start(start, { distanceThreshold: THRESHOLD }) }, HOLD_MS)
 			window.addEventListener('pointermove', move)
 			window.addEventListener('pointerup', stop)
 		},
