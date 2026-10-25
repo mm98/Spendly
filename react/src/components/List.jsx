@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { within } from './Utilities.jsx'
-import { Rows, m, useRow } from './motion.js'
+import { Rows, m, useRow, useStill } from './motion.js'
 import { Check } from './Choice.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter, useLongPress } from './Card.jsx'
@@ -385,8 +385,10 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 	reject(rest, 'ListMore')
 	const line = useRef(null)
 	const asked = useRef(null)
-	// Load more takes the reader to the first record it brought: at the top of the window, and focused,
-	// else focus goes to this line. A reader who has moved focus elsewhere since the press is left there.
+	const still = useStill()
+	// Load more slides the reader to the first record it brought: at the top of the window, or just
+	// below a pinned bulk bar, and focused, else focus goes to this line. With less motion set it moves
+	// at once. A reader who has moved focus elsewhere since the press is left there.
 	useEffect(() => {
 		const from = asked.current
 		if (from == null || shown <= from || !line.current) return
@@ -398,10 +400,15 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 		const kin = [...foot.parentElement.children].filter(c => c !== foot)
 		const rows = [[...foot.parentElement.querySelectorAll('tbody > tr')], kin, ...kin.map(k => [...k.children])].find(g => g.length >= shown)
 		const row = rows ? rows[rows.length - shown + from] : null
-		row?.scrollIntoView({ block: 'start' })
+		if (row) {
+			// a pinned bulk bar (phone, records selected) would cover the row: stop below it
+			const bar = document.querySelector('.sp-bulkbar--head')
+			row.style.scrollMarginTop = bar ? `${bar.offsetHeight}px` : ''
+			row.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
+		}
 		const target = row?.matches('a[href], button') ? row : row?.querySelector('a[href], button')
 		;(target ?? line.current).focus({ preventScroll: Boolean(row) })
-	}, [shown])
+	}, [shown, still])
 	if (!(total > pageSize)) return null
 	const counted = n => formatNumber(n, { locale, decimals: 0 })
 	const more = () => { asked.current = shown; onMore?.() }

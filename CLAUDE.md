@@ -521,6 +521,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   command over 60 seconds, so a status can go out while it runs. A check that ends the work quietly
   still gets a line saying what was done. Silence reads as stuck. Waiting for a background run to
   end is a blocking command too: wait at most 30 seconds at a time, and post a status between waits.
+  Reading code, writing a script and thinking count as work too: the 30-second line holds for
+  them, not only while a command runs.
 - **A correction the user has to give twice is written into this file in the same turn,** without
   being asked. A promise in chat does not reach the next thread; this file does.
 - Never claim what was not run. "Tests pass" means executed; "fixed in Firefox" means Firefox

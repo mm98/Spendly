@@ -202,7 +202,8 @@ Everything that needs you, on one page.
   like an app.
 - **Every page remembers where you were**, scroll position included.
 - **Things move gently.** Menus, lists, calendars and dialogs open with a short slide and fade,
-  figures count to their new value, and content fades in where its placeholder stood. A device set
+  figures count to their new value, content fades in where its placeholder stood, and Load more
+  slides the page to the first record it brought. A device set
   to reduce motion gets every change at once.
 
 ### Accounts and security
