@@ -190,7 +190,9 @@ const SHEET_LIST = { flex: '1 1 100vh', minHeight: 0, overflowY: 'auto' }
     under it. A press on the backdrop closes it and lands on nothing under it. */
 function ComboboxSheet({ owner, name, search, onClose, children }) {
 	const sheet = useRef(null)
-	useLayoutEffect(() => ownedBy(sheet.current, owner.current), [owner])
+	// after the commit, not in it: a list drawn open on its first draw has no field element yet in a
+	// layout effect, which runs before the field's own ref is set
+	useEffect(() => ownedBy(sheet.current, owner.current), [owner])
 	useFocusTrap(sheet, true, search ? 'input' : '[role="listbox"]')
 	const bare = ev => ev.target === ev.currentTarget
 	return createPortal(

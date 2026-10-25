@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
-<link rel="stylesheet" href="styles/components.css?v=v20261024t">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20261025a">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 <script src="https://unpkg.com/framer-motion@11.18.2/dist/framer-motion.js"></script>
@@ -207,7 +207,7 @@
 	<div class="sp-card"><div class="sp-fields">{{ choices }}</div></div>
 	{{ choicesCode }}
 
-	<span class="doc-specimen__label">two, three, and one with an option that cannot be picked - past four it is a Combobox</span>
+	<span class="doc-specimen__label">two, three, one with an option that cannot be picked, and size small - past four it is a Combobox</span>
 	<div class="sp-card"><div class="sp-row-flex sp-gap-16 sp-wrap">{{ segmented }}</div></div>
 	{{ segmentedCode }}
 	<span class="doc-specimen__label">the facet variant: equal shares of its column, no border of its own</span>
@@ -1213,7 +1213,7 @@ class Component extends DCLogic {
 					e(CardHeader, { name: 'Items · 2', aside: '1 line needs attention', asideTone: 'danger' }),
 					e('span', { className: 'sp-data' }, 'Lounge chair · 2 × 4.129,00')),
 				e(Card, null,
-					e(CardHeader, { name: 'Spend by month', control: e(Segmented, { name: 'r5-head', options: [{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }], defaultValue: 's' }) }),
+					e(CardHeader, { name: 'Spend by month', control: e(Segmented, { name: 'r5-head', size: 'small', options: [{ value: 's', label: 'Stacked' }, { value: 't', label: 'Total' }], defaultValue: 's' }) }),
 					e('span', { className: 'sp-data' }, 'Jan to Aug')),
 				e(Card, null,
 					e(CardHeader, { name: 'Spend, August', status: e(Pill, { color: 'danger' }, '2.100 over') }),
@@ -1376,6 +1376,10 @@ class Component extends DCLogic {
 					{ value: 'all', label: 'All' },
 					{ value: 'mine', label: 'Mine' },
 					{ value: 'flagged', label: 'Flagged', disabled: true }
+				] }),
+				e(Segmented, { name: 's5', size: 'small', defaultValue: 's', options: [
+					{ value: 's', label: 'Stacked' },
+					{ value: 't', label: 'Total' }
 				] })
 			]),
 

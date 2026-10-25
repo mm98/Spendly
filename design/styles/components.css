@@ -1756,6 +1756,9 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   place-items: center;
 }
 .sp-segmented__item:has(:focus-visible) { box-shadow: var(--ring); }
+/* small: the small button's height, for a card head or a toolbar of small buttons (c5) */
+.sp-segmented--small { height: var(--btn-h-small); padding: var(--sp-4); gap: var(--sp-4); }
+.sp-segmented--small > .sp-segmented__item { padding: 0 var(--sp-8); font-size: var(--t-12); }
 
 /* ---------- sort control and pager - LOCKED c8 ---------- */
 
@@ -5850,6 +5853,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-segmented__item { overflow: visible; }
 .sp-touch .sp-segmented__item::before { content: ""; position: absolute; inset: calc((var(--sp-6) + 1px) * -1) calc(var(--sp-6) / -2); }
 .sp-touch .sp-segmented__item > .sp-label { inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+/* small keeps its 34px on touch, as the small button does; its options reach the 48px press area (c5) */
+.sp-touch .sp-segmented--small { height: var(--btn-h-small); }
+.sp-touch .sp-segmented--small > .sp-segmented__item::before { inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px - var(--sp-4)) calc(var(--sp-4) / -2); }
 /* a card's menu sits in a hit target of its own, larger than its glyph (c1) */
 .sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
 
@@ -6182,6 +6188,10 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-choice--row:has(> .sp-marker),
 .sp-nav-item:has(> .sp-marker) { position: relative; isolation: isolate; background: none; }
 .sp-choice--row > .sp-marker { background: var(--green-tint); }
+/* the option holding the marker lets it slide in from its neighbour; its label clips its own
+   text in place of the option, as on touch (c5) */
+.sp-segmented__item:has(> .sp-marker) { overflow: visible; }
+.sp-segmented__item:has(> .sp-marker) > .sp-label { inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 .sp-nav-item > .sp-marker { border-radius: var(--r-field); background: var(--shell-current); }
 .sp-nav-item--light > .sp-marker { background: var(--green-tint-2); }
 
