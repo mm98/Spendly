@@ -151,6 +151,19 @@ export const Cards_ = {
 				))}
 			</List>
 		)
+	},
+	play: async ({ args, canvas, canvasElement }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Load more' }))
+		const shown = Math.min(2 * args.pageSize, BOOKMARKS.length)
+		// these cards hold no link or button, so focus goes to the count line
+		await waitFor(() => expect(document.activeElement).toHaveTextContent(`Showing ${shown} of ${BOOKMARKS.length}`))
+		// the slide ends with the first new card at the top, or as near as the page can scroll
+		const first = canvasElement.querySelectorAll('.sp-record')[args.pageSize]
+		const view = document.scrollingElement
+		await waitFor(() => {
+			const top = first.getBoundingClientRect().top
+			expect(Math.abs(top) <= 1 || view.scrollTop >= view.scrollHeight - view.clientHeight - 1).toBe(true)
+		}, { timeout: 3000 })
 	}
 }
 
