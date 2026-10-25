@@ -13,10 +13,10 @@ const TEXT = {
 }
 
 /** The box every field is. Internal: the fields below are its arguments. */
-function Box({ as = 'input', type = 'text', value, onChange, danger = false, classes, component, inputRef, lead, trail, unit, ...rest }) {
+function Box({ as = 'input', type = 'text', value, onChange, danger = false, fullWidth = false, classes, component, inputRef, lead, trail, unit, ...rest }) {
 	reject(rest, component)
 	const shared = {
-		className: join('sp-input', classes, lead && 'sp-input--lead', trail && 'sp-input--trail', unit && 'sp-input--unit'),
+		className: join('sp-input', classes, fullWidth && 'sp-grow', lead && 'sp-input--lead', trail && 'sp-input--trail', unit && 'sp-input--unit'),
 		value,
 		onChange: ev => onChange?.(ev.target.value),
 		...(danger ? { 'aria-invalid': 'true' } : {}),
@@ -24,13 +24,13 @@ function Box({ as = 'input', type = 'text', value, onChange, danger = false, cla
 	}
 	// ref, not a prop: a function component does not forward one, so the fields that
 	// need the element - the date field opening the platform picker - pass it by name
-	if (as === 'textarea') return <textarea ref={inputRef} {...shared} className={join('sp-textarea', classes)} />
+	if (as === 'textarea') return <textarea ref={inputRef} {...shared} className={join('sp-textarea', classes, fullWidth && 'sp-grow')} />
 	return <input type={type} ref={inputRef} {...shared} />
 }
 
-function Trailed({ lead, trail, kbd, chevron, children }) {
+function Trailed({ lead, trail, kbd, chevron, fullWidth = false, children }) {
 	return (
-		<span className="sp-field__wrap">
+		<span className={join('sp-field__wrap', fullWidth && 'sp-grow')}>
 			{lead ? <span className="sp-field__lead">{lead}</span> : null}
 			{children}
 			{trail}
@@ -62,17 +62,18 @@ const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
     @param {typeof TYPES[number]} [props.type] The kind of text, for the phone keyboard and the check that comes with it: text, email, url and so on.
     @param {boolean} [props.multiline] A box of several lines instead of one.
     @param {number} [props.rows] How many lines a multiline field shows.
-    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` fills its row.
+    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in.
     @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action] A button at the end of the field: its icon, its name, and what it does.
     @param {string} [props.value] The text in the field.
     @param {(value: string) => void} [props.onChange]
     @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
-    @param {string} [props.placeholder] Grey words shown while the field is empty. */
-export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, ...rest }) {
+    @param {string} [props.placeholder] Grey words shown while the field is empty.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
+export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, fullWidth = false, ...rest }) {
 	if (!TYPES.includes(type)) console.error(`<TextField> type="${type}" is not one of: ${TYPES.join(' | ')}`)
-	if (multiline) return <Box as="textarea" rows={rows} component="TextField" {...rest} />
+	if (multiline) return <Box as="textarea" rows={rows} component="TextField" fullWidth={fullWidth} {...rest} />
 	if (action) return (
-		<Trailed trail={
+		<Trailed fullWidth={fullWidth} trail={
 			<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label={action.label}
 				{...('expanded' in action ? { 'aria-expanded': action.expanded ? 'true' : 'false' } : {})} onClick={action.onClick}>
 				<Icon name={action.icon} size={15} />
@@ -81,14 +82,15 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 			<Box type={type} classes={join(pick(TEXT, variant, 'variant', 'TextField'), 'sp-input--trail')} component="TextField" {...rest} />
 		</Trailed>
 	)
-	return <Box type={type} classes={pick(TEXT, variant, 'variant', 'TextField')} component="TextField" {...rest} />
+	return <Box type={type} classes={pick(TEXT, variant, 'variant', 'TextField')} component="TextField" fullWidth={fullWidth} {...rest} />
 }
 
 /** @param {object} props
     @param {string} [props.value] The password.
     @param {(value: string) => void} [props.onChange]
-    @param {boolean} [props.danger] The value is wrong: the field is drawn in red. */
-export function PasswordField({ ...rest }) {
+    @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
+export function PasswordField({ fullWidth = false, ...rest }) {
 	const [shown, setShown] = useState(false)
 	// while it turns, the field's letters shuffle into place (or back into dots) over an
 	// overlay the reader sees and a screen reader does not; the field keeps its value
@@ -120,6 +122,7 @@ export function PasswordField({ ...rest }) {
 	}
 	return (
 		<Trailed
+			fullWidth={fullWidth}
 			trail={
 				<Trail
 					label="Show password"
@@ -149,8 +152,9 @@ const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789#%&*+=?
     @param {number} [props.min] The lowest number it takes.
     @param {string} [props.locale] How numbers are written, such as da-DK. Defaults to the browser's.
     @param {boolean} [props.expected] A planned figure, not a real one: drawn in grey.
-    @param {boolean} [props.cell] The number in a table cell: it reads as text until it is clicked. */
-export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, expected = false, cell = false, ...rest }) {
+    @param {boolean} [props.cell] The number in a table cell: it reads as text until it is clicked.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
+export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale, expected = false, cell = false, fullWidth = false, ...rest }) {
 	const [typing, setTyping] = useState(null)
 	return (
 		<Box
@@ -158,6 +162,7 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 			inputMode="decimal"
 			classes={join('sp-number', expected && 'sp-ink-5', cell && 'sp-input--cell')}
 			component="NumberField"
+			fullWidth={fullWidth}
 			value={typing ?? formatNumber(value, { locale, decimals })}
 			onChange={text => {
 				setTyping(text)
@@ -181,8 +186,9 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
     @param {string} [props.name]
     @param {import('./Icon.jsx').IconName} [props.icon] The icon at the start.
     @param {boolean} [props.clear] Show a button that empties the search.
-    @param {import('react').ReactNode} [props.ends] Controls at the end of the field, such as Ask. */
-export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, ...rest }) {
+    @param {import('react').ReactNode} [props.ends] Controls at the end of the field, such as Ask.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. */
+export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, fullWidth = false, ...rest }) {
 	const clearable = clear && !!value
 	const own = useRef(null)
 	const bind = el => {
@@ -195,7 +201,7 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 		? <Trail label="Clear the search" onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
 		: null
 	return (
-		<span className="sp-picker__search">
+		<span className={join('sp-picker__search', fullWidth && 'sp-grow')}>
 			<span className="sp-field__lead"><Icon name={icon} size={14} /></span>
 			<Box
 				type="search"

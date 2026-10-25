@@ -1,67 +1,51 @@
-# Mobile screens made consistent - the fixes
+# Full width on every control, and Back in the phone top bar's screen slot
 
-This answers the review of Mobile screens on 25 October 2026: back buttons of different sizes, the Budget year dropdown with no border, not filling its bar, and its chevron in the wrong place, the space beside Edit, and the question whether the phone screens are consistent. It also settles one later.md entry. Take the files in unchanged.
+This answers "Brief: two things from the 25 October update that the app cannot take in as written" (25 October 2026), its two questions. Take the files in unchanged.
 
-## 1. Every phone uses the touch sizes
+## 1. fullWidth on every control, in place of a grow variant
 
-- **The problem:** of the 25 phones on Mobile screens, 6 used the touch sizes (`sp-touch`) and 19 drew desktop sizes. So did the phone on Order create and the two on Order editing layouts. The same control was 48px high on one phone and 34px or 42px on the next. Components and Auth already drew every phone with touch sizes.
-- **What changed:** every phone frame is `sp-phone sp-touch`. In the app nothing changes: below 640px the touch rules already apply, and these frames now draw what the app does.
-- **Where:** Mobile screens (every frame, 10a to 22a), Order create (the phone frame), Order editing layouts (the two phone frames).
+- **The problem:** point 3 of the 25 October package had `react/src/pages/Budget.jsx` pass `variant="grow"` to the Combobox for the phone Budget bar's year (Mobile screens 21a), but `Combobox` lists no `grow`, so it refused it. Looking into it showed four names for the same job: `Button` took a `fullWidth` boolean, `Segmented` a `fill` variant, `FileDrop` a `grow` boolean, and the Combobox had a `.sp-combobox--grow` class with no prop behind it.
+- **What changed:** there is now one name, `fullWidth`, a boolean. The control takes all the room it is given: the width of its column, or what is left in its row. There is no `grow` variant. Every control below takes it, and nothing changes how it looks: each one adds a class that already exists.
+  - `Button`: unchanged, adds `.sp-btn--block`.
+  - `Combobox`: new, adds `.sp-combobox--grow`, with one value or with `multiple`.
+  - `Segmented`: `variant="fill"` is gone from `VARIANT`. `fullWidth` adds `.sp-segmented--fill`, and the segments share the width equally as before.
+  - `FileDrop`: `grow` is renamed `fullWidth` and still adds `.sp-grow`.
+  - `Field`, `TextField` (with `multiline` too), `PasswordField`, `NumberField`, `SearchInput` and `DateField`: new, each adds `.sp-grow` to its outermost element. A field already spans its column, so this matters in a row. Inside a `Field`, set it on the `Field`, since the Field is what sits in the row.
+  - The `TextField` description of `stretch` now reads "takes the height of the row it sits in", which is what `.sp-input--stretch` does. It used to say "fills its row", which is `fullWidth`.
+- **Where:** Mobile screens 21a (the year) and Components, Segmented Fill note. `react_handoff/Combobox.jsx`, `Segmented.jsx`, `FileDrop.jsx`, `Inputs.jsx`, `DatePickers.jsx`, `Field.jsx`, each with its JSDoc. `playground-registry.js`: a `fullWidth` control on each. `styles/components.css` is unchanged for this point. App:
+  - `react/src/components/`: the copies of the six handoff files.
+  - `react/src/pages/Budget.jsx`: the phone bar's year passes `fullWidth` and drops the spacer after it.
+  - Any page passing `<Segmented variant="fill">` passes `fullWidth` instead, and any page passing `<FileDrop grow>` passes `fullWidth` instead.
+  - `react/src/pages/Orders.jsx`: the phone list's Filters is drawn by hand on `sp-combobox--grow`. It does not use the Combobox and does not change.
+  - Storybook: the `fullWidth` control appears on each of these components from its JSDoc. The build adds a Combobox story with `fullWidth` in a card bar.
 - **What is still open:** nothing.
 
-## 2. Back and the page menu keep one size in the phone's top bar
+## 2. Back and the menu in the phone top bar's screen slot
 
-- **The problem:** on touch, the rule that gives every icon button the 48px touch height also reached the top bar, so Back was 48px on the Ask phones (24a, 24c, 24d, 24e, 24f) and 30px on every other phone (11e). The menu beside it grew the same way.
-- **What changed:** in `.sp-topbar--touch`, the outline Back is 30px and the page menu 32px on every phone, each inside a 48px (`--control-h-touch`) press area, as an icon button in a card head already is.
-- **Where:** Mobile screens, every top bar (1d, 3c, 5b, 11e, 24a, 24c, 24d, 24e, 24f). `styles/components.css`: `.sp-touch .sp-topbar--touch > .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field)` (with `::after`), joined to the card head rule, and `.sp-touch .sp-topbar--touch > .sp-icon-btn.sp-icon-btn--outline:not(.sp-icon-btn--small)`. App: `react/src/app/AppShell.jsx` (the phone top bar) needs no change once the stylesheet is taken in.
+- **The problem:** point 2 of the 25 October package sized Back (30px) and the page menu (32px) with `.sp-touch .sp-topbar--touch > .sp-icon-btn...`. In the app, a screen one level down puts Back, the title and the menu in `<div class="sp-topbar__screen">`, which the `>` does not reach through, so Back stayed 48px.
+- **What changed:** the design now owns the slot. `.sp-topbar__screen { display: contents; }` is defined, and the three size rules (the 32px button, the 30px outline Back, and the 44px press area behind both) also reach an icon button inside `.sp-topbar__screen`. Nothing outside the slot changes. The desktop top bar has no slot.
+- **Where:** `styles/components.css`, `.sp-topbar__screen`, and the rules under "the outline Back 30px and the menu 32px". App: `react/src/styles/app.css` drops its copies of the two size rules, along with its own `display: contents` for `.sp-topbar__screen` if it has one. This applies to every screen that draws Back through `react/src/app/screenBar.jsx`: `Ask.jsx` (24a), `AskFiles.jsx`, `AskChats.jsx`, `OrderNew.jsx` (Scanned before) and `OrderCompare.jsx`.
 - **What is still open:** nothing.
 
-## 3. The Budget year is a full dropdown that fills its bar
+## later.md
 
-- **The problem:** the phone Budget bar drew the year as `sp-combobox--bare`, the value and chevron with no field box, so it did not read as a dropdown. It sat at its text width with a spacer after it, so the bar's right side looked loose, and the value was in `sp-title` with the chevron beside it rather than at the box's end.
-- **What changed:** the year is the Combobox with its field box, on the existing `sp-combobox--grow` variant (as Filters is on the order list), taking the width Show income and Edit leave. The value is the plain `sp-grow` span, so the chevron sits at the right edge, as on every other Combobox. `sp-combobox--bare` is removed: this was its only use.
-- **Where:** Mobile screens 21a, and its first Budget note. `styles/components.css`: `.sp-combobox--bare` removed. `react_handoff/Combobox.jsx`: `bare` removed from `VARIANT`. App: `react/src/pages/Budget.jsx` (the phone bar) passes `variant="grow"` instead of `bare`, and drops the spacer.
-- **What is still open:** nothing.
-
-## 4. A button beside a dropdown in a phone bar keeps its width
-
-- **The problem:** on touch every button is full width, so in a bar holding a dropdown and buttons the buttons took the row and the dropdown shrank to nothing. It showed once every phone was touch (5a, 5d, 21a, 22a).
-- **What changed:** a button straight inside a card bar keeps its own width on touch, as it already does in the save bar, toolbar and top bar.
-- **Where:** Mobile screens 2b, 5a, 5d, 21a, 22a. `styles/components.css`: `.sp-touch .sp-list-item--card > .sp-btn:not(.sp-btn--block)` added to the list of bars whose buttons keep `width: auto`.
-- **What is still open:** nothing.
-
-## 5. One Sort dropdown on every phone list
-
-- **The problem:** the Vendors and Categories phones drew Sort with a grey "Sort" label and the value in `sp-title`, and the chevron did not sit at the box's end. The order list phone (2b) draws Sort as the value alone.
-- **What changed:** both now draw Sort as the order list does: the value in a plain `sp-grow` span, then the chevron at the right edge.
-- **Where:** Mobile screens 5a, 5d. App: `react/src/pages/Vendors.jsx` and `react/src/pages/Categories.jsx` (the phone bar), if they render the label.
-- **What is still open:** nothing.
-
-## later.md: "Budget's month wells do not use popLayout"
-
-- **The problem:** the Motion note under Budget 21a built the month wells with `AnimatePresence mode="popLayout"`. popLayout adds a `<style>` element at run time, which the server's CSP refuses, so the app builds them another way and the note was wrong.
-- **What changed:** the note now says the wells sit in one grid row, a column each, keyed by month inside `AnimatePresence`, the staying well on `layout="position"`, and a well that leaves keeps its last column, shared with the one taking its place. It says why popLayout is not used, and that nothing in the app may depend on a `<style>` element added at run time.
-- **Where:** Budget 21a, Notes for implementation, Motion. App: none, the build already does this. Remove this entry from later.md.
-- **What is still open:** nothing.
-
-## later.md: other entries
-
-- "A deleted record should not be removed for good at once": kept for later, at the user's decision.
-- "Large accounts still make everyone wait on a few pages": not design work.
+- **Budget's month wells do not use popLayout:** the design side of this entry is already settled. The Motion note under Budget 21a puts the wells in one grid row, a column each, and rules out `mode="popLayout"` and any `<style>` element added at run time. This package does not change it. The entry stays in later.md until the app's change ships.
+- The other two entries (large accounts, keeping deleted records) are server work with no design fix in them.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged copy of the project root.
 - `CHANGES.md` - this note.
-- `Mobile screens.dc.html` - every frame touch, the Budget year, the Sort dropdowns, the Budget note.
-- `Order create.dc.html`, `Order editing layouts.dc.html` - their phone frames touch.
-- `Budget.dc.html` - the 21a Motion note.
-- `react_handoff/Combobox.jsx` - `bare` removed from the variants. It imports its neighbours in `react_handoff/` as before.
-- `styles/components.css` - the top bar sizes, the card bar button width, `.sp-combobox--bare` removed.
-- `support.js`, `components.js`, `icons.js`, `styles/tokens.css`, `styles/doc.css` - what the pages load, unchanged.
-- `styles/pages/budget.css`, `styles/pages/mobile-screens.css`, `styles/pages/order-create.css`, `styles/pages/order-editing.css` - what the pages link, unchanged.
+- `Components.dc.html` - the Segmented Fill note names `fullWidth`.
+- `React components.dc.html` - renders `react_handoff/`, unchanged.
+- `react_handoff/` - every component, as the React components page loads them. Changed: `Combobox.jsx`, `Segmented.jsx`, `FileDrop.jsx`, `Inputs.jsx`, `DatePickers.jsx`, `Field.jsx`.
+- `playground-registry.js` - the `fullWidth` controls, plus `narrow` on the Segmented and Combobox variant lists, which were missing.
+- `support.js`, `components.js`, `icons.js` - what the pages load.
+- `styles/components.css` - the screen slot and the widened top bar rules.
+- `styles/tokens.css`, `styles/doc.css` - what the pages link, unchanged.
+- `styles/check.js` - two new assertions: every control takes `fullWidth`, and no component has its own name for it (no boolean `grow`, `fill` or `block`, and no such variant). Every rule for an icon button in the phone top bar also reaches one inside `.sp-topbar__screen`.
 
-Every page's link to `styles/components.css` now carries the version `v20261025k`.
+Every page's link to `styles/components.css` now carries a new version (`v20261025l`), so the changed rules load.
 
 ## styles/check.js
 

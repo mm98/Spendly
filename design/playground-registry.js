@@ -96,7 +96,7 @@ export const COMPONENTS = [
 		['name', 'text', 'period'],
 		['options', 'json', '[{"value":"month","label":"Month"},{"value":"quarter","label":"Quarter"},{"value":"year","label":"Year"}]'],
 		['value', 'text', 'month'],
-		['variant', 'enum', 'default', ['default', 'facet']],
+		['variant', 'enum', 'default', ['default', 'facet', 'narrow']], ['fullWidth', 'bool', false],
 		['onChange', 'fn', null]
 	]),
 	C('Stepper', 'Stepper.jsx', 'Choice', null, null, [
@@ -112,25 +112,25 @@ export const COMPONENTS = [
 		['unit', 'text', ''],
 		['message', 'text', ''],
 		['messageType', 'enum', 'hint', ['hint', 'warning', 'danger']],
-		['required', 'bool', false]
+		['required', 'bool', false], ['fullWidth', 'bool', false]
 	]),
 	C('TextField', 'Inputs.jsx', 'Fields', null, null, [
 		['value', 'text', 'Indbo Møbler'],
 		['type', 'enum', 'text', ['text', 'email', 'tel', 'url']],
 		['multiline', 'bool', false], ['rows', 'num', 3],
 		['variant', 'enum', 'default', ['default', 'empty', 'readonly', 'stretch']],
-		['placeholder', 'text', ''], ['error', 'bool', false], ['disabled', 'bool', false],
+		['placeholder', 'text', ''], ['error', 'bool', false], ['disabled', 'bool', false], ['fullWidth', 'bool', false],
 		['onChange', 'fn', null]
 	]),
 	C('PasswordField', 'Inputs.jsx', 'Fields', null, null, [
-		['value', 'text', 'correct horse'], ['placeholder', 'text', ''], ['error', 'bool', false], ['onChange', 'fn', null]
+		['value', 'text', 'correct horse'], ['placeholder', 'text', ''], ['error', 'bool', false], ['fullWidth', 'bool', false], ['onChange', 'fn', null]
 	]),
 	C('NumberField', 'Inputs.jsx', 'Fields', null, null, [
 		['value', 'num', 1320], ['decimals', 'num', 2], ['min', 'num', 0],
-		['locale', 'text', 'da-DK'], ['computed', 'bool', false], ['error', 'bool', false], ['onChange', 'fn', null]
+		['locale', 'text', 'da-DK'], ['computed', 'bool', false], ['error', 'bool', false], ['fullWidth', 'bool', false], ['onChange', 'fn', null]
 	]),
 	C('SearchInput', 'Inputs.jsx', 'Fields', null, null, [
-		['value', 'text', ''], ['placeholder', 'text', 'Search orders'], ['kbd', 'node', null], ['onChange', 'fn', null]
+		['value', 'text', ''], ['placeholder', 'text', 'Search orders'], ['kbd', 'node', null], ['fullWidth', 'bool', false], ['onChange', 'fn', null]
 	]),
 	/* Two bounds, so `value` is a pair and not a number - seeded as one, which drew
 	   nothing at all until the playground was pointed at it. */
@@ -144,13 +144,13 @@ export const COMPONENTS = [
 		['placeholder', 'text', 'Add a category'], ['danger', 'bool', false], ['onChange', 'fn', null]
 	]),
 	C('FileDrop', 'FileDrop.jsx', 'Fields', 'text', 'Drop a receipt, or browse', [
-		['icon', 'icon', 'upload'], ['accept', 'text', 'image/*,application/pdf'], ['multiple', 'bool', false], ['onFiles', 'fn', null]
+		['icon', 'icon', 'upload'], ['accept', 'text', 'image/*,application/pdf'], ['multiple', 'bool', false], ['fullWidth', 'bool', false], ['onFiles', 'fn', null]
 	]),
 
 	/* ---- dates ---- */
 	C('DateField', 'DatePickers.jsx', 'Dates', null, null, [
 		['value', 'text', '2026-09-18'], ['min', 'text', ''], ['max', 'text', ''],
-		['native', 'bool', false], ['danger', 'bool', false], ['showWeeks', 'bool', true],
+		['native', 'bool', false], ['danger', 'bool', false], ['showWeeks', 'bool', true], ['fullWidth', 'bool', false],
 		['locale', 'text', 'da-DK'], ['id', 'text', 'pg-date'], ['onChange', 'fn', null]
 	]),
 	C('RangePicker', 'DatePickers.jsx', 'Dates', null, null, [
@@ -175,7 +175,7 @@ export const COMPONENTS = [
 
 	/* ---- choosing ---- */
 	C('Combobox', 'Combobox.jsx', 'Choosing', 'nodes', null, [
-		['variant', 'enum', 'default', ['default', 'sort', 'end', 'stretch']],
+		['variant', 'enum', 'default', ['default', 'sort', 'end', 'stretch', 'narrow']], ['fullWidth', 'bool', false],
 		['value', 'text', 'Indbo Møbler'],
 		['lead', 'node', null],
 		['open', 'bool', false], ['defaultOpen', 'bool', false],

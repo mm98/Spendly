@@ -1,5 +1,5 @@
 import { cloneElement, useId } from 'react'
-import { pick, reject } from './variants.js'
+import { join, pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
 
 const MESSAGE = { hint: null, quiet: null, warning: 'warning', danger: 'danger' }
@@ -19,6 +19,7 @@ const NOTE = { hint: null, success: 'success', warning: 'warning' }
     @param {import('react').ReactNode} [props.note] A word beside the label about where the value came from, such as matched existing vendor.
     @param {keyof typeof NOTE} [props.noteType] How the note reads: `hint`, `success` or `warning`.
     @param {import('react').ReactNode} [props.after] What the message offers to do, drawn under it.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row.
     @param {boolean} [props.required] Marks the label and sets `required` on the control, so the browser and a screen reader both know.
     @param {import('react').ReactNode} props.children The control: one text field, list, date field, switch or other input. */
 export function Field({
@@ -38,6 +39,7 @@ export function Field({
 	noteType = 'hint',
 	// what the message offers to do, under it: the alias another vendor holds (5h)
 	after,
+	fullWidth = false,
 	required = false,
 	children,
 	...rest
@@ -88,7 +90,7 @@ export function Field({
 		: control
 
 	if (role === 'box') return (
-		<div className="sp-field">
+		<div className={join('sp-field', fullWidth && 'sp-grow')}>
 			<Choice control={control}>
 				{label}
 				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
@@ -120,7 +122,7 @@ export function Field({
 	)
 	const noteColor = note ? pick(NOTE, noteType, 'noteType', 'Field') : null
 	return (
-		<div className="sp-field">
+		<div className={join('sp-field', fullWidth && 'sp-grow')}>
 			{labelAction
 				? <div className="sp-field__head">{labelled}<span className="sp-grow" />{labelAction}</div>
 				: note

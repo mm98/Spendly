@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261025e">
+<link rel="stylesheet" href="styles/components.css?v=v20261025l">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -1595,7 +1595,7 @@
     <div class="doc-notes__label">States</div>
     <div class="doc-note"><code>:checked</code>, <code>:disabled</code> and <code>:focus-visible</code> - all the element's own. In the Combobox panel hover and keyboard focus are one state (<code>--hover</code>) and the current value is another (<code>--green-tint</code> with a check); they can sit on different rows at once, and conflating them is the usual bug in a hand-built dropdown. A disabled choice greys its whole label, because the label is the hit area.</div>
     <div class="doc-note"><b>In a list row</b>, the row is <code>.sp-list-item--setting</code>, which keeps the row's own ground: without it the checked-row tint paints the row green, since one option is always checked.</div>
-    <div class="doc-note"><b>Fill</b> (<code>.sp-segmented--fill</code>): the switch spans its column and the options share the width equally, for a setting that is the whole of its card (Status email, <a href="Settings and import.dc.html#11a">11a</a>). Same height, padding and states as the default.</div>
+    <div class="doc-note"><b>Fill</b> (<code>.sp-segmented--fill</code>, <code>fullWidth</code> in React): the switch spans its column and the options share the width equally, for a setting that is the whole of its card (Status email, <a href="Settings and import.dc.html#11a">11a</a>). Same height, padding and states as the default.</div>
     <div class="doc-note"><b>Narrow</b> (<code>.sp-combobox--narrow</code>, <code>.sp-segmented--narrow</code>): at most <code>--field-w</code>, 280, for a setting whose values are short, so the field does not span its form column (<a href="Settings and import.dc.html#11a">11a</a>). In a narrower column it takes the column's width.</div>
     <div class="doc-notes__label">Actions</div>
     <div class="doc-note"><b>Click a label</b> - toggles its control. <b>Space</b> - toggles the focused control; <b>arrow keys</b> - move within a radio group or a segmented group, where only one segment is a tab stop. <b>Segmented</b> - applies instantly, because the choice is a view rather than a value. <b>Toggle</b> - applies at once, with no Save. <b>Combobox: click the trigger</b> - opens the panel over the content below it; <b>click or Enter</b> - picks and closes; <b>type</b> - narrows the list and bolds the match; <b>arrow keys</b> - move through options including group headers, which are skipped; <b>Escape</b> - closes and keeps the previous value; <b>the create row</b> - makes the typed value and selects it. <b>Search</b> - filters as you type, and Escape clears it. Each control is a real input, so its state is reported without help: a checkbox announces checked, the segmented reads as a radio group, the combobox as a listbox with the selected option marked <code>aria-selected</code>. A combobox keeps what was typed until it closes, so reopening it does not lose a half-typed search.</div>
