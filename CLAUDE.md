@@ -395,6 +395,10 @@ into the right one. Playwright itself is not a project dependency; it's the glob
 `NODE_PATH=/opt/node22/lib/node_modules node script.mjs` or an explicit path import, not a bare
 `import { chromium } from 'playwright'`.
 
+**A motion or layout claim is checked on the app as the server serves it.** `node api/src/server.js`
+over `react/dist` sends the production Content-Security-Policy; the dev server and `vite preview`
+send none, so a part that adds a `<style>` element at run time works there and fails for the user.
+
 **A behaviour claim is checked on the built app too, not only the dev server.** React's development
 mode runs effects twice on purpose, and that second run can hide a timing fault the user meets. Serve
 `npm run build` with `npx vite preview` (it proxies `/api` like the dev server) and run the same

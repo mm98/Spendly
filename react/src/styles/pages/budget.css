@@ -27,8 +27,9 @@
 
 	.sp-table .bg-col-map { width: 240px; }
 
-	/* the month wells' strip: a well that leaves is lifted out over it, and the card clips it only while it moves */
-	.bg-strip { position: relative; }
+	/* the month wells' strip: one row, where a well that leaves shares a column with the one taking its place,
+	   and the card clips it only while it moves. Motion's popLayout is not used: its <style> is refused by the CSP */
+	.bg-strip { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
 	.bg-strip[data-moving] { overflow-x: clip; }
 
 }
