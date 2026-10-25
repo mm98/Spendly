@@ -854,7 +854,7 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
 			<CardHeader name={`Spend by ${unit}`} aside={narrowed || undefined}
-				control={splits && !touch ? <Segmented name="statistics-bar-shape" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" /> : undefined} />
+				control={splits && !touch ? <Segmented name="statistics-bar-shape" size="small" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" /> : undefined} />
 			{touch
 				? <Bars ref={bars} days={unit === 'day'} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
