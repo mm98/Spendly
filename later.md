@@ -91,3 +91,14 @@ is removed in the change that settles it.
     control.
   - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
 - **Found:** 2026-10-24.
+
+## On a phone, picking a row in the bank check can open another page
+
+- **Where:** the bank check (`react/src/pages/BudgetCheck.jsx`), "Pick from budget" on a phone,
+  which opens the row list as a sheet from the bottom of the screen.
+- **What the reader sees:** a tap on a row in the sheet closes it and opens the page under the
+  finger in the bottom bar (Statistics), and the payment is not placed.
+- **What was found:** seen in Chromium with the iPhone 15 profile and a tap, on main's code as well.
+  The tap lands on the row (nothing covers it); the bottom bar gets it after the sheet closes. Not
+  yet checked in WebKit, which decides whether a real iPhone does it.
+- **Found:** 2026-10-25.

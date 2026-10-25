@@ -235,7 +235,7 @@ const gap = (budget, want) => (budget ? Math.abs(budget - want) / budget : Infin
     found, one is close in amount), 'missing', 'skip' (placed outside the budget), 'once' (a one-time payment) or 'year' (no sheet). */
 export function checkPayments(payments, sheets, links = []) {
 	const used = new Set()
-	const placed = new Map(links.map(l => [`${l.kind}:${l.pattern}`, l.line]))
+	const placed = new Map(links.map(l => [`${l.kind}:${l.pattern}`, l]))
 	const results = payments.map(p => ({ ...p, key: paymentKey(p.text), status: 'missing', line: null, budget: null }))
 
 	const candidates = p => {
@@ -267,10 +267,12 @@ export function checkPayments(payments, sheets, links = []) {
 		if (placed.has(`${kindOf(r)}:${onceKey(r)}`)) { Object.assign(r, { status: 'once', placed: 'once' }); continue }
 		const link = placed.get(`${kindOf(r)}:${r.key}`)
 		r.placed = link !== undefined
-		if (link === null) { r.status = 'skip'; continue }
+		if (link && link.line == null) { r.status = 'skip'; continue }
 		if (!lines) { r.status = 'year'; continue }
 		if (r.placed) {
-			const found = lines.find(c => sameName(c.line.name, link))
+			// the row's series finds it in every year and after a rename; its name finds a row in a year built by hand
+			const found = lines.find(c => link.lineSeriesId && c.line.seriesId === link.lineSeriesId)
+				?? lines.find(c => sameName(c.line.name, link.line))
 			if (found) {
 				if (fits(r, found)) take(r, found)
 				else differs(r, found)
