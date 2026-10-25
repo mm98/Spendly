@@ -121,8 +121,8 @@ jobs:
         working-directory: storybook
         run: npm test
       # Pictures of the changed stories and pages, compared on chromatic.com against the last
-      # approved ones, and how many changed written to the run's summary. It reports and never
-      # fails the run: the change is on main already, and is approved there.
+      # approved ones. The step ends once they are sent: Chromatic puts its result on the commit.
+      # It reports and never fails the run: the change is on main already, and is approved there.
       - name: Pictures of the stories
         if: ${{ !cancelled() }}
         working-directory: storybook
@@ -130,7 +130,7 @@ jobs:
           CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
         run: |
           if [ -z "$CHROMATIC_PROJECT_TOKEN" ]; then echo "No Chromatic token: skipped"; exit 0; fi
-          npx chromatic --storybook-build-dir dist --only-changed --exit-zero-on-changes --diagnostics-file || true
+          npx chromatic --storybook-build-dir dist --only-changed --exit-zero-on-changes --exit-once-uploaded --diagnostics-file || true
           node scripts/chromatic-summary.mjs >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install the API

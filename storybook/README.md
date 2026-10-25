@@ -74,7 +74,8 @@ written in `later.md`: they show as warnings and do not fail. Remove the mark wh
 
 After a merge to main, CI also sends the built Storybook to [Chromatic](https://www.chromatic.com),
 which takes a picture of each story the change reaches and compares it with the last one approved
-there. CI waits for the pictures and writes how many changed, with the link, in the run's summary.
+there. CI does not wait for the pictures: it writes the link in the run's summary, and Chromatic
+puts its result on the commit in GitHub.
 A change in a picture is approved or turned down on chromatic.com. It never fails CI.
 
 ## The whole pages
