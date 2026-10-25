@@ -1,12 +1,14 @@
 import { createContext, useContext, useRef, useState } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
-import { Announce } from './ListItem.jsx'
+import { Announce, Insertion } from './ListItem.jsx'
 import { Rows } from './motion.js'
 
 // Components, Ordering by hand: a touch drags after holding still, a pointer once it moves
 const HOLD_MS = 200
 // a touch that travels this far before the hold is up is a scroll, not a pickup
 const SCROLLED = 8
+// a pointer moves this far before a drag begins, so a loose click on the handle does not move the row
+const THRESHOLD = 4
 
 const Moving = createContext(null)
 
@@ -93,7 +95,10 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 		<>
 			<Reorder.Group as="div" axis="y" className="sp-reorder" values={order} onReorder={setLive}>
 				<Rows count={order.length}>
-					{order.map(key => <Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>)}
+					{order.flatMap(key => [
+						carried === key && <Insertion key="insertion" aria-hidden="true" />,
+						<Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>
+					])}
 				</Rows>
 			</Reorder.Group>
 			<Announce>{said}</Announce>
@@ -111,11 +116,11 @@ function Slot({ children, onPress, ...row }) {
 		onPointerDown: ev => {
 			if (ev.button > 0) return
 			const start = ev.nativeEvent
-			if (ev.pointerType !== 'touch') { ev.preventDefault(); return controls.start(start) }
+			if (ev.pointerType !== 'touch') { ev.preventDefault(); return controls.start(start, { distanceThreshold: THRESHOLD }) }
 			const x0 = ev.clientX, y0 = ev.clientY
 			const move = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > SCROLLED) stop() }
 			const stop = () => { clearTimeout(hold.current); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }
-			hold.current = setTimeout(() => { stop(); navigator.vibrate?.(10); controls.start(start) }, HOLD_MS)
+			hold.current = setTimeout(() => { stop(); navigator.vibrate?.(10); controls.start(start, { distanceThreshold: THRESHOLD }) }, HOLD_MS)
 			window.addEventListener('pointermove', move)
 			window.addEventListener('pointerup', stop)
 		},

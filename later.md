@@ -91,3 +91,18 @@ is removed in the change that settles it.
     control.
   - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
 - **Found:** 2026-10-24.
+
+## Claude Design's own reorder code lacks the tilt, the landing line and the 4px start
+
+- **Where:** `design/react_handoff/Reorder.jsx` against `react/src/components/Reorder.jsx`, and the
+  carried-row rule in `react/src/styles/app.css`. Listed in `storybook/design-differences.json`.
+- **What the reader sees:** in the app, a row dragged by its handle tilts, a 2px green line sits just
+  above it where it lands, and a drag starts after 4px, as Components c1, Ordering by hand, draws
+  and describes. Claude Design's own code does none of the three.
+- **What was found:** the drag writes its own `transform` on the row, which overrides the drawn
+  `transform: rotate(-0.6deg)`; app.css tilts with the separate `rotate` property instead. The drag
+  library's own start distance is 3px; the app asks for 4px. `ReorderList` never drew `Insertion`;
+  the app draws it as c1 places it. Built at Carsten's request; Claude Design should take all three
+  into `design/`, and React components (Motion) should drop "The insertion line is gone", which
+  Carsten decided against.
+- **Found:** 2026-10-25.
