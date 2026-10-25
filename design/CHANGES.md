@@ -1,51 +1,44 @@
-# Full width on every control, and Back in the phone top bar's screen slot
+# Load more slides to the first new record
 
-This answers "Brief: two things from the 25 October update that the app cannot take in as written" (25 October 2026), its two questions. Take the files in unchanged.
+Answers "Brief: Load more slides to the first new record" (from Carsten).
 
-## 1. fullWidth on every control, in place of a grow variant
+## 1. Load more slides instead of jumping
 
-- **The problem:** point 3 of the 25 October package had `react/src/pages/Budget.jsx` pass `variant="grow"` to the Combobox for the phone Budget bar's year (Mobile screens 21a), but `Combobox` lists no `grow`, so it refused it. Looking into it showed four names for the same job: `Button` took a `fullWidth` boolean, `Segmented` a `fill` variant, `FileDrop` a `grow` boolean, and the Combobox had a `.sp-combobox--grow` class with no prop behind it.
-- **What changed:** there is now one name, `fullWidth`, a boolean. The control takes all the room it is given: the width of its column, or what is left in its row. There is no `grow` variant. Every control below takes it, and nothing changes how it looks: each one adds a class that already exists.
-  - `Button`: unchanged, adds `.sp-btn--block`.
-  - `Combobox`: new, adds `.sp-combobox--grow`, with one value or with `multiple`.
-  - `Segmented`: `variant="fill"` is gone from `VARIANT`. `fullWidth` adds `.sp-segmented--fill`, and the segments share the width equally as before.
-  - `FileDrop`: `grow` is renamed `fullWidth` and still adds `.sp-grow`.
-  - `Field`, `TextField` (with `multiline` too), `PasswordField`, `NumberField`, `SearchInput` and `DateField`: new, each adds `.sp-grow` to its outermost element. A field already spans its column, so this matters in a row. Inside a `Field`, set it on the `Field`, since the Field is what sits in the row.
-  - The `TextField` description of `stretch` now reads "takes the height of the row it sits in", which is what `.sp-input--stretch` does. It used to say "fills its row", which is `fullWidth`.
-- **Where:** Mobile screens 21a (the year) and Components, Segmented Fill note. `react_handoff/Combobox.jsx`, `Segmented.jsx`, `FileDrop.jsx`, `Inputs.jsx`, `DatePickers.jsx`, `Field.jsx`, each with its JSDoc. `playground-registry.js`: a `fullWidth` control on each. `styles/components.css` is unchanged for this point. App:
-  - `react/src/components/`: the copies of the six handoff files.
-  - `react/src/pages/Budget.jsx`: the phone bar's year passes `fullWidth` and drops the spacer after it.
-  - Any page passing `<Segmented variant="fill">` passes `fullWidth` instead, and any page passing `<FileDrop grow>` passes `fullWidth` instead.
-  - `react/src/pages/Orders.jsx`: the phone list's Filters is drawn by hand on `sp-combobox--grow`. It does not use the Combobox and does not change.
-  - Storybook: the `fullWidth` control appears on each of these components from its JSDoc. The build adds a Combobox story with `fullWidth` in a card bar.
+- **The problem:** after Load more, `ListMore` called `row.scrollIntoView({ block: 'start' })` with no `behavior`, so the page jumped at once to the first record it brought.
+- **What changed:** the page slides there with the browser's own smooth scroll (`behavior: 'smooth'`). When the shell is set to move less (`useStill()` from `motion.js`, the app's one reduced-motion setting), it moves at once (`behavior: 'auto'`). Focus still goes to the first new record with `focus({ preventScroll: true })`, so focus causes no second jump during the slide; the fallback to the "Showing N of M" line is unchanged. A reader who moved focus elsewhere since the press is still left alone. The slide's speed is the browser's, so it differs a little between Chrome, Firefox and Safari; no fixed pace is set.
+- **Where:** `react_handoff/List.jsx`, `ListMore` (and its `motion.js` import). App: `react/src/components/List.jsx`, same change. It reaches every list that uses `ListMore`, directly or through `List` with `total` + `onLoadMore`: Orders (rows, cards, grid), Vendors, Categories (List, and ListMore in the card view), Bookmarks, Statistics (the order table under the chart), Ask (Files and Chats). No page needs its own change.
+- **Storybook:** the `ListMore` / paged `List` story gains a play step that presses Load more and checks that the first new record ends at the top of the scroll area and has focus. Run it with reduced motion on, or wait for the scroll to settle, since the slide is not instant.
 - **What is still open:** nothing.
 
-## 2. Back and the menu in the phone top bar's screen slot
+## 2. On a phone with records selected, the slide stops below the bulk bar
 
-- **The problem:** point 2 of the 25 October package sized Back (30px) and the page menu (32px) with `.sp-touch .sp-topbar--touch > .sp-icon-btn...`. In the app, a screen one level down puts Back, the title and the menu in `<div class="sp-topbar__screen">`, which the `>` does not reach through, so Back stayed 48px.
-- **What changed:** the design now owns the slot. `.sp-topbar__screen { display: contents; }` is defined, and the three size rules (the 32px button, the 30px outline Back, and the 44px press area behind both) also reach an icon button inside `.sp-topbar__screen`. Nothing outside the slot changes. The desktop top bar has no slot.
-- **Where:** `styles/components.css`, `.sp-topbar__screen`, and the rules under "the outline Back 30px and the menu 32px". App: `react/src/styles/app.css` drops its copies of the two size rules, along with its own `display: contents` for `.sp-topbar__screen` if it has one. This applies to every screen that draws Back through `react/src/app/screenBar.jsx`: `Ask.jsx` (24a), `AskFiles.jsx`, `AskChats.jsx`, `OrderNew.jsx` (Scanned before) and `OrderCompare.jsx`.
+- **The problem:** with records selected on a phone, the bulk bar (`.sp-bulkbar--head`) is pinned at the top of the list. Scrolling the first new record to the top would leave it under the bar, out of view.
+- **What changed:** before scrolling, `ListMore` sets the row's `scroll-margin-top` to the pinned bulk bar's height when one is on the page, so the slide stops just below the bar. With no pinned bar the margin is cleared and the row stops at the top, as before.
+- **Where:** `react_handoff/List.jsx`, `ListMore`. App: `react/src/components/List.jsx`. No stylesheet change.
+- **What is still open:** nothing.
+
+## 3. The design text now says what the code does
+
+- **The problem:** two notes said Load more keeps the scroll position, while the code moves the reader to the first new record.
+- **What changed:** settled as the slide. The notes now say Load more appends the next page and slides to the first record it brought, which takes focus, or moves there at once with less motion set.
+- **Where:** `Components.dc.html` c6, Actions note. `Order statistics.dc.html`, the note "The order table loads one page (Rows per page) at a time", which now points to c6.
 - **What is still open:** nothing.
 
 ## later.md
 
-- **Budget's month wells do not use popLayout:** the design side of this entry is already settled. The Motion note under Budget 21a puts the wells in one grid row, a column each, and rules out `mode="popLayout"` and any `<style>` element added at run time. This package does not change it. The entry stays in later.md until the app's change ships.
-- The other two entries (large accounts, keeping deleted records) are server work with no design fix in them.
+- "Large accounts still make everyone wait on a few pages": server work, not design. Not changed.
+- "A deleted record should not be removed for good at once": kept for later, at the user's decision. "Recently deleted" is not drawn until its open questions are answered.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged copy of the project root.
 - `CHANGES.md` - this note.
-- `Components.dc.html` - the Segmented Fill note names `fullWidth`.
+- `Components.dc.html` - the c6 Actions note.
+- `Order statistics.dc.html` - the order table note.
 - `React components.dc.html` - renders `react_handoff/`, unchanged.
-- `react_handoff/` - every component, as the React components page loads them. Changed: `Combobox.jsx`, `Segmented.jsx`, `FileDrop.jsx`, `Inputs.jsx`, `DatePickers.jsx`, `Field.jsx`.
-- `playground-registry.js` - the `fullWidth` controls, plus `narrow` on the Segmented and Combobox variant lists, which were missing.
-- `support.js`, `components.js`, `icons.js` - what the pages load.
-- `styles/components.css` - the screen slot and the widened top bar rules.
-- `styles/tokens.css`, `styles/doc.css` - what the pages link, unchanged.
-- `styles/check.js` - two new assertions: every control takes `fullWidth`, and no component has its own name for it (no boolean `grow`, `fill` or `block`, and no such variant). Every rule for an icon button in the phone top bar also reaches one inside `.sp-topbar__screen`.
-
-Every page's link to `styles/components.css` now carries a new version (`v20261025l`), so the changed rules load.
+- `react_handoff/` - every component, as the React components page loads them. Changed: `List.jsx`.
+- `support.js`, `components.js`, `icons.js` - what the pages load, unchanged.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/order-statistics.css` - what the pages link, unchanged.
 
 ## styles/check.js
 

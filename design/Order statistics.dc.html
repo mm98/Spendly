@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
-<link rel="stylesheet" href="styles/components.css?v=v20261025a">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261025l">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/order-statistics.css?v=v20260917b">
 <script src="./components.js?v=v20261024s"></script>
@@ -2304,7 +2304,7 @@
     <div class="doc-note"><b>Expansion happens in the card, not on a new page.</b> The button swaps the eight rows for the top P and the Other line; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
     <div class="doc-note"><b>The Other row is not clickable.</b> Drilling into &quot;192 vendors&quot; has no meaning as a crumb. Open, it carries the remainder past P (&quot;Other 190 vendors&quot;); it goes only when Show all N has shown every row.</div>
     <div class="doc-note"><b>Charts cap at ten series plus Other.</b> Beyond ten bars the axis labels collide and the small values fall below a pixel. The cap is on the chart, not the query - the Other bar is the same remainder the ranked list uses.</div>
-    <div class="doc-note"><b>The order table loads one page (Rows per page) at a time.</b> Load more appends and keeps scroll position; the footer count always names the real total, so the user knows what they have not seen. No page numbers - the table is proof of the slice above it, not something to navigate.</div>
+    <div class="doc-note"><b>The order table loads one page (Rows per page) at a time.</b> Load more appends and slides the page to the first new row, as in the list footer (<a href="Components.dc.html#c6">c6</a>); the footer count always names the real total, so the user knows what they have not seen. No page numbers - the table is proof of the slice above it, not something to navigate.</div>
     <div class="doc-note"><b>Expanded and loaded state is not persisted.</b> Changing the period or any crumb collapses every card back to eight and the table back to one page (Rows per page), because the rows answer a query that just changed.</div>
     <div class="doc-note"><b>No search or sort inside a breakdown.</b> It is ranked by the measure the card is about. A user looking for one named vendor uses the vendor list or search, which are built for that.</div>
     <div class="doc-note"><b>A link opens what it counts.</b> A button or row that shows a number opens a list with exactly that many items. If it cannot, the number is not shown.</div>
