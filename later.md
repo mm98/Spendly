@@ -92,13 +92,15 @@ is removed in the change that settles it.
   - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
 - **Found:** 2026-10-24.
 
-## On a phone, picking a row in the bank check can open another page
+## On touch, a combobox drawn already open closes on its first tap
 
-- **Where:** the bank check (`react/src/pages/BudgetCheck.jsx`), "Pick from budget" on a phone,
-  which opens the row list as a sheet from the bottom of the screen.
-- **What the reader sees:** a tap on a row in the sheet closes it and opens the page under the
-  finger in the bottom bar (Statistics), and the payment is not placed.
-- **What was found:** seen in Chromium with the iPhone 15 profile and a tap, on main's code as well.
-  The tap lands on the row (nothing covers it); the bottom bar gets it after the sheet closes. Not
-  yet checked in WebKit, which decides whether a real iPhone does it.
+- **Where:** `ComboboxSheet` in `react/src/components/Combobox.jsx`, which marks the sheet as its
+  field's in a layout effect that runs before the field's own element is set.
+- **What the reader sees:** nothing today. The bank check's row list met it: a tap on a row closed
+  the sheet and opened the page under the finger in the bottom bar. The page now draws its list
+  closed and opens it right after, which is the case the component handles.
+- **What was found:** the sheet's link to its field is set only once, on the first draw; when the
+  list is open in that first draw, the field is not there yet and the link is never made, so every
+  press in the sheet counts as a press outside it. A change for Claude Design, if a page should be
+  able to draw a list already open.
 - **Found:** 2026-10-25.

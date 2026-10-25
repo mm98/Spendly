@@ -319,9 +319,13 @@ function PickOnly({ value, options, onPick, ...rest }) {
 /** A budget row picked by typing or from the list of one side of the payment's year, with what each
     holds that month. It takes focus as it opens; Escape on its closed list puts it away. */
 function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled }) {
-	const [open, setOpen] = useState(true)
+	// opened after it is drawn: on touch, a list open from the first draw does not yet know its field, and its first tap closes it
+	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
-	useEffect(() => { document.getElementById(id)?.focus() }, [id])
+	useEffect(() => {
+		document.getElementById(id)?.focus()
+		setOpen(true)
+	}, [id])
 	const short = monthNames('short')[month]
 	const groups = (sheet?.groups ?? []).filter(g => g.kind === kind)
 		.map(g => ({ ...g, lines: g.lines.filter(l => l.name.toLocaleLowerCase('da').includes(query.trim().toLocaleLowerCase('da'))) }))
