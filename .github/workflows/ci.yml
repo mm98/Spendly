@@ -150,6 +150,10 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: api
         run: npm run queries:check
+      - name: Server tests
+        if: ${{ !cancelled() }}
+        working-directory: api
+        run: npm test
 
   # Lighthouse against the built bundle served by the API process -- the deployed shape, not
   # the dev server, which serves unminified modules one file per import and scores something

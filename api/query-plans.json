@@ -2285,6 +2285,28 @@
 				"sqlite_autoindex_user_ask_files_1"
 			]
 		},
+		"SELECT f.id, f.user_id, f.stored_name FROM user_ask_chats c JOIN user_ask_files f ON f.chat_id = c.id WHERE c.deleted_at IS NOT NULL AND c.deleted_at <= ?": {
+			"plan": [
+				"SEARCH c USING INDEX user_ask_chats_deleted (deleted_at>? AND deleted_at<?)",
+				"SEARCH f USING INDEX user_ask_files_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_ask_chats_deleted",
+				"user_ask_files_chat"
+			]
+		},
+		"SELECT f.id, f.user_id, f.stored_name FROM user_ask_chats c JOIN user_ask_files f ON f.chat_id = c.id WHERE c.expires_at <= ?": {
+			"plan": [
+				"SEARCH c USING INDEX user_ask_chats_expiry (expires_at<?)",
+				"SEARCH f USING INDEX user_ask_files_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_ask_chats_expiry",
+				"user_ask_files_chat"
+			]
+		},
 		"SELECT g.id, g.kind, g.year_id, y.year FROM budget_groups g JOIN budget_years y ON y.id = g.year_id WHERE g.id = ? AND g.user_id = ?": {
 			"plan": [
 				"SEARCH g USING INDEX sqlite_autoindex_budget_groups_1 (id=?)",
@@ -2855,6 +2877,15 @@
 				"idx_order_items_order"
 			]
 		},
+		"SELECT id, user_id, chat_id, stored_name FROM user_ask_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL": {
+			"plan": [
+				"SEARCH user_ask_files USING INDEX user_ask_files_deleted (deleted_at>? AND deleted_at<?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_ask_files_deleted"
+			]
+		},
 		"SELECT id, user_id, name, size, kind, content_type, data, data_is_compressed, (thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json, sha256, pages FROM uploads WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH uploads USING INDEX sqlite_autoindex_uploads_1 (id=?)"
@@ -2862,15 +2893,6 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_uploads_1"
-			]
-		},
-		"SELECT id, user_id, stored_name FROM user_ask_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL": {
-			"plan": [
-				"SEARCH user_ask_files USING INDEX user_ask_files_deleted (deleted_at>? AND deleted_at<?)"
-			],
-			"findings": [],
-			"indexes": [
-				"user_ask_files_deleted"
 			]
 		},
 		"SELECT id, user_id, stored_name FROM user_ask_files WHERE expires_at <= ?": {
@@ -5207,14 +5229,14 @@
 			"columns": [
 				"deleted_at"
 			],
-			"readers": 0
+			"readers": 1
 		},
 		"user_ask_chats_expiry": {
 			"table": "user_ask_chats",
 			"columns": [
 				"expires_at"
 			],
-			"readers": 0
+			"readers": 1
 		},
 		"user_ask_chats_user": {
 			"table": "user_ask_chats",
@@ -5229,7 +5251,7 @@
 			"columns": [
 				"chat_id"
 			],
-			"readers": 2
+			"readers": 4
 		},
 		"user_ask_files_deleted": {
 			"table": "user_ask_files",
