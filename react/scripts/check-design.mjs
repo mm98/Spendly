@@ -662,6 +662,21 @@ for (const [p, ast] of parsed) {
 		const missing = props.filter(q => !doc.includes(`props.${q}]`) && !doc.includes(`props.${q} `) && !doc.includes(`props.${q}\n`) && !doc.includes(`props['${q}']`))
 		if (missing.length) fail('every component prop has JSDoc', rel(e.p), `${e.n} does not document ${missing.join(', ')}`)
 	}
+	// "take the room the control is given" has one name, fullWidth, on every control that can take it
+	const FULL_WIDTH = ['Button', 'Combobox', 'Field', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'Segmented', 'FileDrop']
+	const docOf = e => {
+		const before = read(e.p).slice(0, e.at), end = before.lastIndexOf('*/'), start = before.lastIndexOf('/**')
+		return start >= 0 && end > start && /^\s*$/.test(before.slice(end + 2)) ? before.slice(start, end) : ''
+	}
+	for (const n of FULL_WIDTH) {
+		const e = exports.find(x => x.n === n)
+		if (!e) fail('one name for full width', 'src/components', `${n} is not exported`)
+		else if (!docOf(e).includes('[props.fullWidth]')) fail('one name for full width', rel(e.p), `${n} does not take fullWidth`)
+	}
+	for (const e of exports)
+		if (/@param \{boolean\} \[props\.(grow|fill|block)\]/.test(docOf(e))) fail('one name for full width', rel(e.p), `${e.n} takes its own name for fullWidth`)
+	for (const p of library)
+		if (/VARIANT\s*=\s*\{[^}]*\b(grow|fill|block)\s*:/.test(read(p))) fail('one name for full width', rel(p), 'a variant map carries grow, fill or block: that is fullWidth')
 	// a slot that takes a shared primitive for its look is reuse, not a second word for it. The app's own two:
 	const REUSED = { DialogTitle: 'sp-heading', RangeSlider: 'sp-track', Picker: 'sp-options' }
 	const roots = {}
@@ -1518,7 +1533,9 @@ const DESIGN_RULES = {
 	'a wrapped trail sits in its row': COPY,
 	'a shortcut hint is centred in its field': COPY,
 	'a stepper shows its digit': COPY,
-	'every component prop has JSDoc': 'every component prop has JSDoc'
+	'every component prop has JSDoc': 'every component prop has JSDoc',
+	'top bar rules reach the screen slot': COPY,
+	'one name for full width': 'one name for full width'
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))

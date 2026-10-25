@@ -451,7 +451,7 @@ function BudgetYears({ years, onYearsChanged }) {
 
 	const yearPicker = touch || years.length > 4
 		? (
-			<Combobox value={String(year)} aria-label="Year">
+			<Combobox value={String(year)} aria-label="Year" fullWidth={touch}>
 				{years.map(y => (
 					<ComboboxOption key={y} selected={y === year} onSelect={() => goYear(y)}>{y}</ComboboxOption>
 				))}
@@ -488,7 +488,6 @@ function BudgetYears({ years, onYearsChanged }) {
 					// on a phone the year and the actions share one bar (Mobile screens 7a)
 					<ListItem variant="card">
 						{yearPicker}
-						<span className="sp-grow" />
 						{actions}
 					</ListItem>
 				)

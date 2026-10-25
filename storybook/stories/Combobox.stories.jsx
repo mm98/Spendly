@@ -4,6 +4,8 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import { Combobox, ComboboxOption, ComboboxGroup, ComboboxSeparator, ComboboxEmpty } from '../../react/src/components/Combobox.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
+import { Button } from '../../react/src/components/Button.jsx'
+import { ListItem } from '../../react/src/components/ListItem.jsx'
 import { useHeld } from './controls.js'
 
 const VENDORS = [
@@ -288,5 +290,39 @@ export const LongList = {
 		panel.scrollTop = panel.scrollHeight
 		const last = page(canvasElement).getByRole('option', { name: 'Travel' }).getBoundingClientRect()
 		await expect(last.bottom).toBeLessThanOrEqual(panel.getBoundingClientRect().bottom + 0.5)
+	}
+}
+
+const YEARS = ['2024', '2025', '2026']
+
+/** In a bar beside buttons, `fullWidth` takes the room the buttons leave (Mobile screens 21a). */
+export const FullWidth = {
+	args: { 'aria-label': 'Year', value: '2026', fullWidth: true, onPick: fn(), onEdit: fn() },
+	argTypes: { value: { control: 'select', options: YEARS } },
+	render: ({ onPick, onEdit, ...args }) => {
+		const [year, setYear] = useHeld(args, 'value')
+		return (
+			<ListItem variant="card">
+				<Combobox {...args} value={year}>
+					{YEARS.map(option => (
+						<ComboboxOption key={option} selected={year === option} onSelect={() => { setYear(option); onPick(option) }}>{option}</ComboboxOption>
+					))}
+				</Combobox>
+				<Button variant="outline" onClick={onEdit}>Edit</Button>
+			</ListItem>
+		)
+	},
+	play: async ({ args, canvas, canvasElement }) => {
+		const bar = canvasElement.querySelector('.sp-list-item--card')
+		const field = canvasElement.querySelector('.sp-combobox')
+		const edit = canvas.getByRole('button', { name: 'Edit' })
+		// the field ends where the gap before Edit begins
+		const gap = parseFloat(getComputedStyle(bar).columnGap) || 0
+		await expect(Math.round(field.getBoundingClientRect().right + gap)).toBe(Math.round(edit.getBoundingClientRect().left))
+		await userEvent.click(canvas.getByRole('combobox', { name: 'Year' }))
+		await userEvent.click(page(canvasElement).getByRole('option', { name: '2025' }))
+		await expect(args.onPick).toHaveBeenCalledWith('2025')
+		await userEvent.click(edit)
+		await expect(args.onEdit).toHaveBeenCalled()
 	}
 }

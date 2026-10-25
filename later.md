@@ -4,19 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The phone top bar's Back size does not reach the app's Back
-
-- **Where:** every phone screen one level down that shows Back in the top bar (Ask, Ask's Files and
-  Chats, Scanned before, Compare with receipt), against Mobile screens 11e and 24a.
-- **What the reader sees:** Back at 30px and the page menu at 32px, as drawn, through a rule in
-  `react/src/styles/app.css`.
-- **What was found:** the design's rule reaches an icon button straight inside `.sp-topbar--touch`.
-  The app puts Back, the title and the menu in a slot (`.sp-topbar__screen`, drawn as
-  `display: contents`) inside the top bar, so the rule missed them and Back stayed 48px.
-- **Rule for `design/`:** the top bar's Back and page menu sizes also reach an icon button inside
-  `.sp-topbar__screen`, the slot a screen one level down fills.
-- **Found:** 2026-10-25.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.

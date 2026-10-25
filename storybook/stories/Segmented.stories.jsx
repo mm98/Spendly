@@ -37,7 +37,7 @@ export const Small = {
 		await expect(`${group.getBoundingClientRect().height}px`).toBe(small)
 	}
 }
-export const Fill = { ...Three, args: { ...Three.args, name: 'fill', variant: 'fill' } }
+export const FullWidth = { ...Three, args: { ...Three.args, name: 'full-width', fullWidth: true } }
 export const Months = {
 	args: { name: 'month', value: 'Aug', fixed: true, options: MONTHS.map(m => ({ value: m, label: m })) },
 	argTypes: { value: { control: 'select', options: MONTHS } }
