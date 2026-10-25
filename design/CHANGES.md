@@ -1,72 +1,43 @@
-# Segmented: the marker's slide, a small size, and the reorder notes
+# Phone selection, and contrast on tinted grounds
 
-## Fixed from design_handoff_segmented_small
+Answers two briefs: Components c1 contradicted Order list 2c on whether a phone selects orders, and later.md's contrast faults in the Storybook accessibility check.
 
-- Section 4 left the dark mode copy of Spend by month at the default size, waiting for a decision. It is now small too, as every other card head switch: `Dark mode and image viewer.dc.html`, the Spend by month card, Bar shape. The page and its `styles/pages/dark-mode.css` join the package.
+## 1. A phone does not select orders
 
-## 1. The segmented control's green did not slide
-
-- **The problem:** picking an option in the segmented control moved the green at once, while the sidebar's current row slides to the row picked. The marker was in place and animated, but every option clips its own content (`overflow: hidden`, kept so a long label ends in an ellipsis), so the marker was cut away while it travelled in from the option it left.
-- **What changed:** the option holding the marker no longer clips; its label clips its own text instead, as the touch variant already did. At rest nothing looks different.
-- **Where:** Components c5. `styles/components.css`, motion section: `.sp-segmented__item:has(> .sp-marker)` and `.sp-segmented__item:has(> .sp-marker) > .sp-label`. In the app, `react/src/components/Segmented.jsx` already moves the marker with `layoutId`; the CSS rule is what lets it be seen.
+- **The problem:** Components c1 said a long press on a phone selects an order. Order list 2c said a phone does not select orders, has no select box and no bulk actions. The README listed long press as not decided.
+- **What changed:** a phone has no selection. On a touch list: tap opens the record, long press opens the record menu, swipe left shows the two actions the page marks primary. No select box, no bulk bar, no hover, no ⋮. Every action is on one record at a time.
+- **Where:** `Components c1`, Actions notes, Touch. Order list 2c already said this and is unchanged. README, the list of things not decided: long press is now settled. App: the list's touch rendering (`.sp-card sp-card--row`) must not render a select box or the bulk bar, and long press opens the record menu.
 - **What is still open:** nothing.
 
-## 2. The two segmented specimens in c5 were one radio group
+## 2. Small grey and green text under 4.5:1 on tinted grounds
 
-- **The problem:** the desktop and the touch specimens both used `name="c5-seg"`, so picking in one cleared the other.
-- **What changed:** the touch specimen is `c5-seg-touch`. Design page only.
-- **Where:** Components c5.
-- **What is still open:** nothing.
+Settles the later.md entry "The Storybook's accessibility check finds faults in the components", and the grey-text point of "The whole pages in Storybook have accessibility faults". Please remove the first entry, and the grey-text bullet from the second.
 
-## 3. Segmented takes `size="small"`
-
-- **The problem:** a segmented control in a card head stood at the field height, 42px, taller than the small buttons beside it.
-- **What changed:** a small size, beside the default:
-  - height `--btn-h-small` (34px), the small button's;
-  - inset and gap `--sp-4`, so an option is 24px tall;
-  - option padding `0 --sp-8`, label `--t-12`;
-  - on touch it keeps 34px, as the small button does, and each option reaches a 48px press area.
-- **Where:** Components c5 (desktop and touch specimens), React components r4 (Segmented). `styles/components.css`: `.sp-segmented--small`, `.sp-segmented--small > .sp-segmented__item`, `.sp-touch .sp-segmented--small` and its `::before`. `react_handoff/Segmented.jsx`: a `SIZE` map, the `size` prop (`default` | `small`) and its JSDoc line; app file `react/src/components/Segmented.jsx`.
-- **What is still open:** nothing.
-
-## 4. A segmented control in a card head is small
-
-- **The problem:** the same card head drew its switch at the field height.
-- **What changed:** the switch in a card head is `size="small"`.
-- **Where:** Order statistics 4a (Spend by month) and 4g (Spend by day), Dark mode and image viewer (Spend by month), Components c10 (Spend by month), React components r5 (`CardHeader` with `Segmented`). App: the Statistics page's bar shape switch, `react/src/pages/Statistics.jsx` or wherever it renders `Segmented` in a `CardHeader`.
-- **What is still open:** nothing. The dark mode copy of Spend by month (`Dark mode and image viewer.dc.html`) is small as well.
-
-## 5. later.md: "On touch, a combobox drawn already open closes on its first tap"
-
-- **The problem:** `ComboboxSheet` linked the sheet to its field in a layout effect, which runs before the field's own ref is set; a list open on its first draw never made the link, so every press in the sheet counted as a press outside it.
-- **What changed:** the link is made in `useEffect`, after the commit, when the field's element exists. A page can draw a list already open.
-- **Where:** `react_handoff/Combobox.jsx`, `ComboboxSheet`; app file `react/src/components/Combobox.jsx`. This settles the later.md entry; please remove it. The bank check's row list may now draw its list open directly.
-- **What is still open:** nothing.
-
-## 6. The reorder notes disagreed with the stylesheet
-
-- **The problem:** in "Ordering by hand", one note said the carried row is white and another listed the picked-up row as `#e7efe8`; the slide was given as 150ms, not the motion tokens; one sentence was written twice.
-- **What changed:** both colours are correct and now say when: a row carried by the pointer is white on `--surface`; a row picked up from the keyboard wears `--green-tint` until it is dropped (this is what `.sp-list-item--carried` and `.sp-list-item--picked` already draw). Rows shift at `--motion-in` (180ms) on `--ease-enter`, as Motion's `glide()` does. The repeated sentence is gone.
-- **Where:** Components c1, "Ordering by hand" notes. No CSS or code change.
-- **What is still open:** nothing.
-
-## Stylesheet link
-
-Every page's link moved from `styles/components.css?v=v20261024u` to `?v=v20261025a`, so a browser loads the new rules. Only the pages above changed otherwise and are in this package.
+- **The problem:** `--ink-5` (#72716b) was 4.0 to 4.3:1 on the tinted grounds (#eceae4, #f2f1eb, #eef1ee, #e7efe8, #f0e6e4). `--ink-4` on the danger tint was 4.43:1, `--green-2` on #eceae4 was 4.34:1, and a calendar's days outside the month were 1.5 to 1.8:1.
+- **What changed:** light theme only, dark theme unchanged.
+  - `--ink-4` #6b6a63 to **#5f5e58** (5.3:1 or more on every tint), so it stays one step darker than `--ink-5`.
+  - `--ink-5` #72716b to **#686760** (4.64:1 on #eceae4, the darkest tint).
+  - `--green-2` #2f7a51 to **#2d754e** (4.55:1 on #eceae4). `--shell-action-hover` stays #2f7a51: it sits on the sidebar, not on a tint.
+  - A calendar day outside the month is `--ink-5`, not `--line-5`.
+- **Where:** `styles/tokens.css` (`:root` and the light-theme block), `styles/components.css` `.sp-range__day--outside`. The token tables in `Dark mode and image viewer` and the Sort note in `Layout rules` state the new values. App: the same tokens in `react/src/` and the date range calendar.
+- **What is still open:**
+  - The NavItem story (Shell, One Nav Item) draws a NavItem on the page ground. A NavItem only exists on the sidebar ground, where its colours pass; the story should draw it there. No token changes for it. Please confirm.
+  - The drop zone's control inside a control, and the screen-reader names in the pages entry, are code, not drawing, and stay in later.md.
+  - "Recently deleted" stays in later.md, by decision: not in this handoff.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged from the project root.
+- `README.md` - the design's overview, unchanged copy of the project root.
 - `CHANGES.md` - this note.
-- `Components.dc.html` - c1 notes, c5 specimens, c10 card head.
-- `React components.dc.html` - r4 small example, r5 card head.
-- `Order statistics.dc.html` - 4a and 4g card heads.
-- `Dark mode and image viewer.dc.html` - the Spend by month card head.
-- `support.js`, `components.js`, `icons.js` - what the pages load to open; `components.js` draws the marker on the design pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the stylesheets; `components.css` holds sections 1 and 3.
-- `styles/pages/order-statistics.css` - linked by Order statistics.
-- `styles/pages/dark-mode.css` - linked by Dark mode and image viewer.
-- `react_handoff/` - the whole folder, which React components loads; `Segmented.jsx` and `Combobox.jsx` changed.
+- `Components.dc.html` - c1, the touch note.
+- `Dark mode and image viewer.dc.html` - the token table's new light values.
+- `Layout rules.dc.html` - the Sort label's new value.
+- `support.js`, `components.js`, `icons.js` - what the pages load.
+- `styles/tokens.css` - the three changed tokens.
+- `styles/components.css` - the outside-month day.
+- `styles/doc.css`, `styles/pages/dark-mode.css`, `styles/pages/layout-rules.css` - what the pages link.
+
+Every page's stylesheet links now carry a new version (`v20261025c`) so the changed tokens load; nothing else on those pages changed.
 
 ## styles/check.js
 

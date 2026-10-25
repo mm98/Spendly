@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261022d">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261025c">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/layout-rules.css?v=v20260917b">
 <script src="./icons.js?v=v20260917b"></script>
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
   a { color: #1d4d33; }
@@ -577,7 +577,7 @@
     <div class="doc-note"><b class="sp-ink">Segment cells fill their track with <code class="sp-meta">flex: 1</code> and <code class="sp-meta">display: grid; place-items: center</code></b> - no vertical padding of their own. Padding inside a fixed-height track leaves the label sitting above centre while the track itself measures correctly, which is the harder version of the same fault to spot.</div>
     <div class="doc-note"><b class="sp-ink">Check it by measuring, not by looking.</b> Every direct child of the toolbar must report the same height. One value, no exceptions - a 40px control beside a 42px one is invisible in a screenshot and obvious in a row.</div>
     <div class="doc-note"><b class="sp-ink">Search carries no shortcut badge, at any width.</b> <code class="sp-meta">⌘K</code> belongs to the top bar's search, which opens the search window over the page (<a href="Components.dc.html#c11">Components c11</a>); a badge here would show the same key on a field it does not reach. This field is reached with G and the page's letter (G V, G C), listed in the keyboard shortcuts sheet. A query is cleared with the field's own trailing x (<code class="sp-meta">.sp-field__trail</code>), inside the field, so the bar holds nothing extra for it. The browser's native clear control is hidden: not every browser shows one, so the field draws its own. The query renders in <code class="sp-meta">--ink</code>, the placeholder in <code class="sp-meta">--ink-5</code>, and only one of them is ever visible.</div>
-    <div class="doc-note"><b class="sp-ink">Sort shows its label and its value</b>, not a bare value. &quot;Sort&quot; in 12px <code class="sp-meta">#6b6a63</code>, the value in 13px/600 - a control reading only &quot;Newest first&quot; is a mystery until opened.</div>
+    <div class="doc-note"><b class="sp-ink">Sort shows its label and its value</b>, not a bare value. &quot;Sort&quot; in 12px <code class="sp-meta">#5f5e58</code>, the value in 13px/600 - a control reading only &quot;Newest first&quot; is a mystery until opened.</div>
     <div class="doc-note"><b class="sp-ink">The result count is not in the toolbar.</b> It belongs on the list's own header strip, where it sits beside the thing it counts. Putting it here means it competes with the controls for the same row.</div>
   </div>
 
