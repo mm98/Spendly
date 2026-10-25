@@ -1,7 +1,7 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
 import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
-import { FILE_KEPT_DAYS, deleteFilesOfChat, restoreFilesOfChat } from './askFiles.js'
+import { FILE_KEPT_DAYS, deleteFilesOfChat, restoreFilesOfChat, sweepFilesOfChats } from './askFiles.js'
 import { escapeLike } from './textSearch.js'
 
 /* The chats on Ask (24a, 24f): every one kept for the account for 30 days after its last question,
@@ -145,8 +145,11 @@ export const restoreChat = db.transaction((userId, chatId) => {
 	return true
 })
 
-/** Removes chats past their 30 days, and deleted chats once Undo is over, with their turns and charts. */
+/** Removes chats past their 30 days, and deleted chats once Undo is over, with their turns, charts and files. */
 export function sweepChats(now = nowEpoch()) {
-	dropExpired.run(now)
-	dropDeleted.run(now - UNDO_SECONDS)
+	sweepFilesOfChats(now - UNDO_SECONDS, now)
+	db.transaction(() => {
+		dropExpired.run(now)
+		dropDeleted.run(now - UNDO_SECONDS)
+	})()
 }

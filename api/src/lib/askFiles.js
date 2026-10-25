@@ -55,7 +55,10 @@ const markDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = ? WHERE i
 const unmarkDeleted = db.prepare('UPDATE user_ask_files SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL AND stored_name IS NOT NULL')
 const selectExpired = db.prepare('SELECT id, user_id, stored_name FROM user_ask_files WHERE expires_at <= ?')
 const dropFile = db.prepare('DELETE FROM user_ask_files WHERE id = ?')
-const selectDeletedStored = db.prepare('SELECT id, user_id, stored_name FROM user_ask_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL')
+const selectDeletedStored = db.prepare('SELECT id, user_id, chat_id, stored_name FROM user_ask_files WHERE deleted_at IS NOT NULL AND deleted_at <= ? AND stored_name IS NOT NULL')
+const selectOfDeletedChats = db.prepare(`SELECT f.id, f.user_id, f.stored_name FROM user_ask_chats c JOIN user_ask_files f ON f.chat_id = c.id
+	WHERE c.deleted_at IS NOT NULL AND c.deleted_at <= ?`)
+const selectOfExpiredChats = db.prepare('SELECT f.id, f.user_id, f.stored_name FROM user_ask_chats c JOIN user_ask_files f ON f.chat_id = c.id WHERE c.expires_at <= ?')
 const forgetStored = db.prepare('UPDATE user_ask_files SET stored_name = NULL WHERE id = ?')
 
 /** The account's own way of writing an amount and a date, for a file's cells. */
@@ -171,8 +174,18 @@ export function sweepFiles(now = nowEpoch()) {
 		if (f.stored_name) removeStoredFile(f.user_id, FOLDER, f.stored_name)
 		dropFile.run(f.id)
 	}
+	// a deleted file of a kept chat keeps its row, so the chat can show it as deleted; with no chat nothing shows it
 	for (const f of selectDeletedStored.all(now - UNDO_SECONDS)) {
 		removeStoredFile(f.user_id, FOLDER, f.stored_name)
-		forgetStored.run(f.id)
+		if (f.chat_id) forgetStored.run(f.id)
+		else dropFile.run(f.id)
 	}
+}
+
+/** Removes every file of the chats deleted at or before `deletedBefore` or past their days at `now`, which
+    the chat sweep removes next: the bytes first, so a row is never gone while its bytes stay. */
+export function sweepFilesOfChats(deletedBefore, now) {
+	const files = [...selectOfDeletedChats.all(deletedBefore), ...selectOfExpiredChats.all(now)]
+	for (const f of files) if (f.stored_name) removeStoredFile(f.user_id, FOLDER, f.stored_name)
+	db.transaction(() => { for (const f of files) dropFile.run(f.id) })()
 }

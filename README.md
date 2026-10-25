@@ -238,7 +238,7 @@ Everything that needs you, on one page.
   first answer; this does not count toward the day's questions.
 - **Chats** is a page that lists the kept chats, the latest first, with a search over the headings,
   questions and answers. A heading opens its chat. Delete removes the chat and the files it made, and
-  offers Undo.
+  offers Undo. When Undo is over, nothing of the chat or its files is left on the server.
 - **Chats and Files keep the chat bar** at the bottom on a computer. Back to chat beside Send returns
   to the chat open last, and a question typed there goes to that chat, or starts one.
 - **What Ask can do** is a button at the right edge of the chat field, everywhere the field is. It lists
@@ -258,7 +258,8 @@ Everything that needs you, on one page.
   delete offers Undo. A downloaded file is named after the heading at
   its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22 14.05.33).xlsx". In the
   answer and on Files, a file shows that name without the day and time: "Orders in October 2026.xlsx". After
-  30 days a file is removed. Only you, signed in, can download your files. A download link in a tab that
+  30 days a file is removed. A deleted file's content is removed from the server when Undo is over; only
+  its name stays, while the chat that made it shows it as deleted. Only you, signed in, can download your files. A download link in a tab that
   is signed out asks you to sign in first.
 - **Each account can make 10 files a day** (`SPENDLY_ASK_FILES_PER_DAY`). A file that cannot be
   made, because there are too many orders or the day's files are used, says why in the answer. The
