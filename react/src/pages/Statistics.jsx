@@ -251,6 +251,24 @@ export default function Statistics() {
 	// until the API answers for this window, the stepper stays live on the calendar alone, so it keeps its focus
 	const older = stats.data ? stats.data.older : range === 'custom' ? null : windowIdAt(range, fromMs - DAY_MS)
 	const newer = stats.data ? stats.data.newer : range !== 'custom' && toMs < todayUtc() ? windowIdAt(range, toMs + DAY_MS) : null
+	// the arrow keys page one period a press, as the arrows beside its name do; a screen reader hears the new one
+	const [said, setSaid] = useState('')
+	useEffect(() => {
+		if (range === 'custom' || draft) return
+		const keys = ev => {
+			if ((ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') || ev.defaultPrevented || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return
+			// a field, a list or an open menu keeps its own arrows
+			if (ev.target.closest?.('input, textarea, select, [contenteditable], [role="menu"], [role="listbox"], [role="dialog"], [role="slider"], [aria-expanded="true"]')) return
+			ev.preventDefault()
+			const to = ev.key === 'ArrowRight' ? newer : older
+			if (!to) return
+			setSaid(stepLabel(range, to))
+			show(range, to)
+		}
+		document.addEventListener('keydown', keys)
+		return () => document.removeEventListener('keydown', keys)
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [range, draft, older, newer])
 
 	/* The period the cards show trails the one chosen until all its answers land, so they change
 	   together; every answer beside it is that same period's, so no figure stands beside another's. */
@@ -309,9 +327,11 @@ export default function Statistics() {
 			</button>
 		</div>
 	)
+	const announce = <span className="sp-announce" aria-live="polite">{said}</span>
 	const period = touch
 		? (
 			<>
+				{announce}
 				<Controls>
 					{view?.leftOut
 						? (
@@ -330,6 +350,7 @@ export default function Statistics() {
 		)
 		: (
 			<>
+				{announce}
 				<PeriodPicker
 					name="statistics-period"
 					presets={PRESETS}
