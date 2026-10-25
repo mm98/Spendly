@@ -451,7 +451,7 @@ function BudgetYears({ years, onYearsChanged }) {
 
 	const yearPicker = touch || years.length > 4
 		? (
-			<Combobox value={String(year)} aria-label="Year" variant={touch ? 'bare' : 'default'}>
+			<Combobox value={String(year)} aria-label="Year">
 				{years.map(y => (
 					<ComboboxOption key={y} selected={y === year} onSelect={() => goYear(y)}>{y}</ComboboxOption>
 				))}
@@ -465,21 +465,19 @@ function BudgetYears({ years, onYearsChanged }) {
 		<Segmented name="budget-view" aria-label="View" value={view} onChange={setView} options={VIEWS} />
 	)
 
-	// a touch button fills its column, so in the phone's bar each keeps its own width in a span
-	const own = button => (touch ? <span className="sp-flex-none">{button}</span> : button)
 	const actions = editing
 		? (
 			<>
-				{own(<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>)}
-				{own(<Button onClick={() => setEditing(false)}>Done</Button>)}
+				<Button variant="outline" onClick={() => setStarting(true)}>New year</Button>
+				<Button onClick={() => setEditing(false)}>Done</Button>
 			</>
 		)
 		: (
 			<>
 				{/* a bank statement is not checked on a phone (21g) */}
-				{own(<Button variant="outline" iconStart="eye" aria-pressed={asked} onClick={() => setAsked(!asked)}>{asked ? 'Hide income' : 'Show income'}</Button>)}
+				<Button variant="outline" iconStart="eye" aria-pressed={asked} onClick={() => setAsked(!asked)}>{asked ? 'Hide income' : 'Show income'}</Button>
 				{touch ? null : <Button variant="outline" to="/budget/check">Check a bank statement</Button>}
-				{own(<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>)}
+				<Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
 			</>
 		)
 

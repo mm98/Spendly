@@ -39,8 +39,10 @@ export function monthPace(now = new Date()) {
 /** The bar's sort, a Combobox that only picks (c8). */
 export function SortControl({ sorts, value, onChange }) {
 	const current = sorts.find(s => s.id === value) ?? sorts[0]
+	// a phone draws the value alone, as the order list does (Mobile screens 5a)
+	const touch = useShellShape() === 'touch'
 	return (
-		<Combobox variant="sort" prefix="Sort" value={current.label}>
+		<Combobox variant="sort" prefix={touch ? null : 'Sort'} aria-label="Sort" value={current.label}>
 			{sorts.map(s => (
 				<ComboboxOption key={s.id} selected={s.id === current.id} onSelect={() => onChange(s.id)}>
 					{s.label}
