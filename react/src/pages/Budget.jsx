@@ -645,9 +645,10 @@ function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, on
 					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={month} onChange={go}
 						options={short.map((label, m) => ({ value: m, label }))} />
 				)}
-				<div className="bg-strip" ref={strip.ref} data-moving={strip.moving ? 'true' : undefined}>
+				{/* the wells glide relative to the strip, so a card above that changes height does not move them up or down */}
+				<m.div className="bg-strip" ref={strip.ref} layout="position" layoutRoot data-moving={strip.moving ? 'true' : undefined}>
 					{count === 1 ? wells : <Halves>{wells}</Halves>}
-				</div>
+				</m.div>
 			</Card>
 		</>
 	)
