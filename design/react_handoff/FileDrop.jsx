@@ -55,7 +55,7 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 	return null
 }
 
-/** `action` is the button-shaped words inside the zone (3a); `grow` takes the room left in its row (10a);
+/** `action` is the button-shaped words inside the zone (3a); `fullWidth` takes the room left in its row (10a);
     `row` lays the zone on its side, the mark at the left and its lines beside it (c4).
     `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`sniffedProblem`) or null.
     `disabled` draws the zone muted with no file input (20b); its children say why.
@@ -67,11 +67,11 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
     @param {number} [props.maxMb] The largest file it takes, in MB.
     @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles]
     @param {import('react').ReactNode} [props.action] Words drawn like a button inside the zone, such as Choose a file.
-    @param {boolean} [props.grow] Take the room left in the row.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row.
     @param {boolean} [props.row] Lay the zone on its side: the icon at the left, the words beside it.
     @param {boolean} [props.disabled] The zone takes no files.
     @param {string} [props.id] */
-export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, row = false, disabled = false, id, ...rest }) {
+export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, fullWidth = false, row = false, disabled = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
 	const field = useRef(null)
 	const take = async list => {
@@ -80,7 +80,7 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	}
 	usePastePlace(field, file => take([file]))
 	if (disabled) return (
-		<div className={join('sp-filedrop', row && 'sp-filedrop--row', grow && 'sp-grow', 'sp-muted')} aria-disabled="true" {...rest}>
+		<div className={join('sp-filedrop', row && 'sp-filedrop--row', fullWidth && 'sp-grow', 'sp-muted')} aria-disabled="true" {...rest}>
 			{icon ? <Icon name={icon} /> : null}
 			{children}
 		</div>
@@ -92,7 +92,7 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 		}
 		: {}
 	return (
-		<label className={join('sp-filedrop', row && 'sp-filedrop--row', grow && 'sp-grow')} {...dropping} {...rest}>
+		<label className={join('sp-filedrop', row && 'sp-filedrop--row', fullWidth && 'sp-grow')} {...dropping} {...rest}>
 			{icon ? <Icon name={icon} /> : null}
 			{children}
 			{action ? <span className="sp-btn sp-btn--small">{action}</span> : null}

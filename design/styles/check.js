@@ -45,6 +45,22 @@
     }
   }
 
+
+  /* A rule for a child of the phone top bar reaches it inside the screen slot too.
+     Caught: Back and the page menu were sized with `.sp-topbar--touch > .sp-icon-btn`,
+     and a screen one level down puts them in `.sp-topbar__screen` (display: contents),
+     which the child combinator does not reach through, so Back stayed 48px (24a). */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    const sels = [...bare.matchAll(/([^{}]+)\{/g)].flatMap(m => m[1].split(',').map(x => x.trim()));
+    for (const sel of sels) {
+      const m = sel.match(/\.sp-topbar--touch > (\.sp-icon-btn.*)$/);
+      if (!m) continue;
+      const twin = sel.replace('.sp-topbar--touch > ', '.sp-topbar--touch > .sp-topbar__screen > ');
+      if (!sels.includes(twin)) fail('top bar rules reach the screen slot', 'components.css', sel + ' has no .sp-topbar__screen twin');
+    }
+  }
+
   /* Every region that scrolls shows the shared bar: thin, no track, the --scroll-thumb ink.
      Caught: the vendor combobox's list on Order create drew the browser's wide light bar
      with arrows, since .sp-combobox__panel scrolled at --list-max but was never named in
@@ -1002,8 +1018,10 @@
        and reading the files once each is what keeps this inside the time budget. */
     const jsx = (await ls('react_handoff')).filter(f => f.endsWith('.jsx'));
     const exports = [];
+    const reactSrc = {};
     for (const f of jsx) {
       const s = await readFile('react_handoff/' + f);
+      reactSrc[f] = s;
       const marks = [...s.matchAll(/export function (\w+)\(/g)];
       marks.forEach((m, i) => {
         const from = m.index;
@@ -1044,6 +1062,23 @@
       if (!/@param \{object\} props\b/.test(e.doc)) { fail('every component prop has JSDoc', e.f, `${e.n} has no @param {object} props block`); continue; }
       const missing = props.filter(p => !new RegExp(`@param \\{[^\\n]*\\}\\s+\\[?props(\\.${p}\\b|\\['${p}'\\])`).test(e.doc));
       if (missing.length) fail('every component prop has JSDoc', e.f, `${e.n} does not document ${missing.join(', ')}`);
+    }
+
+    /* One name for "take the room the control is given": `fullWidth`, a boolean, on every
+       control that can take it. Caught: Button had fullWidth, Segmented a `fill` variant,
+       FileDrop a `grow` prop and the Combobox a --grow class with no prop at all, so
+       Budget.jsx passed a variant="grow" the component refused (Mobile screens 21a). */
+    {
+      const FULL = ['Button', 'Combobox', 'Field', 'TextField', 'PasswordField', 'NumberField', 'SearchInput', 'DateField', 'Segmented', 'FileDrop'];
+      for (const n of FULL) {
+        const e = exports.find(x => x.n === n);
+        if (!e) { fail('one name for full width', 'react', n + ' is not exported'); continue; }
+        if (!/\[props\.fullWidth\]/.test(e.doc)) fail('one name for full width', e.f, n + ' does not take fullWidth');
+      }
+      for (const e of exports)
+        if (/@param \{boolean\} \[props\.(grow|fill|block)\]/.test(e.doc)) fail('one name for full width', e.f, e.n + ' takes its own name for fullWidth');
+      for (const f of jsx)
+        if (/VARIANT\s*=\s*\{[^}]*\b(grow|fill|block)\s*:/.test(reactSrc[f])) fail('one name for full width', f, 'a variant map carries grow, fill or block: that is fullWidth');
     }
     const roots = {};
     for (const e of exports) if (e.cls) (roots[e.cls] ||= []).push(e.n);
