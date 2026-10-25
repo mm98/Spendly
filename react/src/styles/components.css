@@ -3849,7 +3849,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
      read as the same shape the rest of the library uses */
   border-radius: var(--r-marker);
 }
-.sp-range__day--outside { color: var(--line-5); }
+.sp-range__day--outside { color: var(--ink-5); }
 /* A day that cannot be picked - outside min or max, or one the caller blocked. It
    stays in the grid, because a missing day reads as a hole in the month, but it
    stops inviting the click it would refuse: the hover and the pointer are what made

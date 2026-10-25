@@ -7,8 +7,8 @@
   --ink: #1b1a17;          /* body text, titles */
   --ink-2: #3d3c36;        /* labels, secondary titles */
   --ink-3: #57564f;        /* body copy in notes and cards */
-  --ink-4: #6b6a63;        /* subtitles, captions */
-  --ink-5: #72716b;        /* meta, placeholders, section labels: 4.5:1 on --surface-2, the lightest small text may be */
+  --ink-4: #5f5e58;        /* subtitles, captions */
+  --ink-5: #686760;        /* meta, placeholders, section labels: 4.5:1 on every tinted ground, the darkest #eceae4, the lightest small text may be */
   --ink-6: #b3b1a9;        /* icon rest state, empty glyphs */
 
   /* ---- ground ---- */
@@ -29,7 +29,7 @@
 
   /* ---- brand green ---- */
   --green: #1d4d33;        /* primary, marks, links */
-  --green-2: #2f7a51;      /* hover on primary, positive figures */
+  --green-2: #2d754e;      /* hover on primary, positive figures */
   --green-3: #4f7f63;
   --green-4: #8caf97;
   --green-5: #c6d6c9;
@@ -257,11 +257,11 @@
   --ink: #1b1a17;
   --ink-2: #3d3c36;
   --ink-3: #57564f;
-  --ink-4: #6b6a63;
-  --ink-5: #72716b;
+  --ink-4: #5f5e58;
+  --ink-5: #686760;
   --ink-6: #b3b1a9;
   --green: #1d4d33;
-  --green-2: #2f7a51;
+  --green-2: #2d754e;
   --green-tint: #e7efe8;
   --green-tint-2: #eef1ee;
   --range-in: #e4ede7;

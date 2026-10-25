@@ -75,6 +75,8 @@ is removed in the change that settles it.
   - A NavItem drawn on the page's ground, not the sidebar's, has #7d9186 and #c3d2c8 text on
     #eceae4 (Shell, One Nav Item).
   - The drop zone holds a control inside a control (FileDrop, Drop Zone).
+- **Since:** Claude Design darkened `--ink-4`, `--ink-5`, `--green-2` and the calendar's outside days
+  on 2026-10-25. The figures above are from before that, so each item needs a new check.
 - **Found:** 2026-10-24.
 
 ## The whole pages in Storybook have accessibility faults
