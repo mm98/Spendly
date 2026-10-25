@@ -6,7 +6,7 @@ import { Mark } from '../../react/src/components/Mark.jsx'
 import { Segmented } from '../../react/src/components/Segmented.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { expect, fn, userEvent, waitFor } from 'storybook/test'
-import { knownAccessibilityFaults, useHeld } from './controls.js'
+import { useHeld } from './controls.js'
 
 // The card's words are plain text controls; the story lays them out as the app does.
 const words = { title: { control: 'text', description: 'The first line the story puts inside' }, subtitle: { control: 'text', description: 'The second line' } }
@@ -124,7 +124,6 @@ export const InAWell = {
 }
 
 export const Wells = {
-	parameters: { a11y: knownAccessibilityFaults },
 	render: () => (
 		<Cards>
 			<Card><Well><span className="sp-title">Default</span><span className="sp-subtitle">Its own thing inside the card.</span></Well></Card>

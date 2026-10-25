@@ -23,6 +23,7 @@ import { AddRow, Empty, EmptyBody, EmptyTitle, Redacted, Skeleton } from '../com
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
 import { join } from '../components/variants.js'
+import { AnimatePresence, into, m } from '../components/motion.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE as LOCALE, amount, capitalised, currency, currencySymbol, dot, monthNames, plural } from '../api/format.js'
@@ -249,7 +250,7 @@ function MonthsLoading({ touch }) {
 	const card = useRef(null)
 	const count = useMonthsThatFit(card, touch)
 	const short = useMemo(() => monthNames('short', true), [])
-	const stepper = <PeriodWindow unit="month" label={bar('82', '13')} previousLabel="Earlier month" nextLabel="Later month" />
+	const stepper = count === 1 ? <PeriodWindow unit="month" label={bar('82', '13')} previousLabel="Earlier month" nextLabel="Later month" /> : undefined
 	const well = key => (
 		<Well key={key}>
 			<div className="sp-row-flex sp-gap-8">
@@ -596,10 +597,40 @@ function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, on
 	const go = to => setMonth(clamp(to, 0, MONTHS - 1))
 	const reveal = m => { if (m < from || m >= from + count) go(m) }
 	const amounts = useAmounts(sheet, write, long, reveal)
-	const stepper = (
-		<PeriodWindow unit="month" label={count === 1 ? head[from] : `${short[from]} to ${short[from + 1]}`}
-			previousLabel="Earlier month" nextLabel="Later month"
-			onPrevious={month === 0 ? undefined : () => go(month - 1)} onNext={month === MONTHS - 1 ? undefined : () => go(month + 1)} />
+	const strip = useMonthStrip(from, count)
+	// the arrow keys page one month a press while no month is being edited (21a)
+	useEffect(() => {
+		if (touch || editing || panel || amounts.edit) return
+		const keys = ev => {
+			if ((ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') || ev.defaultPrevented || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return
+			// a field, a list or an open menu keeps its own arrows; a month's segment moves the month itself
+			if (ev.target.closest?.('input, textarea, select, [contenteditable], [role="menu"], [role="listbox"], [role="dialog"], [role="slider"]')) return
+			ev.preventDefault()
+			go(month + (ev.key === 'ArrowRight' ? 1 : -1))
+		}
+		document.addEventListener('keydown', keys)
+		return () => document.removeEventListener('keydown', keys)
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [touch, editing, panel, amounts.edit, month])
+	// with the month bar there is no stepper; one month alone, with no bar, keeps its window
+	const stepper = count === 1
+		? (
+			<PeriodWindow unit="month" label={head[from]}
+				previousLabel="Earlier month" nextLabel="Later month"
+				onPrevious={month === 0 ? undefined : () => go(month - 1)} onNext={month === MONTHS - 1 ? undefined : () => go(month + 1)} />
+		)
+		: undefined
+	const well = at => (
+		<m.div key={at} custom={strip.way} variants={STRIP} initial="arrive" animate="shown" exit="leave" layout="position"
+			transition={into(2)}>
+			{/* the shape is edited in the month in front only, so no control is drawn twice (21c) */}
+			<MonthWell month={at} editing={editing && at === month} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
+		</m.div>
+	)
+	const wells = (
+		<AnimatePresence mode="popLayout" initial={false} custom={strip.way} onExitComplete={strip.settled}>
+			{(count === 1 ? [from] : [from, from + 1]).map(well)}
+		</AnimatePresence>
 	)
 	return (
 		<>
@@ -614,19 +645,39 @@ function MonthsView({ sheet, write, editing, covered, touch, panel, setPanel, on
 					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={month} onChange={go}
 						options={short.map((label, m) => ({ value: m, label }))} />
 				)}
-				{count === 1
-					? <MonthWell key={from} month={from} editing={editing} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
-					: (
-						<Halves>
-							{[from, from + 1].map(m => (
-								// the shape is edited in the month in front only, so no control is drawn twice (21c)
-								<MonthWell key={m} month={m} editing={editing && m === month} {...{ sheet, write, touch, covered, panel, setPanel, totals, short, long, thisMonth, amounts }} />
-							))}
-						</Halves>
-					)}
+				<div className="bg-strip" ref={strip.ref} data-moving={strip.moving ? 'true' : undefined}>
+					{count === 1 ? wells : <Halves>{wells}</Halves>}
+				</div>
 			</Card>
 		</>
 	)
+}
+
+/* The month wells are one strip of paper under the card's edges (21a): a well that stays glides to its
+   new place, one that leaves slides out the side it leaves by, and a new one slides in from the other. */
+const STRIP = {
+	arrive: way => ({ x: way }),
+	shown: { x: 0 },
+	leave: way => ({ x: -way })
+}
+
+/** How far the strip moves for a change of window, in pixels and with its sign: one well and its gap a
+    month, the whole pair for a jump. `moving` holds while it moves, so the card clips it only then. */
+function useMonthStrip(from, count) {
+	const ref = useRef(null)
+	const [seen, setSeen] = useState(from)
+	const [way, setWay] = useState(0)
+	const [moving, setMoving] = useState(false)
+	if (seen !== from) {
+		const box = ref.current
+		const gap = box?.firstElementChild ? parseFloat(getComputedStyle(box.firstElementChild).columnGap) || 0 : 0
+		const well = box ? (box.clientWidth - gap * (count - 1)) / count + gap : 0
+		const steps = Math.abs(from - seen) === 1 ? 1 : count
+		setSeen(from)
+		setWay(Math.sign(from - seen) * steps * well)
+		setMoving(true)
+	}
+	return { ref, way, moving, settled: () => setMoving(false) }
 }
 
 /** The month in front, on the dark card: what is left, and how much of the income is used. */

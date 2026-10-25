@@ -1,7 +1,7 @@
 import { expect, fn, userEvent } from 'storybook/test'
 import { RangePicker, RangeSheet, PeriodPicker, PeriodWindow, DateField } from '../../react/src/components/DatePickers.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
-import { knownAccessibilityFaults, useHeld } from './controls.js'
+import { useHeld } from './controls.js'
 
 const LOCALES = { control: 'inline-radio', options: ['da-DK', 'en-GB', 'de-DE'] }
 const day = description => ({ control: 'text', description: `${description}, as yyyy-mm-dd` })
@@ -57,7 +57,7 @@ export const Range = {
 	globals: DESKTOP,
 	args: { from: '2026-08-03', to: '2026-08-16', showWeeks: true },
 	argTypes: { from: day('The first day'), to: day('The last day') },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: RangePicker },
+	parameters: { variantsOf: RangePicker },
 	render: args => range(args),
 	play: async ({ args, canvas }) => {
 		await userEvent.click(canvas.getAllByRole('gridcell', { name: /20/ })[0])
@@ -69,7 +69,7 @@ export const RangeOfAtLeastThreeDays = {
 	globals: DESKTOP,
 	args: { from: '2026-08-10', to: '2026-08-14', minDays: 3, min: '2026-08-01', max: '2026-09-30' },
 	argTypes: { from: day('The first day'), to: day('The last day'), min: day('The first day that can be picked'), max: day('The last day that can be picked') },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: RangePicker },
+	parameters: { variantsOf: RangePicker },
 	render: args => range(args)
 }
 
@@ -77,7 +77,7 @@ export const RangeOnAPhone = {
 	globals: { viewport: { value: 'phone', isRotated: false } },
 	args: { from: '2026-08-03', to: '2026-08-16', onApply: fn(), onClose: fn() },
 	argTypes: { from: day('The first day'), to: day('The last day') },
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: RangePicker },
+	parameters: { variantsOf: RangePicker },
 	render: ({ onClose, ...args }) => range({ ...args, single: true }, picker => <RangeSheet onClose={onClose}>{picker}</RangeSheet>)
 }
 

@@ -6,7 +6,7 @@ import { Icon } from '../../react/src/components/Icon.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
 import { Spinner } from '../../react/src/components/Utilities.jsx'
-import { iconControl, knownAccessibilityFaults, useHeld } from './controls.js'
+import { iconControl, useHeld } from './controls.js'
 
 const words = { title: { control: 'text', description: 'The zone\'s first line' }, meta: { control: 'text', description: 'Its second line' } }
 
@@ -28,7 +28,6 @@ export default {
 const PDF = new File(['%PDF-1.4'], 'receipt.pdf', { type: 'application/pdf' })
 
 export const DropZone = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { accept: 'image/*,application/pdf', multiple: true },
 	play: async ({ args, canvasElement }) => {
 		await userEvent.upload(canvasElement.querySelector('input[type="file"]'), PDF)
@@ -43,7 +42,7 @@ export const DropZoneTurnedOff = {
 }
 
 export const PictureSlot = {
-	parameters: { a11y: knownAccessibilityFaults, variantsOf: Slot },
+	parameters: { variantsOf: Slot },
 	args: { size: 'large', kind: 'Photo', word: 'Add', busy: false, problem: '', onFile: fn(), onRemove: fn() },
 	argTypes: Object.fromEntries(['title', 'meta', 'icon', 'action', 'children'].map(prop => [prop, { control: false, table: { disable: true } }])),
 	render: ({ onFile, onRemove, problem, title, meta, icon, onFiles, ...args }) => (
@@ -56,7 +55,6 @@ export const PictureSlot = {
 }
 
 export const AttachmentStrip = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { onOpen: fn(), onRemove: fn() },
 	argTypes: { title: { control: false }, meta: { control: false }, icon: { control: false } },
 	render: ({ onOpen, onRemove, onFiles }) => (

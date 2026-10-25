@@ -77,7 +77,7 @@ for (const name of new Set([...emailsOf(designEmails), ...emailsOf(apiEmails)]))
 const cssClasses = new Set([...[components, app, ...pages.map(([, css]) => css)].join('\n').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
 const defined = new Set([...(tokens + components).matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]))
 // set per instance by a component, which is the one place a fallback is legitimate
-const HOOKS = ['--swatch', '--p', '--a', '--b']
+const HOOKS = ['--swatch', '--p', '--a', '--b', '--h']
 
 for (const [name, css] of [['components.css', components], ['app.css', app]])
 	for (const m of new Set([...css.matchAll(/var\((--[\w-]+)/g)].map(m => m[1])))

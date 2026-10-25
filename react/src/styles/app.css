@@ -272,11 +272,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
-
-/* a carried row tilts (c1); the drag writes its own transform on the row, so the tilt is the separate rotate property.
-   Two rules: in one, the build's minifier folds rotate back into transform */
-.sp-list-item--carried { transform: none; }
-.sp-list-item--carried.sp-list-item--carried { rotate: -0.6deg; }
-@media (prefers-reduced-motion: reduce) {
-	.sp-list-item--carried.sp-list-item--carried { rotate: none; }
-}

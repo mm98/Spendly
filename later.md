@@ -60,51 +60,28 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## The Storybook's accessibility check finds faults in the components
+## The sidebar rows' own name does not match their words
 
-- **Where:** the stories marked `knownAccessibilityFaults` in `storybook/stories/`. Their test
-  reports the faults and does not fail. The Accessibility panel in Storybook lists each one.
-- **What the reader sees:** some small grey text is hard to read on a tinted ground, and a screen
-  reader is told a few parts in a way it does not expect.
-- **What was found:**
-  - Grey small text (`--ink-5`, #72716b) is under 4.5:1 on the tinted grounds: 4.06:1 on #eceae4,
-    4.32:1 on #f2f1eb, 4.3:1 on #eef1ee, 4.17:1 on #e7efe8 (Card wells, Chat, Choice, Field note,
-    List cards, DatePickers).
-  - `--ink-4` on the danger tint #f0e6e4 is 4.43:1, and the green #2f7a51 on #eceae4 is 4.33:1.
-  - A calendar's days outside the month (#c3c1b8) are 1.8:1 (DatePickers ranges).
-  - A NavItem drawn on the page's ground, not the sidebar's, has #7d9186 and #c3d2c8 text on
-    #eceae4 (Shell, One Nav Item).
-  - The drop zone holds a control inside a control (FileDrop, Drop Zone).
-- **Since:** Claude Design darkened `--ink-4`, `--ink-5`, `--green-2` and the calendar's outside days
-  on 2026-10-25. The figures above are from before that, so each item needs a new check.
-- **Found:** 2026-10-24.
+- **Where:** `NavItem` (`react/src/components/Shell.jsx`, Claude Design's code). The stories marked
+  `knownAccessibilityFaults`: every story in `storybook/pages/Pages.stories.jsx`, and Shell's
+  Sidebar And Top Bar and One Nav Item. Their test reports the fault and does not fail.
+- **What the reader sees:** nothing on screen. A person who speaks to their computer may not reach a
+  sidebar row by saying the words on it.
+- **What was found:** a NavItem with words names itself "All orders 18". The accessibility check
+  reads the words and the count as one text, "All orders18", which is not part of that name. The
+  account row ("session@example.com") fails the same way. Every other fault the check found in the
+  components and the pages is gone. Sent to Claude Design in the note on the long press.
+- **Found:** 2026-10-25.
 
-## The whole pages in Storybook have accessibility faults
+## Two parts of Claude Design's handoff wait on a change in a part
 
-- **Where:** every story in `storybook/pages/Pages.stories.jsx`, marked `knownAccessibilityFaults`.
-- **What the reader sees:** a screen reader reads some rows and buttons by a name that is not the
-  words on them, and a few controls sit inside other controls.
-- **What was found:**
-  - The sidebar's rows ("All orders, 441"), the statistics rows ("Transport, 4,795 kr.") and the
-    empty photo box on a bookmark have a name that does not hold the words drawn on them.
-  - The lists' last column head (`.sp-col-menu`) is empty (Orders, Vendors, Categories).
-  - The line photo's Add box (`label[aria-label="Add the line's photo"]`) and the large marks on the
-    order and vendor forms have a role their element may not have, and hold a control inside a
-    control.
-  - The grey text in a bookmark's empty photo box and its address line is under 4.5:1.
-- **Found:** 2026-10-24.
-
-## Claude Design's own reorder code lacks the tilt, the landing line and the 4px start
-
-- **Where:** `design/react_handoff/Reorder.jsx` against `react/src/components/Reorder.jsx`, and the
-  carried-row rule in `react/src/styles/app.css`. Listed in `storybook/design-differences.json`.
-- **What the reader sees:** in the app, a row dragged by its handle tilts, a 2px green line sits just
-  above it where it lands, and a drag starts after 4px, as Components c1, Ordering by hand, draws
-  and describes. Claude Design's own code does none of the three.
-- **What was found:** the drag writes its own `transform` on the row, which overrides the drawn
-  `transform: rotate(-0.6deg)`; app.css tilts with the separate `rotate` property instead. The drag
-  library's own start distance is 3px; the app asks for 4px. `ReorderList` never drew `Insertion`;
-  the app draws it as c1 places it. Built at Carsten's request; Claude Design should take all three
-  into `design/`, and React components (Motion) should drop "The insertion line is gone", which
-  Carsten decided against.
+- **Where:** the order list and bookmarks on a phone (`react/src/pages/Orders.jsx`, `OrderCards`;
+  `react/src/pages/Bookmarks.jsx`), and the rail heads on the order list (`Orders.jsx` Filters,
+  `OrderViews.jsx` Views).
+- **What the reader sees:** a long press on an order or a bookmark on a phone does nothing; on
+  Vendors and Categories it opens the record's menu. The rail heads' buttons are the small size,
+  not the smallest.
+- **What was found:** the long press is on `Card` only, and these lists draw their rows with
+  `ListItem` and `Record`. `CardHeader` draws its buttons at the small size and takes no size.
+  Both are in the note to Claude Design of 25 October.
 - **Found:** 2026-10-25.

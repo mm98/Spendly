@@ -3,7 +3,6 @@ import { Field } from '../../react/src/components/Field.jsx'
 import { TextField, NumberField } from '../../react/src/components/Inputs.jsx'
 import { IconButton } from '../../react/src/components/Button.jsx'
 import { expect } from 'storybook/test'
-import { knownAccessibilityFaults } from './controls.js'
 
 const Text = ({ initial = '', ...rest }) => {
 	const [value, setValue] = useState(initial)
@@ -38,7 +37,7 @@ export const WithKey = {
 		await expect(canvasElement.querySelector('.sp-field__kbd kbd.sp-kbd')).toHaveTextContent('S')
 	}
 }
-export const Note = { parameters: { a11y: knownAccessibilityFaults }, args: { label: 'Vendor', note: 'matched existing vendor', noteType: 'success' } }
+export const Note = { args: { label: 'Vendor', note: 'matched existing vendor', noteType: 'success' } }
 
 export const States = {
 	argTypes: { label: { control: false }, message: { control: false } },

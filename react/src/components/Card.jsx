@@ -1,4 +1,4 @@
-import { Children, createContext, useContext } from 'react'
+import { Children, createContext, useContext, useRef } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
@@ -21,6 +21,37 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger' }
 
 const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__footer--stack' }
 
+// a touch held this long on a row opens its record menu (c1); one that travels this far first is a scroll
+const HOLD_MS = 500
+const SCROLLED = 8
+
+/* A long press on a touch row: a finger held still for HOLD_MS calls `onLongPress`, and the tap that
+   ends it opens nothing. A pointer has its menu button, so only a touch counts. */
+function useLongPress(onLongPress) {
+	const timer = useRef(null)
+	const fired = useRef(false)
+	if (!onLongPress) return {}
+	const stop = () => { clearTimeout(timer.current); timer.current = null }
+	return {
+		'data-long-press': '',
+		onPointerDown: ev => {
+			fired.current = false
+			if (ev.pointerType !== 'touch') return
+			const x0 = ev.clientX, y0 = ev.clientY
+			const move = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > SCROLLED) end() }
+			const end = () => { stop(); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end) }
+			timer.current = setTimeout(() => { end(); fired.current = true; navigator.vibrate?.(10); onLongPress() }, HOLD_MS)
+			window.addEventListener('pointermove', move)
+			window.addEventListener('pointerup', end)
+			window.addEventListener('pointercancel', end)
+		},
+		// the press that opened the menu does not also open the record
+		onClickCapture: ev => { if (fired.current) { fired.current = false; ev.preventDefault(); ev.stopPropagation() } },
+		// a long press on Android is a context menu, which the record menu replaces
+		onContextMenu: ev => { if (fired.current || timer.current) ev.preventDefault() }
+	}
+}
+
 /** @param {object} props
     @param {keyof typeof VARIANT} [props.variant] `default`; `flush` has no padding; `row` lays its parts in a row; `shell` is the card the app frame draws; `path` is the Showing bar; `float` and `float-wide` float on the page, as the sign-in card does.
     @param {keyof typeof COLOR} [props.color] A tint for a card that needs attention: `warning` (amber) or `danger`.
@@ -31,6 +62,7 @@ const FOOTER = { fill: null, split: 'sp-card__footer--split', stack: 'sp-card__f
     @param {boolean} [props.footerCommits] The footer closes a decision, so every button on it takes the full size.
     @param {import('react').ReactNode} [props.after] A part drawn under the footer.
     @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a card that opens or folds.
+    @param {() => void} [props.onLongPress] On touch, a row held still opens its record menu: this opens it (c1).
     @param {import('react').ReactNode} [props.children] The card's parts: a CardHeader first, then what the card shows. */
 export function Card({
 	variant = 'default',
@@ -44,10 +76,12 @@ export function Card({
 	// set under the footer, apart from the commits
 	after,
 	chevron,
+	onLongPress,
 	children,
 	...rest
 }) {
 	reject(rest, 'Card')
+	const held = useLongPress(onLongPress)
 	const classes = join('sp-card', pick(VARIANT, variant, 'variant', 'Card'), spread && 'sp-card--spread')
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
 	const actions = Children.toArray(footer)
@@ -76,8 +110,8 @@ export function Card({
 			{after}
 		</>
 	)
-	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...rest}>{body}</Link>
-	return <div className={classes} {...paint} {...rest}>{body}</div>
+	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...held} {...rest}>{body}</Link>
+	return <div className={classes} {...paint} {...held} {...rest}>{body}</div>
 }
 
 /* true only where Card places its own head */

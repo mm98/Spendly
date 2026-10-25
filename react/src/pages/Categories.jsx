@@ -16,7 +16,7 @@ import { NUMBER_LOCALE, amountRound, currency, dot, monthNames, plural } from '.
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
-	Bar, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
+	Bar, CardMenu, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 
 // the server orders the list (api/src/lib/categoryList.js)
@@ -122,6 +122,22 @@ export default function Categories() {
 	const matched = state.data?.matched ?? 0
 	const refocus = useRefocus(state.data?.categories, '.sp-table [aria-haspopup="menu"]', '.sp-controls a')
 
+	// one record's menu, the same from its row's kebab and from a long press on its phone card
+	const closeMenu = () => { setMenuFor(null); setPicking(null) }
+	const mergePanel = c => picking === c.id
+		? box => <MergePicker kind="category" source={c} anchor={box} onClose={() => setPicking(null)}
+			onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
+		: null
+	const menuItems = c => (
+		<>
+			<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>Open in the order list</MenuItem>
+			<MenuItem icon="pencil" to={`/categories/${c.id}/edit`}>Edit category</MenuItem>
+			<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
+			<MenuSeparator />
+			<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
+		</>
+	)
+
 	const remove = () => {
 		setBusy(true)
 		refocus(deleting, shown.findIndex(r => r.id === deleting.id))
@@ -198,7 +214,8 @@ export default function Categories() {
 			{shown.map(c => {
 				const over = c.budget > 0 && c.monthSpend > c.budget
 				return (
-					<Card key={c.id} to={`/categories/${c.id}/edit`}>
+					<CardMenu key={c.id} to={`/categories/${c.id}/edit`} label={c.name} open={menuFor === c.id}
+						onOpen={() => { setPicking(null); setMenuFor(c.id) }} onClose={closeMenu} panel={mergePanel(c)} menu={menuItems(c)}>
 						<div className="sp-cell-flex">
 							<CategoryMark category={c} />
 							<Stacked>
@@ -209,7 +226,7 @@ export default function Categories() {
 						</div>
 						<MonthGauge category={c} pace={pace} />
 						{over ? <span className="sp-meta sp-ink-warning">{currency(c.monthSpend - c.budget, 0)} over the limit.</span> : null}
-					</Card>
+					</CardMenu>
 				)
 			})}
 			<ListMore loose shown={shown.length} total={matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
@@ -251,16 +268,8 @@ export default function Categories() {
 					<ListCell key="x" cell="menu">
 						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
 							onToggle={() => { setPicking(null); setMenuFor(menuFor === c.id ? null : c.id) }}
-							onClose={() => { setMenuFor(null); setPicking(null) }}
-							panel={picking === c.id
-								? box => <MergePicker kind="category" source={c} anchor={box} onClose={() => setPicking(null)}
-									onPick={target => { setPicking(null); setMerging({ source: c, target }) }} />
-								: null}>
-							<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>Open in the order list</MenuItem>
-							<MenuItem icon="pencil" to={`/categories/${c.id}/edit`}>Edit category</MenuItem>
-							<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
-							<MenuSeparator />
-							<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
+							onClose={closeMenu} panel={mergePanel(c)}>
+							{menuItems(c)}
 						</RowMenu>
 					</ListCell>
 				]}

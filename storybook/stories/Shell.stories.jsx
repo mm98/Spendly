@@ -82,11 +82,12 @@ export const OneNavItem = {
 	args: { children: 'All orders', icon: 'receipt', count: 18, current: false, variant: 'default', tip: 'All orders', handle: 'none', handleLabel: 'Move All orders', onClick: fn() },
 	argTypes: { icon: iconControl, handle: { control: 'select', options: ['none', 'grip'], mapping: { none: undefined, grip: <Icon name="grip-vertical" size={12} /> } } },
 	parameters: { a11y: knownAccessibilityFaults, variantsOf: NavItem, layout: 'padded' },
-	render: args => <div style={{ width: 240 }}><NavItem {...args} /></div>
+	// drawn on the sidebar's own ground, where a NavItem always sits
+	render: args => <div className="sp-sidebar" style={{ width: 240 }}><NavItem {...args} /></div>
 }
 
 export const SearchPalette = {
-	parameters: { a11y: knownAccessibilityFaults, layout: 'centered', variantsOf: Palette },
+	parameters: { layout: 'centered', variantsOf: Palette },
 	args: { value: 'bil', count: 4, label: 'Search', placeholder: 'Search orders, vendors, items…', onChange: fn(), onCancel: fn() },
 	render: ({ onChange, ...args }) => {
 		const [query, setQuery] = useHeld(args, 'value')

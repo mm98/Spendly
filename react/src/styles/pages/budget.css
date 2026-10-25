@@ -27,4 +27,8 @@
 
 	.sp-table .bg-col-map { width: 240px; }
 
+	/* the month wells' strip: a well that leaves is lifted out over it, and the card clips it only while it moves */
+	.bg-strip { position: relative; }
+	.bg-strip[data-moving] { overflow-x: clip; }
+
 }

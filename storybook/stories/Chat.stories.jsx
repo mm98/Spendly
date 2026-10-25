@@ -5,7 +5,6 @@ import { Menu, MenuItem } from '../../react/src/components/Overlays.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Empty, EmptyTitle, EmptyBody } from '../../react/src/components/Utilities.jsx'
 import { expect, fn, userEvent } from 'storybook/test'
-import { knownAccessibilityFaults } from './controls.js'
 
 const ME = <Mark size="small" fill="solid">Anna Kristensen</Mark>
 const text = description => ({ control: 'text', description })
@@ -56,7 +55,6 @@ export const Empty_ = {
 }
 
 export const Answered = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { question: 'How much did I spend per month this year?', answer: 'You spent 41.710,00 kr. from April to September. August was the biggest month.', time: '09:41', saved: false, onSave: fn() },
 	argTypes: { question: text('ChatQuestion\'s words'), answer: text('The reply\'s first line'), time: text('ChatMessage\'s `time`'), saved: { description: 'ChatSave\'s `saved`' } },
 	render: ({ question, answer, time, saved, onSave, onSend }) => (
@@ -90,7 +88,6 @@ export const Answered = {
 }
 
 export const Working = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { doing: 'Reading your orders', onStop: fn() },
 	argTypes: { doing: text('ChatReply\'s `doing`') },
 	render: ({ doing, onStop }) => (
@@ -109,7 +106,6 @@ export const Working = {
 }
 
 export const Failed = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { left: '2 questions left today', onRetry: fn() },
 	argTypes: { left: text('What the box says is left today') },
 	render: ({ left, onRetry, onSend }) => (
@@ -172,7 +168,6 @@ export const WhatAskCanDo = {
 }
 
 export const SharesInAnAnswer = {
-	parameters: { a11y: knownAccessibilityFaults },
 	args: { answer: 'Furniture took almost half of August.' },
 	argTypes: { answer: text('The reply\'s first line') },
 	render: ({ answer, onSend }) => (

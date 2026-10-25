@@ -173,6 +173,9 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 		if (!!c.from !== !!c.to) console.error(`<Bars> column "${c.key}" has ${c.from ? 'from' : 'to'} without the other: a period is the pair`)
 		if (c.from && c.to && c.from > c.to) console.error(`<Bars> column "${c.key}" runs backwards: ${c.from} → ${c.to}`)
 	}
+	/* A bar's height is a custom property, not an inline height: an inline height outranks the stylesheet's
+	   starting height, so a bar drawn for the first time stood at full height at once. Columns are keyed by
+	   their place, so a new period moves each bar to its new height rather than drawing a new one. */
 	return (
 		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'), days && 'sp-bars--days')} ref={hold} {...rest}>
 			{columns.map((column, i) => {
@@ -189,7 +192,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 							? null
 							: column.segments
 								? (
-									<span className="sp-bars__stack" style={{ height: pct(column.height) }}>
+									<span className="sp-bars__stack" style={{ '--h': pct(column.height) }}>
 										{column.segments.map(s => (
 											<span className="sp-bars__seg" data-key={s.key} style={{ height: pct(s.share) }} key={s.key} />
 										))}
@@ -199,11 +202,11 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 									? (
 										<span className="sp-bars__pair">
 											{column.pair.map((h, i) => (
-												<span className={join('sp-bars__bar', i > 0 && 'sp-bars__bar--muted')} style={{ height: pct(h) }} key={i} />
+												<span className={join('sp-bars__bar', i > 0 && 'sp-bars__bar--muted')} style={{ '--h': pct(h) }} key={i} />
 											))}
 										</span>
 									)
-									: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ height: pct(column.height) }} {...(column.future ? { 'data-future': '' } : {})}>{onBar ? readout : null}</span>}
+									: <span className={join('sp-bars__bar', column.muted && 'sp-bars__bar--muted')} style={{ '--h': pct(column.height) }} {...(column.future ? { 'data-future': '' } : {})}>{onBar ? readout : null}</span>}
 						{column.tick ? <span className="sp-bars__tick">{i % step && i < columns.length - 1 ? null : column.tick}</span> : null}
 					</>
 				)
@@ -220,7 +223,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 					: {}
 				// a column that opens nothing still shows its readout on hover, focus or a tap (Ask 24d); `open` is the tapped one
 				if (!onSelect && column.readout) return (
-					<span className="sp-bars__col" tabIndex={0} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} key={column.key}>
+					<span className="sp-bars__col" tabIndex={0} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} key={i}>
 						{body}
 						{column.readout}
 					</span>
@@ -228,7 +231,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 				if (!onSelect || column.inert) {
 					// an inert column among buttons is read by its label, as a picture is
 					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
-					return <span className="sp-bars__col" key={column.key} {...read} {...peeking} {...(column.future ? { 'data-future': '' } : {})}>{body}</span>
+					return <span className="sp-bars__col" key={i} {...read} {...peeking} {...(column.future ? { 'data-future': '' } : {})}>{body}</span>
 				}
 				return (
 					<button
@@ -240,7 +243,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 						data-from={column.from}
 						data-to={column.to}
 						onClick={() => onSelect(column.key, column.from, column.to)}
-						key={column.key}
+						key={i}
 					>
 						{body}
 					</button>
@@ -330,6 +333,8 @@ export function Shares({ children, ...rest }) {
     @param {import('react').ReactNode} [props.children] What the share is. */
 export function ShareRow({ series = 1, value, amount, href, onClick, children, ...rest }) {
 	reject(rest, 'ShareRow')
+	// named by the words it draws, in their order, so a reader who says what they see reaches it
+	if ('aria-label' in rest) { console.error('<ShareRow> is named by the words it draws: an aria-label is not taken'); delete rest['aria-label'] }
 	const body = (
 		<>
 			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'ShareRow')} />

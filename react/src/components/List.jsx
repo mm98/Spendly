@@ -339,8 +339,9 @@ function ListTable({
 					<tr>
 						{selecting ? <ListCell cell="checkbox" head selectedCount={onPage.length} total={order.length} noun={noun} onToggleAll={toggleAll} /> : null}
 						{head.map((c, n) => (
-							<th scope={c.children ? 'col' : undefined} className={pick(WIDTH, c.width, 'width', 'ListCell')} key={n}>
-								{c.children}
+							<th scope={c.children || c.width === 'menu' ? 'col' : undefined} className={pick(WIDTH, c.width, 'width', 'ListCell')} key={n}>
+								{/* the menu column draws no words, but its head is still named for a screen reader */}
+								{c.children ?? (c.width === 'menu' ? <span className="sp-announce">Actions</span> : null)}
 							</th>
 						))}
 					</tr>
@@ -596,7 +597,7 @@ export function Record({ photos = [], empty, faded = false, more, href, hrefLabe
 	return (
 		<m.article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...moves} {...rest}>
 			{href
-				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
+				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={!photos.length && typeof empty === 'string' ? `${empty}. ${hrefLabel}` : hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
 			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open || closing ? 'true' : undefined} {...(closing ? { 'data-closing': 'true' } : {})} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
 				onKeyDown={ev => {

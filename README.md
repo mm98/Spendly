@@ -136,7 +136,8 @@ Everything that needs you, on one page.
 - **A yearly plan** with income and costs, in groups and rows, with an expected amount for each
   month and the real amount once you know it.
 - **Months or the whole year** - one month in front with what is left over and how much of the
-  income is used, or the whole year as a sheet.
+  income is used, or the whole year as a sheet. Press a month to move to it, or use the left and
+  right arrow keys.
 - **Start next year** as a copy of this one, or **import** a year from Excel.
 - **The sidebar counts this month's payments** - every cost row with an amount this month, paid or
   not.
@@ -157,6 +158,7 @@ Everything that needs you, on one page.
 - **Categories** - an icon from a large library, a colour, and a **monthly limit**. Each row shows
   this month against its limit. Spendly warns you when a limit you type would have been passed in
   most of the last 12 months.
+- **On a phone**, hold a finger on a vendor or a category to open its menu.
 - **Spend** for a vendor or a category is money paid, as in Statistics' "Expenses only". A returned
   order and an order of the kind Sold are listed and counted as orders, but add nothing to it. The
   same holds for the total over the order list.
