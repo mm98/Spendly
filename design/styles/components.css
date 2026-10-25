@@ -2054,8 +2054,9 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
    text baseline instead, which reads as a glyph a pixel or two too high */
 .sp-combobox__chevron { display: flex; align-items: center; color: var(--ink-5); flex: none; }
 .sp-combobox__trigger[aria-expanded="true"] .sp-combobox__chevron { color: var(--ink-2); }
-/* Open, the chevron turns to point up at the panel it opened, on both triggers: the
-   select-style one and the searchable field's. The turn is the card chevron's, 120ms.
+/* Open, the chevron points at the panel it opened, on both triggers: the select-style
+   one and the searchable field's. It stays down for a panel below and turns up only for
+   one placed above (data-place="up"). The turn is the card chevron's, 120ms.
    It turns the icon inside, not the slot: the trigger's prefix word shares the slot's
    class, and the field's slot already holds a transform that centres it. */
 .sp-combobox__trigger > .sp-combobox__chevron:last-child > *,
@@ -2066,8 +2067,11 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   transform-box: fill-box;
   transform-origin: center;
 }
-.sp-combobox__trigger[aria-expanded="true"] > .sp-combobox__chevron:last-child > *,
-.sp-combobox[data-open="true"] .sp-field__chevron > * { transform: rotate(180deg); }
+.sp-combobox:has(> .sp-combobox__panel[data-place="up"]) > .sp-combobox__trigger[aria-expanded="true"] > .sp-combobox__chevron:last-child > *,
+.sp-combobox[data-open="true"]:has(> .sp-combobox__panel[data-place="up"]) .sp-field__chevron > * { transform: rotate(180deg); }
+/* the same turn's own box, under the names the turn rule carries once its open state is read off */
+.sp-combobox:has(> .sp-combobox__panel[data-place="up"]) > .sp-combobox__trigger > .sp-combobox__chevron:last-child > *,
+.sp-combobox:has(> .sp-combobox__panel[data-place="up"]) .sp-field__chevron > * { transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: reduce) {
   .sp-combobox__trigger > .sp-combobox__chevron:last-child > *,
   .sp-combobox .sp-field__chevron > * { transition: none; }
@@ -2270,6 +2274,8 @@ so
 @media (hover: hover) {
   .sp-menu li:hover > .sp-menu__item { background: var(--hover); }
 }
+/* the chevron points at the side its submenu opens on: a floating menu opens it inward, to the left */
+.sp-menu--floating li:has(> .sp-menu__sub) > .sp-menu__item > svg:last-child { transform: scaleX(-1); }
 /* the gap between item and submenu belongs to the item, so crossing it loses nothing */
 .sp-menu__sub::before {
   content: "";
@@ -3280,6 +3286,9 @@ button.sp-bars__col { cursor: pointer; }
   background: var(--green);
 }
 .sp-bars__bar--muted { background: var(--green-5); }
+/* a component's bar carries its height as --h (Data.jsx), so the starting height below can apply */
+.sp-bars__bar[style*="--h"],
+.sp-bars__stack[style*="--h"] { height: var(--h); }
 .sp-bars__col[aria-pressed="true"] .sp-bars__bar { background: var(--green); }
 /* A tick is one line, centred under its bar's middle even when it is wider than the
    column: a stretched tick wider than its column started at the bar's left edge and ran
@@ -5199,7 +5208,9 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   border: 1px solid var(--line);
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
-  transform: rotate(-0.6deg);
+  /* the rotate property, not transform: the drag writes its own transform on the row, which
+     replaced a tilt written as a transform */
+  rotate: -0.6deg;
 }
 /* the handle under the pointer darkens and its row takes the row hover; a carried row stays white */
 @media (hover: hover) {
@@ -5215,7 +5226,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-touch .sp-list-item__handle { width: 24px; }
 .sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
 @media (prefers-reduced-motion: reduce) {
-  .sp-list-item--carried { transform: none; }
+  .sp-list-item--carried { rotate: none; }
 }
 /* Where it will land. */
 .sp-list-item__insertion {
@@ -5355,6 +5366,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    sets the height and the card is exactly as tall as a controls bar beside it. */
 .sp-card--row { flex-direction: row; align-items: center; gap: var(--sp-12); }
 .sp-card--row > .sp-stack { gap: var(--sp-2); }
+/* a row held for its menu selects no text and opens no link preview */
+.sp-card[data-long-press] { -webkit-touch-callout: none; user-select: none; }
 /* a card carrying something the user must deal with - see .sp-card[data-color="warning"] above,
    which is the attention surface every other component uses */
 /* a footer holding a stack rather than a row of buttons - c10 variant */
@@ -6314,7 +6327,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
     .sp-gauge__fill,
     .sp-gauge__over { width: 0; }
     .sp-bars__bar,
-    .sp-bars__stack { height: 0; }
+    .sp-bars__stack,
+    .sp-bars__bar[style*="--h"],
+    .sp-bars__stack[style*="--h"] { height: 0; }
   }
 
   /* A calendar stepped to the next month slides its days in from the right, to the
@@ -6329,3 +6344,13 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
     .sp-range__days[data-step="prev"] { opacity: 0; translate: calc(var(--sp-16) * -1) 0; }
   }
 }
+
+/* Every list fades its hover in over 120ms, on the background colour only (Order list 2h):
+   table rows and cells, list rows, the sidebar's rows and the rows on Home. */
+.sp-table tbody tr,
+.sp-table tbody td,
+.sp-list-item,
+.sp-row-opens,
+.sp-nav-item,
+.sp-sum--edits,
+.sp-choice--row { transition: background-color 120ms ease; }

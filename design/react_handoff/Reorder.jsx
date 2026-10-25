@@ -7,6 +7,8 @@ import { Rows } from './motion.js'
 const HOLD_MS = 200
 // a touch that travels this far before the hold is up is a scroll, not a pickup
 const SCROLLED = 8
+// a pointer drags once it has moved this far, so an unsteady click on the handle does not jump the row (c1)
+const START_PX = 4
 
 const Moving = createContext(null)
 
@@ -101,7 +103,8 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 	)
 }
 
-/* one row's drag controls: the handle starts the drag, at once for a pointer, after a still hold for a touch */
+/* one row's drag controls: the handle starts the drag, after START_PX for a pointer, after a still hold for a
+   touch. A carried row has the 2px landing line just above the place it will land (c1). */
 function Slot({ children, onPress, ...row }) {
 	const controls = useDragControls()
 	const hold = useRef(null)
@@ -111,8 +114,15 @@ function Slot({ children, onPress, ...row }) {
 		onPointerDown: ev => {
 			if (ev.button > 0) return
 			const start = ev.nativeEvent
-			if (ev.pointerType !== 'touch') { ev.preventDefault(); return controls.start(start) }
 			const x0 = ev.clientX, y0 = ev.clientY
+			if (ev.pointerType !== 'touch') {
+				ev.preventDefault()
+				const far = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) >= START_PX) { off(); controls.start(start) } }
+				const off = () => { window.removeEventListener('pointermove', far); window.removeEventListener('pointerup', off) }
+				window.addEventListener('pointermove', far)
+				window.addEventListener('pointerup', off)
+				return
+			}
 			const move = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > SCROLLED) stop() }
 			const stop = () => { clearTimeout(hold.current); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }
 			hold.current = setTimeout(() => { stop(); navigator.vibrate?.(10); controls.start(start) }, HOLD_MS)
@@ -122,7 +132,12 @@ function Slot({ children, onPress, ...row }) {
 		onClick: () => { if (moved.current) { moved.current = false; return } onPress() }
 	}
 	const value = { ...row, onDragStart: () => { moved.current = true; row.onDragStart() }, controls, handle }
-	return <Moving.Provider value={value}>{children}</Moving.Provider>
+	return (
+		<Moving.Provider value={value}>
+			{row.state === 'carried' ? <span className="sp-list-item__insertion" aria-hidden="true" /> : null}
+			{children}
+		</Moving.Provider>
+	)
 }
 
 /** What a moving row spreads on Motion's `Reorder.Item`, which it is drawn as: the row's presence

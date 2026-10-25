@@ -196,6 +196,12 @@ const NAV = {
     @param {import('react').ReactNode} [props.children] The row's label. */
 export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
 	reject(rest, 'NavItem')
+	/* A row with words is named by them, then its count, as drawn ("All orders 441"): a name that is not
+	   the words on it is not reached by a reader who says what they see. The rail hides the words, so the
+	   row carries the name itself rather than leaving it to them. */
+	const words = typeof children === 'string' || typeof children === 'number' ? [children, count].filter(v => v != null).join(' ') : null
+	if (words && 'aria-label' in rest) { console.error('<NavItem> is named by the words it draws and its count: an aria-label is not taken'); delete rest['aria-label'] }
+	if (words && !control && !(handle && (to || onClick))) rest['aria-label'] = words
 	const [hint, tipEvents] = useTip(tip)
 	// a saved view in a ReorderList is carried by its handle, or picked up from the keyboard
 	const moving = useMovingRow()

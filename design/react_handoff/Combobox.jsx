@@ -113,8 +113,11 @@ const unplace = list => { list.removeAttribute('style'); delete list.dataset.pla
 /** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
     the window count as none), scrolling inside when neither has, lifted out of a box that would cut it.
     Closing keeps the placement, so the fade-out is drawn where the panel stood: `usePanelRest`, after
-    `usePanelMotion`, puts it back once the fade has ended. Internal. */
-export function usePanelPlace(root, panel, open, size) {
+    `usePanelMotion`, puts it back once the fade has ended. It is placed once and never moves while open:
+    a scroll of the page under it calls `onAway`, which closes it (c9). Internal. */
+export function usePanelPlace(root, panel, open, size, onAway) {
+	const away = useRef(onAway)
+	away.current = onAway
 	useLayoutEffect(() => {
 		const list = panel.current
 		if (!open || !list || !root.current) return
@@ -150,10 +153,9 @@ export function usePanelPlace(root, panel, open, size) {
 			const moved = top !== (up ? at.top - gap - shown : at.bottom + gap)
 			const cut = outside || moved || (!!clip && (top < clip.top - 0.5 || top + shown > clip.bottom + 0.5 || drawn.left < clip.left - 0.5 || drawn.right > clip.right + 0.5))
 			if (height > room) Object.assign(list.style, { maxHeight: room + 'px', overflowY: 'auto' })
-			if (!cut) {
-				if (up) list.dataset.place = 'up'
-				return
-			}
+			// marked either way, so its trigger's chevron turns up only when the panel stands above it
+			if (up) list.dataset.place = 'up'
+			if (!cut) return
 			const left = Math.min(Math.max(view.left, drawn.left), view.right - drawn.width)
 			// fixed, a percentage floor would be the window's: the width stays the one measured
 			Object.assign(list.style, { position: 'fixed', top: top + 'px', left: left + 'px', right: 'auto', bottom: 'auto', width: drawn.width + 'px', minWidth: drawn.width + 'px' })
@@ -162,8 +164,14 @@ export function usePanelPlace(root, panel, open, size) {
 			Object.assign(list.style, { top: top + (top - landed.top) + 'px', left: left + (left - landed.left) + 'px' })
 		}
 		place()
-		// a resize comes from the window, which is no node a panel can contain
-		const again = ev => { if (!(ev.target instanceof Node) || !list.contains(ev.target)) place() }
+		// the scroll an opening itself causes (focus brought into view) is not the reader's
+		const opened = performance.now()
+		// a resize comes from the window, which is no node a panel can contain; a scroll inside the panel is its own
+		const again = ev => {
+			if (ev.target instanceof Node && list.contains(ev.target)) return
+			if (ev.type === 'scroll' && away.current && performance.now() - opened > 150) return away.current()
+			place()
+		}
 		window.addEventListener('scroll', again, true)
 		window.addEventListener('resize', again)
 		return () => {
@@ -283,7 +291,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 	const shown = suggests && open && options.length > 0
 	const holder = useRef(null)
 	const input = useRef(null)
-	usePanelPlace(holder, listbox.panel, shown, options.length)
+	usePanelPlace(holder, listbox.panel, shown, options.length, () => setOpen(false))
 	const closing = usePanelMotion(listbox.panel, shown)
 	usePanelRest(listbox.panel, shown, closing)
 	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
@@ -436,7 +444,7 @@ function ComboboxOne({
 
 	const { setActive } = box
 	useEffect(() => { setActive(-1) }, [query, setActive])
-	usePanelPlace(root, box.panel, isOpen && !touch, options.length)
+	usePanelPlace(root, box.panel, isOpen && !touch, options.length, close)
 	// the panel fades out as it closes: the box keeps it drawn until then
 	const closing = usePanelMotion(box.panel, isOpen && !touch)
 	usePanelRest(box.panel, isOpen && !touch, closing)
