@@ -319,7 +319,7 @@ export const FullWidth = {
 		// the field ends where the gap before Edit begins
 		const gap = parseFloat(getComputedStyle(bar).columnGap) || 0
 		await expect(Math.round(field.getBoundingClientRect().right + gap)).toBe(Math.round(edit.getBoundingClientRect().left))
-		await userEvent.click(canvas.getByRole('combobox', { name: 'Year' }))
+		await userEvent.click(canvas.getByRole('combobox', { name: /Year/ }))
 		await userEvent.click(page(canvasElement).getByRole('option', { name: '2025' }))
 		await expect(args.onPick).toHaveBeenCalledWith('2025')
 		await userEvent.click(edit)
