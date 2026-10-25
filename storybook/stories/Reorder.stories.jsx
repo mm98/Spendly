@@ -61,10 +61,18 @@ export const Carried = {
 		pointer(handle, 'pointermove', x, y + 3)
 		await new Promise(done => setTimeout(done, 50))
 		await expect(canvasElement.querySelector('.sp-list-item--carried')).toBeNull()
-		pointer(handle, 'pointermove', x, y + 40)
+		// in steps, as a hand moves: the rows make room only for a pointer that is moving
+		for (let dy = 8; dy <= 48; dy += 8) {
+			pointer(handle, 'pointermove', x, y + dy)
+			await new Promise(done => requestAnimationFrame(done))
+		}
 		await waitFor(() => expect(canvasElement.querySelector('.sp-list-item--carried')).not.toBeNull())
-		pointer(window, 'pointerup', x, y + 40)
-		await waitFor(() => expect(canvasElement.querySelector('.sp-list-item--carried')).toBeNull())
-		await expect(args.onMove).toHaveBeenCalledTimes(1)
+		await waitFor(() => expect(canvas.getAllByRole('button', { name: /^Move / }).map(b => b.getAttribute('aria-label'))[1]).toBe('Move Housing'))
+		const line = canvasElement.querySelector('.sp-list-item__insertion')
+		await expect(line).not.toBeNull()
+		await expect(line.nextElementSibling).toBe(canvasElement.querySelector('.sp-list-item--carried'))
+		pointer(window, 'pointerup', x, y + 48)
+		await waitFor(() => expect(canvasElement.querySelector('.sp-list-item__insertion')).toBeNull())
+		await waitFor(() => expect(args.onMove).toHaveBeenCalledTimes(1))
 	}
 }

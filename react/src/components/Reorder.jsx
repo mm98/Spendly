@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, useState } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
-import { Announce } from './ListItem.jsx'
+import { Announce, Insertion } from './ListItem.jsx'
 import { Rows } from './motion.js'
 
 // Components, Ordering by hand: a touch drags after holding still, a pointer once it moves
@@ -95,7 +95,10 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 		<>
 			<Reorder.Group as="div" axis="y" className="sp-reorder" values={order} onReorder={setLive}>
 				<Rows count={order.length}>
-					{order.map(key => <Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>)}
+					{order.flatMap(key => [
+						carried === key && <Insertion key="insertion" aria-hidden="true" />,
+						<Slot key={key} {...row(key)}>{children(byKey.get(key))}</Slot>
+					])}
 				</Rows>
 			</Reorder.Group>
 			<Announce>{said}</Announce>
