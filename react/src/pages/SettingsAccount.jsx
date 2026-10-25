@@ -105,7 +105,7 @@ export function StatusEmailCard({ user }) {
 			<span className="sp-data">
 				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>. Weekly arrives on Monday, Monthly on the 1st.
 			</span>
-			<Segmented name="status-email" variant="fill" options={STATUS_EMAILS} value={value} onChange={choose}
+			<Segmented name="status-email" fullWidth options={STATUS_EMAILS} value={value} onChange={choose}
 				role="radiogroup" aria-labelledby="status-email-label" />
 		</Card>
 	)

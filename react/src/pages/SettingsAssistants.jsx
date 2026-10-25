@@ -179,7 +179,7 @@ function MadeToken({ token, touch }) {
 				: (
 					<>
 						<span className="sp-field__label" id="assistants-setup-label">Set up in</span>
-						<Segmented name="assistants-setup" variant="fill" role="radiogroup" aria-labelledby="assistants-setup-label"
+						<Segmented name="assistants-setup" fullWidth role="radiogroup" aria-labelledby="assistants-setup-label"
 							options={SETUPS} value={setup} onChange={setSetup} />
 						<span className="sp-meta">{chosen.line}</span>
 						<Well variant="snippet">

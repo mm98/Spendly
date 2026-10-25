@@ -1960,7 +1960,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 .sp-touch .sp-list__toolbar .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-controls .sp-btn:not(.sp-btn--block),
 .sp-touch .sp-topbar .sp-btn:not(.sp-btn--block),
-.sp-touch .sp-list-item--editable .sp-btn:not(.sp-btn--block) { width: auto; }
+.sp-touch .sp-list-item--editable .sp-btn:not(.sp-btn--block),
+.sp-touch .sp-list-item--card > .sp-btn:not(.sp-btn--block) { width: auto; }
 /* two commits sharing a row each take half of it */
 .sp-dialog__actions > .sp-btn--block { flex: 1; min-width: 0; }
 .sp-touch .sp-switch { width: 44px; height: 26px; }
@@ -2207,13 +2208,6 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 .sp-combobox--sort .sp-combobox__trigger { border-radius: 10px; }
 .sp-combobox--sort .sp-combobox__chevron,
 .sp-combobox--sort .sp-combobox__trigger > span { white-space: nowrap; }
-/* the compact control: the value and its chevron with no field box, for a bar that has
-   no width to spare (the phone Budget bar's year) */
-.sp-combobox--bare { flex: none; }
-.sp-combobox--bare .sp-combobox__trigger { width: auto; gap: var(--sp-4); padding: 0 var(--sp-4); border-color: transparent; background: none; }
-@media (hover: hover) {
-  .sp-combobox--bare .sp-combobox__trigger:hover { border-color: transparent; background: var(--hover); }
-}
 
 /* ---------- Pager: range sentence, size Combobox, two arrows ---------- */
 
@@ -5880,8 +5874,20 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field) { width: var(--control-h-touch); height: var(--control-h-touch); }
 /* except in a card head, where 48px would sit 3px from the card's top edge: it keeps its
    desktop 32px inside a --control-h-touch press area (Totals, Home's month summary) */
-.sp-touch .sp-card__head .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field) { position: relative; width: 32px; height: 32px; }
-.sp-touch .sp-card__head .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field)::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control-h-touch); height: var(--control-h-touch); transform: translate(-50%, -50%); }
+/* the slot a screen one level down fills in the phone top bar: Back, the title and the menu. It
+   draws no box of its own, so they sit in the bar's row and every rule for a bar child reaches
+   them through it (24a, Order create's Scanned before) */
+.sp-topbar__screen { display: contents; }
+/* and in the phone's top bar: Back and the page menu keep their desktop size on every phone screen
+   (11e, 24a), the outline Back 30px and the menu 32px, each inside a --control-h-touch press area */
+.sp-touch .sp-card__head .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field),
+.sp-touch .sp-topbar--touch > .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field),
+.sp-touch .sp-topbar--touch > .sp-topbar__screen > .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field) { position: relative; width: 32px; height: 32px; }
+.sp-touch .sp-topbar--touch > .sp-icon-btn.sp-icon-btn--outline:not(.sp-icon-btn--small),
+.sp-touch .sp-topbar--touch > .sp-topbar__screen > .sp-icon-btn.sp-icon-btn--outline:not(.sp-icon-btn--small) { width: 30px; height: 30px; }
+.sp-touch .sp-card__head .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field)::after,
+.sp-touch .sp-topbar--touch > .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field)::after,
+.sp-touch .sp-topbar--touch > .sp-topbar__screen > .sp-icon-btn:not(.sp-icon-btn--small, .sp-icon-btn--field)::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control-h-touch); height: var(--control-h-touch); transform: translate(-50%, -50%); }
 .sp-touch .sp-window { height: var(--control-h-touch); }
 .sp-touch .sp-window__btn { width: var(--control-h-touch); }
 .sp-touch .sp-add-row { height: var(--control-h-touch); }

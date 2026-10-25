@@ -18,7 +18,6 @@ const VARIANT = {
 	'sort-end': 'sp-combobox--sort sp-combobox--end',
 	end: 'sp-combobox--end',
 	stretch: 'sp-combobox--stretch',
-	bare: 'sp-combobox--bare',
 	// a pick field whose values are short: at most the field width, not the whole form column (11a)
 	narrow: 'sp-combobox--narrow'
 }
@@ -232,7 +231,8 @@ export function countOf(options, noun = 'options') {
     field's right end, the chips keeping clear of it.
     @param {object} props
     @param {boolean} [props.multiple] The field holds several values, drawn as chips. `value` is then the list of them.
-    @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value.
+    @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value; `narrow` is at most the field width.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row.
     @param {import('react').ReactNode | string[]} [props.value] What the closed control shows: the chosen value's name. With `multiple`, the values.
     @param {(value: string[]) => void} [props.onChange] With `multiple`: called with the values after one is added or removed.
     @param {boolean} [props.danger] With `multiple`: the value is wrong, and the field is drawn in red.
@@ -264,7 +264,7 @@ export function Combobox({ multiple = false, ...props }) {
 }
 
 /* Several values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c). */
-function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
+function ComboboxMany({ fullWidth = false, value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'Combobox')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
@@ -367,7 +367,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 	const boxed = end ? <span className="sp-field__wrap">{field}<span className="sp-field__trail">{end}</span></span> : field
 	if (!suggests) return boxed
 	return (
-		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} {...(closing ? { 'data-closing': 'true' } : {})} ref={holder}>
+		<div className={join('sp-combobox', fullWidth && 'sp-combobox--grow')} data-open={shown ? 'true' : 'false'} {...(closing ? { 'data-closing': 'true' } : {})} ref={holder}>
 			{boxed}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
 			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
@@ -379,6 +379,7 @@ function ComboboxMany({ value = [], onChange, placeholder, danger = false, id, o
 
 function ComboboxOne({
 	variant = 'default',
+	fullWidth = false,
 	value,
 	lead,
 	prefix,
@@ -502,7 +503,7 @@ function ComboboxOne({
 	return (
 		<div
 			ref={root}
-			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'))}
+			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'), fullWidth && 'sp-combobox--grow')}
 			data-open={isOpen ? 'true' : 'false'}
 			{...(closing ? { 'data-closing': 'true' } : {})}
 			{...rest}

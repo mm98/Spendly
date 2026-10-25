@@ -30,8 +30,6 @@ body { -webkit-font-smoothing: antialiased; }
 
 /* below 900 the search fills the width the bar has left (9f), measured on the bar as the body is */
 .sp-topbar:not(.sp-topbar--touch) { container-type: inline-size; }
-/* the phone's Back and title, which a screen one level down puts in the top bar's own row */
-.sp-topbar__screen { display: contents; }
 @container (max-width: 900px) {
 	.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { flex: 1; width: auto; min-width: 0; }
 	.sp-topbar:not(.sp-topbar--touch) > .sp-grow { display: none; }

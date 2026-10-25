@@ -817,8 +817,9 @@ function dayShortcuts({ min, max, unavailable }) {
     @param {boolean} [props.shortcuts] Offer Today and Yesterday as one-click chips in the calendar.
     @param {string} [props.locale] How dates are written, such as da-DK. The browser's when left out.
     @param {string} [props.id] Bound by the Field around it.
-    @param {string} [props.placeholder] What the empty field says, such as Today. */
-export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, ...rest }) {
+    @param {string} [props.placeholder] What the empty field says, such as Today.
+    @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
+export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, fullWidth = false, ...rest }) {
 	reject(rest, 'DateField')
 	// what Field hands the control: its message and its state, on the input that takes focus
 	const { 'aria-describedby': message, 'aria-invalid': invalid, required, lead, trail, unit, ...unused } = rest
@@ -877,7 +878,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 	}
 	if (isNative)
 		return (
-			<span className="sp-field__wrap" ref={wrap}>
+			<span className={join('sp-field__wrap', fullWidth && 'sp-grow')} ref={wrap}>
 				<input
 					id={id}
 					type="date"
@@ -910,7 +911,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 
 	return (
 		<span
-			className="sp-field__wrap"
+			className={join('sp-field__wrap', fullWidth && 'sp-grow')}
 			ref={wrap}
 			data-open={open ? 'true' : 'false'}
 			{...(closing ? { 'data-closing': 'true' } : {})}
