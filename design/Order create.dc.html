@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025d">
-<link rel="stylesheet" href="styles/components.css?v=v20261025m">
+<link rel="stylesheet" href="styles/components.css?v=v20261026d">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/order-create.css?v=v20261025a">
 <script src="./components.js?v=v20261024s"></script>
@@ -933,7 +933,7 @@
     <div class="doc-note"><b>Leave out of statistics</b> closes Order details in both states, the same field as <a href="Order editing layouts.dc.html#1d">1d</a>, off by default. A new order typed by hand and an order proposed from a scan both carry it, so a one-off purchase is left out as it is entered rather than saved and then edited. Choosing a vendor sets it to that vendor's default until the user touches it (<a href="Vendors and categories.dc.html#5l">5l</a>).</div>
     <div class="doc-note"><b>Attachments is the same card in both states,</b> beneath the lines, with the scanned file as its first attachment. Opening it is the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>), as on any order. The file is never shown beside the form.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
-    <div class="doc-note"><b>Grocery offers before the order is created.</b> A scanned grocery order dated inside this week's offers shows Check offers in the Items card head, the offer tags on its lines and the "At this week's offers" row in Totals, exactly as the saved order does (<a href="Order editing layouts.dc.html#1a">1a</a>). A line left out with its tick counts in neither the row nor the line count.</div>
+    <div class="doc-note"><b>Grocery offers before the order is created.</b> A scanned grocery order, whatever its date, shows Check offers in the Items card head, the offer tags on its lines and the "At this week's offers" row in Totals, exactly as the saved order does (<a href="Order editing layouts.dc.html#1a">1a</a>). A line left out with its tick counts in neither the row nor the line count.</div>
     <span class="doc-notes__label">A scan is a draft until it is created or discarded</span>
     <div class="doc-note"><b>The scan is an order with status Draft from the moment its file is uploaded</b>, through the reading and the review, until Create or Discard. Leaving in any other way keeps it: Back, another page, closing the tab or the app, a phone put away while it reads. There is no Save as draft button and no question on leaving. Leaving the review shows the toast "Kept in Drafts", with no Undo, since nothing was lost. Like every draft it moves no money until it is created.</div>
     <div class="doc-note"><b>What is on the screen is what is kept.</b> The review is written to the draft as it is edited: the values as changed, the lines ticked and unticked, and the marks - which values were hard to read, which lines were unsure, which of them have been touched. A draft never removes itself, and its file stays with it for as long as it exists.</div>
@@ -1513,9 +1513,8 @@
           <div class="sp-alert__body">
             <span class="sp-alert__title">4 lines differ from the receipt.</span>
             <span class="sp-alert__note">The receipt's version is picked on each line. Change any you want to keep from the order.</span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Jump to first</button>
           </div>
-          <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Jump to first</button>
         </div>
         <div class="sp-card">
           <div class="sp-card__head">

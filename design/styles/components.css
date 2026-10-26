@@ -281,6 +281,13 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   color: var(--ink-6);
 }
 .sp-mark--none { background: var(--hover); color: var(--ink-5); }
+/* ---------- the shop's place - c2 variant ----------
+   A shop on an offer: two medium marks wide so a wide logo reads, the same box on every
+   row so the names line up. A logo sits whole on white, which stays in the dark theme
+   since logos are drawn for white; without one the box takes the vendor fills above. */
+.sp-mark--logo { width: calc(var(--mark-medium) * 2); }
+.sp-mark--logo:has(> img) { box-sizing: border-box; padding: var(--sp-4) var(--sp-6); border: 1px solid var(--line); background: #fff; }
+.sp-mark--logo > img { display: block; width: 100%; height: 100%; object-fit: contain; }
 /* the extra-photo count sits inside the thumbnail, bottom-right */
 /* The control that takes an attachment away. It is quiet until the box is hovered
    or holds focus, so a grid of them is not a grid of crosses. */
@@ -4123,6 +4130,23 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   }
 }
 /* a chat's heading on Chats (Ask 24f) is the link that opens it */
+/* ---------- link out - DRAFT c28 ----------
+   A name that opens another site in a new tab (an offer's product): the name keeps its
+   own role and ink at rest, the external-link glyph after it in --ink-5, and both turn
+   green with the name underlined on hover and on focus. The name is the link's only
+   span, so it can truncate or clamp as its role does. */
+a.sp-link-out { display: inline-flex; align-items: center; gap: var(--sp-4); min-width: 0; max-width: 100%; color: inherit; text-decoration: none; border-radius: var(--r-marker); outline: none; }
+.sp-link-out > span { min-width: 0; }
+.sp-link-out > svg { flex: none; color: var(--ink-5); }
+.sp-link-out:focus-visible { box-shadow: var(--ring); }
+.sp-link-out:focus-visible > span,
+.sp-link-out:focus-visible > svg { color: var(--green); }
+.sp-link-out:focus-visible > span { text-decoration: underline; }
+@media (hover: hover) {
+  .sp-link-out:hover > span,
+  .sp-link-out:hover > svg { color: var(--green); }
+  .sp-link-out:hover > span { text-decoration: underline; }
+}
 a.sp-chat__file-name { text-decoration: none; }
 @media (hover: hover) {
   a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
@@ -5797,6 +5821,17 @@ a.sp-menu__item { text-decoration: none; }
 @media (hover: hover) {
   .sp-list-item--opens:hover { background: var(--hover); }
 }
+/* ---------- one control beside the part that opens - c15 ListItem variant ----------
+   A row that opens can hold one control of its own (an offer's tag) between the open
+   target and the row's end. The control is a flex item raised over the open target's
+   stretch, so a press on it is its own and a press anywhere else opens the row. It is
+   raised by z-index alone, not positioned, so the row stays what a panel inside it is placed against.
+   A row with an open panel lifts over the rows after it, whose controls are raised too. */
+.sp-list-item__control { display: flex; align-items: center; flex: none; z-index: 1; }
+/* the raise stays inside its row: without this the control's z-index joins the page's
+   stacking, and the tags painted over a scrim and a sheet and took their taps */
+.sp-list-item:has(> .sp-list-item__control) { position: relative; isolation: isolate; }
+.sp-list-item:has(> .sp-list-item__control .sp-popover) { position: relative; z-index: 2; }
 /* A plain row in a card that opens something - another page, or this one narrowed -
    is a link or a button in this state (4a By status and Top vendors, 10a Categories
    this month, 7a Drafts and Recent orders). Its content stays where the row draws it:
