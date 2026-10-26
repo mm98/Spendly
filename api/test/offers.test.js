@@ -65,7 +65,7 @@ test('a shopping list is one request, its shops are the site\'s keys, and the sa
 	assert.deepEqual(read.unknownShops, ['Nowhere'])
 	assert.equal(read.items[0].placeMark, `{{offers:${first.items[0].id}}}`)
 	assert.deepEqual(first.items[0].offers[0], {
-		product: 'Letmælk', brand: 'Arla', size: { amount: 1, unit: 'ltr.' }, shop: 'Netto', shopLogo: 'https://www.tilbudsugen.dk/chains/netto.png', membersOnly: false, price: 74.99, forHowMany: 12,
+		product: 'Letmælk', brand: 'Arla', size: { amount: 1, unit: 'ltr.' }, shop: 'Netto', shopLogo: 'https://www.tilbudsugen.dk/chains/netto.png', membersOnly: false, withoutSugar: false, price: 74.99, forHowMany: 12,
 		perUnit: { price: 6.25, unit: 'ltr.' }, to: '2026-10-28',
 		vendor: null, link: { url: 'https://www.tilbudsugen.dk/dk/ai-basket?q=m%C3%A6lk', paper: false }
 	})
@@ -83,12 +83,39 @@ test('only shops the source does not know is answered without a request', async 
 })
 
 test('a block shows at most five offers, cheapest per unit first, those without a unit price last', async () => {
-	const offer = (price, perUnit) => ({ ...milk, price, promotion: {}, unit_metrics: perUnit ? { quantity: 1, unit_type: 'ltr.', 'price_per_ltr.': perUnit } : {} })
+	const offer = (price, perUnit, shop) => ({ ...milk, price, promotion: {}, availability: { retail_chain: shop }, unit_metrics: perUnit ? { quantity: 1, unit_type: 'ltr.', 'price_per_ltr.': perUnit } : {} })
 	answerWith = url => url.includes('/product-offers-search/')
 		? { status: 200, body: { pageOfOrganicProductOffers: { items: [] } } }
-		: { status: 200, body: { items: [{ query: 'havremælk', offers: [offer(9, null), offer(20, 20), offer(12, 12), offer(15, 15), offer(30, 30), offer(25, 25)] }] } }
+		: { status: 200, body: { items: [{ query: 'havremælk', offers: [offer(9, null, 'Lidl'), offer(20, 20, 'Meny'), offer(12, 12, 'Netto'), offer(15, 15, 'Bilka'), offer(30, 30, 'Spar'), offer(25, 25, 'Føtex')] }] } }
 	const made = await ask({ items: ['havremælk'] })
 	assert.deepEqual(made.items[0].offers.map(o => o.price), [12, 15, 20, 25, 30])
+})
+
+test('a shop shows once, with its cheapest offer without sugar, also in a chat kept before that and in its email', async () => {
+	const cola = (product, price, perUnit, shop, rawText) => ({ ...milk, product_name: product, brand: 'Harboe', price, promotion: { rawText },
+		availability: { retail_chain: shop }, unit_metrics: { quantity: 0.5, unit_type: 'ltr.', 'price_per_ltr.': perUnit } })
+	// the site answers the same cola twice when only its own text differs, and says "without sugar" only there
+	answerWith = url => url.includes('/product-offers-search/')
+		? { status: 200, body: { pageOfOrganicProductOffers: { items: [] } } }
+		: { status: 200, body: { items: [{ query: 'cola', offers: [
+			cola('Cola', 40, 4.44, 'Kvickly', '40.00 18'), cola('Cola', 40, 4.44, 'Kvickly', '40.00 18 Uden tilsat sukker'),
+			cola('Cola', 1.99, 6.03, 'Løvbjerg', '1.99 fl. var.'), cola('Cola', 1.99, 6.03, 'Løvbjerg', '1.99 fl. var. Uden tilsat sukker'),
+			cola('Pepsi Cola', 9.95, 6.63, 'Meny', '9.95 fl. var.'), cola('Pepsi Max Cola', 11, 7.33, 'Meny', '11.00 Sukkerfri'),
+			cola('Cola', 12, 8, 'Kvickly', '')] }] } }
+	const made = await ask({ items: ['cola'] })
+	assert.deepEqual(made.items[0].offers.map(o => [o.shop, o.product, o.price, o.withoutSugar]),
+		[['Kvickly', 'Cola', 40, true], ['Løvbjerg', 'Cola', 1.99, true], ['Meny', 'Pepsi Max Cola', 11, true]])
+	assert.deepEqual(JSON.parse(made.said).items[0].offers.map(o => o.shop), ['Kvickly', 'Løvbjerg', 'Meny'])
+
+	const before = { item: 'cola', source: { name: 'Tilbudsugen', site: 'tilbudsugen.dk' }, offers: [
+		{ product: 'Cola', shop: 'Kvickly', price: 40, forHowMany: 18, to: '2026-10-29' }, { product: 'Cola', shop: 'Kvickly', price: 40, forHowMany: 18, to: '2026-10-29' },
+		{ product: 'Cola', shop: 'Løvbjerg', price: 1.99, forHowMany: 1, to: '2026-10-29' }] }
+	db.prepare('INSERT INTO user_ask_offers (id, user_id, chat_id, offers) VALUES (?, ?, ?, ?)').run('ao-before', USER, CHAT, JSON.stringify({ id: 'ao-before', ...before }))
+	const kept = offersMaker.byIds(USER, ['ao-before'])
+	assert.deepEqual(kept['ao-before'].offers.map(o => o.shop), ['Kvickly', 'Løvbjerg'])
+	const write = { date: day => day, quantity: n => String(n) }
+	const [emailed] = offersMaker.emailBlocks(['ao-before'], kept, { money: n => `${n} kr.`, write })
+	assert.deepEqual(emailed.items.map(i => i.shop), ['Kvickly', 'Løvbjerg'])
 })
 
 test('an offer links to the shop\'s offer paper, from a request outside the limits, and names the reader\'s vendor', async () => {

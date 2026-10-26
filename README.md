@@ -276,9 +276,9 @@ Everything that needs you, on one page.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
 - **Offers in shops now.** Ask "what are the cheapest milk prices this week?" and the answer names the
-  cheapest, then shows up to five offers: the shop's logo (or your own mark for that shop), the product's
-  name and size, the shop, the last day, the price and the price per litre, kilo or piece, cheapest
-  first. The product's name opens the shop's offer paper on the offer's page, or else a search for the
+  cheapest, then shows up to five offers, one for each shop: the shop's logo (or your own mark for that
+  shop), the product's name and size, the shop, the last day, the price and the price per litre, kilo or
+  piece, cheapest first. A shop shows its cheapest offer without sugar, or else its cheapest offer. The product's name opens the shop's offer paper on the offer's page, or else a search for the
   item on Tilbudsugen, in a new tab. Groceries in Denmark come from [Tilbudsugen](https://www.tilbudsugen.dk),
   for an account kept in Danish kroner. Only offers are found, not the shops' normal prices, and Ask
   never counts an offer in your own figures. An old chat keeps the offers it was answered with, and a
