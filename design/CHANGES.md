@@ -1,5 +1,14 @@
 # This week's grocery offers on an order
 
+## Fixed from handoff_grocery_offers_fixed
+
+### The offer shows the product's photo, and a match can be another brand
+
+- **The problem:** the offer popover named the matched product in text only, and every drawn match was the line's own brand, so a match to another brand was not shown.
+- **What changed:** the popover head shows the offer's product photo as a medium mark (`sp-mark sp-mark--medium sp-mark--photo`) beside the product name and "shop · until" line, in `sp-cell-flex`, the row pattern of a record cell. With no photo from the server it is the empty photo box, as on a line. A match can be another brand of the same kind of item: the coffee line "Merrild kaffe 500g" now matches "BKI Classic 500 g" at Rema 1000. The name and photo are always the shop's own, never the line's, so the brand shows as it is. No stylesheet changed.
+- **Where:** `Order editing layouts 1a` (the open popover, "A multi-buy offer", "A members-only offer", note "The offer is a suggestion") and `1c` (phone popover). App: the offer popover opened from `LineAmount` in `react/src/pages/OrderParts.jsx`; the server's match needs the offer's image URL.
+- **What is still open:** nothing.
+
 ## Fixed from handoff_grocery_offers
 
 ### On a phone, an alert's action sits under its text
@@ -69,7 +78,7 @@ Only an order the server treats as groceries, dated inside this week's offers, s
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Order editing layouts.dc.html` - 1a and 1c, the offers specimens and notes.
+- `Order editing layouts.dc.html` - 1a and 1c, the offers specimens and notes, with the product photo in the offer popover.
 - `Order create.dc.html` - 3a, the note on offers before an order is created; 3d, the phone alert's action under its text.
 - `support.js`, `components.js` - what the pages load to open.
 - `styles/components.css` - shared styles, with the one added `.sp-alert__body > .sp-btn` rule.
