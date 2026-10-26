@@ -44,7 +44,7 @@ export function PasswordHint({ password, hint }) {
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const EMAIL_PROBLEM = 'Enter a valid email address.'
 /** Focus for a field, once the page has drawn the message bound to it, so it is read out with the
-    field, and the field is no longer locked by the request that failed. */
+    field, once the request that failed has unlocked it. */
 export function useFocusField() {
 	const afterDraw = useAfterDraw()
 	return id => afterDraw(() => document.getElementById(id)?.focus())

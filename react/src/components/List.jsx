@@ -1,4 +1,4 @@
-import { Children, cloneElement, useContext, useEffect, useId, useRef, useState } from 'react'
+import { Children, cloneElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
@@ -489,8 +489,10 @@ export function Controls({ children, ...rest }) {
     @param {import('react').ReactNode} [props.children] One Crumb for each filter now on. */
 export function Filters({ onClear, children, ...rest }) {
 	reject(rest, 'Filters')
+	const row = useRef(null)
+	useKeptFocus(row)
 	return (
-		<div className="sp-filters" onClickCapture={keepFocus} {...rest}>
+		<div className="sp-filters" ref={row} onClickCapture={keepFocus} {...rest}>
 			{children}
 			{onClear ? <Button variant="outline" size="small" onClick={onClear}>Clear all</Button> : null}
 		</div>
@@ -511,12 +513,38 @@ function keepFocus(ev) {
 	const after = all.find(c => !row.contains(c) && (row.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING))
 	const before = all.findLast(c => !row.contains(c) && (row.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_PRECEDING))
 	const order = [at >= 0 ? removes[at + 1] : null, at > 0 ? removes[at - 1] : null, after, before].filter(Boolean)
-	const settle = () => {
-		if (document.activeElement && document.activeElement !== document.body) return
-		order.find(c => c.isConnected)?.focus()
-	}
-	// the list answers later than the row: checked again once it has
-	for (const wait of [0, 300, 1000]) setTimeout(settle, wait)
+	wantedFocus.set(row, order)
+}
+
+// per Filters row, where focus goes when its click has removed the control that held it
+const wantedFocus = new WeakMap()
+
+const placeFocus = order => {
+	if (document.activeElement && document.activeElement !== document.body) return
+	order.find(c => c.isConnected)?.focus()
+}
+
+/* Run on each drawing of the row: the list answers later than the row, so the control that held focus
+   can go in a later drawing than the click's. Ends with the reader's next press or key. A page draws
+   the row only while a filter is on, so Clear all and the last crumb take the row away with them:
+   then focus is placed once the drawing that removed it is done. */
+function useKeptFocus(row) {
+	useLayoutEffect(() => {
+		const order = wantedFocus.get(row.current)
+		if (order) placeFocus(order)
+	})
+	useLayoutEffect(() => {
+		const el = row.current
+		const done = ev => { if (!el?.contains(ev.target)) wantedFocus.delete(el) }
+		addEventListener('pointerdown', done, true)
+		addEventListener('keydown', done, true)
+		return () => {
+			removeEventListener('pointerdown', done, true)
+			removeEventListener('keydown', done, true)
+			const order = el && wantedFocus.get(el)
+			if (order) queueMicrotask(() => placeFocus(order))
+		}
+	}, [row])
 }
 
 /** The facet rail's groups (c12): one `FieldGroup facet` per thing the list can be filtered by.
