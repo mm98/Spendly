@@ -151,6 +151,7 @@ const LIGHTHOUSE = (() => {
 })()
 
 app.get('/api/version', (req, res) => res.json({
+	version: process.env.SPENDLY_VERSION || null,
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
 	commit: process.env.SPENDLY_BUILD_SHA || null,
 	lighthouse: LIGHTHOUSE,

@@ -1061,7 +1061,7 @@ export async function getSettings(signal) {
 	return request('/api/settings', { signal })
 }
 
-/** The running build: { builtAt, commit }, both null outside the Docker image, and `canUpdate`, whether
+/** The running build: { version, builtAt, commit }, all null outside the Docker image, and `canUpdate`, whether
     this server can install a newer one itself. */
 export async function getVersion(signal) {
 	return request('/api/version', { signal })

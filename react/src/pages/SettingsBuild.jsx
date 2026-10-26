@@ -74,7 +74,7 @@ export function BuildCard() {
 	}
 
 	const heading = <CardHeader name="This build" {...landing('build')} />
-	const { builtAt, commit, canUpdate } = version.data ?? {}
+	const { version: versionNumber, builtAt, commit, canUpdate } = version.data ?? {}
 
 	if (!version.data) return (
 		<Card ref={card} aria-busy={version.error ? undefined : 'true'}>
@@ -95,7 +95,10 @@ export function BuildCard() {
 	const stamp = builtAt ? stampOf(builtAt) : null
 	const running = (
 		<span className="sp-data">
-			You're running the version installed on <b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
+			{versionNumber
+				? <>You're running version <b className="sp-ink">{versionNumber}</b>, installed on </>
+				: "You're running the version installed on "}
+			<b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
 		</span>
 	)
 	const installs = canUpdate && (state === 'behind' || state === 'updating' || state === 'update-failed')
