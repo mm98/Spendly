@@ -26,6 +26,7 @@ Open http://localhost:6006.
 | `npm test` | Opens every story in Chromium and runs its tests (below). CI runs this. |
 | `npm run design:check` | Fails when a component file is not the same code as its copy in `design/react_handoff`. CI runs this. |
 | `npm run props:check` | Fails when a page gives a component's prop the wrong kind of value. CI runs this. |
+| `npm run held:check` | Fails when a story reads the real clock, a random value or the network, so its picture would differ from one run to the next. CI runs this. |
 
 `npm test` needs Playwright's Chromium once: `npx playwright install chromium`.
 
@@ -97,6 +98,28 @@ the clock to the moment they were kept, so the pictures are the same on every ru
 - When a page starts to ask the server for something new, its story warns "No answer kept" and draws
   the page's error state. Keep the answers again.
 - Keeping the answers again moves the dates in every page picture. Approve those in Chromatic.
+
+## Every story draws the same thing on every run
+
+Chromatic compares a picture with the last one approved, so a story that draws something else each
+time reports a change nobody made, and a real change then hides among the noise. Every story is
+therefore drawn with the same things held still, by `.storybook/held.js` around each one:
+
+| Held | What it is |
+|---|---|
+| The clock | Friday 14 August 2026, 12:00 UTC, standing still. `new Date()` and `Date.now()` answer that, so a part that writes today's date, this month, or a countdown writes the same one every run. |
+| Random values | `Math.random`, `crypto.randomUUID` and the browser's random bytes answer one fixed series. The password field draws passing letters from `Math.random`, and would otherwise never look the same twice. |
+| The language and the timezone | Danish and Europe/Copenhagen wherever nothing has chosen, so the machine taking the pictures cannot change what a date or an amount reads as. A story that passes a language of its own keeps it. |
+| Movement | Motion's moves are off while Chromatic takes its pictures, and `chromatic.pauseAnimationAtEnd` puts every CSS animation at its end, so nothing is caught part way. |
+| The data | The pages read `pages/answers.json`, a copy kept in the repo, so the vendors, categories and orders are the same every run. No server and no database take part. |
+
+A story writes a date, an amount or an id out in full instead of reading it. `npm run held:check`
+fails on `new Date()`, `Date.now()`, `Math.random`, a random id, and a file fetched over the
+network, anywhere in `stories/`, `pages/` or `.storybook/`. CI runs it.
+
+The components themselves do read the real clock and real random values (the date fields, the
+period picker, the password field, the message bar's countdown). That is Claude Design's code and
+is right for the app; Storybook only changes what those components read while a picture is taken.
 
 ## Against Claude Design
 

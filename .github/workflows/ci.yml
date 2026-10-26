@@ -114,6 +114,12 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: storybook
         run: npm run props:check
+      # A story that reads the real clock, a random value or the network draws something else on
+      # every run, and Chromatic then reports a change nobody made.
+      - name: Nothing in a story moves on its own
+        if: ${{ !cancelled() }}
+        working-directory: storybook
+        run: npm run held:check
       # the stats file lets Chromatic take new pictures only of the stories a change reaches
       - name: Storybook builds
         if: ${{ !cancelled() }}
