@@ -1,45 +1,71 @@
-# This week's offers in an Ask answer
+# Choose which vendors and categories each offer source checks
 
-Answers the request: Ask can be asked "cheapest milk prices for this week" and answers with this week's offers.
+## Fixed from handoff_offer_sources
 
-## 1. The offers block in an answer
+- **The problem:** the lede of `Settings and import 11a` still said "Twelve panes", though the sub-navigation now lists thirteen with Offers.
+- **What changed:** it reads "Thirteen panes".
+- **Where:** `Settings and import 11a`, the section lede.
 
-- **The problem:** Ask answered from the reader's own records only. A question about prices this week had no answer shape.
-- **What changed:** a price question is answered from this week's grocery offers, the source Check offers uses on an order, across every shop in the offers. The text states the cheapest in one sentence ("The cheapest milk this week is 10,00 kr. a litre, at Netto."), then a block of at most five offers, cheapest per litre, kg or piece first. Each offer is a file row in the file frame (`.sp-chat__files`, `.sp-chat__file`): the product photo as `sp-mark--medium sp-mark--photo`, the product and size as the title, "shop · until dd/mm/yyyy" in `sp-meta` (a members-only offer adds the club: "Lidl · until 29/10/2026 · Lidl Plus members"), and on the right the price column: the offer as the shop states it in `sp-amount`, the unit price under it in plain `sp-amount-secondary`. No comparison with what the reader paid, no saving. A row does nothing. The block closes with "Offers from Tilbudsugen" in `sp-meta`, once per block.
-- **Where:** `Ask Spendly 24d`, specimen 11 and the notes "This week's offers in an answer - 11 to 14"; the lede of 24d and the Answers note of 24a name offers as a block. `styles/components.css`: new rule `.sp-chat__file > .sp-chat__price { flex: none; }`, the price column is `sp-stacked sp-cell-amount sp-chat__price`. App: the Ask answer renderer (`react/src/pages/Ask.jsx` and its answer blocks), the assistant's offers tool on the server.
+Answers "Brief: choose which vendors and categories each offer source checks".
+
+## 1. Where it lives
+
+- **The problem:** an order gets Check offers only when its vendor is a grocery chain Tilbudsugen knows by name. The reader cannot add a local baker or an online grocer, or remove a chain.
+- **What changed:** a new Settings pane, **Offers**, after Needs a look. It holds one card per offer source, headed by the source's name and what it covers: "TILBUDSUGEN", "Groceries in Denmark". A new source adds one more card of the same shape. Under the head: "Orders from the last 7 days get Check offers when their vendor or one of their categories is picked here. Every shop Tilbudsugen covers is searched." Changes go through the pane's save bar, as in Statuses.
+- **Where:** `Settings and import 11a` (sub-navigation item and the Tilbudsugen card). `react/src/pages/Settings.jsx`: add the section.
 - **What is still open:** nothing.
 
-## 2. Looking up, nothing on offer, lookups used up
+## 2. How vendors and categories are picked
 
-- **The problem:** the block needed its waiting and empty states.
-- **What changed:** while looking up, the spinner bubble reads "Looking up this week's offers". Nothing found is a text answer naming the product, "No shop has oat milk on offer this week.", with the source link. The daily allowance used up is a text answer, "Today's offer lookups are used up. Ask again tomorrow.", or "Ask again in 15 minutes." for a wait, with no source link. One question is one lookup, cached an hour; a check on an order and a question here share one daily allowance. Offers in an old chat keep the prices they were answered with.
-- **Where:** `Ask Spendly 24d`, specimens 12, 13, 14 and their notes.
+- **The problem:** a reader can have many vendors and categories, so the picker must search on the server.
+- **What changed:** each card has two fields, Vendors and Categories, each with its count beside the label. Above the picked ones is the search field ("Add a vendor…", "Add a category…"); typing searches on the server and opens the Combobox panel under it, already picked ones left out. A picked one is a list row: its mark, its name, and Remove (`sp-list-item__remove`, an X icon button) at the tail, shown on hover or focus and always on touch. Five rows show; past five, a small outline button "Show all 9" opens the rest in place and goes away.
+- At first Vendors holds the vendors Tilbudsugen knows by name or alias (Netto, Rema 1000, Føtex...), so it works with no setup; Categories starts empty. A removed vendor stays removed.
+- **Where:** `Settings and import 11a`. Components reused: `sp-picker__search`, `sp-list-item`, `sp-mark--medium`, Combobox panel, `sp-btn--outline sp-btn--small`. No new component and no CSS change.
 - **What is still open:** nothing.
 
-## 3. On a phone
+## 3. Nothing picked
 
-- **The problem:** the phone needed the same answer.
-- **What changed:** a new phone frame, the Ask chat with the offers answer, at full column width as an answer with files is. The title takes two lines before it is cut; the price column keeps its width.
-- **Where:** `Mobile screens 7a`, "Ask - this week's offers", after "Ask - a file and a chart".
+- **What changed:** both fields empty, and one grey line (`sp-meta`) under them: "No orders are checked against Tilbudsugen." No order shows Check offers for that source; the order page draws nothing in its place, as today for an unknown vendor.
+- **Where:** `Settings and import 11a`, specimen "OFFERS · NOTHING PICKED". `react/src/pages/Order.jsx`, `OrderForm.jsx`: no drawing change.
 - **What is still open:** nothing.
+
+## 4. The vendor page and the category form
+
+- **What changed:** a new last card, **OFFERS**, with one switch per source: "Check Tilbudsugen offers", help "Orders from this vendor (in this category) from the last 7 days get Check offers, against this week's offers in every shop Tilbudsugen covers." It is the same pick as the row in Settings, Offers: on adds it there, off removes it, and it saves with the page. A vendor Tilbudsugen knows by name starts on; every other vendor and every category starts off. The create pages carry the same card, off. The switch markup is the "Leave out of statistics" switch's.
+- **Where:** `Vendors and categories 5c` (vendor edit) and `5f` (category edit), with notes; `5b` and `5e` by note. `react/src/pages/vendorsCategories.jsx`, the vendor page, `react/src/pages/CategoryForm.jsx`.
+- **What is still open:** nothing.
+
+## 5. An account in another currency
+
+- **What changed:** the Offers pane still shows the card, with its head and one line: "Tilbudsugen works only for accounts kept in Danish kroner." No fields. The picks are kept and come back if the account changes to Danish kroner. The vendor and category pages show no Offers card for such an account.
+- **Where:** `Settings and import 11a`, specimen "OFFERS · ACCOUNT IN EUROS".
+- **What is still open:** nothing.
+
+## 6. Phone
+
+- **What changed:** Offers is a row in the phone's Settings list after Limit alerts, opening its own screen with the desktop card unchanged.
+- **Where:** `Mobile screens 7a`, the Settings list and the new Offers phone screen beside AI assistants.
+- **What is still open:** the phone's Settings list has no Needs a look row, though the desktop pane exists. Not changed here; please confirm it should be added.
 
 ## later.md
 
-- **The design does not say yet that the arrow keys page Statistics:** the sentence is already in `Order statistics 4a`, the note "The left and right arrow keys step to the previous or next period". Nothing changed in this package; the entry can be removed.
-- **A deleted record should not be removed for good at once:** left for a later task, by the user's choice.
-- **Large accounts still make everyone wait:** not a design entry.
+None of its entries are settled by this package. On the user's answer:
+
+- "An offer's panel on a phone hangs from its row, not its tag" and "A phone's line row cannot carry an offer's tag while the row opens the line" were left for later by the user. Please keep both in later.md.
+- "A deleted record should not be removed for good at once": where "Recently deleted" lives is left for a later brief.
+- "Large accounts still make everyone wait" and "An offer's picture was never seen loading" are not design work.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Ask Spendly.dc.html` - 24a, 24d changed.
-- `Mobile screens.dc.html` - 7a gained the offers frame.
-- `support.js`, `components.js`, `icons.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/doc.css` - loaded by the pages.
-- `styles/components.css` - the `.sp-chat__price` rule.
-- `styles/pages/ask-spendly.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - linked by the two pages.
+- `Settings and import.dc.html` - 11a: Offers pane, its states and notes.
+- `Vendors and categories.dc.html` - 5c and 5f: the Offers card and notes.
+- `Mobile screens.dc.html` - 7a: the Offers row and phone screen.
+- `support.js`, `components.js`, `icons.js` - what the pages load.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - unchanged, loaded by the pages.
+- `styles/pages/settings.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - unchanged, linked by the pages.
 
-## Checks
+## styles/check.js
 
-`styles/check.js`: 0 findings across 27 pages.
+Run on the three changed pages: no findings for them. The full run timed out in the sandbox, so it ran on those pages alone; its one finding, "the start page counts the screens", comes from that subset (index.html counts 105 screens across all pages), and no screen badge was added or removed.
