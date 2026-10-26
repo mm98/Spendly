@@ -527,7 +527,7 @@ const placeFocus = order => {
 /* Run on each drawing of the row: the list answers later than the row, so the control that held focus
    can go in a later drawing than the click's. Ends with the reader's next press or key. A page draws
    the row only while a filter is on, so Clear all and the last crumb take the row away with them:
-   then focus is placed once the drawing that removed it is done. */
+   then focus moves out of the row as it goes. */
 function useKeptFocus(row) {
 	useLayoutEffect(() => {
 		const order = wantedFocus.get(row.current)
@@ -541,8 +541,10 @@ function useKeptFocus(row) {
 		return () => {
 			removeEventListener('pointerdown', done, true)
 			removeEventListener('keydown', done, true)
+			// the row goes in this drawing: focus leaves it now, for the first control that stays
 			const order = el && wantedFocus.get(el)
-			if (order) queueMicrotask(() => placeFocus(order))
+			const held = document.activeElement
+			if (order && (!held || held === document.body || el.contains(held))) order.find(c => c.isConnected && !el.contains(c))?.focus()
 		}
 	}, [row])
 }
