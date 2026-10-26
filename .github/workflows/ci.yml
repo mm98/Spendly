@@ -11,7 +11,7 @@ on:
       - 'api/**'
       - 'react/**'
       - 'scripts/**'
-      - 'release-notes/**'
+      - '.releases/**'
       - 'storybook/**'
       - 'Dockerfile'
       - '.dockerignore'
