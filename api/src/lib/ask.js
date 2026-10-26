@@ -4,10 +4,12 @@ import { MCP_TOOLS, callTool } from './mcpTools.js'
 import { askedAtIn, fileWriter } from './askFiles.js'
 import { MAKERS, makerOfTool, nothingMade } from '../format/index.js'
 import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
+import { offersToolFor } from '../offers/index.js'
 
 /* Ask: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
-   tools of the makers in format/, which make a file or a chart from the reader's data. */
+   tools of the makers in format/, which make a file or a chart from the reader's data, and the offers tool
+   of offers/, which reads what shops have on offer now from other websites. */
 
 export const ASK_MODEL = 'claude-opus-5-5'
 // a chat's heading is a few words, so the smallest model writes it
@@ -83,6 +85,9 @@ export function scheduleAskSweep() {
 export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
+	const offers = offersToolFor(userId)
+	const tools = offers ? [...TOOLS, offers.tool] : TOOLS
+	const system = offers ? `${instructions(today)}\n\n${offers.note}` : instructions(today)
 	const making = {
 		token, self, signal, userId, chatId, today, unlimited, made: nothingMade(),
 		question: turns.at(-1).text, askedAt: askedAtIn(zone), write: fileWriter(userId, locale)
@@ -95,8 +100,8 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 			fallbacks: 'default',
 			cache_control: { type: 'ephemeral' },
 			output_config: { effort: 'low' },
-			system: instructions(today),
-			tools: TOOLS,
+			system,
+			tools,
 			messages
 		}, { signal, timeout: REQUEST_TIMEOUT_MS })
 		if (response.stop_reason === 'refusal') return null
@@ -115,6 +120,10 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 					.then(({ item, said }) => { making.made[maker.place][item.id] = item; return said })
 					.catch(error => (signal?.aborted ? Promise.reject(error) : `Spendly could not make this: ${error.message}`))
 				return { type: 'tool_result', tool_use_id: call.id, content: said }
+			}
+			if (offers && call.name === offers.tool.name) {
+				const result = await offers.answer(call.input, signal)
+				return { type: 'tool_result', tool_use_id: call.id, content: result.content, is_error: !!result.isError }
 			}
 			const result = await callTool(call.name, call.input ?? {}, token, self)
 				.catch(() => ({ content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }))
