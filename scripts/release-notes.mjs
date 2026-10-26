@@ -13,8 +13,9 @@ import { versionsOnMain } from "./version.mjs";
 export const NOTES_FOLDER = ".releases";
 // the folder's earlier names: a note added there is still the note of the change that added it
 const EARLIER_NOTES_FOLDERS = ["release-notes"];
-// date and time written (UTC), then the branch without its type
-export const NOTE_NAME = /^\d{4}-\d{2}-\d{2}-\d{4}-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
+// "{yyyyMMdd}.{HHmm} - {Title}.md", the time written (UTC). No colon in the time and none of
+// \ / : * ? " < > | in the title, since Windows cannot hold such a file and git cannot check it out there.
+export const NOTE_NAME = /^\d{8}\.\d{4} - [^\s\\/:*?"<>|][^\\/:*?"<>|]*\.md$/;
 // how far back Settings can look: the image carries this many versions that have notes
 const VERSIONS_KEPT = 20;
 const MAX_NOTES = 3;
@@ -45,7 +46,8 @@ export function readNote(text) {
 	return { notes, faults };
 }
 
-const git = args => execFileSync("git", args, { encoding: "utf8", maxBuffer: 1 << 28 });
+// core.quotePath=false: a name with a letter outside ASCII is printed as it is, not quoted
+const git = args => execFileSync("git", ["-c", "core.quotePath=false", ...args], { encoding: "utf8", maxBuffer: 1 << 28 });
 
 /** The notes of the newest versions up to `ref` that have any, newest first. */
 export function releaseNotes(ref = "HEAD") {

@@ -1,10 +1,11 @@
 # Release notes
 
 Settings > This build shows what changed in each version, in the reader's words. Every change that
-reaches the app adds one file here, named by the date and time it is written (UTC) and then its
-branch without the type, so the folder lists the notes in order (`fix/bookmark-title-charset` adds
-`2026-10-26-1343-bookmark-title-charset.md`). The file belongs to the version the change gets when it
-is merged, so no version number is written in it.
+reaches the app adds one file here, named `{yyyyMMdd}.{HHmm} - {Title}.md`: the date and time it is
+written (UTC), so the folder lists the notes in order, then a short title of the change
+(`20261026.1343 - Bookmark title charset.md`). No colon in the time, and none of `\ / : * ? " < > |` in
+the title, since Windows cannot hold a file with them. The file belongs to the version the change
+gets when it is merged, so no version number is written in it.
 
 ## What a file holds
 

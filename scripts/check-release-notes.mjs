@@ -14,7 +14,7 @@ const baseRef = process.argv[2] || process.env.CHECK_BASE_SHA || "origin/main";
 const mergeBase = execFileSync("git", ["merge-base", baseRef, "HEAD"], { encoding: "utf8" }).trim();
 // against the working tree, so uncommitted work is checked too; a new file needs `git add` first.
 // With renames found, a note only moved or renamed is not a new note: [status, ...paths], newest path last.
-const changed = execFileSync("git", ["diff", "--name-status", "--find-renames", mergeBase], { encoding: "utf8" })
+const changed = execFileSync("git", ["-c", "core.quotePath=false", "diff", "--name-status", "--find-renames", mergeBase], { encoding: "utf8" })
 	.split("\n").filter(Boolean).map(line => line.split("\t"));
 
 const isNote = file => file.startsWith(`${NOTES_FOLDER}/`) && file.endsWith(".md") && file !== `${NOTES_FOLDER}/README.md`;
@@ -33,8 +33,8 @@ if (reaches && !added.length) {
 if (added.length > 1) fail(`This change adds ${added.length} files to ${NOTES_FOLDER}/; one change is one version, so write one file.`);
 for (const file of added) {
 	const name = file.slice(NOTES_FOLDER.length + 1);
-	if (!NOTE_NAME.test(name)) fail(`${file}: name it by the date and time it is written (UTC), then the branch without its type, `
-		+ `like 2026-10-26-1343-bookmark-title-charset.md`);
+	if (!NOTE_NAME.test(name)) fail(`${file}: name it "{yyyyMMdd}.{HHmm} - {Title}.md", the time it is written (UTC), `
+		+ `like "20261026.1343 - Bookmark title charset.md", with none of \\ / : * ? " < > | in it`);
 }
 for (const file of written) {
 	for (const fault of readNote(readFileSync(file, "utf8")).faults) fail(`${file}: ${fault}`);
