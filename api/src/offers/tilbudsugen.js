@@ -84,6 +84,8 @@ const shopLogo = name => {
 	return file ? SHOP_LOGOS_URL + encodeURIComponent(file) : null
 }
 
+const WITHOUT_SUGAR = /\b(uden (tilsat )?sukker|sukkerfri)/i
+
 const dayOf = at => (typeof at === 'string' ? at.slice(0, 10) : null)
 const numberOr = (value, fallback = null) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback)
 
@@ -101,6 +103,7 @@ function offerOf(offer) {
 		// a price such as "12 for 74.99" is for this many
 		forHowMany: numberOr(promotion.minQuantity) > 1 ? promotion.minQuantity : 1,
 		membersOnly: !!promotion.requiresMembership,
+		withoutSugar: WITHOUT_SUGAR.test(`${offer.product_name} ${promotion.rawText ?? ''}`),
 		size: metrics.quantity && metrics.unit_type ? { amount: metrics.quantity, unit: metrics.unit_type } : null,
 		perUnit: perUnitKey ? { price: numberOr(metrics[perUnitKey]), unit: metrics.unit_type ?? null } : null,
 		paper: null,

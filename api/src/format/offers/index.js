@@ -1,4 +1,4 @@
-import { keepOffers, offersById } from '../../lib/askOffers.js'
+import { keepOffers, offersById, onePerShop } from '../../lib/askOffers.js'
 import { initialsOf } from '../../lib/names.js'
 import { inkOn } from '../../lib/palette.js'
 import { ITEMS_MOST, offerSourcesFor, offersAsked, shownOffers, withPapers } from '../../offers/index.js'
@@ -40,12 +40,12 @@ function toolFor(sources) {
 
 const rules = `find_offers reads this week's offers from other websites. Use it only when the reader asks about prices or offers in shops now. State the cheapest in one sentence, with its price per litre, kg or piece, and the shop; a shop the reader has as a vendor is a link to it. Then write the item's place mark on a line of its own: the block shows the offers and where they come from, so never list them again. When an item has no offer, write "No shop has ITEM on offer this week." and its place mark. An offer is not the reader's money: never count it in the reader's figures, and never compare it with what the reader paid.`
 
-// cheapest per litre, kg or piece first; an offer with no price per unit after those with one
+// cheapest per litre, kg or piece first; an offer with no price per unit after those with one; a shop once, without sugar first
 const unitPrice = offer => (offer.perUnit?.price > 0 ? offer.perUnit.price : null)
-const rowsOf = offers => [...offers]
-	.sort((a, b) => (unitPrice(a) === null) - (unitPrice(b) === null) || (unitPrice(a) ?? a.price / a.forHowMany) - (unitPrice(b) ?? b.price / b.forHowMany))
+const rowsOf = offers => onePerShop([...offers]
+	.sort((a, b) => (unitPrice(a) === null) - (unitPrice(b) === null) || (unitPrice(a) ?? a.price / a.forHowMany) - (unitPrice(b) ?? b.price / b.forHowMany)))
 	.slice(0, ROWS_MOST)
-	.map(({ product, brand, size, shop, shopLogo, membersOnly, price, forHowMany, perUnit, paper, from, to }) => ({ product, brand, size, shop, shopLogo, membersOnly, price, forHowMany, perUnit, paper, from, to }))
+	.map(({ product, brand, size, shop, shopLogo, membersOnly, withoutSugar, price, forHowMany, perUnit, paper, from, to }) => ({ product, brand, size, shop, shopLogo, membersOnly, withoutSugar, price, forHowMany, perUnit, paper, from, to }))
 
 const waitSaid = minutes => `Tell the reader in one sentence: "Today's offer lookups are used up. Ask again in ${minutes} minutes." Write no place mark.`
 const PER_DAY_SAID = 'Tell the reader in one sentence: "Today\'s offer lookups are used up. Ask again tomorrow." Write no place mark.'

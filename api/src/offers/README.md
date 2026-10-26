@@ -34,7 +34,7 @@ export const pricesite = {
 	async find({ items, shopKeys }, signal) {
 		// one request for the whole list; an Error with retryAfter (seconds) when the site refuses
 		return [{ item, offersFound, offers: [{ product, brand, shop, shopLogo, borderShop, price, forHowMany,
-			membersOnly, size: { amount, unit }, perUnit: { price, unit }, paper, from, to }] }]
+			membersOnly, withoutSugar, size: { amount, unit }, perUnit: { price, unit }, paper, from, to }] }]
 	},
 	logosOrigin: 'https://img.pricesite.se',     // optional: where the shops' logos are served from
 	searchUrl: item => `https://pricesite.se/search?q=${encodeURIComponent(item)}`,   // the site's own search for an item
@@ -54,6 +54,8 @@ export const pricesite = {
   vendor that the shop is, by name or alias, and `link`, the address the product's name opens: the
   `paper`, or else `searchUrl` for the item.
 - A request names Spendly in its `User-Agent`. A source never poses as a browser.
+- `withoutSugar` is true when the source says the product is without sugar. The block shows one offer
+  for each shop, and picks one without sugar first.
 - An offer is what the shop has on offer, with the days it holds, as `YYYY-MM-DD`. Prices are in
   the source's `currency`, and an offer in any other currency is left out.
 - A request carries only the items and shops the question named. Nothing from the reader's own data
