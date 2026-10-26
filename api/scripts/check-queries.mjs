@@ -389,6 +389,10 @@ for (const request of REQUESTS) {
 const limited = (await (await fetch(BASE + '/categories', { headers: H })).json()).filter(c => c.budget > 0).slice(0, 2)
 if (!limited.length) console.error('  no category with a limit: /orders/limits reads nothing to plan')
 await (await fetch(BASE + `/orders/limits?date=2026-08-15&${limited.map(c => `categories=${encodeURIComponent(c.name)}`).join('&')}`, { headers: H })).arrayBuffer()
+// the order one being entered may repeat, asked about an order the account has
+const [like] = (await (await fetch(BASE + '/orders?pageSize=1', { headers: H })).json()).orders
+if (!like) console.error('  no order: /orders/lookalike reads nothing to plan')
+else await (await fetch(BASE + `/orders/lookalike?${new URLSearchParams({ vendor: like.vendor.name, date: like.date, total: like.total })}`, { headers: H })).arrayBuffer()
 
 /* The writes, run last because each one rewrites the fixture every read above is captured
    against. The budget's ids come out of the sheet the app itself answers with, so no SELECT of

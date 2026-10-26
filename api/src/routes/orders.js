@@ -7,7 +7,7 @@ import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, fillDraftGaps, normaliseUrl, validateOrderDraft } from '../lib/validate.js'
-import { findOrCreateVendor, findOrCreateCategory, vendorFinder } from '../lib/findOrCreate.js'
+import { findOrCreateVendor, findOrCreateCategory, resolveVendor, vendorFinder } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { orderAmountScale } from '../lib/orderAmountScale.js'
 import { MAX_PAGE_SIZE, MAX_UPLOAD_MB, MONEY_BACK_KINDS } from '../lib/constants.js'
@@ -21,6 +21,7 @@ import { restoreOrder, trashOrder } from '../lib/orderTrash.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
+import { findLookalikeOrder } from '../lib/orderLookalike.js'
 
 export const router = Router()
 
@@ -493,6 +494,14 @@ router.get('/limits', (req, res) => {
 		spend: selectCategoryMonthSpend.get({ categoryId: c.id, userId: req.user.id, from, to, exclude: String(req.query.exclude ?? '') })
 	}))
 	res.json({ month: day.slice(0, 7), limits })
+})
+
+/* The order an order being entered may repeat (lib/orderLookalike.js): `{ order }`, null when none.
+   `vendor` is a name, matched as a receipt's is; `exclude` is the order being edited. */
+router.get('/lookalike', (req, res) => {
+	const vendorId = resolveVendor(req.user.id, String(req.query.vendor ?? '').trim())?.id ?? null
+	const order = findLookalikeOrder(req.user.id, vendorId, String(req.query.date ?? ''), Number(req.query.total), String(req.query.exclude ?? ''))
+	res.json({ order })
 })
 
 router.get('/:id', (req, res) => {

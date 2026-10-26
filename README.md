@@ -96,11 +96,11 @@ Everything that needs you, on one page.
   - The vendor is found by VAT number, web address or name, and a new name it was printed with is
     saved as one of its other names.
   - A file that was scanned before is recognised, and you choose what to do with it.
-  - The review step warns when you already have an order from the same vendor up to 3 days away,
-    with a total up to 10% higher or lower. It is only a warning: you can still create the order.
 - **Empty order** - type it in yourself.
 - **Copy an order** - same vendor, same lines, today's date. Orders you repeat often are listed
   first.
+- **Already have it?** - a new or edited order warns when you have an order from the same vendor
+  up to 3 days away, with a total up to 10% higher or lower. It is only a warning: you can still save.
 - **Drafts** - an order you start is kept as a draft from your first change, so you can come back
   to it.
 - **Import** - bring in many orders at once from a spreadsheet (CSV, XLSX or JSON). See

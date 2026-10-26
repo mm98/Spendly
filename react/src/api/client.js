@@ -875,6 +875,13 @@ export async function getOrderLimits(date, categories, exclude, signal) {
 	return request(`/api/orders/limits?${usp}`, { signal })
 }
 
+/** The order one from `vendor` on `date` for `total` may repeat, leaving out `exclude`: `{ order }`. */
+export async function getOrderLookalike(vendor, date, total, exclude, signal) {
+	const usp = new URLSearchParams({ vendor, date, total: String(total) })
+	if (exclude) usp.set('exclude', exclude)
+	return request(`/api/orders/lookalike?${usp}`, { signal })
+}
+
 /** How many pages an order's file has, and each page as an image (12b). */
 export async function getAttachmentPages(orderId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/attachments/${attachmentId}/pages`, { signal })
@@ -1371,7 +1378,7 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
+const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getOrderLookalike, getStatuses, getViews]
 const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
 const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getCounts, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]

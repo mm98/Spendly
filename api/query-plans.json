@@ -2502,6 +2502,18 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT id, date, total FROM orders WHERE user_id = @userId AND vendor_id = @vendorId AND date BETWEEN @from AND @to AND id <> @except AND abs(total - @total) <= abs(total) * @share + 0.005 ORDER BY abs(date - @target), abs(total - @total) LIMIT 1": {
+			"plan": [
+				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_vendor"
+			]
+		},
 		"SELECT id, email, name FROM users WHERE id = ?": {
 			"plan": [
 				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -5208,7 +5220,7 @@
 				"date",
 				"id"
 			],
-			"readers": 24
+			"readers": 25
 		},
 		"idx_uploads_user": {
 			"table": "uploads",
