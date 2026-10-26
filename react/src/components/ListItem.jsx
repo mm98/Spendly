@@ -32,8 +32,6 @@ const COLOR = { default: null, warning: 'warning', danger: 'danger', success: 's
     @param {import('react').ReactNode} [props.handle] A drag handle, so the row can be moved.
     @param {string} [props.handleLabel] What the drag handle says it moves, such as Move Housing.
     @param {import('react').ReactNode} [props.actions] Controls at the end of the row.
-    @param {import('react').ReactNode} [props.control] One control beside the part that opens, such as an offer's tag. With `onClick` or `to` the row becomes the open target and the control side by side.
-    @param {import('react').ReactNode} [props.end] What follows the control at the row's end, such as the line's amount. It opens the row like the words.
     @param {number | '!'} [props.count] A count leading the row, or ! for an attention row that counts nothing.
     @param {import('react').ReactNode} [props.chevron] An arrow at the end, for a row that opens something.
     @param {boolean} [props.selected] The row is the picked one in a set. Outline and card rows only.
@@ -52,9 +50,6 @@ export function ListItem({
 	// what the handle says it moves: a row of several, each named, is one a reader can tell apart
 	handleLabel = 'Reorder',
 	actions,
-	// one control beside the part that opens (an offer's tag), and what follows it (the amount)
-	control,
-	end,
 	count,
 	chevron,
 	selected,
@@ -101,7 +96,7 @@ export function ListItem({
 		: <m.div className={classes} {...attrs}>{inner}</m.div>
 	// a row that opens and also moves is a plain box: the handle and the open target side by side,
 	// never a button inside a button (Components, Ordering by hand)
-	if ((handle || control) && variant !== 'add' && (to || onClick)) {
+	if (handle && variant !== 'add' && (to || onClick)) {
 		const inside = (
 			<>
 				{mark}
@@ -115,8 +110,6 @@ export function ListItem({
 				{to
 					? <Link className="sp-list-item__open" to={to} data-go={to}>{inside}</Link>
 					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
-				{control ? <span className="sp-list-item__control">{control}</span> : null}
-				{end}
 				{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
 				{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 			</>
@@ -131,8 +124,6 @@ export function ListItem({
 			{/* the count leads what it counts, as the attention row draws it (Components) */}
 			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{children}
-			{control ? <span className="sp-list-item__control">{control}</span> : null}
-			{end}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
 			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 		</>

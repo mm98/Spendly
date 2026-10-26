@@ -33,7 +33,6 @@ import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
-import { OffersCards, getOfferPicks, saveOffers } from './SettingsOffers.jsx'
 import { useViews } from '../app/views.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
@@ -47,7 +46,6 @@ const SECTIONS = [
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
 	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
-	{ key: 'offers', label: 'Offers', keys: ['offers'] },
 	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
 	{ key: 'assistants', label: 'AI assistants' },
 	{ key: 'import', label: 'Import' },
@@ -101,7 +99,7 @@ const previewAmount = code => {
 
 /* Saved settings are baked into these answers, so each is dropped the moment a save lands. */
 const dropStale = () => {
-	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getStatsSlice, getOfferPicks])
+	for (const fn of [getSettings, getOrderDraft, getOrders, getVendorPage, getVendorPages, getCategoryPage, getCategoryPages, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getStatsSlice])
 		invalidate(fn)
 }
 
@@ -115,7 +113,6 @@ export default function Settings() {
 	const settings = useApi(getSettings)
 	const user = useApi(getCurrentUser)
 	const statuses = useApi(getStatuses)
-	const offerPicks = useApi(getOfferPicks)
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
 	// what a save just stored stays on screen until the page reads it back, so the old value never shows between
@@ -124,13 +121,13 @@ export default function Settings() {
 	// the name is the account's and the sidebar's view count is kept with the views; both save with the rest
 	const shown = useViews().data?.shown
 	const saved = settings.data && user.data
-		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data, offers: offerPicks.data?.sources }
+		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
 	// Passkeys is a card under Account and profile, and on a phone a page of its own (7a)
 	const current = SECTIONS.some(s => s.key === section) || section === 'passkeys' ? section : null
 	const navCurrent = key => (key === 'passkeys' ? 'account' : key)
 
-	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data, offerPicks.data])
+	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data])
 	const stored = key => (key in landed ? landed[key] : saved?.[key])
 	const value = key => (key in draft ? draft[key] : stored(key))
 	const change = (key, next) => setDraft(d => {
@@ -150,7 +147,7 @@ export default function Settings() {
 
 	const save = () => {
 		setSaving(true)
-		const { name, picture, orderViews, statuses: edited, offers, ...rest } = draft
+		const { name, picture, orderViews, statuses: edited, ...rest } = draft
 		const prefs = {}
 		for (const [key, v] of Object.entries(rest)) {
 			if (key.startsWith('look.')) prefs.looks = { ...prefs.looks, [key.slice(5)]: v }
@@ -164,8 +161,7 @@ export default function Settings() {
 			picture !== undefined ? (picture ? uploadPicture(picture) : removePicture()) : null,
 			orderViews ? setViewsShown(orderViews) : null,
 			// after the defaults, so a status the default just moved off can be deleted
-			edited ? Promise.resolve(prefsSaved).then(() => saveStatuses(edited)).then(() => freshFetch(getStatuses)) : null,
-			offers ? saveOffers(offers).then(() => freshFetch(getOfferPicks)) : null
+			edited ? Promise.resolve(prefsSaved).then(() => saveStatuses(edited)).then(() => freshFetch(getStatuses)) : null
 		])
 			// the account's own answer is in before the draft goes, so the old picture never shows between
 			.then(out => (account ? freshFetch(getCurrentUser).catch(() => {}).then(() => out) : out))
@@ -200,7 +196,6 @@ export default function Settings() {
 		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
-		offers: <OffersCards key="offers" saved={saved?.offers} {...fields} />,
 		assistants: <AssistantsCard key="assistants" state={assistants} touch={touch} />,
 		import: <ImportCard key="import" state={importing} />,
 		demo: <DemoCard key="demo" />,

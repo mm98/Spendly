@@ -20,7 +20,6 @@ import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import { CategoryIconPicker } from '../app/categoryMark.jsx'
-import { OfferSwitchesCard, useOfferSwitches } from './offerSwitches.jsx'
 import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
@@ -95,8 +94,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const typed = values.name.trim()
 	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1, shape: 'brief' }], { enabled: !editing && Boolean(typed) })
 
-	const offerSwitches = useOfferSwitches('category', category?.id ?? loadingId)
-	const changed = offerSwitches.changed || values.name.trim() !== start.name.trim() || values.icon !== start.icon
+	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
 		|| values.colour !== start.colour || values.budget !== start.budget || values.favourite !== start.favourite
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
@@ -155,9 +153,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		}
 		const written = editing ? updateCategory(category.id, look) : createCategory(name, look)
 		written
-			.then(async saved => {
-				const offersSaid = await offerSwitches.save(saved.id).then(() => null, () => `${saved.name} was saved, but its offers switch was not. Try again.`)
-				if (offersSaid) toast({ message: offersSaid, color: 'danger' })
+			.then(saved => {
 				invalidateCategoryData()
 				if (forOrder) return chooseOnOrder(saved)
 				leave()
@@ -261,7 +257,6 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 					</Field>
 				</div>
 			</Card>
-			<OfferSwitchesCard kind="category" switches={offerSwitches} hold={h} />
 		</>
 	)
 
