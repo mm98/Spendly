@@ -1,3 +1,4 @@
+import './logs.js'
 import './db.js'
 import { app } from './app.js'
 import { scheduleAskSweep } from './lib/ask.js'

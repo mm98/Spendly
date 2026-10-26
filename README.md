@@ -347,6 +347,9 @@ The app's building blocks, one by one, are at the same address plus `/storybook`
 **Your data is one folder.** The database lives in the folder mounted at `/data`. Back up that
 folder and you have backed up Spendly. The files Ask makes are in a second folder, mounted at
 `/storage`, with one folder for each account. They are kept for 30 days, so that folder needs no backup.
+A copy of the container log is written to a third folder, mounted at `/logs`: one file a day, kept
+for 30 days, and at most 50 MB a day. If that folder cannot be written, the app still starts and the
+log is only in the container.
 
 **Some features need a setting on the server.** Everything else works without them.
 
@@ -355,6 +358,7 @@ folder and you have backed up Spendly. The files Ask makes are in a second folde
 | `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask | The receipt is attached and you type the details yourself. There is no Ask page. |
 | `SPENDLY_ASK_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
 | `SPENDLY_STORAGE` | Where the files Ask makes are kept, outside the database (`/storage` in the container) | A `storage` folder beside the database. |
+| `SPENDLY_LOGS` | A copy of the container log in this folder (`/logs` in the container), one file a day, kept for 30 days | The log is only in the container. |
 | `SPENDLY_ASK_FILES_PER_DAY` | How many files Ask can make for each account a day (default 10); `0` makes none | 10. |
 | `SPENDLY_SMTP_*` and `SPENDLY_PUBLIC_URL` | Email confirmation, password reset, the status email, Email this chat on Ask | New accounts are confirmed at once, and email features are hidden. |
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
