@@ -59,3 +59,15 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## The status guard does not run in project threads
+
+- **Where:** `.claude/hooks/status-guard.mjs`, set up as a `PreToolUse` hook in `.claude/settings.json`.
+- **What the reader sees:** nothing changes. A thread can still go more than 30 seconds without a
+  status, and its next step is not stopped.
+- **What was found:** in a project thread the guard never wrote its time file, and a step taken 37
+  seconds after the last status went through. Run by hand, the script works. The thread's own built-in
+  hooks do run, among them a status reminder that waits 300 seconds. Gaps over 30 seconds between status
+  lines were as common after the guard was added as before. The repo cannot switch the hook on.
+- **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
+- **Found:** 2026-10-26.
