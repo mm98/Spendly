@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
-import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, landing, onward, useAuthOptions, useSignedOut } from './AuthParts.jsx'
+import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, useFocusField, landing, onward, useAuthOptions, useSignedOut } from './AuthParts.jsx'
 
 const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
 
@@ -13,6 +13,7 @@ function NoticeLink({ to, page, children }) {
 }
 
 export default function Register() {
+	const focusField = useFocusField()
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
 	const [name, setName] = useState('')

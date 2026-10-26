@@ -33,6 +33,7 @@ import {
 	deleteBudgetLine, deleteBudgetYear, failureMessage, getBudgetAccounts, getBudgetYear, getBudgetYears,
 	updateBudgetAccount, updateBudgetGroup, updateBudgetLine
 } from '../api/client.js'
+import { useAfterDraw } from '../app/afterDraw.js'
 
 const MONTHS = 12
 const SIDES = [{ kind: 'income', title: 'Income' }, { kind: 'expense', title: 'Costs' }]
@@ -735,6 +736,7 @@ function Use({ use, month, thin = false, covered = false }) {
    Tab saves and moves to the next month, Escape cancels, a digit on a focused row starts the edit. */
 function useAmounts(sheet, write, long, reveal) {
 	const toast = useToast()
+	const afterDraw = useAfterDraw()
 	const [edit, setEdit] = useState(null)
 	const done = useRef(false)
 	// a save that fails puts what was typed back in its field, open but not taking focus (6d)
@@ -788,12 +790,12 @@ function useAmounts(sheet, write, long, reveal) {
 						ev.preventDefault(); ev.stopPropagation()
 						done.current = true
 						setEdit(null)
-						queueMicrotask(() => document.querySelector(`[data-row="${id}"]`)?.focus())
+						afterDraw(() => document.querySelector(`[data-row="${id}"]`)?.focus())
 					} else if (ev.key === 'Enter') {
 						ev.preventDefault()
-						const row = ev.target.closest('[data-row]')
+						const row = ev.target.closest('[data-row]').dataset.row
 						finish(line, month, ev.target.value)
-						queueMicrotask(() => focusRow(row, 1))
+						afterDraw(() => focusRow(document.querySelector(`[data-row="${row}"]`), 1))
 					} else if (ev.key === 'Tab') {
 						// past December or before January, Tab leaves the months the usual way
 						const to = month + (ev.shiftKey ? -1 : 1)
@@ -801,7 +803,7 @@ function useAmounts(sheet, write, long, reveal) {
 						ev.preventDefault()
 						finish(line, month, ev.target.value)
 						reveal(to)
-						queueMicrotask(() => document.querySelector(`[data-row="${line.id}-${to}"]`)?.focus())
+						afterDraw(() => document.querySelector(`[data-row="${line.id}-${to}"]`)?.focus())
 					}
 				}}
 				onBlur={ev => finish(line, month, ev.target.value)} />

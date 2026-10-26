@@ -8,9 +8,38 @@ import { Mark, initialsOf } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
-import { PRESENCE, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
+import { PRESENCE, animate, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { Button } from './Button.jsx'
+
+/* The current row's ground, by kind (the dark sidebar, the light lists): the row it was last drawn on and
+   where on that row, kept as it leaves so the next ground starts there. Both rows are read at one moment,
+   so a page scroll, the menu's own scroll or a page drawn in between never reads as movement. */
+const grounds = new Map()
+
+function NavGround({ kind }) {
+	const ground = useRef(null)
+	const still = useStill()
+	useLayoutEffect(() => {
+		const el = ground.current
+		const row = el.parentElement
+		const last = grounds.get(kind)
+		// a ground slides only inside one box of rows: the menu's scrolling region clips what comes from outside
+		// it and grows a scroll bar for it, and another page's list is another place
+		const list = r => r.closest('.sp-scrolls, .sp-nav-list')
+		if (!still && last && last.row !== row && last.row.isConnected && list(last.row) === list(row)) {
+			const from = last.row.getBoundingClientRect()
+			const to = row.getBoundingClientRect()
+			animate(el, { y: [from.top + last.top - to.top, 0], scaleY: [last.height / to.height, 1] }, glide())
+		}
+		return () => {
+			const r = row.getBoundingClientRect()
+			const g = el.getBoundingClientRect()
+			grounds.set(kind, { row, top: g.top - r.top, height: g.height })
+		}
+	}, [kind, still])
+	return <span ref={ground} className="sp-marker" aria-hidden="true" />
+}
 
 /** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
 export const ShellTouch = createContext(false)
@@ -236,9 +265,9 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 			{hint}
 		</>
 	)
-	// the current row's ground is drawn once and moves to the row reached; dark and light rows move apart
+	// the current row's ground slides from the row left to the row reached (NavGround); dark and light rows move apart
 	const light = variant !== 'default' && variant !== 'action'
-	const here = current ? <m.span className="sp-marker" layoutId={light ? 'sp-nav-on-light' : 'sp-nav-on'} transition={glide()} aria-hidden="true" /> : null
+	const here = current ? <NavGround kind={light ? 'light' : 'dark'} /> : null
 	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...tipEvents, ...rest, ref }
 	// a row that opens and also moves: the handle and the open target side by side (Components, Ordering by hand)
 	if (handle && !control && (to || onClick)) {

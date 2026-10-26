@@ -85,7 +85,11 @@ export const PRESENCE = {
 }
 
 /** A marker moving to a new place (the segmented selection, a radio row's tint, the sidebar's current
-    row) and a row gliding to a new place both take the way in. */
+    row) and a row gliding to a new place both take the way in.
+    The segmented selection, the period presets and a radio row's tint are `layoutId` markers: they
+    sit in the page and move with it, so Motion measuring them on the page is right. The sidebar's
+    and the light lists' ground is not: those boxes stay put while the page scrolls under them, so
+    NavGround (Shell.jsx) reads the old row and the new row at one moment and slides by the difference. */
 export const glide = () => into()
 
 /** Lists glide their rows only up to this many: past it the moves are too many to follow, and the

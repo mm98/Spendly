@@ -18,6 +18,7 @@ import { useListMemory } from '../app/listMemory.js'
 import {
 	Bar, CardMenu, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
+import { usePageSearch } from '../app/afterDraw.js'
 
 // the server orders the list (api/src/lib/categoryList.js)
 const SORTS = [
@@ -74,6 +75,7 @@ const monthWords = month => {
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
 export default function Categories() {
+	const pageSearch = usePageSearch()
 	const touch = useShellShape() === 'touch'
 	const toast = useToast()
 	const settingsRead = useApi(getSettings)
@@ -172,7 +174,7 @@ export default function Categories() {
 	const bar = (
 		<Controls ref={column}>
 			{touch ? null : (
-				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" data-page-search="categories" />
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" inputRef={pageSearch} />
 			)}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
 			{touch

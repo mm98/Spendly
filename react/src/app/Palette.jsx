@@ -383,17 +383,12 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 		</Fragment>
 	))
 
-	// the clear control goes away with the text it cleared, so the field takes focus back
-	const type = next => {
-		setText(next)
-		if (!next) requestAnimationFrame(() => input.current?.focus())
-	}
 
 	const surface = (
 		<Surface
 			screen={touch}
 			value={text}
-			onChange={type}
+			onChange={setText}
 			onCancel={touch ? cancel : undefined}
 			count={needle ? resultCount(found) : null}
 			activeId={flat.length ? idOf(index) : undefined}
