@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261025e">
+<link rel="stylesheet" href="styles/components.css?v=v20261026d">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/navigation-shell.css?v=v20260917b">
 <script src="./components.js?v=v20261024s"></script>
@@ -746,6 +746,7 @@
     <div class="doc-note"><b>The scrolling region is the nav only</b>: <b>flex: 1; min-height: 0; overflow-y: auto</b>. Without <b>min-height: 0</b> a flex child refuses to shrink below its content and pushes the bottom zone off-screen instead of scrolling - the same automatic-minimum-size rule as 13a, and the single most likely thing to go wrong here.</div>
     <div class="doc-note"><b>The fade is a mask, not a gradient overlay.</b> <b>mask-image: linear-gradient(to bottom, <code>--ink</code> calc(100% - 22px), transparent)</b> on the scroll container. An overlay would need to match the sidebar colour and would break the moment the theme changes; a mask does not care.</div>
     <div class="doc-note"><b>The fade only shows when there is more below.</b> A permanent fade at the bottom of a fully-visible list reads as a rendering fault. Toggle it from the scroll position.</div>
+    <div class="doc-note"><b>The current row's ground slides from the row left to the row reached, wherever the page is scrolled.</b> The sidebar stays put while the page scrolls under it, so its rows are measured on the screen, not on the page (Motion's <code>layoutRoot</code> on the sidebar, <code>layoutScroll</code> on the scrolling region of destinations). Scrolled down Statistics or Settings, a press on Home, Vendors or Budget slides the ground straight up or down the menu; it never starts below the menu, and the menu never shows a scrollbar or changes width while it moves.</div>
     <div class="doc-note"><b>The brand is outside the scroll region</b> - a wordmark that scrolls away leaves the sidebar looking like a detached list, and it is the only fixed point at the top. Same for the bottom zone at the other end. <b>Scrollbar:</b> 8px, no track, a rounded thumb in <code>--shell-scroll</code>, as <a href="#9e">9e</a>. Never the platform default - a light scrollbar on <code>--shell</code> is the brightest thing in the sidebar.</div>
     <div class="doc-note"><b>Scroll the active row into view on load</b>, nearest-edge, no animation. Landing on Categories with the nav scrolled to the top hides where you are.</div>
     <div class="doc-note"><b>The collapsed rail (9b) has the same three tiers</b> and the same rules - it is shorter per row, so it reaches each threshold later, but nothing about the behaviour differs.</div>

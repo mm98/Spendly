@@ -1,5 +1,5 @@
 import { createContext, useContext, useLayoutEffect, useRef, useState } from 'react'
-import { AnimatePresence, LazyMotion, MotionConfig, animate, domMax, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
+import { AnimatePresence, LayoutGroup, LazyMotion, MotionConfig, animate, domMax, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
 
 /* Motion's settings, read from tokens.css. The stylesheet stays the only place the pace is written:
    this file reads --motion-in, --motion-out, --ease-enter, --ease-exit, --motion-rise and --motion-slide
@@ -85,7 +85,12 @@ export const PRESENCE = {
 }
 
 /** A marker moving to a new place (the segmented selection, a radio row's tint, the sidebar's current
-    row) and a row gliding to a new place both take the way in. */
+    row) and a row gliding to a new place both take the way in.
+    A box that stays on screen while the page scrolls under it (sticky or fixed: the Sidebar, a Panel,
+    Settings' section nav) is a `layoutRoot`, so its markers are measured on the screen and a page
+    scroll in the same moment never reads as movement; a box that scrolls its own rows is also
+    `layoutScroll`. A list of light rows that belongs to one page is its own `LayoutGroup`, so its
+    marker never glides across a page switch to another page's list. */
 export const glide = () => into()
 
 /** Lists glide their rows only up to this many: past it the moves are too many to follow, and the
@@ -242,4 +247,4 @@ export function slideLabels(nav, way, still, done) {
 	return () => run.stop()
 }
 
-export { AnimatePresence, animate, m, useMotionValue }
+export { AnimatePresence, LayoutGroup, animate, m, useMotionValue }

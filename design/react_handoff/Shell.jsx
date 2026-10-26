@@ -127,9 +127,11 @@ export function Sidebar({ variant = 'default', motion, onMotionEnd, ref, childre
 	}, [motion, still])
 	return (
 		<SidebarRail.Provider value={rail}>
-			<nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} ref={bind} {...rest}>
+			{/* stays put while the page scrolls under it: its rows are measured on the screen, so the marker
+			   slides from row to row even when the page scrolls in the same moment */}
+			<m.nav className={join('sp-sidebar', 'sp-scrolls', pick(SIDEBAR, variant, 'variant', 'Sidebar'))} ref={bind} layoutRoot {...rest}>
 				{children}
-			</nav>
+			</m.nav>
 		</SidebarRail.Provider>
 	)
 }
