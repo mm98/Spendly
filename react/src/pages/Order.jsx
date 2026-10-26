@@ -23,6 +23,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
+import { OfferTag, OffersTotal, offersHead, useOrderOffers } from './orderOffers.jsx'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
    rail, and the rail ends with what can be done to the order. */
@@ -64,16 +65,26 @@ function OrderView({ order, touch, onGone }) {
 	}, [])
 	// a status with a date of its own has it recorded; one on the order's own date has none
 	const stamped = order.statusHistory.findLast(s => s.status === order.status)
+	const offers = useOrderOffers({ vendor: order.vendor, date: order.date, lines: order.items })
+	const [offerOpen, setOfferOpen] = useState(null)
+	const tagOf = (item, index) => {
+		const offer = offers.offerOf(index)
+		return offer
+			? <OfferTag line={item} offer={offer} source={offers.source} open={offerOpen === index} onOpen={() => setOfferOpen(index)} onClose={() => setOfferOpen(null)} />
+			: null
+	}
 
 	const items = (
 		<Card>
-			<CardHeader name={`Items${dot}${order.items.length}`} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} />
+			<CardHeader name={`Items${dot}${order.items.length}`} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} {...offersHead(offers)} />
 			<div className="sp-stack sp-gap-8">
-				{order.items.map(item => {
+				{order.items.map((item, index) => {
 					const photo = itemPhoto(order.id, item)
 					const fileKey = item.attachments?.[0]?.id
-					// on a phone the photo is smaller than a fingertip, so the whole row opens it, and says so
-					if (touch && photo)
+					const tag = tagOf(item, index)
+					// on a phone the photo is smaller than a fingertip, so the whole row opens it, and says so;
+					// a row with an offer's tag opens the photo from its mark, as no button sits inside a button
+					if (touch && photo && !tag)
 						return (
 							<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} />} onClick={() => open(fileKey)}
 								aria-label={`Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}`}>
@@ -84,6 +95,7 @@ function OrderView({ order, touch, onGone }) {
 					return (
 						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}>
 							<LineText line={item} compact={touch} />
+							{tag}
 							<LineAmount line={item} compact={touch} />
 						</ListItem>
 					)
@@ -165,6 +177,7 @@ function OrderView({ order, touch, onGone }) {
 				<Sum variant="total" value={money(order.total)}>Total</Sum>
 			</div>
 			<Saving value={order.saved} variant="stat" />
+			<OffersTotal offers={offers} lineCount={order.items.length} />
 		</Card>
 	)
 

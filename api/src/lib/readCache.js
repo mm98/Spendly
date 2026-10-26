@@ -41,9 +41,11 @@ const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
     asking, or a draft a read makes (routes/scan.js). */
 export const forgetReads = userId => { byUser.delete(userId) }
 
+const QUESTIONS = new Set(['/api/categories/suggestions', '/api/offers/order'])
+
 export function readCache(req, res, next) {
 	// a question asked with a body writes nothing
-	if (req.method === 'POST' && req.path === '/suggestions' && req.baseUrl === '/api/categories') return next()
+	if (req.method === 'POST' && QUESTIONS.has(req.baseUrl + req.path)) return next()
 	if (WRITES.has(req.method)) {
 		byUser.delete(req.user.id)
 		// a changed order or category changes what the account's category suggestions are learned from

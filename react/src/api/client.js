@@ -571,6 +571,11 @@ export async function getCategorySuggestions(body, signal) {
 	return request('/api/categories/suggestions', { method: 'POST', body, signal })
 }
 
+/** This week's offers for an order's lines; with `check` the offer site is asked, else only a kept answer is read. */
+export async function getOrderOffers(body, signal) {
+	return request('/api/offers/order', { method: 'POST', body, signal })
+}
+
 export async function getCategory(id, signal) {
 	return request(`/api/categories/${id}`, { signal })
 }

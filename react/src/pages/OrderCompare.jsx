@@ -173,7 +173,7 @@ function Comparison({ order, file, answer }) {
 	)
 	const notice = (
 		<Alert mark="!" title={`${plural(rows.length, 'line')} ${rows.length === 1 ? 'differs' : 'differ'} from the receipt.`}
-			action={<Button variant="outline" size="small" onClick={jump}>Jump to first</Button>}>
+			action={<Button variant="outline" size="small" onClick={jump}>Jump to first</Button>} below={touch}>
 			The receipt's version is picked on each line. Change any you want to keep from the order.
 		</Alert>
 	)

@@ -43,6 +43,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
+import { OfferTag, OffersTotal, offersHead, useOrderOffers } from './orderOffers.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
@@ -245,6 +246,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const shown = tried ? errors : {}
 	const included = lines.filter(l => l.include !== false)
 	const sums = totalsOf(included, draft.shipping, draft.discount)
+	// a line left out with its tick is neither checked nor counted (Order create 3a)
+	const offers = useOrderOffers({ vendor: { name: draft.vendor }, date: draft.date, lines: included })
+	const [offerOpen, setOfferOpen] = useState(null)
+	const tagOf = line => {
+		const offer = offers.offerOf(included.indexOf(line))
+		return offer
+			? <OfferTag line={line} offer={offer} source={offers.source} open={offerOpen === line.key} onOpen={() => setOfferOpen(line.key)} onClose={() => setOfferOpen(null)} />
+			: null
+	}
 
 	const lineChanged = editing && (editing.isNew
 		? editing.values.title.trim() || editing.values.price != null || editing.values.newPhoto
@@ -983,9 +993,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<span className={['sp-subtitle', touch ? null : 'sp-truncate', ink].filter(Boolean).join(' ')}>{subtitle}</span>
 			</span>
 		)
+		// a phone's row is itself the button that opens the line, so the offer's tag cannot sit inside it
+		const tag = touch && !scan ? null : tagOf(line)
 		const text = (
 			<>
 				{words}
+				{tag}
 				{priceField
 					? <>
 						<span className="sp-subtitle sp-nowrap">{quantity(Number(line.quantity) || 0)} ×</span>
@@ -1011,6 +1024,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
 					mark={<Include line={line} setLines={setLines} />}>
 					{words}
+					{tag}
 				</ListItem>
 			)
 		if (touch && !reordering)
@@ -1059,9 +1073,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				: origin.copy
 					? `dated ${shortDate(draft.date)}${dot}status ${statuses.find(s => s.key === draft.status)?.name ?? draft.status}`
 					: (lines.length > 1 ? 'Drag the handle, or select a line and use ↑ ↓' : undefined)
+	const reorder = !brokenCount && !scan && touch && lines.length > 1 ? [{ label: reordering ? 'Done' : 'Reorder', onClick: () => setReordering(r => !r) }] : []
+	// what the offers say takes the head's aside, unless a line needs attention
+	const offersSay = brokenCount ? {} : offersHead(offers)
 	const itemsHead = (
-		<CardHeader name={`${scan ? 'Lines found' : 'Items'}${dot}${lines.length}`} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
-			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: reordering ? 'Done' : 'Reorder', onClick: () => setReordering(r => !r) }] : undefined} />
+		<CardHeader name={`${scan ? 'Lines found' : 'Items'}${dot}${lines.length}`} aside={offersSay.aside ?? itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
+			control={offersSay.control} actions={[...reorder, ...(offersSay.actions ?? [])]} />
 	)
 
 	const printed = scan?.total ?? null
@@ -1345,6 +1362,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					<span className="sp-meta">{itemsWord(included.length)}{dot}discount {amount(draft.discount || 0)}{dot}shipping {amount(draft.shipping || 0)}</span>
 					<Saving value={sums.saved} variant="stat" />
 				</>}
+			<OffersTotal offers={offers} lineCount={included.length} />
 			{/* the bar that says so on a phone and a narrow window is not drawn here, so the card does */}
 			{waiting && !stacked && !touch ? <span className="sp-meta sp-ink-warning">Waiting for the connection</span> : null}
 		</Card>

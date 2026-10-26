@@ -1,5 +1,4 @@
 import { db } from '../db.js'
-import { text } from '../format/schema.js'
 import { windowCounter } from '../lib/rateLimit.js'
 import { tilbudsugen } from './tilbudsugen.js'
 
@@ -7,9 +6,9 @@ import { tilbudsugen } from './tilbudsugen.js'
    A source is { key, name, site, goods, country, currency, limits?, shopKey, find } (README here). */
 export const OFFER_SOURCES = [tilbudsugen]
 
-const TOOL_NAME = 'find_offers'
-const ITEMS_MOST = 30
-const SHOPS_MOST = 10
+// how many days back an order's date may lie and still meet the offers running now
+export const OFFER_DAYS = 7
+export const ITEMS_MOST = 30
 // what a source answered is kept this long and this many answers at most, so the same question is asked once
 const KEPT_MOST = 500
 
@@ -22,6 +21,12 @@ const LIMITS = {
 }
 
 const selectCurrency = db.prepare('SELECT s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
+
+/** The sources that sell in the account's currency, so an amount Ask writes stays in the account's own. */
+export const offerSourcesFor = userId => {
+	const currency = selectCurrency.get(userId)?.currency ?? 'DKK'
+	return OFFER_SOURCES.filter(source => source.currency === currency)
+}
 
 const sourceState = new Map(OFFER_SOURCES.map(source => {
 	const limits = { ...LIMITS, ...source.limits }
@@ -54,77 +59,69 @@ function pause(state, error) {
 	state.pausedUntil = Date.now() + seconds * 1000
 }
 
-const cleanList = (list, most) => [...new Set((Array.isArray(list) ? list : [])
-	.filter(v => typeof v === 'string').map(v => v.trim()).filter(Boolean))].slice(0, most)
-
-/** One source's answer for `input`, as the text the tool answers Claude with. Never more requests than the
-    source's limits allow: a kept answer is used first, and a limit reached or a pause is said, not waited out. */
-async function answerFrom(source, input, userId, signal) {
+// one request to a source: a kept answer first, with `keptOnly` nothing else; `counted` within its limits
+async function asked(source, key, run, { userId, today, keptOnly = false, counted = true }, signal) {
 	const state = sourceState.get(source.key)
-	const items = cleanList(input.items, ITEMS_MOST)
-	if (!items.length) return failed('Name at least one item.')
-	const shops = cleanList(input.shops, SHOPS_MOST)
-	const shopKeys = [...new Set(shops.map(source.shopKey).filter(Boolean))]
-	const unknown = shops.filter(shop => !source.shopKey(shop))
-	if (shops.length && !shopKeys.length) return failed(`${source.name} does not know the shop ${unknown.join(', ')}.`)
-
-	const key = JSON.stringify([items.map(i => i.toLowerCase()).sort(), [...shopKeys].sort()])
-	let found = keptAnswer(state, key)
-	if (!found) {
-		if (state.pausedUntil > Date.now()) return failed(`${source.name} cannot be asked just now. Try again later.`)
-		if (state.serverWait('server') || state.accountWait(userId)) return failed(`${source.name} has been asked enough for now. Try again later.`)
-		try {
-			found = await source.find({ items, shopKeys }, signal)
-		} catch (error) {
-			if (signal?.aborted) throw error
-			pause(state, error)
-			return failed(`${source.name} did not answer just now.`)
-		}
+	const kept = keptAnswer(state, key)
+	if (kept || keptOnly) return { found: kept }
+	const paused = state.pausedUntil - Date.now()
+	if (paused > 0) return { wait: Math.ceil(paused / 1000) }
+	const serverWait = counted ? state.serverWait('server') : 0
+	if (serverWait) return { wait: serverWait }
+	if (counted && state.accountWait(`${userId}:${today}`)) return { wait: null, perDay: true }
+	try {
+		const found = await run()
 		keep(state, key, found)
-	}
-	return {
-		content: [{
-			type: 'text',
-			text: JSON.stringify({ source: source.name, site: source.site, currency: source.currency, unknownShops: unknown, items: found })
-		}]
+		return { found }
+	} catch (error) {
+		if (signal?.aborted) throw error
+		// a picture that cannot be had is left out; only the site asking to wait stops the rest
+		if (counted || error?.retryAfter) pause(state, error)
+		return { failed: true }
 	}
 }
 
-const failed = message => ({ content: [{ type: 'text', text: message }], isError: true })
+/** What `source` has on offer: { found }, { wait } in seconds, { perDay } when today's requests are used, or
+    { failed }. A kept answer comes first; with `keptOnly` nothing else, and none kept is { found: null }. */
+function foundFor(source, { items, shopKeys = [], ...asking }, signal) {
+	const key = JSON.stringify([items.map(i => i.toLowerCase()).sort(), [...shopKeys].sort()])
+	return asked(source, key, () => source.find({ items, shopKeys }, signal), asking, signal)
+}
 
-/** The offers tool for the account `userId`, or null when no source sells in the account's currency:
-    { tool, note, answer(input, signal) }, where answer gives the tool's result for Claude. */
-export function offersToolFor(userId) {
-	const currency = selectCurrency.get(userId)?.currency ?? 'DKK'
-	const sources = OFFER_SOURCES.filter(source => source.currency === currency)
-	if (!sources.length) return null
-	const covers = sources.map(s => `${s.key}: ${s.goods} in ${s.country}, from ${s.site}`).join('; ')
-	return {
-		tool: {
-			name: TOOL_NAME,
-			description: `What shops have on offer now, read from other websites, not from the reader's own data. The sources: ${covers}. Give every item of a shopping list in one call, never one call per item. Each item answers its cheapest offers first, by the price per kilo or litre where it is known: the product, brand, shop, price, how many the price is for, whether it is for members only, the size, the price per unit, and the first and last day of the offer. An offer is only what the shop has on offer, not its normal price. Prices are in ${currency}.`,
-			input_schema: {
-				type: 'object',
-				properties: {
-					source: text('Which source to ask.', { enum: sources.map(s => s.key) }),
-					items: {
-						type: 'array', minItems: 1, maxItems: ITEMS_MOST,
-						description: 'The items to find offers for, in the words and language of the question, one item each.',
-						items: text('One item, for example "mælk".')
-					},
-					shops: {
-						type: 'array', maxItems: SHOPS_MOST,
-						description: 'Only offers from these shops, as the question names them. Leave it out for every shop.',
-						items: text('A shop name, for example "Netto".')
-					}
-				},
-				required: ['source', 'items']
-			}
-		},
-		note: `${TOOL_NAME} reads offers from other websites. Use it only when the reader asks about prices or offers in shops now. Name the website the offers come from, and the last day an offer holds. An offer is not the reader's money: never count it in the reader's figures. Say when an item had no offer, and never guess a price.`,
-		answer(input, signal) {
-			const source = sources.find(s => s.key === input?.source) ?? sources[0]
-			return answerFrom(source, input ?? {}, userId, signal)
-		}
+/** `wanted` ([{ item, offer }]) with each offer's `image`: one request an item, outside the limits. */
+export async function withPictures(source, wanted, asking, signal) {
+	if (!source.pictures) return wanted
+	const byItem = Map.groupBy(wanted, w => w.item)
+	const pictured = new Map()
+	for (const [item, group] of byItem) {
+		const offers = group.map(w => w.offer)
+		const key = JSON.stringify(['pictures', item, offers.map(o => [o.shop, o.price, o.from])])
+		const answer = await asked(source, key, () => source.pictures({ item, offers }, signal), { ...asking, counted: false }, signal)
+		group.forEach((w, i) => pictured.set(w, answer.found?.[i] ?? null))
 	}
+	return wanted.map(w => ({ ...w, offer: { ...w.offer, image: pictured.get(w) ?? w.offer.image ?? null } }))
+}
+
+export const PICTURE_ORIGINS = OFFER_SOURCES.map(s => s.picturesOrigin).filter(Boolean)
+
+export async function findOffers(source, { items, ...asked }, signal) {
+	const found = []
+	for (let at = 0; at < items.length; at += ITEMS_MOST) {
+		const answer = await foundFor(source, { ...asked, items: items.slice(at, at + ITEMS_MOST) }, signal)
+		if (!answer.found) return answer
+		found.push(...answer.found)
+	}
+	return { found }
+}
+
+export const sourceForShop = (userId, vendorNames) =>
+	offerSourcesFor(userId).find(source => vendorNames.some(name => source.shopKey(name))) ?? null
+
+/** `foundFor` with `shops` in the reader's words: { found, unknownShops }, or { unknownOnly } when it knows none. */
+export async function offersAsked(source, { items, shops = [], ...asking }, signal) {
+	const shopKeys = [...new Set(shops.map(source.shopKey).filter(Boolean))]
+	const unknownShops = shops.filter(shop => !source.shopKey(shop))
+	if (shops.length && !shopKeys.length) return { unknownOnly: unknownShops }
+	const answer = await foundFor(source, { items, shopKeys, ...asking }, signal)
+	return answer.found ? { found: answer.found, unknownShops } : answer
 }
