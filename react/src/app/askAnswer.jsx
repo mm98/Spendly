@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../components/Chat.jsx'
 import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
 import { amount, currency, dot, plural, shortDate } from '../api/format.js'
-import { OfferName, ShopMark, credit, offerPrice, offerUnitPrice } from '../pages/orderOffers.jsx'
+import { OfferName, ShopMark, credit, offerPrice, offerUnitPrice } from './askOffers.jsx'
 
 /* An answer from Ask, in the small format lib/ask.js asks for: paragraphs, "- "
    lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place

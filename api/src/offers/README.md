@@ -1,7 +1,7 @@
 # Where Ask finds offers
 
-Spendly can tell what shops have on offer now: in an Ask answer, and on a grocery order. It reads that
-from other websites, one **source** each.
+Spendly can tell what shops have on offer now, in an Ask answer. It reads that from other websites,
+one **source** each.
 The folder:
 
 ```
@@ -9,13 +9,10 @@ offers/
   index.js          the sources, in order; the limits; one lookup, the papers of its offers, and how an offer is shown
   tilbudsugen.js    groceries in Denmark, from tilbudsugen.dk
   tilbudsugen.md    everything known about that site: its addresses, answers, keys, terms and faults
-  picks.js          the vendors and categories whose orders get each source's Check offers
-  lines.js          the offers for an order's lines: which order shows them, and how a line is matched
 ```
 
 Ask's tool is the offers maker, `format/offers/`, which shows the offers as a block in the answer and
-keeps it with the chat. It and `lines.js` read only `index.js`; nothing else in the server names a
-source. `/mcp` never offers the tool: it fetches another site, and a token only opens routes that
+keeps it with the chat. It reads only `index.js`; nothing else in the server names a source. `/mcp` never offers the tool: it fetches another site, and a token only opens routes that
 answer from what is stored.
 
 ## A source
@@ -32,7 +29,6 @@ export const pricesite = {
 	goods: 'groceries',           // what it covers, told to Claude: "groceries in Sweden"
 	country: 'Sweden',
 	currency: 'SEK',              // the tool is only given to an account kept in this currency
-	currencyName: 'Swedish kronor',   // Settings, Offers: "works only for accounts kept in Swedish kronor"
 	limits: { perMinute: 10 },    // optional; any of the limits below
 	shopKey: name => 'ica',       // the site's own key for a shop name the reader wrote, or null
 	async find({ items, shopKeys }, signal) {
@@ -78,12 +74,3 @@ A kept answer is used before any limit is counted. A request for papers is kept 
 not counted, and a failed one only pauses the source when the site said how long to wait. A limit reached or a pause is told to Claude, which
 says it in the answer, never waited out, so a question is never held up by it. The counts and kept
 answers are in memory: a restart forgets them.
-
-## Which orders get Check offers
-
-Each source has its own picked vendors and categories (`picks.js`). An order of any date
-gets Check offers from the first source the account can use whose picks hold its vendor or one of its
-categories. The search itself always covers every shop of the source. The first time an account's
-picks are read, each source picks the vendors its `shopKey` knows by name or alias, and never again.
-The picks are read and saved by `GET` and `PUT /api/offers/picks` (Settings, Offers) and
-`/api/offers/picks/vendor/:id` or `/category/:id` (the Offers card on a vendor's or category's page).

@@ -41,7 +41,7 @@ const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
     asking, or a draft a read makes (routes/scan.js). */
 export const forgetReads = userId => { byUser.delete(userId) }
 
-const QUESTIONS = new Set(['/api/categories/suggestions', '/api/offers/order'])
+const QUESTIONS = new Set(['/api/categories/suggestions'])
 
 export function readCache(req, res, next) {
 	// a question asked with a body writes nothing

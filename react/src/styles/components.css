@@ -5821,17 +5821,6 @@ a.sp-menu__item { text-decoration: none; }
 @media (hover: hover) {
   .sp-list-item--opens:hover { background: var(--hover); }
 }
-/* ---------- one control beside the part that opens - c15 ListItem variant ----------
-   A row that opens can hold one control of its own (an offer's tag) between the open
-   target and the row's end. The control is a flex item raised over the open target's
-   stretch, so a press on it is its own and a press anywhere else opens the row. It is
-   raised by z-index alone, not positioned, so the row stays what a panel inside it is placed against.
-   A row with an open panel lifts over the rows after it, whose controls are raised too. */
-.sp-list-item__control { display: flex; align-items: center; flex: none; z-index: 1; }
-/* the raise stays inside its row: without this the control's z-index joins the page's
-   stacking, and the tags painted over a scrim and a sheet and took their taps */
-.sp-list-item:has(> .sp-list-item__control) { position: relative; isolation: isolate; }
-.sp-list-item:has(> .sp-list-item__control .sp-popover) { position: relative; z-index: 2; }
 /* A plain row in a card that opens something - another page, or this one narrowed -
    is a link or a button in this state (4a By status and Top vendors, 10a Categories
    this month, 7a Drafts and Recent orders). Its content stays where the row draws it:

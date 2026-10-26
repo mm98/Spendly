@@ -161,6 +161,9 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 /* laid over the mark rather than in its grid track, so it crops from the centre */
 .sp-mark--photo > img,
 .sp-mark--photo > .sp-mark__open > img { position: absolute; inset: 0; }
+/* a shop's logo (c2) is contained in the mark's height too: the track is set, so the logo's 100% height holds and a
+   tall logo is drawn whole and centred, not cut at the bottom */
+.sp-mark--logo:has(> img) { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
 /* the hatch and the half tone are how the drawings stand in for a picture they lack (17c) */
 .sp-mark--photo:has(> img, > .sp-mark__open > img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }

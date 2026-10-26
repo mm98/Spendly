@@ -116,7 +116,6 @@ export const tilbudsugen = {
 	goods: 'groceries',
 	country: 'Denmark',
 	currency: 'DKK',
-	currencyName: 'Danish kroner',
 	shopKey,
 	logosOrigin: SHOP_LOGOS_ORIGIN,
 	searchUrl: item => `${SEARCH_PAGE_URL}?${new URLSearchParams({ q: item })}`,

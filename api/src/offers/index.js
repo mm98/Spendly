@@ -57,11 +57,11 @@ function pause(state, error) {
 	state.pausedUntil = Date.now() + seconds * 1000
 }
 
-// one request to a source: a kept answer first, with `keptOnly` nothing else; `counted` within its limits
-async function asked(source, key, run, { userId, today, keptOnly = false, counted = true }, signal) {
+// one request to a source: a kept answer first; `counted` within its limits
+async function asked(source, key, run, { userId, today, counted = true }, signal) {
 	const state = sourceState.get(source.key)
 	const kept = keptAnswer(state, key)
-	if (kept || keptOnly) return { found: kept }
+	if (kept) return { found: kept }
 	const paused = state.pausedUntil - Date.now()
 	if (paused > 0) return { wait: Math.ceil(paused / 1000) }
 	const serverWait = counted ? state.serverWait('server') : 0
@@ -80,7 +80,7 @@ async function asked(source, key, run, { userId, today, keptOnly = false, counte
 }
 
 /** What `source` has on offer: { found }, { wait } in seconds, { perDay } when today's requests are used, or
-    { failed }. A kept answer comes first; with `keptOnly` nothing else, and none kept is { found: null }. */
+    { failed }. A kept answer comes first. */
 function foundFor(source, { items, shopKeys = [], ...asking }, signal) {
 	const key = JSON.stringify([items.map(i => i.toLowerCase()).sort(), [...shopKeys].sort()])
 	return asked(source, key, () => source.find({ items, shopKeys }, signal), asking, signal)
@@ -118,16 +118,6 @@ export function shownOffers(source, userId, wanted) {
 		vendor: vendorOf(w.offer.shop),
 		link: w.offer.paper ? { url: w.offer.paper, paper: true } : { url: source.searchUrl(w.item), paper: false }
 	} }))
-}
-
-export async function findOffers(source, { items, ...asked }, signal) {
-	const found = []
-	for (let at = 0; at < items.length; at += ITEMS_MOST) {
-		const answer = await foundFor(source, { ...asked, items: items.slice(at, at + ITEMS_MOST) }, signal)
-		if (!answer.found) return answer
-		found.push(...answer.found)
-	}
-	return { found }
 }
 
 /** `foundFor` with `shops` in the reader's words: { found, unknownShops }, or { unknownOnly } when it knows none. */

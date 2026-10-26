@@ -277,13 +277,6 @@
 					"type": "application/json; charset=utf-8",
 					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
-			],
-			"POST /api/offers/order": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
-				}
 			]
 		},
 		"Order, delete asked": {
@@ -348,13 +341,6 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
-				}
-			],
-			"POST /api/offers/order": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			]
 		},
@@ -448,13 +434,6 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
-				}
-			],
-			"POST /api/offers/order": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			],
 			"POST /api/categories/suggestions": [
@@ -555,13 +534,6 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
-				}
-			],
-			"POST /api/offers/order": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			],
 			"POST /api/categories/suggestions": [
@@ -926,13 +898,6 @@
 					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
 				}
 			],
-			"GET /api/offers/picks/vendor/v-ee2b435c85d2d70b": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"picked\":true}]}"
-				}
-			],
 			"GET /api/vendors?ids=v-ee2b435c85d2d70b&archived=all&pageSize=1": [
 				{
 					"status": 200,
@@ -1082,13 +1047,6 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"monthSpend\":3367.32,\"monthAverage\":5871.380833333334}],\"matched\":1}"
-				}
-			],
-			"GET /api/offers/picks/category/c-778ee33ee330e2a1": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"picked\":false}]}"
 				}
 			],
 			"GET /api/categories/c-778ee33ee330e2a1": [
@@ -1254,13 +1212,6 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"builtAt\":null,\"commit\":null,\"lighthouse\":null,\"canUpdate\":false}"
-				}
-			],
-			"GET /api/offers/picks": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"goods\":\"groceries\",\"country\":\"Denmark\",\"currencyName\":\"Danish kroner\",\"usable\":true,\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\"}],\"categories\":[{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\"}]}]}"
 				}
 			],
 			"GET /api/statuses": [
