@@ -321,10 +321,17 @@ docker compose up -d
 
 Then open the address you set, and create the first account.
 
-**Version numbers count themselves.** Each version is two numbers, like `1.4`. Every change that
-reaches `main` raises the second number by one. A pull request with `[major]` in its title, or the
-`major` label, raises the first number and sets the second to 0 when it is merged. Each published
-image is tagged with its version too, so `ghcr.io/mm98/spendly:1.4` names one exact build.
+**Version numbers count themselves.** Each version is three numbers, like `1.4.2`: major, minor and
+build. Each change that reaches `main` raises one of them and sets the numbers after it to 0:
+
+- A small change, such as a fix or polish, raises the build number. This is the default.
+- A pull request with `[minor]` in its title, or the `minor` label, extends a feature and raises
+  the minor number.
+- A pull request with `[major]` in its title, or the `major` label, is a new, bigger feature and
+  raises the major number.
+
+Each published image is tagged with its version too, so `ghcr.io/mm98/spendly:1.4.2` names one
+exact build.
 
 The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
 
