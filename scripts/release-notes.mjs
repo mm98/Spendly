@@ -1,7 +1,7 @@
 // Usage: node scripts/release-notes.mjs [ref]
 //
 // Prints, as one line of JSON, the release notes of the newest versions on main up to `ref` (default
-// HEAD), newest first: [{ version, notes: ["...", ...] }]. Each change adds one file to release-notes/
+// HEAD), newest first: [{ version, notes: ["...", ...] }]. Each change adds one file to .releases/
 // (its README says how), and a file belongs to the version of the change on main that added it.
 // A version whose file says no change can be seen is left out. Needs the history's trees, not its
 // files (a checkout with fetch-depth: 0 and filter: blob:none).
@@ -10,7 +10,12 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { versionsOnMain } from "./version.mjs";
 
-export const NOTES_FOLDER = "release-notes";
+export const NOTES_FOLDER = ".releases";
+// the folder's earlier names: a note added there is still the note of the change that added it
+const EARLIER_NOTES_FOLDERS = ["release-notes"];
+// "{yyyyMMdd}.{HHmm} - {Title}.md", the time written (UTC). No colon in the time and none of
+// \ / : * ? " < > | in the title, since Windows cannot hold such a file and git cannot check it out there.
+export const NOTE_NAME = /^\d{8}\.\d{4} - [^\s\\/:*?"<>|][^\\/:*?"<>|]*\.md$/;
 // how far back Settings can look: the image carries this many versions that have notes
 const VERSIONS_KEPT = 20;
 const MAX_NOTES = 3;
@@ -41,23 +46,35 @@ export function readNote(text) {
 	return { notes, faults };
 }
 
-const git = args => execFileSync("git", args, { encoding: "utf8", maxBuffer: 1 << 28 });
+// core.quotePath=false: a name with a letter outside ASCII is printed as it is, not quoted
+const git = args => execFileSync("git", ["-c", "core.quotePath=false", ...args], { encoding: "utf8", maxBuffer: 1 << 28 });
 
 /** The notes of the newest versions up to `ref` that have any, newest first. */
 export function releaseNotes(ref = "HEAD") {
-	// --diff-merges=first-parent: a merge commit lists what the merge brought into main
-	const log = git(["log", "--first-parent", "--diff-merges=first-parent", "--diff-filter=A", "--name-only",
-		"--format=%x1e%H", ref, "--", `${NOTES_FOLDER}/*.md`, `:!${NOTES_FOLDER}/README.md`]);
+	const folders = [NOTES_FOLDER, ...EARLIER_NOTES_FOLDERS];
+	const paths = folders.flatMap(folder => [`${folder}/*.md`, `:!${folder}/README.md`]);
+	// --diff-merges=first-parent: a merge commit lists what the merge brought into main. With renames
+	// found, a moved note is a rename and not a new note, so it keeps the version that added it.
+	const history = (...options) => git(["log", "--first-parent", "--diff-merges=first-parent", "--find-renames",
+		...options, ref, "--", ...paths]);
+	const log = history("--diff-filter=A", "--name-only", "--format=%x1e%H");
 	const filesOf = new Map(log.split("\x1e").slice(1).map(entry => {
 		const [commit, ...files] = entry.trim().split("\n");
 		return [commit, files.filter(Boolean)];
 	}));
+	// where each moved note went, so it is read where it is at `ref`
+	const movedTo = new Map(history("--diff-filter=R", "--name-status", "--format=").split("\n").filter(Boolean)
+		.map(line => line.split("\t").slice(1)));
+	const pathAtRef = file => {
+		for (let moves = 0; movedTo.has(file) && moves < movedTo.size; moves++) file = movedTo.get(file);
+		return file;
+	};
 	const versions = [];
 	for (const { commit, version } of versionsOnMain(ref).reverse()) {
 		if (versions.length === VERSIONS_KEPT) break;
 		// the text as it is at `ref`, so a note corrected later is shown corrected
 		const notes = (filesOf.get(commit) ?? []).flatMap(file => {
-			try { return readNote(git(["show", `${ref}:${file}`])).notes } catch { return [] }
+			try { return readNote(git(["show", `${ref}:${pathAtRef(file)}`])).notes } catch { return [] }
 		});
 		if (notes.length) versions.push({ version, notes });
 	}

@@ -236,8 +236,8 @@ schema in a new migration.
 
 ### Every change that reaches the app adds its release note in the same pull request
 
-One file in `release-notes/`, named like the branch, written by the rule in its README: what the
-reader can now do or see, in the words on the screen. A change nobody can see says so in the file.
+One file in `.releases/`, named and written by the rule in its README: what the reader can now do or
+see, in the words on the screen. A change nobody can see says so in the file.
 `node scripts/check-release-notes.mjs` runs with the other checks before the merge.
 
 ## Verification
