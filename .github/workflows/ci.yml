@@ -130,7 +130,7 @@ jobs:
       - name: Install the browser the stories are tested in
         if: ${{ !cancelled() }}
         # it takes under half a minute; a download that hangs fails here instead of holding the run
-        timeout-minutes: 3
+        timeout-minutes: 1
         working-directory: storybook
         run: npx playwright install --with-deps --only-shell chromium
       # Every story renders, runs its play steps and its accessibility check, and logs no error.
