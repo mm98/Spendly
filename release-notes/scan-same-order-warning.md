@@ -1,0 +1,1 @@
+- Scan receipt warns you when you already have an order like it: same shop, close date and total.

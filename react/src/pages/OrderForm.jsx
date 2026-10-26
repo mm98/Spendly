@@ -1717,6 +1717,8 @@ function notices({ origin, scan, unclear: fields, lines, leave, touch, jump }) {
 	const unclear = lines.filter(l => l.uncertain && l.unclearPart !== 'title').length
 	const hard = [unclear ? plural(unclear, 'line') : null, ...fields.map(f => UNCLEAR_FIELD[f])].filter(Boolean)
 	const looks = [
+		// the amount is mid-sentence: it ends in a full stop of its own
+		...(scan.duplicate ? [`you already have an order for ${money(scan.duplicate.total)} from ${scan.vendor} on ${dayShortMonth(scan.duplicate.title)}`] : []),
 		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
 		...(scan.total == null ? ['no printed total was found'] : []),
 		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : []),

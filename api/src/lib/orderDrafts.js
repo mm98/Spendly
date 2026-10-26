@@ -18,12 +18,22 @@ export const UPLOAD_TTL_SECONDS = 24 * 60 * 60
 
 const selectFormDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM user_settings WHERE user_id = ?')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
-/* A possible duplicate: the same vendor within two weeks of the read date, nearest first. Wider would
-   flag every order from a vendor the account buys from often. */
+/* A possible duplicate: same vendor, up to DUPLICATE_DAYS away, total within DUPLICATE_SHARE of the order's.
+   Paid totals, after discount, so a discount kept apart and one inside the line prices compare the same. */
+const DUPLICATE_DAYS = 3
+const DUPLICATE_SHARE = 0.1
 const selectPossibleDuplicate = db.prepare(`
 	SELECT id, date, item_count, total FROM orders
 	WHERE user_id = @userId AND vendor_id = @vendorId AND date BETWEEN @from AND @to
-	ORDER BY ABS(date - @target) ASC LIMIT 1`)
+		AND abs(total - @paid) <= abs(total) * @share + 0.005
+	ORDER BY abs(date - @target), abs(total - @paid) LIMIT 1`)
+
+/** What the document says was paid: its printed total, or its lines with shipping and discount. */
+function paidOf(read) {
+	if (read.total != null) return read.total
+	const lines = read.lines.reduce((sum, l) => sum + (Number(l.quantity) || 0) * (Number(l.price) || 0), 0)
+	return lines + (Number(read.shipping) || 0) - (Number(read.discount) || 0)
+}
 
 // what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
 const FROM_DOCUMENT = {
@@ -80,7 +90,11 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 	let duplicate = null
 	if (!look && vendorId && read.date) {
 		const target = toEpoch(read.date)
-		const row = selectPossibleDuplicate.get({ userId, vendorId, target, from: target - 14 * 86400, to: target + 14 * 86400 })
+		const paid = paidOf(read)
+		const row = selectPossibleDuplicate.get({
+			userId, vendorId, target, from: target - DUPLICATE_DAYS * 86400, to: target + DUPLICATE_DAYS * 86400,
+			paid, share: DUPLICATE_SHARE
+		})
 		if (row) duplicate = {
 			orderId: row.id, title: fromEpoch(row.date),
 			meta: `${row.item_count} item${row.item_count === 1 ? '' : 's'}`, total: row.total
