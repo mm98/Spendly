@@ -576,6 +576,28 @@ export async function getOrderOffers(body, signal) {
 	return request('/api/offers/order', { method: 'POST', body, signal })
 }
 
+/** Each offer source with its picked vendors and categories (Settings and import 11a). */
+export async function getOfferPicks(signal) {
+	return request('/api/offers/picks', { signal })
+}
+
+export async function saveOfferPicks(sources) {
+	const saved = await request('/api/offers/picks', { method: 'PUT', body: { sources } })
+	drop([getOfferPicks, getOfferPicksOf])
+	return saved
+}
+
+/** The sources a vendor or a category (`kind`) is picked for: its page's Offers card (5c, 5f). */
+export async function getOfferPicksOf(kind, id, signal) {
+	return request(`/api/offers/picks/${kind}/${id}`, { signal })
+}
+
+export async function saveOfferPicksOf(kind, id, picked) {
+	const saved = await request(`/api/offers/picks/${kind}/${id}`, { method: 'PUT', body: { picked } })
+	drop([getOfferPicks, getOfferPicksOf])
+	return saved
+}
+
 export async function getCategory(id, signal) {
 	return request(`/api/categories/${id}`, { signal })
 }
@@ -1370,8 +1392,8 @@ export const bookmarkSorts = [
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
 const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getStatuses, getViews]
-const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
+const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention, getOfferPicks, getOfferPicksOf]
+const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary, getOfferPicks, getOfferPicksOf]
 const bookmarkReads = [getBookmarks, getCounts, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

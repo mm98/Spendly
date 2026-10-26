@@ -374,7 +374,8 @@ const REQUESTS = [
 	'/search/names?span=groceries&span=netto&span=zzz', '/search/names?span=føtex&span=mad',
 	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
-	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
+	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture',
+	'/offers/picks', `/offers/picks/vendor/${ids.vendor}`, `/offers/picks/category/${ids.category}`
 ]
 
 for (const request of REQUESTS) {
@@ -420,6 +421,10 @@ for (const [method, path, body] of [
 	['DELETE', '/ask/files/af-removed'],
 	['POST', '/ask/files/af-removed/restore'],
 	['POST', '/vendors/known', { names: ['Netto', 'Netto ApS', 'Nowhere Shop'] }],
+	// whether an order gets Check offers, from what is kept only, so no other site is asked
+	['POST', '/offers/order', { vendorName: 'Netto', categoryNames: ['Groceries'], date: new Date().toISOString().slice(0, 10), lines: [{ title: 'Mælk', quantity: 1, price: 12 }] }],
+	['PUT', '/offers/picks', { sources: { tilbudsugen: { vendorIds: [ids.vendor], categoryIds: [ids.category] } } }],
+	['PUT', `/offers/picks/vendor/${ids.vendor}`, { picked: { tilbudsugen: false } }],
 	// a line removed from Previous imports, and put back by its toast's Undo
 	['PATCH', '/imports/im-fixture', { hidden: true }],
 	['PATCH', '/imports/im-fixture', { hidden: false }],

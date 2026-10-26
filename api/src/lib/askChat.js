@@ -3,6 +3,7 @@ import { MAKERS, PLACE_LINE, madeIn, makerOfPlace, placesIn } from '../format/in
 import { emailMessage } from './emails.js'
 import { newId } from './ids.js'
 import { publicLink, sendMail } from './mail.js'
+import { initialsOf } from './names.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 
 /* What Ask keeps beside the conversation (24b, 24c): the reader's saved questions, and the
@@ -112,13 +113,6 @@ export function answerBlocks(text, write, { made, attached }) {
 		flush()
 	}
 	return blocks.filter(Boolean)
-}
-
-const initialsOf = name => {
-	const words = String(name).trim().split(/\s+/).filter(Boolean)
-	if (!words.length) return ''
-	if (words.length === 1) return words[0].slice(0, 2).toLocaleUpperCase()
-	return (words[0][0] + words[1][0]).toLocaleUpperCase()
 }
 
 // the currency's English name as an amount says it: "Danish kroner"

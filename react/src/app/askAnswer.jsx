@@ -2,8 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../components/Chat.jsx'
 import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
 import { amount, currency, dot, plural, shortDate } from '../api/format.js'
-import { LinePhoto } from '../pages/OrderParts.jsx'
-import { credit, offerName, offerPrice, offerUnitPrice, useLoadedPicture } from '../pages/orderOffers.jsx'
+import { OfferName, ShopMark, credit, offerPrice, offerUnitPrice } from '../pages/orderOffers.jsx'
 
 /* An answer from Ask, in the small format lib/ask.js asks for: paragraphs, "- "
    lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place
@@ -161,16 +160,14 @@ export function AnswerChart({ chart, onOpen }) {
 	return Drawing ? <Drawing chart={chart} onOpen={onOpen} /> : null
 }
 
-// one offer of a block (Ask 24d 11): a file's row with the price where Download sits; the row does nothing
-function OfferRow({ offer }) {
-	const picture = useLoadedPicture(offer.image)
-	const named = offerName(offer)
+// one offer of a block (Ask 24d 11): a file's row with the price where Download sits; only the name is a link
+function OfferRow({ offer, source }) {
 	const perUnit = offerUnitPrice(offer)
 	return (
 		<div className="sp-chat__file">
-			<LinePhoto src={picture} name={named} />
+			<ShopMark offer={offer} />
 			<span className="sp-stacked">
-				<span className="sp-chat__file-name sp-truncate" title={named}>{named}</span>
+				<OfferName offer={offer} source={source} nameClass="sp-chat__file-name sp-truncate" />
 				<span className="sp-meta">{offer.shop}{dot}until {shortDate(offer.to)}{offer.membersOnly ? <>{dot}Members only</> : null}</span>
 			</span>
 			<span className="sp-stacked sp-cell-amount sp-chat__price">
@@ -184,7 +181,7 @@ function OfferRow({ offer }) {
 // a block of offers: its rows, none when nothing was on offer, then where they come from, once
 const OfferBlock = ({ block }) => (
 	<>
-		{block.offers.length ? <ChatFiles>{block.offers.map((offer, i) => <OfferRow key={i} offer={offer} />)}</ChatFiles> : null}
+		{block.offers.length ? <ChatFiles>{block.offers.map((offer, i) => <OfferRow key={i} offer={offer} source={block.source} />)}</ChatFiles> : null}
 		<span className="sp-meta">{credit(block.source)}</span>
 	</>
 )

@@ -87,6 +87,23 @@ export function Skeleton({ shape, ...rest }) {
 	return <span className={join('sp-skeleton', pick(SKELETON, shape, 'shape', 'Skeleton'))} aria-hidden="true" {...rest} />
 }
 
+/** A name that opens another site in a new tab (c28, sp-link-out): the name in its own role, then the
+    external-link glyph. `label` says where it goes, as the tip and in the accessible name.
+    @param {object} props
+    @param {string} props.href The other site's address.
+    @param {string} props.label Where it goes, such as Netto's offer paper or Search on Tilbudsugen.
+    @param {string} [props.nameClass] The name's own role, such as sp-title or sp-chat__file-name sp-truncate.
+    @param {string} props.children The name. */
+export function LinkOut({ href, label, nameClass, children, ...rest }) {
+	reject(rest, 'LinkOut')
+	return (
+		<a className="sp-link-out" href={href} target="_blank" rel="noopener" data-tip={label} aria-label={`${children}, ${label}, opens in a new tab`}>
+			<span className={nameClass}>{children}</span>
+			<Icon name="external-link" size={13} />
+		</a>
+	)
+}
+
 /** Work of unknown length, on one line of text. */
 export function Spinner(props) {
 	reject(props, 'Spinner')

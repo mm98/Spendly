@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { IconButton, Button } from '../components/Button.jsx'
 import { Sum } from '../components/Data.jsx'
-import { Anchor, Leaving, Popover } from '../components/Overlays.jsx'
+import { Mark, initialsOf } from '../components/Mark.jsx'
+import { Anchor, DialogActions, Leaving, Popover } from '../components/Overlays.jsx'
+import { Scrim } from '../components/Shell.jsx'
+import { Sheet } from '../components/Touch.jsx'
+import { LinkOut, useFocusTrap } from '../components/Utilities.jsx'
 import { getOrderOffers } from '../api/client.js'
 import { dot, plural, quantity, shortDate } from '../api/format.js'
-import { LinePhoto, money } from './OrderParts.jsx'
+import { swatchOf } from '../app/categoryMark.jsx'
+import { useShellShape } from '../app/useMedia.js'
+import { money } from './OrderParts.jsx'
 
 /* This week's grocery offers on an order (Order editing layouts 1a): asked for only by Check offers, one
    request for every line; on opening, only an answer the server already keeps is read. */
@@ -17,10 +24,15 @@ const UNIT = {
 
 const sentLines = lines => lines.map(l => ({ title: l.title ?? '', quantity: Number(l.quantity) || 0, price: Number(l.price) || 0 }))
 
-/** The offers for an order: `vendor` is { id } or { name }. State is `unchecked`, `checking`, `checked`,
-    `failed` or `wait`; `offerOf(index)` is a line's offer, `counted` what At this week's offers sums. */
-export function useOrderOffers({ vendor, date, lines }) {
-	const sent = { ...(vendor?.id ? { vendorId: vendor.id } : { vendorName: vendor?.name ?? '' }), date, lines: sentLines(lines) }
+/** The offers for an order: `vendor` is { id } or { name }, `categories` ({ id }) or names. State is `unchecked`,
+    `checking`, `checked`, `failed` or `wait`; `offerOf(index)` is a line's offer, `counted` what At this week's offers sums. */
+export function useOrderOffers({ vendor, categories = [], date, lines }) {
+	const sent = {
+		...(vendor?.id ? { vendorId: vendor.id } : { vendorName: vendor?.name ?? '' }),
+		...(categories.every(c => typeof c === 'string') ? { categoryNames: categories } : { categoryIds: categories.map(c => c.id) }),
+		date,
+		lines: sentLines(lines)
+	}
 	const key = JSON.stringify(sent)
 	const [answer, setAnswer] = useState({ key: null, shown: false })
 	const [checking, setChecking] = useState(false)
@@ -80,20 +92,6 @@ export function offersHead(offers) {
 /** Where the offers come from, a link to the site in a new tab: "Offers from Tilbudsugen". */
 export const credit = source => <a href={`https://${source.site}`} target="_blank" rel="noopener">Offers from {source.name}</a>
 
-/** An offer's picture once it has loaded, else null: a picture the site will not give stays the empty
-    mark, never a broken image. */
-export function useLoadedPicture(src) {
-	const [loaded, setLoaded] = useState(null)
-	useEffect(() => {
-		if (!src) return undefined
-		const picture = new Image()
-		picture.onload = () => setLoaded(src)
-		picture.src = src
-		return () => { picture.onload = null }
-	}, [src])
-	return loaded === src ? src : null
-}
-
 const sizeOf = size => (size ? ` ${quantity(size.amount)} ${UNIT[size.unit]?.size ?? size.unit}` : '')
 
 /** The product as the shop lists it, with its size, never the line's own words, so another brand reads as one. */
@@ -108,47 +106,96 @@ export const offerUnitPrice = offer => {
 	return unit ? `${money(offer.perUnit.price)} ${unit.after}` : null
 }
 
-/** The tag between a line's name and its amount, and the offer it opens (1a, 1c). */
-export function OfferTag({ line, offer, source, open, onOpen, onClose }) {
+/** The shop's place on an offer (c2): its logo on white, else the reader's own vendor mark, else its initials in grey. */
+export function ShopMark({ offer }) {
+	if (offer.shopLogo) return <Mark size="medium" logo aria-hidden="true" aria-label={offer.shop}><img src={offer.shopLogo} alt="" /></Mark>
+	if (offer.vendor) {
+		return (
+			<Mark size="medium" logo fill="solid" swatch={swatchOf(offer.vendor.colour)} aria-hidden="true" aria-label={offer.vendor.name}>
+				<span>{initialsOf(offer.vendor.name)}</span>
+			</Mark>
+		)
+	}
+	return <Mark size="medium" logo fill="none" aria-hidden="true">{offer.shop}</Mark>
+}
+
+/** The product's name as a link to where the offer can be seen (c28): the shop's own paper, or the source's search. */
+export function OfferName({ offer, source, nameClass }) {
+	const named = offerName(offer)
+	if (!offer.link) return <span className={nameClass}>{named}</span>
+	const label = offer.link.paper ? `${offer.shop}'s offer paper` : `Search on ${source.name}`
+	return <LinkOut href={offer.link.url} label={label} nameClass={nameClass}>{named}</LinkOut>
+}
+
+/** The tag between a line's name and its amount, and the offer it opens (1a, 1c): a panel from the tag, or
+    on touch a sheet. `date` is the order's, said with what was paid when it is older than the offer. */
+export function OfferTag({ line, offer, source, date, open, onOpen, onClose }) {
+	const touch = useShellShape() === 'touch'
 	const box = useRef(null)
+	const sheet = useRef(null)
+	useFocusTrap(sheet, open && touch)
 	useEffect(() => {
-		if (!open) return undefined
+		if (!open || touch) return undefined
 		const away = ev => { if (!box.current?.contains(ev.target)) onClose() }
 		const key = ev => { if (ev.key === 'Escape') { onClose(); box.current?.querySelector('button')?.focus() } }
 		document.addEventListener('pointerdown', away)
 		document.addEventListener('keydown', key)
 		return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', key) }
-	}, [open])
-	const picture = useLoadedPicture(open ? offer.image : null)
+	}, [open, touch])
 	const per = offer.perUnit && UNIT[offer.perUnit.unit]
-	const named = offerName(offer)
+	const head = (
+		<span className="sp-cell-flex">
+			<ShopMark offer={offer} />
+			<span className="sp-stacked">
+				<OfferName offer={offer} source={source} nameClass="sp-title" />
+				<span className="sp-subtitle">{offer.shop}{dot}until {shortDate(offer.to)}</span>
+			</span>
+		</span>
+	)
+	const members = offer.membersOnly ? <span className="sp-subtitle">For members only</span> : null
+	const paid = `${money(line.price)} each${date && offer.from && date < offer.from ? ` on ${shortDate(date)}` : ''}`
+	const sums = (
+		<>
+			<div className="sp-stack">
+				<Sum value={offerPrice(offer)}>Offer</Sum>
+				{per ? <Sum value={money(offer.perUnit.price)}>{per.per}</Sum> : null}
+				<Sum value={paid}>You paid</Sum>
+			</div>
+			<span className="sp-meta">{credit(source)}</span>
+		</>
+	)
+	const label = `Offer for ${line.title}`
 	return (
-		<Anchor open={open} ref={box}>
+		<Anchor open={open && !touch} ref={box}>
 			<IconButton size="small" icon="tag" aria-label={`Offer at ${offer.shop}`} data-tip={`On offer at ${offer.shop}`}
 				aria-expanded={open ? 'true' : 'false'} aria-haspopup="dialog" onClick={() => (open ? onClose() : onOpen())} />
-			<Leaving>{open
+			<Leaving>{open && !touch
 				? (
-					<Popover position="end" role="dialog" aria-label={`Offer for ${line.title}`}
-						head={<>
-							<span className="sp-section-label">Possible match</span>
-							<span className="sp-cell-flex">
-								<LinePhoto src={picture} name={named} />
-								<span className="sp-stacked">
-									<span className="sp-title">{named}</span>
-									<span className="sp-subtitle">{offer.shop}{dot}until {shortDate(offer.to)}</span>
-								</span>
-							</span>
-						</>}
-						note={offer.membersOnly ? <span className="sp-subtitle">For members only</span> : null}>
-						<div className="sp-stack">
-							<Sum value={offerPrice(offer)}>Offer</Sum>
-							{per ? <Sum value={money(offer.perUnit.price)}>{per.per}</Sum> : null}
-							<Sum value={`${money(line.price)} each`}>You paid</Sum>
-						</div>
-						<span className="sp-meta">{credit(source)}</span>
+					<Popover position="end" role="dialog" aria-label={label}
+						head={<><span className="sp-section-label">Possible match</span>{head}</>} note={members}>
+						{sums}
 					</Popover>
 				)
 				: null}</Leaving>
+			{touch
+				? createPortal(
+					<Leaving>{open
+						? (
+							<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+								<Sheet role="dialog" aria-modal="true" aria-label={label} ref={sheet} onDismiss={onClose}
+									onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
+									<span className="sp-heading">Possible match</span>
+									{head}
+									{members}
+									{sums}
+									<DialogActions><Button variant="outline" fullWidth onClick={onClose}>Close</Button></DialogActions>
+								</Sheet>
+							</Scrim>
+						)
+						: null}</Leaving>,
+					document.body
+				)
+				: null}
 		</Anchor>
 	)
 }
