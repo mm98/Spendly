@@ -1068,7 +1068,7 @@ export async function getVersion(signal) {
 }
 
 /** The running build against the newest published one, asked of the registry by the server:
-    { current, published, commit, latestBuiltAt }, the last null when it is this one or unknown. */
+    { current, published, commit, latestBuiltAt, latestVersion }, the last two null when it is this one or unknown. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
 }
