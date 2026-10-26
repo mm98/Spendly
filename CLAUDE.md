@@ -232,6 +232,14 @@ The runner records each file by name and never runs it twice, so an edited migra
 database that ran the old one. That includes the user's own copy of an unmerged branch: change the
 schema in a new migration.
 
+## Release notes
+
+### Every change that reaches the app adds its release note in the same pull request
+
+One file in `release-notes/`, named like the branch, written by the rule in its README: what the
+reader can now do or see, in the words on the screen. A change nobody can see says so in the file.
+`node scripts/check-release-notes.mjs` runs with the other checks before the merge.
+
 ## Verification
 
 ### Verification is one pass at the end, not a gate on every edit
@@ -314,9 +322,10 @@ paged or searched on the server, and is tested with more rows than the demo data
   account, at least one case for every kind of record, and is safe to run again. A case found
   later that it lacks is added to the script in the same change that handles it.
 - **Chromium is the default and only installed engine.** `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`
-  (Playwright 1.56.1). Firefox/WebKit need an explicit install first
-  (`npx playwright install firefox`, or `webkit` + `install-deps webkit`). Firefox is an explicit
-  request; WebKit is required by the rule below. Report "verified in Blink, others unverified,"
+  Firefox/WebKit need an explicit install first, with the global Playwright's own CLI so the
+  engine matches it (`node /opt/node22/lib/node_modules/playwright/cli.js install webkit`, then
+  `install-deps webkit`); `npx playwright` may fetch another release whose engine it cannot use.
+  Firefox is an explicit request; WebKit is required by the rule below. Report "verified in Blink, others unverified,"
   never silence.
 - **A fault on an iPhone is reproduced in WebKit, not Chromium.** Native date fields, the phone's
   keyboard-facing inputs and other controls the engine draws itself differ there. Use the

@@ -188,7 +188,8 @@ Everything that needs you, on one page.
 - **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
   duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
 - **Demo data** - fill an account with realistic orders to try Spendly out.
-- **This build** - the installed version number, and "Update and reload" when a newer one is ready.
+- **This build** - the installed version number, what changed in it and the versions before it, and
+  "Update and reload" when a newer one is ready, with what is new in it.
 
 ### Light, dark and phone
 
@@ -332,6 +333,12 @@ build. Each change that reaches `main` raises one of them and sets the numbers a
 
 Each published image is tagged with its version too, so `ghcr.io/mm98/spendly:1.4.2` names one
 exact build.
+
+**Each version carries its release notes.** Every change that reaches the app adds one short file to
+`release-notes/`: up to three plain lines on what the user can now do or see, or "No change you can
+see." The image build gives each file the version of the change that added it, and carries the notes
+of the newest 20 versions that have any. A check in CI stops a change without a note, or a note in
+technical words. `release-notes/README.md` says how to write one.
 
 The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
 

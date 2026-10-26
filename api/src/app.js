@@ -149,6 +149,30 @@ const LIGHTHOUSE = (() => {
 	}
 })()
 
+/* What changed in the newest versions up to this one, newest first: [{ version, notes }], as
+   scripts/release-notes.mjs writes it at image build. Read once at boot, as LIGHTHOUSE is. */
+const releaseNotesOf = (text, where) => {
+	if (!text) return []
+	try {
+		const versions = JSON.parse(text)
+		return Array.isArray(versions) ? versions : []
+	} catch (e) {
+		console.error(`The release notes of ${where} are not JSON, so none are shown: ${e.message}`)
+		return []
+	}
+}
+const RELEASE_NOTES = releaseNotesOf(process.env.SPENDLY_RELEASE_NOTES, 'this build')
+
+// "1.10.0" after "1.9.3": compared part by part as numbers
+const isNewer = (version, than) => {
+	const [a, b] = [version, than].map(v => String(v).split('.').map(Number))
+	for (let i = 0; i < Math.max(a.length, b.length); i++) if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0)
+	return false
+}
+
+// apart from /api/version, which is asked every two seconds while an update installs
+app.get('/api/version/notes', (req, res) => res.json({ versions: RELEASE_NOTES }))
+
 app.get('/api/version', (req, res) => res.json({
 	version: process.env.SPENDLY_VERSION || null,
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
@@ -195,7 +219,7 @@ async function publishedDigests(commit) {
 	if (!latest) throw new Error('the registry holds no `latest` tag')
 	const newest = latest === mine ? {}
 		: await buildStampOf(`https://${registry}/v2/${repo}`, latest, token, signal)
-	return { latest, mine, latestBuiltAt: newest.builtAt ?? null, latestVersion: newest.version ?? null }
+	return { latest, mine, latestBuiltAt: newest.builtAt ?? null, latestVersion: newest.version ?? null, latestNotes: newest.notes ?? [] }
 }
 
 /* The build time and version of the image behind `digest`, from its config blob. The blob lives on a
@@ -210,7 +234,8 @@ async function buildStampOf(base, digest, token, signal) {
 		if (!blob.ok) return {}
 		const image = await blob.json()
 		const env = name => image.config?.Env?.find(e => e.startsWith(`${name}=`))?.slice(name.length + 1) || null
-		return { builtAt: env('SPENDLY_BUILD_TIME') || image.created || null, version: env('SPENDLY_VERSION') }
+		return { builtAt: env('SPENDLY_BUILD_TIME') || image.created || null, version: env('SPENDLY_VERSION'),
+			notes: releaseNotesOf(env('SPENDLY_RELEASE_NOTES'), 'the newest version') }
 	} catch {
 		return {}
 	}
@@ -223,11 +248,14 @@ app.get('/api/version/check', requireAuth, async (req, res) => {
 	const commit = process.env.SPENDLY_BUILD_SHA || null
 	if (!commit) return res.status(409).json({ error: 'No build stamp: this server is not running from the Docker image.' })
 	try {
-		const { latest, mine, latestBuiltAt, latestVersion } = await publishedDigests(commit)
+		const { latest, mine, latestBuiltAt, latestVersion, latestNotes } = await publishedDigests(commit)
+		// only what this one does not have yet; without a version of its own nothing can be told apart
+		const running = process.env.SPENDLY_VERSION
+		const newerNotes = running ? latestNotes.filter(({ version }) => isNewer(version, running)) : []
 		/* `published: false` is its own fact, not a flavour of "behind": a locally built
 		   image whose commit was never pushed to the registry cannot be compared, and
 		   calling it out of date would send someone pulling for an update that is not one. */
-		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit, latestBuiltAt, latestVersion })
+		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit, latestBuiltAt, latestVersion, newerNotes })
 	} catch (e) {
 		// fetch's own message is only "fetch failed"; the reason is in its cause
 		const error = `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}${e.cause ? ` (${e.cause.message ?? e.cause})` : ''}`
