@@ -35,7 +35,6 @@ import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
-import { scrollWindow } from '../app/listMemory.js'
 import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
@@ -355,11 +354,11 @@ function Arrive({ section, visit, room, children }) {
 		const box = column.current
 		const target = section && box?.querySelector(`[data-section="${section}"]`)
 		if (!target) {
-			scrollWindow(0)
+			window.scrollTo({ top: 0 })
 			return
 		}
 		const first = box.querySelector('[data-section]')
-		scrollWindow(target.getBoundingClientRect().top - first.getBoundingClientRect().top)
+		window.scrollTo({ top: target.getBoundingClientRect().top - first.getBoundingClientRect().top })
 		target.focus({ preventScroll: true })
 	}, [section, visit])
 	return <div className="sp-stack sp-gap-12" ref={column}>{children}</div>

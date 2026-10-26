@@ -4,15 +4,18 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The side menu's highlight jumps when a scrolled-down page is left
+## The side menu's highlight jumps when the page scrolls as a row is picked
 
-- **Where:** the side menu on a desktop (`react/src/app/AppShell.jsx`), the highlight drawn by NavItem.
-- **What the reader sees:** scrolled down Settings or Statistics, a click on another menu row makes the
-  highlight start far below its row and slide up; the menu shows a scroll bar for a moment.
-- **What was found:** the highlight measures rows on the whole page, not on the screen, so a page
-  scroll in the same moment reads as movement. Claude Design's answer (the side menu as a Motion
-  `layoutRoot`) is built in, but measured frame by frame it does not stop this: leaving Statistics or
-  Settings scrolled down, the highlight still starts up to the scroll distance below its row.
+- **Where:** the side menu on a desktop, the highlight drawn by `NavItem` (`react/src/components/Shell.jsx`).
+- **What the reader sees:** picking a Settings section, or leaving a scrolled-down page for another
+  menu row, makes the highlight start far above or below its row and slide back; while it is below,
+  the menu shows a scroll bar for a moment.
+- **What was found:** Motion measures the highlight on the whole page (screen place plus page scroll).
+  The side menu does not move with the page, so a page scroll between two measurements reads as
+  movement. When another row is picked, Motion measures the old highlight while the new page is being
+  prepared (`framer-motion` `use-visual-element.mjs`, "snapshot the lead now, while rendering"), before
+  the new page scrolls to the top. `layoutRoot` on the side menu does not change that measurement.
+  A component change, so a brief for Claude Design: `Brief-nav-highlight-layoutroot-follow-up.md`.
 - **Found:** 2026-10-26.
 
 ## Large accounts still make everyone wait on a few pages
