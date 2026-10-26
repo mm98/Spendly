@@ -4,18 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## A tall shop logo is cut at the bottom of its mark
-
-- **Where:** `.sp-mark--logo` in `design/styles/components.css` (Components c2), drawn on Ask's offer rows.
-- **What the reader sees:** a logo taller than the mark's shape, such as Rema 1000's, showed only its
-  top half.
-- **What was found:** the image's `height: 100%` has nothing to resolve against in the mark's grid, so
-  the image takes its own height and the mark crops it. `react/src/styles/app.css` sets the mark's
-  track (`grid-template: minmax(0, 1fr) / minmax(0, 1fr)` on `.sp-mark--logo:has(> img)`), so every
-  logo is drawn whole and centred.
-- **Proposed shape:** Claude Design takes that rule into `.sp-mark--logo`; the app's copy and this entry then go.
-- **Found:** 2026-10-26.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
