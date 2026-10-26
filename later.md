@@ -59,12 +59,3 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
-
-## The plain-text email of a chat leaves its offers out
-
-- **Where:** `api/src/emails/ask-chat.txt`, copied from `design/emails/ask-chat.txt`.
-- **What the reader sees:** an email program that shows only the text part shows the answer's words
-  and the credit line, but no offers. The HTML part shows them.
-- **What was found:** the text template has a part for files and charts, and none for `{{#offers}}`.
-- **Proposed shape:** Claude Design adds an offers part to the text template, one line an offer.
-- **Found:** 2026-10-26.
