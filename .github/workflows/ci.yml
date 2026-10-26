@@ -119,10 +119,22 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: storybook
         run: npm run build -- --stats-json
+      # The browser is kept between runs, so a slow download site does not slow every run. The key
+      # follows the lockfile, since the Playwright version there decides which browser is needed.
+      - name: Keep the browser the stories are tested in
+        if: ${{ !cancelled() }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('storybook/package-lock.json') }}
       - name: Install the browser the stories are tested in
         if: ${{ !cancelled() }}
+        # it takes seconds; a download that hangs fails here instead of holding the run
+        timeout-minutes: 1
         working-directory: storybook
-        run: npx playwright install --with-deps --only-shell chromium
+        # No --with-deps: the runner already has the libraries Chrome needs, and the stories bring
+        # their own fonts, so the system packages it would add are a slow download for nothing.
+        run: npx playwright install --only-shell chromium
       # Every story renders, runs its play steps and its accessibility check, and logs no error.
       - name: Every story passes its tests
         if: ${{ !cancelled() }}
