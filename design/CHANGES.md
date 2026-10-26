@@ -1,57 +1,52 @@
-# Every version shows what it brings, even with no change you can see
+# Changes: the side menu's highlight counts a page scroll as movement, and the release notes limit
 
-Answers `Brief-versions-without-visible-change.md`, and the follow-up: the newer-version notice lists it too.
+Answers the brief "the side menu's highlight counts a page scroll as movement" (`Brief-nav-highlight-page-scroll.md`), and one point raised in review on Settings and import 11d: the release notes list needs a limit.
 
-## 1. What changed in Settings, This build
+## 1. The menu's highlight is measured on the screen, not on the page
 
-**The problem.** A version with no release notes was not listed. The reader saw "Version 1.11.3 is available" with no lines under it and wondered what was updated.
+**The problem.** Scrolled down a page (Settings, Statistics), a press on another sidebar row (Home, Vendors, Budget) made the highlight appear up to 700px below the row it left and slide up from there, and the menu showed a scroll bar and changed width while it was below. The sidebar stays put while the page scrolls under it, but Motion measured its rows by their place on the page, so a page scroll in the same moment read as the row moving.
 
-**What changed.** Every version from 1.10.0 on is listed. A version with no change you can see is drawn like any other version: its number in bold, then one line in the same list, "No change you can see." No new part and no new class: the line is an item of `.sp-toast__changes`. Versions before 1.10.0 had no notes, and some did change things you can see, so they are still not listed. When no version is listed, the WHAT CHANGED part is left out, label and all, as before.
+**What changed.** Every box that stays on screen while the page scrolls under it is a Motion layout root, so the markers inside it are measured on the screen. A box that scrolls its own rows also takes `layoutScroll`. No look changes.
 
-**Where.** `Settings and import` 11d state 7, now titled "7 - NO CHANGE YOU CAN SEE": the running 1.4.2 is listed with the line. The note "A version without notes is not listed" is replaced by "Every version is listed, from 1.10.0 on." App: the This build card in `react/src/pages/Settings*`, and the release notes the update check returns.
+- `Sidebar` renders `<m.nav ... layoutRoot>` in place of `<nav>`. This covers every dark row: Home, Scan receipt, New order, All orders, the saved views, Vendors to Statistics, Ask, Settings and the account row.
+- `Panel` (sticky beside a form) renders `<m.div ... layoutRoot>`, so a Segmented or radio-row marker inside it is safe in the same way.
+- `motion.js` re-exports `LayoutGroup`, and its `glide` comment states the rule.
+- In the app, `NavScroll` (`react/src/app/AppShell.jsx`) is the sidebar's scrolling region and moves its own `scrollTop` when the page changes. It becomes `<m.div ref={box} className={...} layoutScroll>` (import `m` from `../components/motion.js`).
+- In the app, Settings' `SectionNav` (`react/src/pages/Settings.jsx`) is sticky and scrolls. It becomes `<m.nav className="st-subnav" aria-label="Settings" layoutRoot layoutScroll>`, with its `sp-nav-list` wrapped in `<LayoutGroup id="settings-sections">`.
+- In the app, the light rows in `react/src/pages/OrderViews.jsx` are in the page flow, so a page scroll moves them for real and they need no root. Each `sp-nav-list` there is wrapped in its own `LayoutGroup`: `id="views"` in `ViewsCard` and `id="views-sheet"` in `SheetViews`. All light rows share the marker id `sp-nav-on-light`. Without the groups, leaving Settings for Orders would glide the light marker from the Settings nav into the Views card, across two coordinate spaces. A page switch moves only the sidebar's marker (`ShellContent`'s JSDoc), so the light marker is drawn in its new list at once.
+- `Segmented.jsx`, `Choice.jsx` and `DatePickers.jsx` are unchanged. Their markers sit in the page flow, where measuring on the page is correct. The fix is on the boxes, not in shared motion code.
 
-**What is still open.** Nothing.
+**How to check in the built app.** On a desktop, scroll Statistics to the bottom and press Home, Vendors and Budget in turn. Do the same from Settings with a section picked low on the pane. The highlight slides straight between the two rows and never starts below the menu. The menu shows no scroll bar and keeps its width. Then pick Settings sections from the section nav: the pane scrolls and the nav's highlight goes straight to the row picked. Leave Settings for Orders: the Views card's highlight is drawn in place, with no glide.
 
-## 2. The amber "Version X is available" notice in This build
+**Where.** `Navigation shell` 9g, new note "The current row's ground slides from the row left to the row reached". `Settings and import` 11a, new note "The section nav's ground slides from section to section". `React components`, Shell segment, new note "A page scroll never moves the marker", and the harness scope now hands on `LayoutGroup`. `react_handoff/Shell.jsx` (`Sidebar`), `react_handoff/Card.jsx` (`Panel`), `react_handoff/motion.js`. App files: `react/src/app/AppShell.jsx` (`NavScroll`), `react/src/pages/Settings.jsx` (`SectionNav`), `react/src/pages/OrderViews.jsx` (`ViewsCard`, `SheetViews`).
 
-**The problem.** A newer version with no notes was not listed inside the notice.
+**What is still open.** Nothing to decide. Run the check above in the built app, since the brief says an earlier fix held in development but not there.
 
-**What changed.** Every newer version is listed with its number. One with no change you can see gives the line "No change you can see." in the notice's ink (`sp-ink-warning`).
+## 2. Release notes: at most 20 versions, and the button names what it will show
 
-**Where.** `Settings and import` 11d state 4: 1.4.3 now reads "No change you can see." The note "State 4 lists what is new" is updated.
+**The problem.** Pressing "Show all N earlier versions" in This build lists versions in place. The app returns at most 20, so on a long history "all" was wrong, and the review asked for a limit.
 
-**What is still open.** Nothing.
+**What changed.** The list holds at most 20 versions, the running one included. The button reads "Show N earlier versions". N counts the earlier versions the list will hold once the button is pressed, so it is at most 19. A version older than those 20 is not listed.
 
-## 3. The count on Show all
-
-**The problem.** "Show all N earlier versions" counted only earlier versions with notes.
-
-**What changed.** N counts every earlier version listed, from 1.10.0 on.
-
-**Where.** `Settings and import` 11d, note "Three versions at first".
-
-**What is still open.** Nothing.
-
-## 4. The newer-version notice at the bottom of the page
-
-**The problem.** "A newer version is available" showed no list when the newer version had no notes, so the reader could not tell what it brings.
-
-**What changed.** The notice always has its list. It shows up to three lines from the newer versions, newest first. Only when no newer version has a change you can see is the list the one line "No change you can see.", the same line as in Settings. Same markup, same `.sp-toast__changes`.
-
-**Where.** `States and confirmations` 6d: a new drawn state, SECTION NOTICE "no change you can see", under the desktop notice. The note "The list is what changed in the newer version" is updated. App: the update notice component that renders `.sp-toast--asks` for a newer version.
+**Where.** `Settings and import` 11d: every state's button ("Show 4 earlier versions") and the note "Three versions at first". App: `react/src/pages/SettingsBuild.jsx` line 134, `Show all ${earlier} earlier versions` becomes `Show ${earlier} earlier versions`, with `earlier` capped at 19. The comment on line 34 changes to match.
 
 **What is still open.** Nothing.
+
+## later.md
+
+Read on main before this task. No entry is a design fix this project can settle now. "A deleted record should not be removed for good at once" still waits on the user's answers about Recently deleted, which were put off earlier, and stays as it is.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged.
-- `CHANGES.md` - this note.
-- `Settings and import.dc.html` - 11d states 4 and 7 and their notes.
-- `States and confirmations.dc.html` - 6d, the new notice state and its note.
-- `support.js`, `components.js` - needed to open the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - loaded by both pages; unchanged.
-- `styles/pages/settings.css`, `styles/pages/states.css` - loaded by the two pages; unchanged.
+- `README.md`: the design's overview, unchanged.
+- `CHANGES.md`: this note.
+- `Navigation shell.dc.html`: 9g note.
+- `Settings and import.dc.html`: 11a note, and the 11d button and note.
+- `React components.dc.html`: Shell motion note, and `LayoutGroup` in the harness scope.
+- `react_handoff/`: every component file, since React components loads them all. Changed: `Shell.jsx`, `Card.jsx`, `motion.js`. No prop changed, so no JSDoc block changed.
+- `support.js`, `components.js`, `icons.js`: loaded by the pages.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/navigation-shell.css`, `styles/pages/settings.css`: loaded by the pages. All unchanged.
 
 ## styles/check.js
 
-Not run to completion: the checker timed out (30 s limit) in this session, before and after the edit. No stylesheet changed. A sweep of both pages for em dashes, en dashes and curly quotes found none.
+Not run to completion. The checker timed out (30 s limit) twice in this session, as it did in the last one. No stylesheet changed. A sweep of every changed file for em dashes, en dashes and curly quotes found none.

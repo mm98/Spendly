@@ -393,6 +393,7 @@
 		<span class="sp-meta">the page's own furniture</span>
 	</div>
 	<div class="doc-note"><b>Motion.</b> The current row's ground is one marker that Motion moves from the row it left to the row it reached, in the dark and the light sidebar alike. The labels run in from <code>--motion-slide</code> as the column opens and out before it closes; <code>Sidebar</code> calls <code>onMotionEnd</code> when they are done, which is when the shell narrows the column. A page switch is not animated: the new page replaces the old at once inside <code>ShellContent</code>, and the sidebar and top bar stay still.</div>
+	<div class="doc-note"><b>A page scroll never moves the marker.</b> <code>Sidebar</code> is <code>m.nav layoutRoot</code>, so its rows are measured on the screen, not on the page: a page that scrolls in the same moment as a row is picked (a page switch scrolling to the top, a Settings section scrolled to) leaves the marker sliding straight from the row it left to the row it reached. The same holds for every box that stays put while the page scrolls under it: <code>Panel</code> is <code>m.div layoutRoot</code>, the app's sidebar scroll region (<code>NavScroll</code>) and Settings' section nav add <code>layoutScroll</code> for their own scroll. A list of light rows that belongs to one page (Settings' sections, the Views card, the filter sheet's views) is its own <code>LayoutGroup</code>, so its marker does not glide across a page switch into another page's list.</div>
 	<div class="doc-note"><b>The account row.</b> <code>SidebarAccount</code> is a <code>NavItem</code> whose whole row is the one button that opens the account menu, as it was: the photo or initials as its <code>mark</code>, the name over the address as its label, the up chevron as its <code>trail</code>. It keeps <code>aria-haspopup="menu"</code>, <code>aria-expanded</code>, Up and Down to open the menu at either end, and the menu placed above the row at its width, or beside the mark on the rail. Its focus ring is the nav row's own. Its name is the words drawn on it, the name and the address; the mark is hidden from screen readers. No <code>control</code>: that is a Switch, and makes the row a label.</div>
 	<div class="doc-note">The shell is a grid of two tracks, and collapsing it is a track width rather than an animation - an animated track reflows every card beside it on every frame. The rail is the same sidebar at its narrow width, and peeking shows its labels over the page rather than pushing it.</div>
 	<span class="doc-specimen__label">the menu, and the top bar above the page</span>
@@ -588,7 +589,7 @@ class Component extends DCLogic {
 				...(() => {
 					const M = window.Motion || {};
 					return {
-						AnimatePresence: M.AnimatePresence, LazyMotion: M.LazyMotion, MotionConfig: M.MotionConfig, domMax: M.domMax,
+						AnimatePresence: M.AnimatePresence, LayoutGroup: M.LayoutGroup, LazyMotion: M.LazyMotion, MotionConfig: M.MotionConfig, domMax: M.domMax,
 						animate: M.animate, m: M.motion, useIsPresent: M.useIsPresent, useMotionValue: M.useMotionValue,
 						useReducedMotionConfig: M.useReducedMotionConfig, Reorder: M.Reorder, useDragControls: M.useDragControls
 					};

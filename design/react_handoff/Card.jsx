@@ -2,7 +2,7 @@ import { Children, createContext, useContext, useRef } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
-import { Fold } from './motion.js'
+import { Fold, m } from './motion.js'
 
 const VARIANT = {
 	default: null,
@@ -246,5 +246,6 @@ export function ListFooter({ loose = false, children, ...rest }) {
     @param {import('react').ReactNode} [props.children] The cards in the rail beside a form. */
 export function Panel({ wide = false, children, ...rest }) {
 	reject(rest, 'Panel')
-	return <div className={join('sp-panel', wide && 'sp-panel--wide')} {...rest}>{children}</div>
+	// sticky beside the page: a marker inside it is measured on the screen, not on the page
+	return <m.div className={join('sp-panel', wide && 'sp-panel--wide')} layoutRoot {...rest}>{children}</m.div>
 }
