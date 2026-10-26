@@ -21,7 +21,8 @@ services:
       SPENDLY_DB: /data/spendly.sqlite3
       # Files kept outside the database, one folder for each account. Not part of the backup.
       SPENDLY_STORAGE: /storage
-      # A copy of the container log, one file a day, kept for 30 days. Delete this line to keep no copy.
+      # A copy of the container log, one file a day, kept for 30 days. Write SPENDLY_LOGS: "" to keep no copy.
+      # The first lines of the container log say where the copy goes, or why it is not saved.
       SPENDLY_LOGS: /logs
       # Without this the container's clock is UTC, so the nightly backup fires at UTC
       # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.

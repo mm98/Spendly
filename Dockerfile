@@ -60,6 +60,7 @@ COPY --from=build /app/react/dist react/dist
 COPY --from=storybook /app/storybook/dist storybook/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
 ENV SPENDLY_STORAGE=/storage
+ENV SPENDLY_LOGS=/logs
 # The build stamp /api/version answers with, so the UI can say which image is running and a
 # reader can compare it against the newest commit. Passed in as args -- .git is dockerignored,
 # so the image cannot ask git itself -- and declared last, so a changing timestamp re-runs

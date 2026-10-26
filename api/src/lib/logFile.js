@@ -7,7 +7,8 @@ const KEEP_DAYS = 30
 const MAX_BYTES_PER_DAY = 50 * 1024 * 1024
 const FILE_NAME = /^spendly-\d{4}-\d{2}-\d{2}\.log$/
 
-// Copies the output into one stamped file a day; a folder that cannot be written is said once and the app runs on.
+// Copies the output into one stamped file a day. Returns the stop function, or null when the folder cannot be
+// written: that is said once and the app runs on.
 export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS, maxBytesPerDay = MAX_BYTES_PER_DAY } = {}) {
 	const streams = [process.stdout, process.stderr]
 	const originals = streams.map(stream => stream.write)
@@ -31,8 +32,8 @@ export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS
 		mkdirSync(dir, { recursive: true })
 		openDay(todayIso(now()))
 	} catch (e) {
-		warn(`Logs are not saved in ${dir}, only shown here: ${e.message}`)
-		return () => {}
+		warn(`Log file warning: nothing is saved in ${dir}, the log is only shown here. ${e.message}`)
+		return null
 	}
 
 	function copy(chunk, encoding) {
@@ -56,7 +57,7 @@ export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS
 			// one failure stops the file for good; the output must never break because of it
 			try { closeSync(fd) } catch {}
 			fd = null
-			warn(`Logs are no longer saved in ${dir}: ${e.message}`)
+			warn(`Log file warning: nothing more is saved in ${dir}. ${e.message}`)
 		}
 	}
 

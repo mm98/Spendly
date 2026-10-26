@@ -43,7 +43,6 @@ test('a full day stops writing and says so once', () => {
 test('a folder that cannot be used leaves the app running with its output only', () => {
 	const file = path.join(scratch(), 'a-file')
 	writeFileSync(file, '')
-	const stop = startLogFile(path.join(file, 'logs'))
+	assert.equal(startLogFile(path.join(file, 'logs')), null)
 	console.log('still printed')
-	stop()
 })
