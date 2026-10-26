@@ -1,0 +1,29 @@
+name: Major version label
+
+# The "major" label on a pull request puts "[major]" in its title, and taking the label off takes
+# it out again. The title is what scripts/version.mjs reads once the change is merged.
+
+on:
+  pull_request:
+    types: [labeled, unlabeled]
+
+jobs:
+  title:
+    # any other label is skipped here, so it never starts a runner
+    if: github.event.label.name == 'major'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Match the title to the label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          ACTION: ${{ github.event.action }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          bare=$(printf '%s' "$TITLE" | sed -E 's/[[:space:]]*\[major\][[:space:]]*/ /Ig; s/^ +| +$//g')
+          if [ "$ACTION" = labeled ]; then title="[major] $bare"; else title="$bare"; fi
+          if [ "$title" != "$TITLE" ]; then gh pr edit "$NUMBER" --title "$title"; fi

@@ -189,7 +189,7 @@ Everything that needs you, on one page.
 - **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
   duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
 - **Demo data** - fill an account with realistic orders to try Spendly out.
-- **This build** - the installed version, and "Update and reload" when a newer one is ready.
+- **This build** - the installed version number, and "Update and reload" when a newer one is ready.
 
 ### Light, dark and phone
 
@@ -332,6 +332,11 @@ docker compose up -d
 ```
 
 Then open the address you set, and create the first account.
+
+**Version numbers count themselves.** Each version is two numbers, like `1.4`. Every change that
+reaches `main` raises the second number by one. A pull request with `[major]` in its title, or the
+`major` label, raises the first number and sets the second to 0 when it is merged. Each published
+image is tagged with its version too, so `ghcr.io/mm98/spendly:1.4` names one exact build.
 
 The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
 
