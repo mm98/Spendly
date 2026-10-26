@@ -50,7 +50,9 @@ jobs:
           echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           version=$(node scripts/version.mjs)
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "notes=$(node scripts/release-notes.mjs)" >> "$GITHUB_OUTPUT"
+          # build-push-action reads each build-args line as CSV and drops the quote marks around a
+          # comma-free part, which breaks the JSON; one quoted field with its quotes doubled passes through whole
+          echo "notes_arg=$(node scripts/release-notes.mjs | sed 's/"/""/g; s/^/"RELEASE_NOTES=/; s/$/"/')" >> "$GITHUB_OUTPUT"
 
       # Two passes over one build. The first produces the
       # image locally; Lighthouse scores that container -- the actual artifact, serving its own
@@ -100,7 +102,7 @@ jobs:
             BUILD_TIME=${{ steps.stamp.outputs.time }}
             GIT_SHA=${{ env.SHA }}
             VERSION=${{ steps.stamp.outputs.version }}
-            RELEASE_NOTES=${{ steps.stamp.outputs.notes }}
+            ${{ steps.stamp.outputs.notes_arg }}
             LIGHTHOUSE=${{ steps.lighthouse.outputs.scores }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
