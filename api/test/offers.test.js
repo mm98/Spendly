@@ -22,6 +22,12 @@ before(() => {
 	db.prepare("INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, 'x', 'Test')").run(USER, 'offers@example.com')
 	db.prepare("INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, 'x', 'Test')").run(EURO_USER, 'offers-euro@example.com')
 	db.prepare("INSERT INTO user_settings (user_id, default_kind, default_status, page_size, sort, currency) VALUES (?, 'Expense', 'Delivered', 25, 'date-desc', 'EUR')").run(EURO_USER)
+	const vendor = db.prepare("INSERT INTO vendors (id, user_id, name, initials, colour) VALUES (?, ?, ?, 'XX', 'green-3')")
+	vendor.run('v-netto', USER, 'Mine Indkøb')
+	db.prepare("INSERT INTO vendor_aliases (id, user_id, vendor_id, name) VALUES ('va-netto', ?, 'v-netto', 'Netto Aarhus C')").run(USER)
+	vendor.run('v-ikea', USER, 'IKEA')
+	vendor.run('v-baker', USER, 'Bageriet')
+	db.prepare("INSERT INTO categories (id, user_id, name, colour) VALUES ('c-food', ?, 'Mad', 'green-3')").run(USER)
 	db.prepare("INSERT INTO user_ask_chats (id, user_id, first_question, asked_at, kept_until, expires_at) VALUES (?, ?, 'Mælk?', 0, '2026-11-25', 9999999999)").run(CHAT, USER)
 	globalThis.fetch = async url => {
 		asked.push(String(url))
@@ -59,7 +65,7 @@ test('a shopping list is one request, its shops are the site\'s keys, and the sa
 	assert.deepEqual(read.unknownShops, ['Nowhere'])
 	assert.equal(read.items[0].placeMark, `{{offers:${first.items[0].id}}}`)
 	assert.deepEqual(first.items[0].offers[0], {
-		product: 'Letmælk', brand: 'Arla', size: { amount: 1, unit: 'ltr.' }, shop: 'Netto', membersOnly: false, price: 74.99, forHowMany: 12,
+		product: 'Letmælk', brand: 'Arla', size: { amount: 1, unit: 'ltr.' }, shop: 'Netto', shopLogo: 'https://www.tilbudsugen.dk/chains/netto.png', membersOnly: false, price: 74.99, forHowMany: 12,
 		perUnit: { price: 6.25, unit: 'ltr.' }, image: null, to: '2026-10-28'
 	})
 	// the block is kept as it was answered, for the chat to show again
@@ -85,6 +91,7 @@ test('a block shows at most five offers, cheapest per unit first, those without 
 })
 
 const { sizeOf, searchWordsOf, matchFor, offersForOrder } = await import('../src/offers/lines.js')
+const { offerPicks, setOfferPicks, pickedFor, setPickedFor } = await import('../src/offers/picks.js')
 
 const offer = fields => ({ product: 'P', brand: null, shop: 'Netto', borderShop: false, price: 15, forHowMany: 1, membersOnly: false,
 	size: { amount: 1, unit: 'ltr.' }, perUnit: { price: 15, unit: 'ltr.' }, from: '2026-10-24', to: '2026-10-30', ...fields })
@@ -108,13 +115,26 @@ test('a line matches the offer cheapest against what it paid, on the order\'s da
 	assert.equal(matchFor({ title: 'Rugbrød', quantity: 1, price: 24 }, [offer({ price: 20, perUnit: { price: 40, unit: 'kg.' } })], '2026-10-26').price, 20)
 })
 
-test('an order from a shop the source knows, under one of its names, is checked in one request', async () => {
+test('the first picks are the vendors the source knows by name or alias; a removed one stays removed', () => {
+	const [picks] = offerPicks(USER)
+	assert.equal(picks.usable, true)
+	assert.deepEqual(picks.vendors.map(v => v.id), ['v-netto'])
+	assert.deepEqual(picks.categories, [])
+	setOfferPicks(USER, { tilbudsugen: { vendorIds: [], categoryIds: ['c-food', 'c-not-mine'] } })
+	assert.deepEqual(offerPicks(USER)[0].vendors, [])
+	assert.deepEqual(offerPicks(USER)[0].categories.map(c => c.id), ['c-food'])
+	setPickedFor(USER, 'vendor', 'v-netto', { tilbudsugen: true })
+	assert.deepEqual(pickedFor(USER, 'vendor', 'v-netto'), [{ key: 'tilbudsugen', name: 'Tilbudsugen', picked: true }])
+	assert.deepEqual(pickedFor(EURO_USER, 'vendor', 'v-netto'), [])
+})
+
+test('an order with a picked vendor or a picked category is checked in one request', async () => {
 	answerWith = () => ({ status: 200, body: { items: [
 		{ query: 'arla letmælk', total_offers_found: 1, offers: [{ ...milk, price: 15, promotion: {}, unit_metrics: { quantity: 1, unit_type: 'ltr.', 'price_per_ltr.': 15 } }] },
 		{ query: 'schulstad rugbrød', total_offers_found: 0, offers: [] }
 	] } })
 	const lines = [{ title: 'Arla letmælk 1L', quantity: 2, price: 18.95 }, { title: 'Schulstad rugbrød', quantity: 1, price: 24 }]
-	const order = { userId: USER, today: '2026-10-26', shopNames: ['Føtex Viby', 'Netto Aarhus C'], date: '2026-10-25', lines }
+	const order = { userId: USER, today: '2026-10-26', vendorId: 'v-netto', categoryIds: [], date: '2026-10-25', lines }
 	assert.deepEqual(await offersForOrder({ ...order, keptOnly: true }), { shown: true, source: { name: 'Tilbudsugen', site: 'tilbudsugen.dk' }, state: 'unchecked', lines: [] })
 	assert.equal(asked.length, 0)
 	const checked = await offersForOrder({ ...order, keptOnly: false })
@@ -122,6 +142,9 @@ test('an order from a shop the source knows, under one of its names, is checked 
 	assert.deepEqual(checked.lines.map(l => [l.index, l.offer.price]), [[0, 15]])
 	const reopened = await offersForOrder({ ...order, keptOnly: true })
 	assert.equal(reopened.state, 'checked')
+	// a baker no source knows, in a picked category, is checked against the same offers
+	const baker = await offersForOrder({ ...order, vendorId: 'v-baker', categoryIds: ['c-food'], keptOnly: true })
+	assert.equal(baker.state, 'checked')
 })
 
 test('a line with an offer gets the small picture of that offer, from a request outside the limits', async () => {
@@ -132,17 +155,17 @@ test('a line with an offer gets the small picture of that offer, from a request 
 			{ chain: { name: 'Netto' }, price: '8.00', startDate: '2026-10-22', imageThumbnailUrl: thumb, imageUrl: thumb.replace('_thumb', '_zoom') }
 		] } } }
 		: { status: 200, body: { items: [{ query: 'skummetmælk', total_offers_found: 1, offers: [{ ...milk, price: 8, promotion: {}, unit_metrics: { quantity: 1, unit_type: 'ltr.', 'price_per_ltr.': 8 } }] }] } }
-	const order = { userId: USER, today: '2026-10-26', shopNames: ['Netto'], date: '2026-10-26', lines: [{ title: 'Skummetmælk 1L', quantity: 1, price: 12 }] }
+	const order = { userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-10-26', lines: [{ title: 'Skummetmælk 1L', quantity: 1, price: 12 }] }
 	const checked = await offersForOrder({ ...order, keptOnly: false })
 	assert.equal(checked.lines[0].offer.image, thumb)
 	assert.equal(asked.length, 2)
 	assert.match(asked[1], /\/product-offers-search\/dk\/skummetm%C3%A6lk\?/)
 })
 
-test('an older order, or one from a shop no source knows, shows no offers', async () => {
+test('an older order, or one with no picked vendor or category, shows no offers', async () => {
 	const lines = [{ title: 'Mælk', quantity: 1, price: 10 }]
-	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', shopNames: ['Netto'], date: '2026-10-19', lines, keptOnly: false }), { shown: false })
-	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', shopNames: ['IKEA'], date: '2026-10-26', lines, keptOnly: false }), { shown: false })
+	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-10-19', lines, keptOnly: false }), { shown: false })
+	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-ikea', categoryIds: [], date: '2026-10-26', lines, keptOnly: false }), { shown: false })
 	assert.equal(asked.length, 0)
 })
 

@@ -17,10 +17,15 @@ const UNIT = {
 
 const sentLines = lines => lines.map(l => ({ title: l.title ?? '', quantity: Number(l.quantity) || 0, price: Number(l.price) || 0 }))
 
-/** The offers for an order: `vendor` is { id } or { name }. State is `unchecked`, `checking`, `checked`,
-    `failed` or `wait`; `offerOf(index)` is a line's offer, `counted` what At this week's offers sums. */
-export function useOrderOffers({ vendor, date, lines }) {
-	const sent = { ...(vendor?.id ? { vendorId: vendor.id } : { vendorName: vendor?.name ?? '' }), date, lines: sentLines(lines) }
+/** The offers for an order: `vendor` is { id } or { name }, `categories` ({ id }) or names. State is `unchecked`,
+    `checking`, `checked`, `failed` or `wait`; `offerOf(index)` is a line's offer, `counted` what At this week's offers sums. */
+export function useOrderOffers({ vendor, categories = [], date, lines }) {
+	const sent = {
+		...(vendor?.id ? { vendorId: vendor.id } : { vendorName: vendor?.name ?? '' }),
+		...(categories.every(c => typeof c === 'string') ? { categoryNames: categories } : { categoryIds: categories.map(c => c.id) }),
+		date,
+		lines: sentLines(lines)
+	}
 	const key = JSON.stringify(sent)
 	const [answer, setAnswer] = useState({ key: null, shown: false })
 	const [checking, setChecking] = useState(false)

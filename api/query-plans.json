@@ -22,6 +22,15 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT 1 FROM user_offer_sources WHERE user_id = ? AND source_key = ?": {
+			"plan": [
+				"SEARCH user_offer_sources USING COVERING INDEX sqlite_autoindex_user_offer_sources_1 (user_id=? AND source_key=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_offer_sources_1"
+			]
+		},
 		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail, a.sha256, a.pages, a.from_scan FROM order_attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
@@ -687,6 +696,20 @@
 			"findings": [],
 			"indexes": [
 				"idx_categories_user"
+			]
+		},
+		"SELECT c.id, c.name, c.icon, c.colour FROM user_offer_source_categories p JOIN categories c ON c.id = p.category_id WHERE p.user_id = ? AND p.source_key = ? ORDER BY c.name COLLATE NOCASE": {
+			"plan": [
+				"SEARCH p USING COVERING INDEX sqlite_autoindex_user_offer_source_categories_1 (user_id=? AND source_key=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_user_offer_source_categories_1"
 			]
 		},
 		"SELECT c.id, c.name, SUM((CASE WHEN (ot.status_type = 'returned' OR ot.kind IN ('Sold')) THEN -ot.total ELSE ot.total END)) AS spend, COUNT(*) AS orders FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND ot.exclude_from_stats = 0 GROUP BY c.id ORDER BY spend DESC, c.name COLLATE NOCASE, c.id": {
@@ -2364,6 +2387,18 @@
 				"sqlite_autoindex_categories_2"
 			]
 		},
+		"SELECT id FROM categories WHERE user_id = @userId AND lower(name) IN (SELECT lower(value) FROM json_each(@names))": {
+			"plan": [
+				"SEARCH categories USING INDEX idx_categories_user (user_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_categories_user"
+			]
+		},
 		"SELECT id FROM order_drafts WHERE upload_id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH order_drafts USING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)"
@@ -2455,6 +2490,20 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_vendors_2"
+			]
+		},
+		"SELECT id FROM vendors WHERE user_id = @userId AND lower(name) = lower(@name) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND lower(name) = lower(@name) LIMIT 1": {
+			"plan": [
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=? AND <expr>=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name",
+				"idx_vendors_user_name"
 			]
 		},
 		"SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0": {
@@ -2629,6 +2678,20 @@
 			],
 			"findings": [],
 			"indexes": [
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT id, name FROM vendors WHERE user_id = @userId UNION ALL SELECT vendor_id, name FROM vendor_aliases WHERE user_id = @userId": {
+			"plan": [
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
 			]
 		},
@@ -4430,6 +4493,17 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?": {
+			"plan": [
+				"SEARCH u USING COVERING INDEX sqlite_autoindex_users_1 (id=?)",
+				"SEARCH s USING INDEX sqlite_autoindex_user_settings_1 (user_id=?) LEFT-JOIN"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_settings_1",
+				"sqlite_autoindex_users_1"
+			]
+		},
 		"SELECT s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?": {
 			"plan": [
 				"SEARCH u USING COVERING INDEX sqlite_autoindex_users_1 (id=?)",
@@ -4521,6 +4595,41 @@
 			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_uploads_1"
+			]
+		},
+		"SELECT source_key FROM user_offer_source_categories WHERE user_id = ? AND category_id = ?": {
+			"plan": [
+				"SEARCH user_offer_source_categories USING COVERING INDEX sqlite_autoindex_user_offer_source_categories_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_offer_source_categories_1"
+			]
+		},
+		"SELECT source_key FROM user_offer_source_vendors WHERE user_id = ? AND vendor_id = ?": {
+			"plan": [
+				"SEARCH user_offer_source_vendors USING COVERING INDEX sqlite_autoindex_user_offer_source_vendors_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_offer_source_vendors_1"
+			]
+		},
+		"SELECT source_key FROM user_offer_source_vendors WHERE user_id = @userId AND vendor_id = @vendorId UNION SELECT source_key FROM user_offer_source_categories WHERE user_id = @userId AND category_id IN (SELECT value FROM json_each(@categoryIds))": {
+			"plan": [
+				"MERGE (UNION)",
+				"LEFT",
+				"SEARCH user_offer_source_vendors USING COVERING INDEX sqlite_autoindex_user_offer_source_vendors_1 (user_id=?)",
+				"RIGHT",
+				"SEARCH user_offer_source_categories USING COVERING INDEX sqlite_autoindex_user_offer_source_categories_1 (user_id=?)",
+				"LIST SUBQUERY 2",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_offer_source_categories_1",
+				"sqlite_autoindex_user_offer_source_vendors_1"
 			]
 		},
 		"SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status": {
@@ -4816,6 +4925,20 @@
 				"sqlite_autoindex_vendors_2"
 			]
 		},
+		"SELECT v.id, v.name, v.colour FROM user_offer_source_vendors p JOIN vendors v ON v.id = p.vendor_id WHERE p.user_id = ? AND p.source_key = ? ORDER BY v.name COLLATE NOCASE": {
+			"plan": [
+				"SEARCH p USING COVERING INDEX sqlite_autoindex_user_offer_source_vendors_1 (user_id=? AND source_key=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_user_offer_source_vendors_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT v.id, v.name, v.favourite FROM vendors v WHERE v.user_id = @userId AND v.archived = 0": {
 			"plan": [
 				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)"
@@ -5059,7 +5182,7 @@
 			"columns": [
 				"user_id"
 			],
-			"readers": 35
+			"readers": 36
 		},
 		"idx_order_attachments_item": {
 			"table": "order_attachments",
@@ -5322,6 +5445,20 @@
 			],
 			"readers": 1
 		},
+		"user_offer_source_categories_category": {
+			"table": "user_offer_source_categories",
+			"columns": [
+				"category_id"
+			],
+			"readers": 0
+		},
+		"user_offer_source_vendors_vendor": {
+			"table": "user_offer_source_vendors",
+			"columns": [
+				"vendor_id"
+			],
+			"readers": 0
+		},
 		"idx_user_passkeys_user": {
 			"table": "user_passkeys",
 			"columns": [
@@ -5359,7 +5496,7 @@
 				"user_id",
 				null
 			],
-			"readers": 22
+			"readers": 24
 		},
 		"idx_vendor_aliases_vendor": {
 			"table": "vendor_aliases",
@@ -5381,7 +5518,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 45
+			"readers": 47
 		}
 	}
 }

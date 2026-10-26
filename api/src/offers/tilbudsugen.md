@@ -114,6 +114,15 @@ answered `403` with `<Error><Code>AccessDenied</Code>...` to a cloud machine in 
 command line and from a headless Chromium alike; whether it answers an ordinary browser was not checked.
 A picture that does not load shows as the empty photo box.
 
+## Shop logos
+
+No answer carries a shop's logo. The site's own pages draw one from a fixed folder,
+`https://www.tilbudsugen.dk/chains/{file}` (`netto.png`, `rema-1000.svg`), picked by the shop's name in
+the site's script; the offer papers page (`/tilbudsaviser`) shows them. `SHOP_LOGOS` in
+`tilbudsugen.js` copies that list for the Danish shops, and every file answered `200` in October 2026.
+Aldi, Coop.dk Mad and Zur Krone have none. Most logos are wide, with the shop's name written out.
+`/api/chains/list/dk` answers the 31 Danish shops as `{ id, name, chainCategoryId, chainCategoryName }`.
+
 Other routes the site's pages call: `/api/typeahead-search/`, `/api/chains/list/`,
 `/api/chains/categories/list/`, `/api/product-offers-chain/`, `/api/product-offers-for-placement/`,
 and signed-in ones for shopping lists, price alerts (`/api/price-agent/...`) and the user.

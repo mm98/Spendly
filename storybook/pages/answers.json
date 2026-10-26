@@ -1,10 +1,10 @@
 {
-	"recordedAt": 1792859873328,
+	"recordedAt": 1792999584493,
 	"ids": {
-		"order": "o-d629ba9fdc889dc4",
-		"vendor": "v-ae019a73e795e4ea",
-		"category": "c-0a739ea479e81868",
-		"line": "Tandpasta"
+		"order": "o-19f2e0223ad41a00",
+		"vendor": "v-ee2b435c85d2d70b",
+		"category": "c-778ee33ee330e2a1",
+		"line": "Arla letmælk 1L"
 	},
 	"states": {
 		"Home": {
@@ -12,7 +12,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -26,14 +26,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -54,49 +54,49 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			],
 			"GET /api/stats/months?count=8": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"months\":[{\"month\":\"2026-03\",\"spend\":24338.950000000008,\"orders\":16},{\"month\":\"2026-04\",\"spend\":19591.47,\"orders\":20},{\"month\":\"2026-05\",\"spend\":44109.83,\"orders\":33},{\"month\":\"2026-06\",\"spend\":34664.21,\"orders\":35},{\"month\":\"2026-07\",\"spend\":24787.840000000004,\"orders\":25},{\"month\":\"2026-08\",\"spend\":23646.900000000005,\"orders\":21},{\"month\":\"2026-09\",\"spend\":35756.13,\"orders\":31},{\"month\":\"2026-10\",\"spend\":11455.49,\"orders\":23}]}"
-				}
-			],
-			"GET /api/stats?range=month&windowId=2026-10&flow=expenses&step=day": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"window\":{\"id\":\"2026-10\",\"range\":\"month\",\"from\":\"2026-10-01\",\"to\":\"2026-10-31\",\"slice\":{\"from\":\"2026-10-01\",\"to\":\"2026-10-31\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":11455.49,\"saved\":2231.649999999999,\"orders\":23,\"median\":189.03,\"leftOut\":0,\"pace\":{\"running\":true,\"daysIn\":24,\"unitDays\":31},\"todayIndex\":23,\"split\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"amount\":4794.6,\"orders\":7},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"amount\":4347.09,\"orders\":5},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"amount\":4181.81,\"orders\":10},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"amount\":3683.94,\"orders\":6},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"amount\":3367.32,\"orders\":6},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"amount\":3348.98,\"orders\":7},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"amount\":2970.95,\"orders\":8},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"amount\":2311.88,\"orders\":5},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"amount\":1135.78,\"orders\":3},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"amount\":162.96,\"orders\":1}],\"vendorSplit\":[{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"amount\":3626.69,\"orders\":4},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"amount\":3503.4700000000003,\"orders\":3},{\"id\":\"v-963786a4aa8e098f\",\"name\":\"Coop\",\"amount\":1688.5800000000002,\"orders\":3},{\"id\":\"v-10e351d0c18bdcb8\",\"name\":\"Power\",\"amount\":829.0899999999999,\"orders\":3},{\"id\":\"v-7a3d4a986321b512\",\"name\":\"Jysk\",\"amount\":509.27,\"orders\":3},{\"id\":\"v-0d8868ba63de7b94\",\"name\":\"Føtex\",\"amount\":397.04,\"orders\":1},{\"id\":\"v-85cd6702d1d62593\",\"name\":\"Matas\",\"amount\":313.03000000000003,\"orders\":2},{\"id\":\"v-19f8d351300b8d15\",\"name\":\"Normal\",\"amount\":201.94,\"orders\":1},{\"id\":\"v-5526a320dd1c0b87\",\"name\":\"Elgiganten\",\"amount\":162.96,\"orders\":1},{\"id\":\"v-fce085a61fbc7b0c\",\"name\":\"Zalando\",\"amount\":119.02,\"orders\":1},{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"amount\":104.4,\"orders\":1}],\"statusSplit\":[{\"status\":\"Delivered\",\"orders\":19},{\"status\":\"Ordered\",\"orders\":4}],\"budgets\":{\"months\":1},\"series\":{\"current\":[0,140.5,303.46000000000004,1454.5500000000002,1585.3100000000002,1585.3100000000002,1735.4100000000003,3086.0600000000004,3311.5700000000006,3578.9000000000005,5727.39,5929.33,5929.33,5929.33,5929.33,6326.37,6515.849999999999,7134.429999999999,7134.429999999999,9166.14,9166.14,9355.17,10304.39,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49],\"previous\":[0,0,5623.360000000001,5623.360000000001,9631.27,10165.51,10165.51,13336.779999999999,15346.21,15535.24,15535.24,18318.11,18318.11,27016.43,27811.04,27811.04,27811.04,27811.04,28962.14,29493.43,33665.68,33665.68,33665.68,33960.71,33960.71,34478.84,34478.84,34733.189999999995,34733.189999999995,35756.13],\"savedCumulative\":[0,29.829999999999984,52.389999999999986,375.0899999999998,390.37999999999977,390.37999999999977,426.14999999999975,777.0299999999994,847.0999999999995,899.3099999999995,1100.6999999999994,1105.4799999999993,1105.4799999999993,1105.4799999999993,1105.4799999999993,1160.5299999999993,1169.5299999999993,1197.8299999999992,1197.8299999999992,1733.689999999999,1733.689999999999,1770.0299999999988,1904.9099999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987],\"ordersCumulative\":[0,1,2,3,4,4,5,6,8,10,12,13,13,13,13,14,15,17,17,18,18,19,22,23,23,23,23,23,23,23,23],\"medians\":[0,140.5,162.96,1151.0900000000001,130.76,0,150.10000000000002,1350.65,112.755,133.66500000000002,1074.245,201.94,0,0,0,397.04,189.48,309.28999999999996,0,2031.71,0,189.03,189.03,1151.1,0,0,0,0,0,0,0],\"categories\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"}],\"byCategory\":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71],[0,0,0,0,0,0,0,0,0,0,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47],[0,0,0,0,0,0,0,0,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4]]}},\"older\":\"2026-09\",\"newer\":null,\"firstOrder\":\"2025-11-01\"}"
+					"text": "{\"months\":[{\"month\":\"2026-03\",\"spend\":24338.950000000008,\"orders\":16},{\"month\":\"2026-04\",\"spend\":19591.47,\"orders\":20},{\"month\":\"2026-05\",\"spend\":44109.83,\"orders\":33},{\"month\":\"2026-06\",\"spend\":34664.21,\"orders\":35},{\"month\":\"2026-07\",\"spend\":24787.840000000004,\"orders\":25},{\"month\":\"2026-08\",\"spend\":23646.900000000005,\"orders\":21},{\"month\":\"2026-09\",\"spend\":35756.13,\"orders\":31},{\"month\":\"2026-10\",\"spend\":11682.24,\"orders\":24}]}"
 				}
 			],
 			"GET /api/drafts?limit=3": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"drafts\":[],\"total\":0}"
+					"text": "{\"drafts\":[{\"id\":\"o-f2b620aeeada6e4e\",\"date\":\"2026-10-26\",\"status\":\"Draft\",\"reference\":\"\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":5,\"total\":226.75,\"saved\":6,\"photos\":[],\"fileCount\":0,\"receipt\":null}],\"total\":1}"
 				}
 			],
 			"GET /api/categories/limited": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			],
-			"GET /api/stats/home": [
+			"GET /api/stats?range=month&windowId=2026-10&flow=expenses&step=day": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"lastAdded\":1792859336,\"things\":{\"late\":{\"count\":75,\"to\":\"2026-10-10\",\"status\":\"Ordered\"},\"vendors\":{\"count\":0}}}"
+					"text": "{\"window\":{\"id\":\"2026-10\",\"range\":\"month\",\"from\":\"2026-10-01\",\"to\":\"2026-10-31\",\"slice\":{\"from\":\"2026-10-01\",\"to\":\"2026-10-31\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":11682.24,\"saved\":2237.649999999999,\"orders\":24,\"median\":189.255,\"leftOut\":0,\"pace\":{\"running\":true,\"daysIn\":26,\"unitDays\":31},\"todayIndex\":25,\"split\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"amount\":4794.6,\"orders\":7},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"amount\":4347.09,\"orders\":5},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"amount\":4181.81,\"orders\":10},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"amount\":3683.94,\"orders\":6},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"amount\":3367.32,\"orders\":6},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"amount\":3348.98,\"orders\":7},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"amount\":2970.95,\"orders\":8},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"amount\":2311.88,\"orders\":5},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"amount\":1135.78,\"orders\":3},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"amount\":162.96,\"orders\":1}],\"vendorSplit\":[{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"amount\":3730.2200000000003,\"orders\":4},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"amount\":3626.69,\"orders\":4},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"amount\":1688.5800000000002,\"orders\":3},{\"id\":\"v-bc1864c9ae1d0496\",\"name\":\"Power\",\"amount\":829.0899999999999,\"orders\":3},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"amount\":509.27,\"orders\":3},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"amount\":397.04,\"orders\":1},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"amount\":313.03000000000003,\"orders\":2},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"amount\":201.94,\"orders\":1},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"amount\":162.96,\"orders\":1},{\"id\":\"v-8bd751b75d656179\",\"name\":\"Zalando\",\"amount\":119.02,\"orders\":1},{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"amount\":104.4,\"orders\":1}],\"statusSplit\":[{\"status\":\"Delivered\",\"orders\":20},{\"status\":\"Ordered\",\"orders\":4}],\"budgets\":{\"months\":1},\"series\":{\"current\":[0,140.5,303.46000000000004,1454.5500000000002,1585.3100000000002,1585.3100000000002,1735.4100000000003,1735.4100000000003,3190.4600000000005,3311.5700000000006,3975.9200000000005,5727.39,5929.33,5929.33,5929.33,5929.33,6326.37,6326.37,6634.87,7134.43,9166.14,9166.14,9355.17,9355.17,10304.39,11682.24,11682.24,11682.24,11682.24,11682.24,11682.24],\"previous\":[0,0,5623.360000000001,5623.360000000001,9631.27,10165.51,10165.51,13336.779999999999,15346.21,15535.24,15535.24,18318.11,18318.11,27016.43,27811.04,27811.04,27811.04,27811.04,28962.14,29493.43,33665.68,33665.68,33665.68,33960.71,33960.71,34478.84,34478.84,34733.189999999995,34733.189999999995,35756.13],\"savedCumulative\":[0,29.829999999999984,52.389999999999986,375.0899999999998,390.37999999999977,390.37999999999977,426.14999999999975,426.14999999999975,814.9799999999993,847.0999999999993,984.1499999999994,1100.6999999999994,1105.4799999999993,1105.4799999999993,1105.4799999999993,1105.4799999999993,1160.5299999999993,1160.5299999999993,1179.1699999999994,1197.8299999999995,1733.6899999999991,1733.6899999999991,1770.029999999999,1770.029999999999,1904.909999999999,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987],\"ordersCumulative\":[0,1,2,3,4,4,5,5,7,8,11,12,13,13,13,13,14,14,16,17,18,18,19,19,22,24,24,24,24,24,24],\"medians\":[0,140.5,162.96,1151.0900000000001,130.76,0,150.10000000000002,0,727.5250000000001,121.11,162.93,1751.47,201.94,0,0,0,397.04,0,154.25,499.55999999999995,2031.71,0,189.03,0,189.03,688.925,0,0,0,0,0],\"categories\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"}],\"byCategory\":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71],[0,0,0,0,0,0,0,0,0,0,0,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47],[0,0,0,0,0,0,0,0,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4]]}},\"older\":\"2026-09\",\"newer\":null,\"firstOrder\":\"2025-11-01\"}"
 				}
 			],
 			"GET /api/orders?pageSize=5&drafts=none": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[{\"id\":\"o-d629ba9fdc889dc4\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-7b50914bc9040d7e\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964},{\"id\":\"o-395872a209ad9179\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001},{\"id\":\"o-7666a4c8b6596a94\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999},{\"id\":\"o-39f01d53794e2cfd\",\"date\":\"2026-10-22\",\"status\":\"Delivered\",\"reference\":\"1434\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"}],\"itemCount\":2,\"total\":189.03,\"saved\":36.34}],\"matched\":441,\"total\":441,\"pages\":89}"
+					"text": "{\"orders\":[{\"id\":\"o-19f2e0223ad41a00\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":5,\"total\":226.75,\"saved\":6},{\"id\":\"o-36fc0657711c0768\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-d118599efdad9ca4\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964},{\"id\":\"o-f3ec686912aa9267\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001},{\"id\":\"o-fe7919d3f0b9d51e\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999}],\"matched\":442,\"total\":443,\"pages\":89}"
+				}
+			],
+			"GET /api/stats/home": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"lastAdded\":1792994854,\"things\":{\"late\":{\"count\":75,\"to\":\"2026-10-12\",\"status\":\"Ordered\"},\"vendors\":{\"count\":0}}}"
 				}
 			],
 			"GET /api/stats/compared": [
@@ -110,14 +110,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"month\":\"2026-09\",\"from\":\"2026-09-01\",\"to\":\"2026-09-30\",\"spent\":35756.13,\"saved\":5746.680000000001,\"orders\":31,\"compared\":{\"month\":\"2026-08\",\"spent\":23646.9,\"orders\":21},\"seen\":false,\"limits\":[{\"id\":\"c-b614f6dd12851cf6\",\"spend\":8204.05,\"overs\":8},{\"id\":\"c-845d8113fe2fb68b\",\"spend\":12418.74,\"overs\":10},{\"id\":\"c-b00838c610ab1f35\",\"spend\":3648.8900000000003,\"overs\":11},{\"id\":\"c-b0915c18b96175b7\",\"spend\":4908.55,\"overs\":10},{\"id\":\"c-0a739ea479e81868\",\"spend\":6774.23,\"overs\":11},{\"id\":\"c-7237d0ef4d8cd662\",\"spend\":12257.05,\"overs\":10},{\"id\":\"c-6885212666688193\",\"spend\":11864.05,\"overs\":10},{\"id\":\"c-fca8451da9e6ba01\",\"spend\":8230.15,\"overs\":10},{\"id\":\"c-bce3f7f1483dcc4d\",\"spend\":0,\"overs\":10}]}"
+					"text": "{\"month\":\"2026-09\",\"from\":\"2026-09-01\",\"to\":\"2026-09-30\",\"spent\":35756.13,\"saved\":5746.680000000001,\"orders\":31,\"compared\":{\"month\":\"2026-08\",\"spent\":23646.9,\"orders\":21},\"seen\":false,\"limits\":[{\"id\":\"c-84a1cb7dffca71d8\",\"spend\":8204.05,\"overs\":8},{\"id\":\"c-76605b8f2bd8a757\",\"spend\":12418.74,\"overs\":10},{\"id\":\"c-3f4bd7da3c793533\",\"spend\":3648.8900000000003,\"overs\":11},{\"id\":\"c-1df2d11b700045f8\",\"spend\":4908.55,\"overs\":10},{\"id\":\"c-778ee33ee330e2a1\",\"spend\":6774.23,\"overs\":11},{\"id\":\"c-36b2ccddad1abeec\",\"spend\":12257.05,\"overs\":10},{\"id\":\"c-c9bcfe8829549985\",\"spend\":11864.05,\"overs\":10},{\"id\":\"c-a64369089112f6bd\",\"spend\":8230.15,\"overs\":10},{\"id\":\"c-5be40cfd25bec9f4\",\"spend\":0,\"overs\":10}]}"
 				}
 			],
-			"GET /api/categories?ids=c-6885212666688193%2Cc-9c80f32d008d079e%2Cc-b0915c18b96175b7%2Cc-bce3f7f1483dcc4d&pageSize=4&shape=brief": [
+			"GET /api/categories?ids=c-c9bcfe8829549985%2Cc-832ae035050c6a7b%2Cc-1df2d11b700045f8%2Cc-5be40cfd25bec9f4&pageSize=4&shape=brief": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}],\"matched\":4}"
+					"text": "{\"categories\":[{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}],\"matched\":4}"
 				}
 			]
 		},
@@ -126,7 +126,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -140,14 +140,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -168,49 +168,49 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			],
 			"GET /api/vendors?sort=use&pageSize=4": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"vendors\":[{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-24\"},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":45,\"spend\":28489.69,\"saved\":4313.94,\"lastOrder\":\"2026-10-20\"},{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-10e351d0c18bdcb8\",\"name\":\"Power\",\"colour\":\"#B4552B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":39,\"spend\":29009.81,\"saved\":4615.87,\"lastOrder\":\"2026-10-23\"}],\"matched\":12}"
+					"text": "{\"vendors\":[{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":28716.44,\"saved\":4319.94,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-bc1864c9ae1d0496\",\"name\":\"Power\",\"colour\":\"#B4552B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":39,\"spend\":29009.81,\"saved\":4615.87,\"lastOrder\":\"2026-10-25\"}],\"matched\":12}"
 				}
 			],
 			"GET /api/categories?sort=orders-desc&pageSize=6": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92}],\"matched\":10}"
+					"text": "{\"categories\":[{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92}],\"matched\":10}"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			],
 			"GET /api/orders?pageSize=0&with=amountScale": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[],\"matched\":441,\"total\":441,\"amountScale\":{\"highest\":null,\"stops\":[0,90,91,104,104,104,121,121,121,129,140,140,140,160,163,163,170,189,189,189,189,194,206,218,218,219,228,248,254,254,254,254,268,283,293,295,334,342,342,391,397,397,397,426,461,461,461,461,490,534,534,563,583,620,620,649,719,719,748,834,834,967,967,967,1006,1122,1122,1122,1151,1161,1302,1302,1302,1331,1351,1510,1510,1549,1559,1751,1752,1790,2032,2032,2032,2357,2357,2386,2406,2734,2734,2763,2783,3171,3171,3200,3679,3679,3679,3800]}}"
+					"text": "{\"orders\":[],\"matched\":443,\"total\":443,\"amountScale\":{\"highest\":null,\"stops\":[0,90,91,104,104,104,121,121,121,129,140,140,141,160,163,163,170,189,189,189,189,202,206,218,219,219,228,238,254,254,254,254,268,283,293,295,324,342,342,342,397,397,397,397,446,461,461,461,490,510,534,563,583,620,620,620,719,719,748,834,834,863,967,967,1006,1122,1122,1122,1151,1151,1302,1302,1302,1331,1351,1510,1510,1549,1559,1751,1752,1790,2032,2032,2032,2357,2357,2386,2396,2734,2734,2763,2783,3171,3171,3200,3679,3679,3679,3800]}}"
 				}
 			],
 			"GET /api/orders?sort=date-desc&page=1&pageSize=0&with=facets": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[],\"matched\":441,\"total\":441,\"summary\":{\"total\":326075.84,\"saved\":50331.299999999996},\"facets\":{\"status\":{\"Delivered\":298,\"Ordered\":77,\"Returned\":66},\"vendor\":{\"v-0d8868ba63de7b94\":34,\"v-10e351d0c18bdcb8\":39,\"v-19f8d351300b8d15\":38,\"v-5526a320dd1c0b87\":33,\"v-7a3d4a986321b512\":33,\"v-85cd6702d1d62593\":31,\"v-963786a4aa8e098f\":37,\"v-ae019a73e795e4ea\":41,\"v-c234cd84c3ea37cc\":47,\"v-e0e8ac4b02134296\":45,\"v-f6f64fc20a78e3b4\":30,\"v-fce085a61fbc7b0c\":33},\"category\":{\"c-b614f6dd12851cf6\":99,\"c-845d8113fe2fb68b\":97,\"c-b00838c610ab1f35\":92,\"c-b0915c18b96175b7\":105,\"c-0a739ea479e81868\":97,\"c-7237d0ef4d8cd662\":90,\"c-6885212666688193\":89,\"c-fca8451da9e6ba01\":93,\"c-bce3f7f1483dcc4d\":81,\"c-9c80f32d008d079e\":80},\"receipt\":{\"attached\":0,\"missing\":441}}}"
+					"text": "{\"orders\":[],\"matched\":443,\"total\":443,\"summary\":{\"total\":326529.34,\"saved\":50343.299999999996},\"facets\":{\"status\":{\"Delivered\":299,\"Draft\":1,\"Ordered\":77,\"Returned\":66},\"vendor\":{\"v-195fc3653274eca6\":47,\"v-1ff65ace19d97eac\":31,\"v-349cc12361a2d1da\":38,\"v-62585966eda6e570\":37,\"v-77958e58b16a1211\":33,\"v-80e9fcf1c96933c1\":47,\"v-8bd751b75d656179\":33,\"v-a742f475c3a91bea\":30,\"v-ac9803466c79a367\":33,\"v-bc1864c9ae1d0496\":39,\"v-d7e5162ce11236c7\":34,\"v-ee2b435c85d2d70b\":41},\"category\":{\"c-84a1cb7dffca71d8\":99,\"c-76605b8f2bd8a757\":97,\"c-3f4bd7da3c793533\":92,\"c-1df2d11b700045f8\":105,\"c-778ee33ee330e2a1\":97,\"c-36b2ccddad1abeec\":90,\"c-c9bcfe8829549985\":89,\"c-a64369089112f6bd\":93,\"c-5be40cfd25bec9f4\":81,\"c-832ae035050c6a7b\":80},\"receipt\":{\"attached\":0,\"missing\":443}}}"
 				}
 			],
 			"GET /api/orders?sort=date-desc&with=rows&page=1&pageSize=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[{\"id\":\"o-d629ba9fdc889dc4\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-7b50914bc9040d7e\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-395872a209ad9179\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-7666a4c8b6596a94\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-39f01d53794e2cfd\",\"date\":\"2026-10-22\",\"status\":\"Delivered\",\"reference\":\"1434\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"}],\"itemCount\":2,\"total\":189.03,\"saved\":36.34,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-72df422e02feef04\",\"date\":\"2026-10-20\",\"status\":\"Delivered\",\"reference\":\"1436\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":2031.71,\"saved\":535.8599999999997,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-21d5c8a0e695c1b7\",\"date\":\"2026-10-20\",\"status\":\"Ordered\",\"reference\":\"1435\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":104.4,\"saved\":34.059999999999974,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-6bfb452fceb57466\",\"date\":\"2026-10-18\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-b961c64ff6be67d5\",\"date\":\"2026-10-18\",\"status\":\"Delivered\",\"reference\":\"1430\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Zalando\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"}],\"itemCount\":4,\"total\":119.02,\"saved\":9.64,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-934b1e20793645d1\",\"date\":\"2026-10-18\",\"status\":\"Returned\",\"reference\":\"1429\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":254.37,\"saved\":101.16000000000003,\"photos\":[],\"fileCount\":0,\"receipt\":null}],\"matched\":441,\"total\":441,\"pages\":45}"
+					"text": "{\"orders\":[{\"id\":\"o-19f2e0223ad41a00\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":5,\"total\":226.75,\"saved\":6,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-f2b620aeeada6e4e\",\"date\":\"2026-10-26\",\"status\":\"Draft\",\"reference\":\"\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":5,\"total\":226.75,\"saved\":6,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-36fc0657711c0768\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-d118599efdad9ca4\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-f3ec686912aa9267\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-fe7919d3f0b9d51e\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-e36d77d6017ef8b1\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1434\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"}],\"itemCount\":2,\"total\":189.03,\"saved\":36.34,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-1377b28811ba2cb0\",\"date\":\"2026-10-22\",\"status\":\"Ordered\",\"reference\":\"1435\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":104.4,\"saved\":34.059999999999974,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-22c6edf774c5e6ff\",\"date\":\"2026-10-21\",\"status\":\"Delivered\",\"reference\":\"1436\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":2031.71,\"saved\":535.8599999999997,\"photos\":[],\"fileCount\":0,\"receipt\":null},{\"id\":\"o-f54ac316beeda27f\",\"date\":\"2026-10-20\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025,\"photos\":[],\"fileCount\":0,\"receipt\":null}],\"matched\":443,\"total\":443,\"pages\":45}"
 				}
 			]
 		},
@@ -219,7 +219,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -233,14 +233,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -257,30 +257,32 @@
 					"text": "{\"ready\":false}"
 				}
 			],
-			"GET /api/orders/o-d629ba9fdc889dc4": [
+			"GET /api/orders/o-19f2e0223ad41a00": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"o-d629ba9fdc889dc4\",\"vendorId\":\"v-c234cd84c3ea37cc\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-24\"},{\"status\":\"Delivered\",\"date\":\"2026-10-24\"}],\"kind\":\"Expense\",\"categoryIds\":[\"c-0a739ea479e81868\",\"c-9c80f32d008d079e\",\"c-7237d0ef4d8cd662\",\"c-6885212666688193\"],\"shipping\":29,\"discount\":0,\"note\":\"\",\"reference\":\"1437\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-1b845f99054916d5\",\"title\":\"Tandpasta\",\"quantity\":2,\"price\":44.11,\"retail\":54.79,\"attachments\":[]},{\"id\":\"i-5117716e8fcc0891\",\"title\":\"Solcreme faktor 30\",\"quantity\":2,\"price\":344.05,\"retail\":443.94,\"attachments\":[]},{\"id\":\"i-c6b59766c1ebced3\",\"title\":\"Shampoo, 500 ml\",\"quantity\":2,\"price\":172.89,\"retail\":225.69,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"initials\":\"PR\",\"colour\":\"#235553\"},\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"colour\":\"#F09A38\",\"icon\":\"shirt\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"colour\":\"#45524C\",\"icon\":\"box\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"colour\":\"#2FA36B\",\"icon\":\"first-aid-kit\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"colour\":\"#D34F2E\",\"icon\":\"bus\"}],\"itemCount\":3,\"subtotal\":1122.1,\"total\":1151.1,\"saved\":326.74,\"savedPercent\":22.55183457110516,\"revision\":1,\"validated\":null}"
+					"text": "{\"id\":\"o-19f2e0223ad41a00\",\"vendorId\":\"v-195fc3653274eca6\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-26\"}],\"kind\":\"Expense\",\"categoryIds\":[],\"shipping\":0,\"discount\":0,\"note\":\"\",\"reference\":\"\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-07f808035acc36f7\",\"title\":\"Arla letmælk 1L\",\"quantity\":2,\"price\":18.95,\"attachments\":[]},{\"id\":\"i-df0f75799d70b755\",\"title\":\"Merrild kaffe 500g\",\"quantity\":2,\"price\":59.95,\"attachments\":[]},{\"id\":\"i-5ebd85c7831faa8b\",\"title\":\"Schulstad rugbrød\",\"quantity\":1,\"price\":24,\"attachments\":[]},{\"id\":\"i-1b6c6694682f5311\",\"title\":\"Bananer 1 kg\",\"quantity\":1,\"price\":18,\"attachments\":[]},{\"id\":\"i-5c816e1c6863a167\",\"title\":\"Lurpak smør 200g\",\"quantity\":1,\"price\":26.95,\"retail\":32.95,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"initials\":\"NE\",\"colour\":\"#3E5C8A\"},\"categories\":[],\"itemCount\":5,\"subtotal\":226.75,\"total\":226.75,\"saved\":6,\"savedPercent\":2.577873254564984,\"revision\":6,\"validated\":null}"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
-				},
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+				}
+			],
+			"POST /api/offers/order": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			]
 		},
@@ -289,7 +291,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -303,14 +305,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -327,25 +329,32 @@
 					"text": "{\"ready\":false}"
 				}
 			],
-			"GET /api/orders/o-d629ba9fdc889dc4": [
+			"GET /api/orders/o-19f2e0223ad41a00": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"o-d629ba9fdc889dc4\",\"vendorId\":\"v-c234cd84c3ea37cc\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-24\"},{\"status\":\"Delivered\",\"date\":\"2026-10-24\"}],\"kind\":\"Expense\",\"categoryIds\":[\"c-0a739ea479e81868\",\"c-9c80f32d008d079e\",\"c-7237d0ef4d8cd662\",\"c-6885212666688193\"],\"shipping\":29,\"discount\":0,\"note\":\"\",\"reference\":\"1437\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-1b845f99054916d5\",\"title\":\"Tandpasta\",\"quantity\":2,\"price\":44.11,\"retail\":54.79,\"attachments\":[]},{\"id\":\"i-5117716e8fcc0891\",\"title\":\"Solcreme faktor 30\",\"quantity\":2,\"price\":344.05,\"retail\":443.94,\"attachments\":[]},{\"id\":\"i-c6b59766c1ebced3\",\"title\":\"Shampoo, 500 ml\",\"quantity\":2,\"price\":172.89,\"retail\":225.69,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"initials\":\"PR\",\"colour\":\"#235553\"},\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"colour\":\"#F09A38\",\"icon\":\"shirt\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"colour\":\"#45524C\",\"icon\":\"box\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"colour\":\"#2FA36B\",\"icon\":\"first-aid-kit\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"colour\":\"#D34F2E\",\"icon\":\"bus\"}],\"itemCount\":3,\"subtotal\":1122.1,\"total\":1151.1,\"saved\":326.74,\"savedPercent\":22.55183457110516,\"revision\":1,\"validated\":null}"
+					"text": "{\"id\":\"o-19f2e0223ad41a00\",\"vendorId\":\"v-195fc3653274eca6\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-26\"}],\"kind\":\"Expense\",\"categoryIds\":[],\"shipping\":0,\"discount\":0,\"note\":\"\",\"reference\":\"\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-07f808035acc36f7\",\"title\":\"Arla letmælk 1L\",\"quantity\":2,\"price\":18.95,\"attachments\":[]},{\"id\":\"i-df0f75799d70b755\",\"title\":\"Merrild kaffe 500g\",\"quantity\":2,\"price\":59.95,\"attachments\":[]},{\"id\":\"i-5ebd85c7831faa8b\",\"title\":\"Schulstad rugbrød\",\"quantity\":1,\"price\":24,\"attachments\":[]},{\"id\":\"i-1b6c6694682f5311\",\"title\":\"Bananer 1 kg\",\"quantity\":1,\"price\":18,\"attachments\":[]},{\"id\":\"i-5c816e1c6863a167\",\"title\":\"Lurpak smør 200g\",\"quantity\":1,\"price\":26.95,\"retail\":32.95,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"initials\":\"NE\",\"colour\":\"#3E5C8A\"},\"categories\":[],\"itemCount\":5,\"subtotal\":226.75,\"total\":226.75,\"saved\":6,\"savedPercent\":2.577873254564984,\"revision\":6,\"validated\":null}"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+				}
+			],
+			"POST /api/offers/order": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			]
 		},
@@ -354,7 +363,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -368,14 +377,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -392,67 +401,67 @@
 					"text": "{\"ready\":false}"
 				}
 			],
-			"GET /api/orders/o-d629ba9fdc889dc4": [
+			"GET /api/orders/o-19f2e0223ad41a00": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"o-d629ba9fdc889dc4\",\"vendorId\":\"v-c234cd84c3ea37cc\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-24\"},{\"status\":\"Delivered\",\"date\":\"2026-10-24\"}],\"kind\":\"Expense\",\"categoryIds\":[\"c-0a739ea479e81868\",\"c-9c80f32d008d079e\",\"c-7237d0ef4d8cd662\",\"c-6885212666688193\"],\"shipping\":29,\"discount\":0,\"note\":\"\",\"reference\":\"1437\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-1b845f99054916d5\",\"title\":\"Tandpasta\",\"quantity\":2,\"price\":44.11,\"retail\":54.79,\"attachments\":[]},{\"id\":\"i-5117716e8fcc0891\",\"title\":\"Solcreme faktor 30\",\"quantity\":2,\"price\":344.05,\"retail\":443.94,\"attachments\":[]},{\"id\":\"i-c6b59766c1ebced3\",\"title\":\"Shampoo, 500 ml\",\"quantity\":2,\"price\":172.89,\"retail\":225.69,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"initials\":\"PR\",\"colour\":\"#235553\"},\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"colour\":\"#F09A38\",\"icon\":\"shirt\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"colour\":\"#45524C\",\"icon\":\"box\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"colour\":\"#2FA36B\",\"icon\":\"first-aid-kit\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"colour\":\"#D34F2E\",\"icon\":\"bus\"}],\"itemCount\":3,\"subtotal\":1122.1,\"total\":1151.1,\"saved\":326.74,\"savedPercent\":22.55183457110516,\"revision\":1,\"validated\":null}"
+					"text": "{\"id\":\"o-19f2e0223ad41a00\",\"vendorId\":\"v-195fc3653274eca6\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-26\"}],\"kind\":\"Expense\",\"categoryIds\":[],\"shipping\":0,\"discount\":0,\"note\":\"\",\"reference\":\"\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-07f808035acc36f7\",\"title\":\"Arla letmælk 1L\",\"quantity\":2,\"price\":18.95,\"attachments\":[]},{\"id\":\"i-df0f75799d70b755\",\"title\":\"Merrild kaffe 500g\",\"quantity\":2,\"price\":59.95,\"attachments\":[]},{\"id\":\"i-5ebd85c7831faa8b\",\"title\":\"Schulstad rugbrød\",\"quantity\":1,\"price\":24,\"attachments\":[]},{\"id\":\"i-1b6c6694682f5311\",\"title\":\"Bananer 1 kg\",\"quantity\":1,\"price\":18,\"attachments\":[]},{\"id\":\"i-5c816e1c6863a167\",\"title\":\"Lurpak smør 200g\",\"quantity\":1,\"price\":26.95,\"retail\":32.95,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"initials\":\"NE\",\"colour\":\"#3E5C8A\"},\"categories\":[],\"itemCount\":5,\"subtotal\":226.75,\"total\":226.75,\"saved\":6,\"savedPercent\":2.577873254564984,\"revision\":6,\"validated\":null}"
 				}
 			],
 			"GET /api/categories/recent": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Clothing\",\"Transport\",\"Health\",\"Everything else\",\"Groceries\"]}"
+					"text": "{\"names\":[\"Health\",\"Clothing\",\"Everything else\",\"Transport\",\"Groceries\"]}"
 				}
 			],
 			"GET /api/vendors/recent": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Proshop\",\"Power\",\"Coop\",\"Jysk\",\"Netto\"]}"
-				}
-			],
-			"GET /api/orders/limits?date=2026-10-24&categories=Clothing&categories=Everything+else&categories=Health&categories=Transport&exclude=o-d629ba9fdc889dc4": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"month\":\"2026-10\",\"limits\":[{\"name\":\"Clothing\",\"budget\":800,\"spend\":2216.2200000000003},{\"name\":\"Health\",\"budget\":500,\"spend\":2197.88},{\"name\":\"Transport\",\"budget\":600,\"spend\":3643.5}]}"
-				}
-			],
-			"GET /api/statuses": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
-				}
-			],
-			"GET /api/categories?favourites=first&pageSize=10": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
+					"text": "{\"names\":[\"Netto\",\"Proshop\",\"Power\",\"Coop\",\"Jysk\"]}"
 				}
 			],
 			"GET /api/vendors?favourites=first&pageSize=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"vendors\":[{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-24\"},{\"id\":\"v-963786a4aa8e098f\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-5526a320dd1c0b87\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-0d8868ba63de7b94\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-16\"},{\"id\":\"v-f6f64fc20a78e3b4\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-7a3d4a986321b512\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-22\"},{\"id\":\"v-85cd6702d1d62593\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-10\"},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":45,\"spend\":28489.69,\"saved\":4313.94,\"lastOrder\":\"2026-10-20\"},{\"id\":\"v-19f8d351300b8d15\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-15\"}],\"matched\":12}"
+					"text": "{\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-25\"},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-19\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-a742f475c3a91bea\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-11\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":28716.44,\"saved\":4319.94,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-17\"}],\"matched\":12}"
+				}
+			],
+			"GET /api/categories?favourites=first&pageSize=10": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
+				}
+			],
+			"GET /api/statuses": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+				}
+			],
+			"POST /api/offers/order": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			],
 			"POST /api/categories/suggestions": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"suggestions\":[{\"name\":\"Home office\",\"isNew\":false}],\"failure\":null}"
+					"text": "{\"suggestions\":[{\"name\":\"Groceries\",\"isNew\":false}],\"failure\":null}"
 				}
 			]
 		},
@@ -461,7 +470,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -475,14 +484,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -499,67 +508,67 @@
 					"text": "{\"ready\":false}"
 				}
 			],
-			"GET /api/orders/o-d629ba9fdc889dc4": [
+			"GET /api/orders/o-19f2e0223ad41a00": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"o-d629ba9fdc889dc4\",\"vendorId\":\"v-c234cd84c3ea37cc\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-24\"},{\"status\":\"Delivered\",\"date\":\"2026-10-24\"}],\"kind\":\"Expense\",\"categoryIds\":[\"c-0a739ea479e81868\",\"c-9c80f32d008d079e\",\"c-7237d0ef4d8cd662\",\"c-6885212666688193\"],\"shipping\":29,\"discount\":0,\"note\":\"\",\"reference\":\"1437\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-1b845f99054916d5\",\"title\":\"Tandpasta\",\"quantity\":2,\"price\":44.11,\"retail\":54.79,\"attachments\":[]},{\"id\":\"i-5117716e8fcc0891\",\"title\":\"Solcreme faktor 30\",\"quantity\":2,\"price\":344.05,\"retail\":443.94,\"attachments\":[]},{\"id\":\"i-c6b59766c1ebced3\",\"title\":\"Shampoo, 500 ml\",\"quantity\":2,\"price\":172.89,\"retail\":225.69,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"initials\":\"PR\",\"colour\":\"#235553\"},\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"colour\":\"#F09A38\",\"icon\":\"shirt\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"colour\":\"#45524C\",\"icon\":\"box\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"colour\":\"#2FA36B\",\"icon\":\"first-aid-kit\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"colour\":\"#D34F2E\",\"icon\":\"bus\"}],\"itemCount\":3,\"subtotal\":1122.1,\"total\":1151.1,\"saved\":326.74,\"savedPercent\":22.55183457110516,\"revision\":1,\"validated\":null}"
+					"text": "{\"id\":\"o-19f2e0223ad41a00\",\"vendorId\":\"v-195fc3653274eca6\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"statusHistory\":[{\"status\":\"Ordered\",\"date\":\"2026-10-26\"}],\"kind\":\"Expense\",\"categoryIds\":[],\"shipping\":0,\"discount\":0,\"note\":\"\",\"reference\":\"\",\"refunded\":false,\"excludeFromStats\":false,\"items\":[{\"id\":\"i-07f808035acc36f7\",\"title\":\"Arla letmælk 1L\",\"quantity\":2,\"price\":18.95,\"attachments\":[]},{\"id\":\"i-df0f75799d70b755\",\"title\":\"Merrild kaffe 500g\",\"quantity\":2,\"price\":59.95,\"attachments\":[]},{\"id\":\"i-5ebd85c7831faa8b\",\"title\":\"Schulstad rugbrød\",\"quantity\":1,\"price\":24,\"attachments\":[]},{\"id\":\"i-1b6c6694682f5311\",\"title\":\"Bananer 1 kg\",\"quantity\":1,\"price\":18,\"attachments\":[]},{\"id\":\"i-5c816e1c6863a167\",\"title\":\"Lurpak smør 200g\",\"quantity\":1,\"price\":26.95,\"retail\":32.95,\"attachments\":[]}],\"attachments\":[],\"vendor\":{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"initials\":\"NE\",\"colour\":\"#3E5C8A\"},\"categories\":[],\"itemCount\":5,\"subtotal\":226.75,\"total\":226.75,\"saved\":6,\"savedPercent\":2.577873254564984,\"revision\":6,\"validated\":null}"
 				}
 			],
 			"GET /api/vendors?favourites=first&pageSize=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"vendors\":[{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-24\"},{\"id\":\"v-963786a4aa8e098f\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-5526a320dd1c0b87\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-0d8868ba63de7b94\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-16\"},{\"id\":\"v-f6f64fc20a78e3b4\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-7a3d4a986321b512\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-22\"},{\"id\":\"v-85cd6702d1d62593\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-10\"},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":45,\"spend\":28489.69,\"saved\":4313.94,\"lastOrder\":\"2026-10-20\"},{\"id\":\"v-19f8d351300b8d15\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-15\"}],\"matched\":12}"
+					"text": "{\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-25\"},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-19\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-a742f475c3a91bea\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-11\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":28716.44,\"saved\":4319.94,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-17\"}],\"matched\":12}"
 				}
 			],
 			"GET /api/categories?favourites=first&pageSize=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
+					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
 				}
 			],
 			"GET /api/categories/recent": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Clothing\",\"Transport\",\"Health\",\"Everything else\",\"Groceries\"]}"
+					"text": "{\"names\":[\"Health\",\"Clothing\",\"Everything else\",\"Transport\",\"Groceries\"]}"
 				}
 			],
 			"GET /api/vendors/recent": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Proshop\",\"Power\",\"Coop\",\"Jysk\",\"Netto\"]}"
+					"text": "{\"names\":[\"Netto\",\"Proshop\",\"Power\",\"Coop\",\"Jysk\"]}"
 				}
 			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			],
-			"GET /api/orders/limits?date=2026-10-24&categories=Clothing&categories=Everything+else&categories=Health&categories=Transport&exclude=o-d629ba9fdc889dc4": [
+			"POST /api/offers/order": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"month\":\"2026-10\",\"limits\":[{\"name\":\"Clothing\",\"budget\":800,\"spend\":2216.2200000000003},{\"name\":\"Health\",\"budget\":500,\"spend\":2197.88},{\"name\":\"Transport\",\"budget\":600,\"spend\":3643.5}]}"
+					"text": "{\"shown\":true,\"source\":{\"name\":\"Tilbudsugen\",\"site\":\"tilbudsugen.dk\"},\"state\":\"unchecked\",\"lines\":[]}"
 				}
 			],
 			"POST /api/categories/suggestions": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"suggestions\":[{\"name\":\"Home office\",\"isNew\":false}],\"failure\":null}"
+					"text": "{\"suggestions\":[{\"name\":\"Groceries\",\"isNew\":false}],\"failure\":null}"
 				}
 			]
 		},
@@ -568,7 +577,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -582,14 +591,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -612,7 +621,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -626,14 +635,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -670,7 +679,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -684,14 +693,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -735,7 +744,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -749,14 +758,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -777,42 +786,42 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
-				}
-			],
-			"GET /api/stats?range=month&windowId=2025-10&flow=expenses&to=2025-10-24": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"window\":{\"id\":\"2025-10\",\"range\":\"month\",\"from\":\"2025-10-01\",\"to\":\"2025-10-31\",\"slice\":{\"from\":\"2025-10-01\",\"to\":\"2025-10-24\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":0,\"saved\":0,\"orders\":0,\"median\":0,\"leftOut\":0,\"pace\":{\"running\":false,\"daysIn\":24},\"todayIndex\":null,\"split\":[],\"vendorSplit\":[],\"statusSplit\":[],\"budgets\":{\"months\":0.774194},\"series\":{\"current\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"previous\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"savedCumulative\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"ordersCumulative\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"categories\":[],\"byCategory\":[]}},\"older\":null,\"newer\":\"2025-11\",\"firstOrder\":\"2025-11-01\"}"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			],
 			"GET /api/stats?range=month&windowId=2026-10&flow=expenses&step=day": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"window\":{\"id\":\"2026-10\",\"range\":\"month\",\"from\":\"2026-10-01\",\"to\":\"2026-10-31\",\"slice\":{\"from\":\"2026-10-01\",\"to\":\"2026-10-31\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":11455.49,\"saved\":2231.649999999999,\"orders\":23,\"median\":189.03,\"leftOut\":0,\"pace\":{\"running\":true,\"daysIn\":24,\"unitDays\":31},\"todayIndex\":23,\"split\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"amount\":4794.6,\"orders\":7},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"amount\":4347.09,\"orders\":5},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"amount\":4181.81,\"orders\":10},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"amount\":3683.94,\"orders\":6},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"amount\":3367.32,\"orders\":6},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"amount\":3348.98,\"orders\":7},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"amount\":2970.95,\"orders\":8},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"amount\":2311.88,\"orders\":5},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"amount\":1135.78,\"orders\":3},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"amount\":162.96,\"orders\":1}],\"vendorSplit\":[{\"id\":\"v-c234cd84c3ea37cc\",\"name\":\"Proshop\",\"amount\":3626.69,\"orders\":4},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"amount\":3503.4700000000003,\"orders\":3},{\"id\":\"v-963786a4aa8e098f\",\"name\":\"Coop\",\"amount\":1688.5800000000002,\"orders\":3},{\"id\":\"v-10e351d0c18bdcb8\",\"name\":\"Power\",\"amount\":829.0899999999999,\"orders\":3},{\"id\":\"v-7a3d4a986321b512\",\"name\":\"Jysk\",\"amount\":509.27,\"orders\":3},{\"id\":\"v-0d8868ba63de7b94\",\"name\":\"Føtex\",\"amount\":397.04,\"orders\":1},{\"id\":\"v-85cd6702d1d62593\",\"name\":\"Matas\",\"amount\":313.03000000000003,\"orders\":2},{\"id\":\"v-19f8d351300b8d15\",\"name\":\"Normal\",\"amount\":201.94,\"orders\":1},{\"id\":\"v-5526a320dd1c0b87\",\"name\":\"Elgiganten\",\"amount\":162.96,\"orders\":1},{\"id\":\"v-fce085a61fbc7b0c\",\"name\":\"Zalando\",\"amount\":119.02,\"orders\":1},{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"amount\":104.4,\"orders\":1}],\"statusSplit\":[{\"status\":\"Delivered\",\"orders\":19},{\"status\":\"Ordered\",\"orders\":4}],\"budgets\":{\"months\":1},\"series\":{\"current\":[0,140.5,303.46000000000004,1454.5500000000002,1585.3100000000002,1585.3100000000002,1735.4100000000003,3086.0600000000004,3311.5700000000006,3578.9000000000005,5727.39,5929.33,5929.33,5929.33,5929.33,6326.37,6515.849999999999,7134.429999999999,7134.429999999999,9166.14,9166.14,9355.17,10304.39,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49,11455.49],\"previous\":[0,0,5623.360000000001,5623.360000000001,9631.27,10165.51,10165.51,13336.779999999999,15346.21,15535.24,15535.24,18318.11,18318.11,27016.43,27811.04,27811.04,27811.04,27811.04,28962.14,29493.43,33665.68,33665.68,33665.68,33960.71,33960.71,34478.84,34478.84,34733.189999999995,34733.189999999995,35756.13],\"savedCumulative\":[0,29.829999999999984,52.389999999999986,375.0899999999998,390.37999999999977,390.37999999999977,426.14999999999975,777.0299999999994,847.0999999999995,899.3099999999995,1100.6999999999994,1105.4799999999993,1105.4799999999993,1105.4799999999993,1105.4799999999993,1160.5299999999993,1169.5299999999993,1197.8299999999992,1197.8299999999992,1733.689999999999,1733.689999999999,1770.0299999999988,1904.9099999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987,2231.6499999999987],\"ordersCumulative\":[0,1,2,3,4,4,5,6,8,10,12,13,13,13,13,14,15,17,17,18,18,19,22,23,23,23,23,23,23,23,23],\"medians\":[0,140.5,162.96,1151.0900000000001,130.76,0,150.10000000000002,1350.65,112.755,133.66500000000002,1074.245,201.94,0,0,0,397.04,189.48,309.28999999999996,0,2031.71,0,189.03,189.03,1151.1,0,0,0,0,0,0,0],\"categories\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"}],\"byCategory\":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71],[0,0,0,0,0,0,0,0,0,0,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47],[0,0,0,0,0,0,0,0,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4]]}},\"older\":\"2026-09\",\"newer\":null,\"firstOrder\":\"2025-11-01\"}"
-				}
-			],
-			"GET /api/stats/orders?range=month&windowId=2026-10&flow=expenses&page=1&pageSize=10": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[{\"id\":\"o-d629ba9fdc889dc4\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-7b50914bc9040d7e\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964},{\"id\":\"o-395872a209ad9179\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001},{\"id\":\"o-7666a4c8b6596a94\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999},{\"id\":\"o-39f01d53794e2cfd\",\"date\":\"2026-10-22\",\"status\":\"Delivered\",\"reference\":\"1434\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"}],\"itemCount\":2,\"total\":189.03,\"saved\":36.34},{\"id\":\"o-72df422e02feef04\",\"date\":\"2026-10-20\",\"status\":\"Delivered\",\"reference\":\"1436\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":2031.71,\"saved\":535.8599999999997},{\"id\":\"o-6bfb452fceb57466\",\"date\":\"2026-10-18\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025},{\"id\":\"o-b961c64ff6be67d5\",\"date\":\"2026-10-18\",\"status\":\"Delivered\",\"reference\":\"1430\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Zalando\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"}],\"itemCount\":4,\"total\":119.02,\"saved\":9.64},{\"id\":\"o-201ac8ef9c7ca8fc\",\"date\":\"2026-10-17\",\"status\":\"Ordered\",\"reference\":\"1428\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\"}],\"itemCount\":4,\"total\":189.48,\"saved\":9},{\"id\":\"o-c7791c9e997f2b69\",\"date\":\"2026-10-16\",\"status\":\"Delivered\",\"reference\":\"1425\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Føtex\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\"}],\"itemCount\":4,\"total\":397.04,\"saved\":55.05000000000001}],\"matched\":23}"
+					"text": "{\"window\":{\"id\":\"2026-10\",\"range\":\"month\",\"from\":\"2026-10-01\",\"to\":\"2026-10-31\",\"slice\":{\"from\":\"2026-10-01\",\"to\":\"2026-10-31\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":11682.24,\"saved\":2237.649999999999,\"orders\":24,\"median\":189.255,\"leftOut\":0,\"pace\":{\"running\":true,\"daysIn\":26,\"unitDays\":31},\"todayIndex\":25,\"split\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"amount\":4794.6,\"orders\":7},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"amount\":4347.09,\"orders\":5},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"amount\":4181.81,\"orders\":10},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"amount\":3683.94,\"orders\":6},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"amount\":3367.32,\"orders\":6},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"amount\":3348.98,\"orders\":7},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"amount\":2970.95,\"orders\":8},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"amount\":2311.88,\"orders\":5},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"amount\":1135.78,\"orders\":3},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"amount\":162.96,\"orders\":1}],\"vendorSplit\":[{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"amount\":3730.2200000000003,\"orders\":4},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"amount\":3626.69,\"orders\":4},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"amount\":1688.5800000000002,\"orders\":3},{\"id\":\"v-bc1864c9ae1d0496\",\"name\":\"Power\",\"amount\":829.0899999999999,\"orders\":3},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"amount\":509.27,\"orders\":3},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"amount\":397.04,\"orders\":1},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"amount\":313.03000000000003,\"orders\":2},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"amount\":201.94,\"orders\":1},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"amount\":162.96,\"orders\":1},{\"id\":\"v-8bd751b75d656179\",\"name\":\"Zalando\",\"amount\":119.02,\"orders\":1},{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"amount\":104.4,\"orders\":1}],\"statusSplit\":[{\"status\":\"Delivered\",\"orders\":20},{\"status\":\"Ordered\",\"orders\":4}],\"budgets\":{\"months\":1},\"series\":{\"current\":[0,140.5,303.46000000000004,1454.5500000000002,1585.3100000000002,1585.3100000000002,1735.4100000000003,1735.4100000000003,3190.4600000000005,3311.5700000000006,3975.9200000000005,5727.39,5929.33,5929.33,5929.33,5929.33,6326.37,6326.37,6634.87,7134.43,9166.14,9166.14,9355.17,9355.17,10304.39,11682.24,11682.24,11682.24,11682.24,11682.24,11682.24],\"previous\":[0,0,5623.360000000001,5623.360000000001,9631.27,10165.51,10165.51,13336.779999999999,15346.21,15535.24,15535.24,18318.11,18318.11,27016.43,27811.04,27811.04,27811.04,27811.04,28962.14,29493.43,33665.68,33665.68,33665.68,33960.71,33960.71,34478.84,34478.84,34733.189999999995,34733.189999999995,35756.13],\"savedCumulative\":[0,29.829999999999984,52.389999999999986,375.0899999999998,390.37999999999977,390.37999999999977,426.14999999999975,426.14999999999975,814.9799999999993,847.0999999999993,984.1499999999994,1100.6999999999994,1105.4799999999993,1105.4799999999993,1105.4799999999993,1105.4799999999993,1160.5299999999993,1160.5299999999993,1179.1699999999994,1197.8299999999995,1733.6899999999991,1733.6899999999991,1770.029999999999,1770.029999999999,1904.909999999999,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987,2237.6499999999987],\"ordersCumulative\":[0,1,2,3,4,4,5,5,7,8,11,12,13,13,13,13,14,14,16,17,18,18,19,19,22,24,24,24,24,24,24],\"medians\":[0,140.5,162.96,1151.0900000000001,130.76,0,150.10000000000002,0,727.5250000000001,121.11,162.93,1751.47,201.94,0,0,0,397.04,0,154.25,499.55999999999995,2031.71,0,189.03,0,189.03,688.925,0,0,0,0,0],\"categories\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"}],\"byCategory\":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71,2031.71],[0,0,0,0,0,0,0,0,0,0,0,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47,1751.47],[0,0,0,0,0,0,0,0,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4,104.4]]}},\"older\":\"2026-09\",\"newer\":null,\"firstOrder\":\"2025-11-01\"}"
 				}
 			],
 			"GET /api/categories/limited": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+				}
+			],
+			"GET /api/stats?range=month&windowId=2025-10&flow=expenses&to=2025-10-26": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"window\":{\"id\":\"2025-10\",\"range\":\"month\",\"from\":\"2025-10-01\",\"to\":\"2025-10-31\",\"slice\":{\"from\":\"2025-10-01\",\"to\":\"2025-10-26\"},\"axis\":[{\"day\":0},{\"day\":1},{\"day\":2},{\"day\":3},{\"day\":4},{\"day\":5},{\"day\":6},{\"day\":7},{\"day\":8},{\"day\":9},{\"day\":10},{\"day\":11},{\"day\":12},{\"day\":13},{\"day\":14},{\"day\":15},{\"day\":16},{\"day\":17},{\"day\":18},{\"day\":19},{\"day\":20},{\"day\":21},{\"day\":22},{\"day\":23},{\"day\":24},{\"day\":25},{\"day\":26},{\"day\":27},{\"day\":28},{\"day\":29},{\"day\":30}],\"spent\":0,\"saved\":0,\"orders\":0,\"median\":0,\"leftOut\":0,\"pace\":{\"running\":false,\"daysIn\":26},\"todayIndex\":null,\"split\":[],\"vendorSplit\":[],\"statusSplit\":[],\"budgets\":{\"months\":0.83871},\"series\":{\"current\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"previous\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"savedCumulative\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"ordersCumulative\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"categories\":[],\"byCategory\":[]}},\"older\":null,\"newer\":\"2025-11\",\"firstOrder\":\"2025-11-01\"}"
+				}
+			],
+			"GET /api/stats/orders?range=month&windowId=2026-10&flow=expenses&page=1&pageSize=10": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"orders\":[{\"id\":\"o-19f2e0223ad41a00\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":5,\"total\":226.75,\"saved\":6},{\"id\":\"o-36fc0657711c0768\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-d118599efdad9ca4\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1440\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":1,\"total\":619.72,\"saved\":36.039999999999964},{\"id\":\"o-f3ec686912aa9267\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1439\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":1,\"total\":189.03,\"saved\":53.08000000000001},{\"id\":\"o-fe7919d3f0b9d51e\",\"date\":\"2026-10-25\",\"status\":\"Delivered\",\"reference\":\"1438\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Coop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":140.47,\"saved\":45.75999999999999},{\"id\":\"o-e36d77d6017ef8b1\",\"date\":\"2026-10-23\",\"status\":\"Delivered\",\"reference\":\"1434\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"}],\"itemCount\":2,\"total\":189.03,\"saved\":36.34},{\"id\":\"o-22c6edf774c5e6ff\",\"date\":\"2026-10-21\",\"status\":\"Delivered\",\"reference\":\"1436\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Netto\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":2031.71,\"saved\":535.8599999999997},{\"id\":\"o-f54ac316beeda27f\",\"date\":\"2026-10-20\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025},{\"id\":\"o-bf79f22998910cbd\",\"date\":\"2026-10-19\",\"status\":\"Delivered\",\"reference\":\"1430\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Zalando\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\"}],\"itemCount\":4,\"total\":119.02,\"saved\":9.64},{\"id\":\"o-f55eb1af8a5669ad\",\"date\":\"2026-10-19\",\"status\":\"Ordered\",\"reference\":\"1428\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Jysk\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\"}],\"itemCount\":4,\"total\":189.48,\"saved\":9}],\"matched\":24}"
 				}
 			],
 			"GET /api/categories/limited?over=yes": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false}]}"
 				}
 			]
 		},
@@ -821,7 +830,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -831,18 +840,18 @@
 					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
-			"GET /api/views": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
-				}
-			],
 			"GET /api/counts": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+				}
+			],
+			"GET /api/views": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -863,7 +872,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"vendors\":[{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-963786a4aa8e098f\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-5526a320dd1c0b87\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-0d8868ba63de7b94\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-16\"},{\"id\":\"v-f6f64fc20a78e3b4\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-7a3d4a986321b512\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-22\"},{\"id\":\"v-85cd6702d1d62593\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-10\"},{\"id\":\"v-e0e8ac4b02134296\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":45,\"spend\":28489.69,\"saved\":4313.94,\"lastOrder\":\"2026-10-20\"},{\"id\":\"v-19f8d351300b8d15\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-15\"},{\"id\":\"v-10e351d0c18bdcb8\",\"name\":\"Power\",\"colour\":\"#B4552B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":39,\"spend\":29009.81,\"saved\":4615.87,\"lastOrder\":\"2026-10-23\"}],\"matched\":12}"
+					"text": "{\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-25\"},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-19\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-a742f475c3a91bea\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-11\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":28716.44,\"saved\":4319.94,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-bc1864c9ae1d0496\",\"name\":\"Power\",\"colour\":\"#B4552B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":39,\"spend\":29009.81,\"saved\":4615.87,\"lastOrder\":\"2026-10-25\"}],\"matched\":12}"
 				}
 			]
 		},
@@ -872,7 +881,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -886,14 +895,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
-				}
-			],
-			"GET /api/views": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -901,6 +903,13 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"due\":0}"
+				}
+			],
+			"GET /api/views": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/ask": [
@@ -910,65 +919,67 @@
 					"text": "{\"ready\":false}"
 				}
 			],
+			"GET /api/offers/picks/vendor/v-ee2b435c85d2d70b": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"picked\":true}]}"
+				}
+			],
 			"GET /api/categories?favourites=first&pageSize=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
+					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
 				}
 			],
-			"GET /api/vendors?ids=v-ae019a73e795e4ea&archived=all&pageSize=1": [
+			"GET /api/vendors?ids=v-ee2b435c85d2d70b&archived=all&pageSize=1": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"vendors\":[{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"}],\"matched\":1}"
+					"text": "{\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"}],\"matched\":1}"
 				}
 			],
-			"GET /api/vendors/v-ae019a73e795e4ea": [
+			"GET /api/vendors/v-ee2b435c85d2d70b": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"v-ae019a73e795e4ea\",\"name\":\"Bilka\",\"initials\":\"BI\",\"colour\":\"#877364\",\"favourite\":true,\"lead\":\"Your most frequent vendor.\",\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"lastMatched\":null,\"defaultCategories\":[],\"defaultExcludeFromStats\":false,\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"image\":null}"
+					"text": "{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"initials\":\"BI\",\"colour\":\"#877364\",\"favourite\":true,\"lead\":\"Your most frequent vendor.\",\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"lastMatched\":null,\"defaultCategories\":[],\"defaultExcludeFromStats\":false,\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"image\":null}"
 				}
 			],
 			"GET /api/categories/recent": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Clothing\",\"Transport\",\"Health\",\"Everything else\",\"Groceries\"]}"
-				},
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"names\":[\"Clothing\",\"Transport\",\"Health\",\"Everything else\",\"Groceries\"]}"
+					"text": "{\"names\":[\"Health\",\"Clothing\",\"Everything else\",\"Transport\",\"Groceries\"]}"
 				}
 			],
-			"GET /api/vendors/v-ae019a73e795e4ea/year": [
+			"GET /api/vendors/v-ee2b435c85d2d70b/year": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"amount\":39242.24,\"median\":541.41}"
 				}
 			],
-			"GET /api/orders?vendorId=v-ae019a73e795e4ea&status=Returned&pageSize=0": [
+			"GET /api/orders?vendorId=v-ee2b435c85d2d70b&status=Returned&pageSize=0": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[],\"matched\":4,\"total\":441}"
+					"text": "{\"orders\":[],\"matched\":4,\"total\":443}"
 				}
 			],
-			"GET /api/orders?vendorId=v-ae019a73e795e4ea&pageSize=2": [
+			"GET /api/orders?vendorId=v-ee2b435c85d2d70b&pageSize=2": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[{\"id\":\"o-689bbd68f9faf6f2\",\"date\":\"2026-10-09\",\"status\":\"Delivered\",\"reference\":\"1418\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Bilka\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"}],\"itemCount\":1,\"total\":104.4,\"saved\":37.94999999999999},{\"id\":\"o-30d46e976a21640e\",\"date\":\"2026-10-04\",\"status\":\"Delivered\",\"reference\":\"1409\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Bilka\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":2,\"total\":1301.63,\"saved\":451.3799999999999}],\"matched\":41,\"total\":441,\"pages\":21}"
+					"text": "{\"orders\":[{\"id\":\"o-eec8f76c9d9ae172\",\"date\":\"2026-10-09\",\"status\":\"Delivered\",\"reference\":\"1418\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Bilka\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"}],\"itemCount\":1,\"total\":104.4,\"saved\":37.94999999999999},{\"id\":\"o-54caac312aeba833\",\"date\":\"2026-10-05\",\"status\":\"Delivered\",\"reference\":\"1409\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Bilka\"},\"vendorImage\":null,\"categories\":[],\"itemCount\":2,\"total\":1301.63,\"saved\":451.3799999999999}],\"matched\":41,\"total\":443,\"pages\":21}"
 				}
 			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			]
 		},
@@ -977,7 +988,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -991,14 +1002,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
-				}
-			],
-			"GET /api/views": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -1006,6 +1010,13 @@
 					"status": 200,
 					"type": "application/json; charset=utf-8",
 					"text": "{\"due\":0}"
+				}
+			],
+			"GET /api/views": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/ask": [
@@ -1019,7 +1030,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"monthSpend\":3367.32,\"monthAverage\":5871.380833333334},{\"id\":\"c-fca8451da9e6ba01\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93,\"monthSpend\":2311.88,\"monthAverage\":5708.032500000001},{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97,\"monthSpend\":162.96,\"monthAverage\":6505.464999999999},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80,\"monthSpend\":4347.09,\"monthAverage\":5413.069999999999},{\"id\":\"c-b614f6dd12851cf6\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#C43F2A\",\"budget\":4500,\"favourite\":true,\"orders\":99,\"monthSpend\":1135.7800000000002,\"monthAverage\":6363.054166666668},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90,\"monthSpend\":3348.98,\"monthAverage\":5051.918333333332},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81,\"monthSpend\":3683.9399999999996,\"monthAverage\":6140.753333333334},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105,\"monthSpend\":4181.81,\"monthAverage\":5834.768333333331},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92,\"monthSpend\":2970.9500000000007,\"monthAverage\":6062.8550000000005},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89,\"monthSpend\":4794.6,\"monthAverage\":4936.694166666666}],\"matched\":10}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"monthSpend\":3367.32,\"monthAverage\":5871.380833333334},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93,\"monthSpend\":2311.88,\"monthAverage\":5708.032500000001},{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97,\"monthSpend\":162.96,\"monthAverage\":6505.464999999999},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80,\"monthSpend\":4347.09,\"monthAverage\":5413.069999999999},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99,\"monthSpend\":1135.7800000000002,\"monthAverage\":6363.054166666668},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90,\"monthSpend\":3348.98,\"monthAverage\":5051.918333333332},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81,\"monthSpend\":3683.9399999999996,\"monthAverage\":6140.753333333334},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105,\"monthSpend\":4181.81,\"monthAverage\":5834.768333333331},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92,\"monthSpend\":2970.9500000000003,\"monthAverage\":6062.8550000000005},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89,\"monthSpend\":4794.599999999999,\"monthAverage\":4936.694166666666}],\"matched\":10}"
 				}
 			]
 		},
@@ -1028,7 +1039,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -1042,21 +1053,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
-				}
-			],
-			"GET /api/budget/due?year=2026&month=10": [
-				{
-					"status": 200,
-					"type": "application/json; charset=utf-8",
-					"text": "{\"due\":0}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/ask": [
@@ -1066,32 +1070,46 @@
 					"text": "{\"ready\":false}"
 				}
 			],
-			"GET /api/categories?ids=c-0a739ea479e81868&with=month&pageSize=1": [
+			"GET /api/budget/due?year=2026&month=10": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"monthSpend\":3367.32,\"monthAverage\":5871.380833333334}],\"matched\":1}"
+					"text": "{\"due\":0}"
 				}
 			],
-			"GET /api/categories/c-0a739ea479e81868": [
+			"GET /api/categories?ids=c-778ee33ee330e2a1&with=month&pageSize=1": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"iconPath\":null,\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"spend\":73823.89,\"saved\":10930.76,\"orders\":97,\"bookmarks\":1,\"monthAverage\":5871.380833333334,\"monthSpends\":[0,7185.3099999999995,11235.699999999999,5530.72,5050.25,1651.99,4648.3099999999995,9210.460000000003,9729.44,3989.4900000000002,5450.67,6774.2300000000005],\"alone\":11}"
+					"text": "{\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"monthSpend\":3367.32,\"monthAverage\":5871.380833333334}],\"matched\":1}"
 				}
 			],
-			"GET /api/orders?categoryId=c-0a739ea479e81868&pageSize=2": [
+			"GET /api/offers/picks/category/c-778ee33ee330e2a1": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":[{\"id\":\"o-d629ba9fdc889dc4\",\"date\":\"2026-10-24\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-9c80f32d008d079e\",\"name\":\"Everything else\"},{\"id\":\"c-7237d0ef4d8cd662\",\"name\":\"Health\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-6bfb452fceb57466\",\"date\":\"2026-10-18\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\"},{\"id\":\"c-b0915c18b96175b7\",\"name\":\"Home office\"},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\"},{\"id\":\"c-6885212666688193\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025}],\"matched\":97,\"total\":441,\"pages\":49}"
+					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"picked\":false}]}"
+				}
+			],
+			"GET /api/categories/c-778ee33ee330e2a1": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"iconPath\":null,\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"spend\":73823.89,\"saved\":10930.76,\"orders\":97,\"bookmarks\":1,\"monthAverage\":5871.380833333334,\"monthSpends\":[0,7185.3099999999995,11235.7,5530.72,5050.25,1651.99,4648.3099999999995,9210.460000000001,9729.439999999999,3989.4900000000002,5450.67,6774.2300000000005],\"alone\":11}"
+				}
+			],
+			"GET /api/orders?categoryId=c-778ee33ee330e2a1&pageSize=2": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"orders\":[{\"id\":\"o-36fc0657711c0768\",\"date\":\"2026-10-26\",\"status\":\"Delivered\",\"reference\":\"1437\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Proshop\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\"},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":3,\"total\":1151.1,\"saved\":326.74},{\"id\":\"o-f54ac316beeda27f\",\"date\":\"2026-10-20\",\"status\":\"Delivered\",\"reference\":\"1431\",\"note\":\"\",\"photo\":null,\"photoCount\":0,\"vendor\":{\"name\":\"Power\"},\"vendorImage\":null,\"categories\":[{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\"},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\"},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\"},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\"}],\"itemCount\":2,\"total\":499.55999999999995,\"saved\":18.660000000000025}],\"matched\":97,\"total\":443,\"pages\":49}"
 				}
 			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
 				}
 			]
 		},
@@ -1100,7 +1118,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -1114,14 +1132,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -1142,7 +1160,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"categories\":[{\"id\":\"c-845d8113fe2fb68b\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97,\"bookmarks\":1},{\"id\":\"c-b00838c610ab1f35\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92,\"bookmarks\":2},{\"id\":\"c-0a739ea479e81868\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"bookmarks\":1},{\"id\":\"c-bce3f7f1483dcc4d\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81,\"bookmarks\":2}],\"matched\":4}"
+					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97,\"bookmarks\":1},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92,\"bookmarks\":2},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97,\"bookmarks\":1},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81,\"bookmarks\":2}],\"matched\":4}"
 				}
 			],
 			"GET /api/bookmarks/categories?archived=no": [
@@ -1156,7 +1174,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"bookmarks\":[{\"id\":\"bm-21659a2a473b9f07\",\"name\":\"Sony WH-1000XM5\",\"url\":\"https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5\",\"price\":2799,\"archived\":false,\"createdAt\":\"2026-10-21\",\"categories\":[\"Electronics\"],\"photoId\":null},{\"id\":\"bm-e085c34bdf8131a9\",\"name\":\"Robotstøvsuger\",\"url\":\"https://www.elgiganten.dk/robotstoevsuger\",\"price\":3499,\"archived\":false,\"createdAt\":\"2026-10-13\",\"categories\":[\"Household\"],\"photoId\":null},{\"id\":\"bm-d715bcc4e86a7d4f\",\"name\":\"Løbesko, str. 42\",\"url\":\"https://www.zalando.dk/loebesko\",\"price\":899,\"archived\":false,\"createdAt\":\"2026-09-30\",\"categories\":[\"Clothing\",\"Hobby\"],\"photoId\":null},{\"id\":\"bm-69fd01b4153765b3\",\"name\":\"Espressokværn\",\"url\":\"https://www.coop.dk/espressokvaern\",\"price\":1495,\"archived\":false,\"createdAt\":\"2026-09-14\",\"categories\":[\"Hobby\",\"Household\"],\"photoId\":null}],\"matched\":4,\"total\":6}"
+					"text": "{\"bookmarks\":[{\"id\":\"bm-e5d9bf6ceb0d7e51\",\"name\":\"Sony WH-1000XM5\",\"url\":\"https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5\",\"price\":2799,\"archived\":false,\"createdAt\":\"2026-10-23\",\"categories\":[\"Electronics\"],\"photoId\":null},{\"id\":\"bm-cfe58d180ccb7f82\",\"name\":\"Robotstøvsuger\",\"url\":\"https://www.elgiganten.dk/robotstoevsuger\",\"price\":3499,\"archived\":false,\"createdAt\":\"2026-10-15\",\"categories\":[\"Household\"],\"photoId\":null},{\"id\":\"bm-e0ccdd042dc4e46f\",\"name\":\"Løbesko, str. 42\",\"url\":\"https://www.zalando.dk/loebesko\",\"price\":899,\"archived\":false,\"createdAt\":\"2026-10-02\",\"categories\":[\"Clothing\",\"Hobby\"],\"photoId\":null},{\"id\":\"bm-521949a14fbaf091\",\"name\":\"Espressokværn\",\"url\":\"https://www.coop.dk/espressokvaern\",\"price\":1495,\"archived\":false,\"createdAt\":\"2026-09-16\",\"categories\":[\"Hobby\",\"Household\"],\"photoId\":null}],\"matched\":4,\"total\":6}"
 				}
 			]
 		},
@@ -1165,7 +1183,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"id\":\"u-4980ccbd23c56715\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792859336,\"mail\":false,\"scanAiEnabled\":false}"
+					"text": "{\"id\":\"u-75d42a9ef002ab8d\",\"email\":\"session@example.com\",\"needsSetup\":false,\"name\":null,\"picture\":null,\"emailConfirmed\":true,\"passwordChangedAt\":1792994812,\"mail\":false,\"scanAiEnabled\":false}"
 				}
 			],
 			"GET /api/settings": [
@@ -1179,14 +1197,14 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"orders\":441,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
+					"text": "{\"orders\":443,\"vendors\":12,\"categories\":10,\"bookmarks\":4}"
 				}
 			],
 			"GET /api/views": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"all\":441,\"shown\":4,\"views\":[{\"id\":\"sv-u-4980ccbd23c56715-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-4980ccbd23c56715-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":441}]}"
+					"text": "{\"all\":443,\"shown\":4,\"views\":[{\"id\":\"sv-u-75d42a9ef002ab8d-awaiting\",\"name\":\"Awaiting delivery\",\"query\":\"status=Ordered\",\"isDefault\":false,\"attention\":false,\"count\":77},{\"id\":\"sv-u-75d42a9ef002ab8d-receipt\",\"name\":\"Missing receipt\",\"query\":\"receipt=missing\",\"isDefault\":false,\"attention\":false,\"count\":443}]}"
 				}
 			],
 			"GET /api/budget/due?year=2026&month=10": [
@@ -1238,11 +1256,32 @@
 					"text": "{\"builtAt\":null,\"commit\":null,\"lighthouse\":null,\"canUpdate\":false}"
 				}
 			],
+			"GET /api/offers/picks": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"sources\":[{\"key\":\"tilbudsugen\",\"name\":\"Tilbudsugen\",\"goods\":\"groceries\",\"country\":\"Denmark\",\"currencyName\":\"Danish kroner\",\"usable\":true,\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\"}],\"categories\":[{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\"}]}]}"
+				}
+			],
 			"GET /api/statuses": [
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":0},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":298},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+					"text": "[{\"key\":\"Draft\",\"name\":\"Draft\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"draft\",\"builtIn\":true,\"orders\":1},{\"key\":\"Ordered\",\"name\":\"Ordered\",\"tone\":\"progress\",\"ownDate\":false,\"type\":\"ordered\",\"builtIn\":true,\"orders\":77},{\"key\":\"Delivered\",\"name\":\"Delivered\",\"tone\":\"success\",\"ownDate\":true,\"type\":\"delivered\",\"builtIn\":true,\"orders\":299},{\"key\":\"Returned\",\"name\":\"Returned\",\"tone\":\"danger\",\"ownDate\":true,\"type\":\"returned\",\"builtIn\":true,\"orders\":66},{\"key\":\"Cancelled\",\"name\":\"Cancelled\",\"tone\":\"neutral\",\"ownDate\":true,\"type\":\"cancelled\",\"builtIn\":true,\"orders\":0}]"
+				}
+			],
+			"GET /api/vendors?favourites=first&pageSize=10": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"vendors\":[{\"id\":\"v-ee2b435c85d2d70b\",\"name\":\"Bilka\",\"colour\":\"#877364\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":41,\"spend\":33761.58,\"saved\":4295.17,\"lastOrder\":\"2026-10-09\"},{\"id\":\"v-80e9fcf1c96933c1\",\"name\":\"Proshop\",\"colour\":\"#235553\",\"favourite\":true,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":38845.89,\"saved\":4995.57,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-62585966eda6e570\",\"name\":\"Coop\",\"colour\":\"#6B4E9E\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":37,\"spend\":25510.09,\"saved\":4478.23,\"lastOrder\":\"2026-10-25\"},{\"id\":\"v-ac9803466c79a367\",\"name\":\"Elgiganten\",\"colour\":\"#AD620D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":37130.2,\"saved\":4980.73,\"lastOrder\":\"2026-10-19\"},{\"id\":\"v-d7e5162ce11236c7\",\"name\":\"Føtex\",\"colour\":\"#177DA7\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":34,\"spend\":18747.98,\"saved\":2789.1,\"lastOrder\":\"2026-10-17\"},{\"id\":\"v-a742f475c3a91bea\",\"name\":\"IKEA\",\"colour\":\"#A8324A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":30,\"spend\":20252.38,\"saved\":3648.72,\"lastOrder\":\"2026-10-04\"},{\"id\":\"v-77958e58b16a1211\",\"name\":\"Jysk\",\"colour\":\"#1F7A4D\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":33,\"spend\":29512.56,\"saved\":5297.03,\"lastOrder\":\"2026-10-23\"},{\"id\":\"v-1ff65ace19d97eac\",\"name\":\"Matas\",\"colour\":\"#8453F5\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":31,\"spend\":18470.63,\"saved\":2664.72,\"lastOrder\":\"2026-10-11\"},{\"id\":\"v-195fc3653274eca6\",\"name\":\"Netto\",\"colour\":\"#3E5C8A\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":47,\"spend\":28716.44,\"saved\":4319.94,\"lastOrder\":\"2026-10-26\"},{\"id\":\"v-349cc12361a2d1da\",\"name\":\"Normal\",\"colour\":\"#2C6E6B\",\"favourite\":false,\"archived\":false,\"createdByScan\":false,\"aliases\":[],\"orders\":38,\"spend\":28320.44,\"saved\":5240.42,\"lastOrder\":\"2026-10-17\"}],\"matched\":12}"
+				}
+			],
+			"GET /api/categories?favourites=first&pageSize=10": [
+				{
+					"status": 200,
+					"type": "application/json; charset=utf-8",
+					"text": "{\"categories\":[{\"id\":\"c-76605b8f2bd8a757\",\"name\":\"Electronics\",\"icon\":\"plug\",\"colour\":\"#E9C517\",\"budget\":1800,\"favourite\":true,\"orders\":97},{\"id\":\"c-84a1cb7dffca71d8\",\"name\":\"Groceries\",\"icon\":\"shopping-cart\",\"colour\":\"#c43f2a\",\"budget\":4500,\"favourite\":true,\"orders\":99},{\"id\":\"c-3f4bd7da3c793533\",\"name\":\"Household\",\"icon\":\"home\",\"colour\":\"#8B5CF6\",\"budget\":900,\"favourite\":true,\"orders\":92},{\"id\":\"c-778ee33ee330e2a1\",\"name\":\"Clothing\",\"icon\":\"shirt\",\"colour\":\"#F09A38\",\"budget\":800,\"favourite\":false,\"orders\":97},{\"id\":\"c-a64369089112f6bd\",\"name\":\"Eating out\",\"icon\":\"tools-kitchen-2\",\"colour\":\"#7A8B2E\",\"budget\":1000,\"favourite\":false,\"orders\":93},{\"id\":\"c-832ae035050c6a7b\",\"name\":\"Everything else\",\"icon\":\"box\",\"colour\":\"#45524C\",\"budget\":0,\"favourite\":false,\"orders\":80},{\"id\":\"c-36b2ccddad1abeec\",\"name\":\"Health\",\"icon\":\"first-aid-kit\",\"colour\":\"#2FA36B\",\"budget\":500,\"favourite\":false,\"orders\":90},{\"id\":\"c-5be40cfd25bec9f4\",\"name\":\"Hobby\",\"icon\":\"puzzle\",\"colour\":\"#E0568A\",\"budget\":400,\"favourite\":false,\"orders\":81},{\"id\":\"c-1df2d11b700045f8\",\"name\":\"Home office\",\"icon\":\"device-desktop\",\"colour\":\"#1FA8E0\",\"budget\":700,\"favourite\":false,\"orders\":105},{\"id\":\"c-c9bcfe8829549985\",\"name\":\"Transport\",\"icon\":\"bus\",\"colour\":\"#D34F2E\",\"budget\":600,\"favourite\":false,\"orders\":89}],\"matched\":10}"
 				}
 			]
 		}

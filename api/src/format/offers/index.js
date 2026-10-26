@@ -43,7 +43,7 @@ const unitPrice = offer => (offer.perUnit?.price > 0 ? offer.perUnit.price : nul
 const rowsOf = offers => [...offers]
 	.sort((a, b) => (unitPrice(a) === null) - (unitPrice(b) === null) || (unitPrice(a) ?? a.price / a.forHowMany) - (unitPrice(b) ?? b.price / b.forHowMany))
 	.slice(0, ROWS_MOST)
-	.map(({ product, brand, size, shop, membersOnly, price, forHowMany, perUnit, image, to }) => ({ product, brand, size, shop, membersOnly, price, forHowMany, perUnit, image, to }))
+	.map(({ product, brand, size, shop, shopLogo, membersOnly, price, forHowMany, perUnit, image, to }) => ({ product, brand, size, shop, shopLogo, membersOnly, price, forHowMany, perUnit, image, to }))
 
 const waitSaid = minutes => `Tell the reader in one sentence: "Today's offer lookups are used up. Ask again in ${minutes} minutes." Write no place mark.`
 const PER_DAY_SAID = 'Tell the reader in one sentence: "Today\'s offer lookups are used up. Ask again tomorrow." Write no place mark.'

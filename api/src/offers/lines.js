@@ -1,4 +1,5 @@
-import { OFFER_DAYS, findOffers, sourceForShop, withPictures } from './index.js'
+import { OFFER_DAYS, findOffers, withPictures } from './index.js'
+import { pickedSourceFor } from './picks.js'
 
 /* The offers for the lines of one order (Order editing layouts 1a): one request for every line, and for
    each line the cheapest offer that is below what the line paid. A match is a guess on the line's text. */
@@ -50,19 +51,19 @@ export function matchFor(line, offers, date) {
 	return priced[0]?.offer ?? null
 }
 
-/** Whether an order from these shops, dated `date`, may show offers on `today`, and from which source. */
-export function offerSourceForOrder({ userId, today, shopNames, date }) {
+/** Whether an order of `vendorId` and `categoryIds`, dated `date`, may show offers on `today`, and from which source. */
+export function offerSourceForOrder({ userId, today, vendorId, categoryIds, date }) {
 	if (!date || !today || date > today) return null
 	const first = new Date(`${today}T00:00:00Z`)
 	first.setUTCDate(first.getUTCDate() - (OFFER_DAYS - 1))
 	if (date < first.toISOString().slice(0, 10)) return null
-	return sourceForShop(userId, shopNames)
+	return pickedSourceFor(userId, { vendorId, categoryIds })
 }
 
 /** { shown: false }, or { shown, source, state, lines: [{ index, offer }] }; state is `unchecked` (nothing
     kept to read), `checked`, `failed`, or `wait` with `waitMinutes` or `perDay`. */
-export async function offersForOrder({ userId, today, shopNames, date, lines, keptOnly }, signal) {
-	const source = offerSourceForOrder({ userId, today, shopNames, date })
+export async function offersForOrder({ userId, today, vendorId, categoryIds, date, lines, keptOnly }, signal) {
+	const source = offerSourceForOrder({ userId, today, vendorId, categoryIds, date })
 	if (!source) return { shown: false }
 	const named = { name: source.name, site: source.site }
 	const searched = lines.slice(0, LINES_MOST).map((line, index) => ({ line, index, words: searchWordsOf(line.title) })).filter(l => l.words)

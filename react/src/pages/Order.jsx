@@ -65,7 +65,7 @@ function OrderView({ order, touch, onGone }) {
 	}, [])
 	// a status with a date of its own has it recorded; one on the order's own date has none
 	const stamped = order.statusHistory.findLast(s => s.status === order.status)
-	const offers = useOrderOffers({ vendor: order.vendor, date: order.date, lines: order.items })
+	const offers = useOrderOffers({ vendor: order.vendor, categories: order.categories, date: order.date, lines: order.items })
 	const [offerOpen, setOfferOpen] = useState(null)
 	const tagOf = (item, index) => {
 		const offer = offers.offerOf(index)

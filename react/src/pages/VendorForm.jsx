@@ -25,6 +25,7 @@ import { currency, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
+import { OfferSwitchesCard, useOfferSwitches } from './offerSwitches.jsx'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	SummaryLoading, archiveVendor, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
@@ -106,8 +107,9 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const [lost, setLost] = useState(null)
 	const writing = useRef(false)
 	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
+	const offerSwitches = useOfferSwitches('vendor', vendor?.id ?? loadingId)
 
-	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
+	const changed = offerSwitches.changed || values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
 		|| !same(values.defaultCategories, start.defaultCategories) || values.defaultExcludeFromStats !== start.defaultExcludeFromStats
 		|| Boolean(image.file) || image.drop
@@ -203,6 +205,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		written
 			.then(async saved => {
 				const imageSaid = await sendImage(saved)
+				const offersSaid = await offerSwitches.save(saved.id).then(() => null, () => `${saved.name} was saved, but its offers switch was not. Try again.`)
+				if (offersSaid) toast({ message: offersSaid, color: 'danger' })
 				if (image.file || image.drop) invalidateOrderData()
 				if (imageSaid) toast({ message: imageSaid, color: 'danger' })
 				invalidateVendorData()
@@ -348,6 +352,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					<span className="sp-field__help" id={`${statsSwitch}-help`}>For a vendor of one-off purchases, like a car dealer. A new order from this vendor starts with Leave out of statistics on, and you can still change it on the order.</span>
 				</div>
 			</Card>
+			<OfferSwitchesCard kind="vendor" switches={offerSwitches} hold={h} />
 		</>
 	)
 

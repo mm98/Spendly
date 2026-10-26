@@ -114,9 +114,6 @@ export async function findOffers(source, { items, ...asked }, signal) {
 	return { found }
 }
 
-export const sourceForShop = (userId, vendorNames) =>
-	offerSourcesFor(userId).find(source => vendorNames.some(name => source.shopKey(name))) ?? null
-
 /** `foundFor` with `shops` in the reader's words: { found, unknownShops }, or { unknownOnly } when it knows none. */
 export async function offersAsked(source, { items, shops = [], ...asking }, signal) {
 	const shopKeys = [...new Set(shops.map(source.shopKey).filter(Boolean))]

@@ -247,7 +247,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const included = lines.filter(l => l.include !== false)
 	const sums = totalsOf(included, draft.shipping, draft.discount)
 	// a line left out with its tick is neither checked nor counted (Order create 3a)
-	const offers = useOrderOffers({ vendor: { name: draft.vendor }, date: draft.date, lines: included })
+	const offers = useOrderOffers({ vendor: { name: draft.vendor }, categories: draft.categories, date: draft.date, lines: included })
 	const [offerOpen, setOfferOpen] = useState(null)
 	const tagOf = line => {
 		const offer = offers.offerOf(included.indexOf(line))

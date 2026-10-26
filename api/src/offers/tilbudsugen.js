@@ -36,14 +36,52 @@ const SHOP_KEYS = {
 	letkoeb: 'letkoeb', letkob: 'letkoeb'
 }
 
+// each shop's logo, by its folded name, as the site's offer papers page draws it (tilbudsugen.md)
+const SHOP_LOGOS_URL = 'https://www.tilbudsugen.dk/chains/'
+const SHOP_LOGOS = {
+	bilka: 'bilka.png',
+	calle: 'calle.png',
+	citti: 'CITTI.png',
+	daglibrugsen: 'daglibrugsen.png',
+	faktatyskland: 'fakta.png',
+	fleggaard: 'fleggaard.png',
+	foetex: 'foetex.png',
+	haraldnyborg: 'harald-nyborg.png',
+	kvickly: 'kvickly.png',
+	koebmandsgaarden: 'koebmandsgaarden.png',
+	letkoeb: 'letkoeb.png',
+	lidl: 'lidl.png',
+	loevbjerg: 'loevbjerg.png',
+	matas: 'matas.png',
+	meny: 'meny.png',
+	minkoebmand: 'min-koebmand.png',
+	netto: 'netto.png',
+	nielsendiscount: 'nielsens-discount.svg',
+	ottoduborg: 'otto_duborg_logo.svg',
+	poetzschpadborg: 'poetzsch-padborg.jpg',
+	rema1000: 'rema-1000.svg',
+	scandinavianpark: 'scandinavian-park.png',
+	scandlines: 'scandlines-border-shop.png',
+	spar: 'SPAR.jpg',
+	superbrugsen: 'super-brugsen.png',
+	'365discount': 'coop365.png', coop365: 'coop365.png', coop365discount: 'coop365.png',
+	bigdollar: 'bigdollar.png',
+	abclavpristarm: 'abc-lavpris.png'
+}
+
 // "Netto Aarhus C" and "REMA 1000 Viby" are the shop by their first words
-function shopKey(name) {
+function byFirstWords(table, name) {
 	const words = String(name).trim().split(/\s+/)
 	for (let n = words.length; n > 0; n--) {
-		const key = SHOP_KEYS[fold(words.slice(0, n).join(' '))]
-		if (key) return key
+		const found = table[fold(words.slice(0, n).join(' '))]
+		if (found) return found
 	}
 	return null
+}
+const shopKey = name => byFirstWords(SHOP_KEYS, name)
+const shopLogo = name => {
+	const file = name ? byFirstWords(SHOP_LOGOS, name) : null
+	return file ? SHOP_LOGOS_URL + encodeURIComponent(file) : null
 }
 
 const dayOf = at => (typeof at === 'string' ? at.slice(0, 10) : null)
@@ -57,6 +95,7 @@ function offerOf(offer) {
 		product: offer.product_name,
 		brand: offer.brand || null,
 		shop: offer.availability?.retail_chain ?? null,
+		shopLogo: shopLogo(offer.availability?.retail_chain),
 		borderShop: !!offer.availability?.is_border_shop,
 		price: numberOr(offer.price),
 		// a price such as "12 for 74.99" is for this many
@@ -77,6 +116,7 @@ export const tilbudsugen = {
 	goods: 'groceries',
 	country: 'Denmark',
 	currency: 'DKK',
+	currencyName: 'Danish kroner',
 	shopKey,
 	picturesOrigin: PICTURES_ORIGIN,
 	async find({ items, shopKeys }, signal) {

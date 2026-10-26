@@ -9,6 +9,7 @@ offers/
   index.js          the sources, in order; the limits; one lookup, and the pictures for its offers
   tilbudsugen.js    groceries in Denmark, from tilbudsugen.dk
   tilbudsugen.md    everything known about that site: its addresses, answers, keys, terms and faults
+  picks.js          the vendors and categories whose orders get each source's Check offers
   lines.js          the offers for an order's lines: which order shows them, and how a line is matched
 ```
 
@@ -31,11 +32,12 @@ export const pricesite = {
 	goods: 'groceries',           // what it covers, told to Claude: "groceries in Sweden"
 	country: 'Sweden',
 	currency: 'SEK',              // the tool is only given to an account kept in this currency
+	currencyName: 'Swedish kronor',   // Settings, Offers: "works only for accounts kept in Swedish kronor"
 	limits: { perMinute: 10 },    // optional; any of the limits below
 	shopKey: name => 'ica',       // the site's own key for a shop name the reader wrote, or null
 	async find({ items, shopKeys }, signal) {
 		// one request for the whole list; an Error with retryAfter (seconds) when the site refuses
-		return [{ item, offersFound, offers: [{ product, brand, shop, borderShop, price, forHowMany,
+		return [{ item, offersFound, offers: [{ product, brand, shop, shopLogo, borderShop, price, forHowMany,
 			membersOnly, size: { amount, unit }, perUnit: { price, unit }, image, from, to }] }]
 	},
 	picturesOrigin: 'https://img.pricesite.se',   // optional, with pictures: where they are served from
@@ -50,6 +52,7 @@ export const pricesite = {
 - `image` is the address of the product's small picture, or null. A source whose search has none fills it
   with `pictures`, one request an item, only for the offers matched to an order's lines. Its
   `picturesOrigin` is added to the pages' Content-Security-Policy, so the browser may load them.
+- `shopLogo` is the address of the shop's logo, or null when the source has none for that shop.
 - An offer is what the shop has on offer, with the days it holds, as `YYYY-MM-DD`. Prices are in
   the source's `currency`, and an offer in any other currency is left out.
 - A request carries only the items and shops the question named. Nothing from the reader's own data
@@ -70,3 +73,12 @@ A kept answer is used before any limit is counted. A request for pictures is kep
 not counted, and a failed one only pauses the source when the site said how long to wait. A limit reached or a pause is told to Claude, which
 says it in the answer, never waited out, so a question is never held up by it. The counts and kept
 answers are in memory: a restart forgets them.
+
+## Which orders get Check offers
+
+Each source has its own picked vendors and categories (`picks.js`). An order dated in the last 7 days
+gets Check offers from the first source the account can use whose picks hold its vendor or one of its
+categories. The search itself always covers every shop of the source. The first time an account's
+picks are read, each source picks the vendors its `shopKey` knows by name or alias, and never again.
+The picks are read and saved by `GET` and `PUT /api/offers/picks` (Settings, Offers) and
+`/api/offers/picks/vendor/:id` or `/category/:id` (the Offers card on a vendor's or category's page).
