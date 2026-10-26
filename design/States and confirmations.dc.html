@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261026d">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/states.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
   a { color: #1d4d33; }
@@ -557,6 +557,20 @@
         <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Wait for later</button>
         <button type="button" class="sp-btn sp-btn--small sp-nowrap" data-color="warning">Update</button>
       </div>
+      <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">SECTION NOTICE</span><span class="sp-meta">no change you can see</span></div>
+      <div class="sp-toast sp-toast--asks">
+        <span class="sp-step" data-color="warning">!</span>
+        <div class="sp-stack sp-gap-6">
+          <span class="sp-title">A newer version is available</span>
+          <span class="sp-subtitle sp-ink-warning">Updating reloads the app. What you have saved stays. Text you typed but did not save will be lost.</span>
+          <ul class="sp-toast__changes sp-ink-warning" aria-label="What changed">
+            <li>No change you can see.</li>
+          </ul>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Wait for later</button>
+        <button type="button" class="sp-btn sp-btn--small sp-nowrap" data-color="warning">Update</button>
+      </div>
     </div>
     <div class="sp-stack sp-gap-6 sp-touch doc-w361">
       <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">SECTION NOTICE · PHONE</span><span class="sp-meta">361px</span></div>
@@ -592,7 +606,7 @@
     <div class="doc-note"><b>See theirs</b> reloads the order as the other tab saved it; your unsaved line edits are kept and shown on top. <b>Keep mine</b> saves your version over theirs, status included.</div>
     <div class="doc-note"><b>A newer version is available</b> appears when the server runs a newer version than the open app. The app loads once per session, so a tab left open, or Spendly kept on a phone's home screen, would otherwise go on running the old app against the new server. The words are the Settings update card's (<a href="Settings and import.dc.html#11d">11d</a>).</div>
     <div class="doc-note"><b>It sits at the bottom, where toasts appear, above any toast,</b> and does not block the page. The toast area is a column (<code>.sp-toast-region</code>, <code>--sp-8</code> between items), so the notice and a toast never cover each other; on touch both take the full width. <b>The notice that asks takes two rows:</b> the words take the full width, and the two buttons sit on the row under them, at the right. <b>On a phone</b> the two buttons share that row in equal halves, starting at the words' left edge, in the same order. The markup is the desktop markup; <code>.sp-touch</code> does the rest. The lift that keeps a toast clear of a save bar or a floating button measures everything in the area, not only the first item.</div>
-    <div class="doc-note"><b>The list is what changed in the newer version</b>, taken from that version's release notes: at most three lines, one change each, in the user's terms. A version with no notes shows the notice without the list. The list sits under the words on desktop and on a phone alike, and on a phone the buttons stay on the row below it.</div>
+    <div class="doc-note"><b>The list is what changed in the newer version</b>, taken from that version's release notes: at most three lines, one change each, in the user's terms. When the newer versions have more than three lines between them, the newest three are shown. A version with no change you can see gives the one line "No change you can see.", the line Settings shows for it (<a href="Settings and import.dc.html#11d">11d</a>), so the notice always says what the update brings; it is shown only when no newer version has a change you can see. The list sits under the words on desktop and on a phone alike, and on a phone the buttons stay on the row below it.</div>
     <div class="doc-note"><b>Update reloads. Wait for later hides it until the next page</b>, where it asks again, on every page, until the app is updated. It waits while a save is going out. A build without a version, a development server, never shows it.</div>
   </div>
 </section>
