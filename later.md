@@ -4,6 +4,16 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## The side menu's highlight jumps when a scrolled-down page is left
+
+- **Where:** the side menu on a desktop (`react/src/app/AppShell.jsx`), the highlight drawn by NavItem.
+- **What the reader sees:** scrolled down Settings or Statistics, a click on another menu row makes the
+  highlight start far below its row and slide up; the menu shows a scroll bar for a moment.
+- **What was found:** the highlight measures rows on the whole page, not on the screen, so a page
+  scroll in the same moment reads as movement. The old page's own moving parts make it measure again
+  after the scroll, which app code cannot hold off. A brief for Claude Design is written.
+- **Found:** 2026-10-26.
+
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.

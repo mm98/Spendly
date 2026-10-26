@@ -61,6 +61,14 @@ const waiting = new Map()   // history step -> lists on it whose rows are not dr
 // a restore is given up after this long, so a page that never grows does not jump later
 const GIVE_UP_MS = 3000
 
+/** Moves the window on the next frame, before it is painted. The side menu's highlight measures the
+    page as a step is drawn, and counts a window move made then as its own movement. */
+let target = null
+export function scrollWindow(y) {
+	if (target == null) requestAnimationFrame(() => { scrollTo(0, target); target = null })
+	target = y
+}
+
 const drop = () => {
 	if (pending) clearTimeout(pending.timer)
 	pending = null
@@ -69,7 +77,7 @@ const drop = () => {
 function settle() {
 	if (!pending || waiting.get(pending.key)) return
 	if (document.documentElement.scrollHeight - innerHeight < pending.y) return
-	scrollTo(0, pending.y)
+	scrollWindow(pending.y)
 	drop()
 }
 
@@ -115,8 +123,9 @@ export function useScrollMemory() {
 			return
 		}
 		// another page opens at its top; the same page with other filters stays where it was
-		if (!from || from.pathname !== pathname) scrollTo(0, 0)
-		keep(scrolls, key, Math.round(scrollY))
+		const top = !from || from.pathname !== pathname
+		if (top) scrollWindow(0)
+		keep(scrolls, key, top ? 0 : Math.round(scrollY))
 	}, [key, pathname, navigation])
 }
 
