@@ -128,3 +128,28 @@ export const StickySaveBar = {
 		</ListItem>
 	)
 }
+
+export const WithAControlBeside = {
+	args: { name: 'Arla Letmælk 1 L', meta: '2 × 13,95 kr.', amount: '27,90', onClick: fn(), onTag: fn() },
+	argTypes: { name: { control: 'text', description: 'The line\'s name' }, meta: { control: 'text', description: 'Its second line' }, amount: { control: 'text', description: 'The amount at its end' } },
+	render: ({ name, meta, amount, onClick, onTag }) => (
+		<Card variant="flush">
+			<ListItem onClick={onClick} mark={<Mark size="medium" fill="empty" aria-label="No photo"><Icon name="photo" /></Mark>}
+				control={<IconButton size="small" icon="tag" aria-label="Offer at Netto" onClick={onTag} />}
+				end={<span className="sp-amount">{amount}</span>}>
+				<Stacked>
+					<span className="sp-title sp-truncate">{name}</span>
+					<span className="sp-subtitle">{meta}</span>
+				</Stacked>
+				<span className="sp-grow" />
+			</ListItem>
+		</Card>
+	),
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Offer at Netto' }))
+		await expect(args.onTag).toHaveBeenCalledOnce()
+		await expect(args.onClick).not.toHaveBeenCalled()
+		await userEvent.click(canvas.getByText(args.name))
+		await expect(args.onClick).toHaveBeenCalledOnce()
+	}
+}

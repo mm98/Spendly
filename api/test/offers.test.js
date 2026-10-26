@@ -66,7 +66,8 @@ test('a shopping list is one request, its shops are the site\'s keys, and the sa
 	assert.equal(read.items[0].placeMark, `{{offers:${first.items[0].id}}}`)
 	assert.deepEqual(first.items[0].offers[0], {
 		product: 'Letmælk', brand: 'Arla', size: { amount: 1, unit: 'ltr.' }, shop: 'Netto', shopLogo: 'https://www.tilbudsugen.dk/chains/netto.png', membersOnly: false, price: 74.99, forHowMany: 12,
-		perUnit: { price: 6.25, unit: 'ltr.' }, image: null, to: '2026-10-28'
+		perUnit: { price: 6.25, unit: 'ltr.' }, to: '2026-10-28',
+		vendor: null, link: { url: 'https://www.tilbudsugen.dk/dk/ai-basket?q=m%C3%A6lk', paper: false }
 	})
 	// the block is kept as it was answered, for the chat to show again
 	assert.deepEqual(offersMaker.byIds(USER, [first.items[0].id])[first.items[0].id], first.items[0])
@@ -104,7 +105,7 @@ test('a line\'s name gives its size and the words it is searched by', () => {
 	assert.equal(searchWordsOf('Æg 10 stk.'), 'æg')
 })
 
-test('a line matches the offer cheapest against what it paid, on the order\'s date only', () => {
+test('a line matches the offer cheapest against what it paid, among those that hold today', () => {
 	const line = { title: 'Merrild kaffe 500g', quantity: 2, price: 59.95 }
 	const dear = offer({ price: 70, perUnit: { price: 140, unit: 'kg.' } })
 	const multi = offer({ price: 80, forHowMany: 2, perUnit: { price: 80, unit: 'kg.' } })
@@ -124,7 +125,7 @@ test('the first picks are the vendors the source knows by name or alias; a remov
 	assert.deepEqual(offerPicks(USER)[0].vendors, [])
 	assert.deepEqual(offerPicks(USER)[0].categories.map(c => c.id), ['c-food'])
 	setPickedFor(USER, 'vendor', 'v-netto', { tilbudsugen: true })
-	assert.deepEqual(pickedFor(USER, 'vendor', 'v-netto'), [{ key: 'tilbudsugen', name: 'Tilbudsugen', months: 2, picked: true }])
+	assert.deepEqual(pickedFor(USER, 'vendor', 'v-netto'), [{ key: 'tilbudsugen', name: 'Tilbudsugen', picked: true }])
 	assert.deepEqual(pickedFor(EURO_USER, 'vendor', 'v-netto'), [])
 })
 
@@ -147,25 +148,27 @@ test('an order with a picked vendor or a picked category is checked in one reque
 	assert.equal(baker.state, 'checked')
 })
 
-test('a line with an offer gets the small picture of that offer, from a request outside the limits', async () => {
-	const thumb = 'https://static.tilbudsugen.dk/1st-retail/2026/43/1/milk_thumb.jpg'
+test('a line with an offer links to the shop\'s offer paper, from a request outside the limits, and names the reader\'s vendor', async () => {
+	const paper = 'https://netto.dk/avis/'
+	db.prepare("INSERT INTO vendor_aliases (id, user_id, vendor_id, name) VALUES ('va-netto-short', ?, 'v-netto', 'netto')").run(USER)
 	answerWith = url => url.includes('/product-offers-search/')
 		? { status: 200, body: { pageOfOrganicProductOffers: { items: [
-			{ chain: { name: 'Netto' }, price: '9.00', startDate: '2026-10-22', imageThumbnailUrl: 'https://static.tilbudsugen.dk/other_thumb.jpg' },
-			{ chain: { name: 'Netto' }, price: '8.00', startDate: '2026-10-22', imageThumbnailUrl: thumb, imageUrl: thumb.replace('_thumb', '_zoom') }
+			{ chain: { name: 'Netto' }, price: '9.00', startDate: '2026-10-22', offerUrl: 'https://example.com/other/' },
+			{ chain: { name: 'Netto' }, price: '8.00', startDate: '2026-10-22', offerUrl: paper }
 		] } } }
 		: { status: 200, body: { items: [{ query: 'skummetmælk', total_offers_found: 1, offers: [{ ...milk, price: 8, promotion: {}, unit_metrics: { quantity: 1, unit_type: 'ltr.', 'price_per_ltr.': 8 } }] }] } }
 	const order = { userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-10-26', lines: [{ title: 'Skummetmælk 1L', quantity: 1, price: 12 }] }
 	const checked = await offersForOrder({ ...order, keptOnly: false })
-	assert.equal(checked.lines[0].offer.image, thumb)
+	assert.deepEqual(checked.lines[0].offer.link, { url: paper, paper: true })
+	assert.deepEqual(checked.lines[0].offer.vendor, { name: 'Mine Indkøb', colour: 'green-3' })
+	assert.equal(checked.lines[0].offer.shopLogo, 'https://www.tilbudsugen.dk/chains/netto.png')
 	assert.equal(asked.length, 2)
 	assert.match(asked[1], /\/product-offers-search\/dk\/skummetm%C3%A6lk\?/)
 })
 
-test('an older order, or one with no picked vendor or category, shows no offers', async () => {
+test('an order of any date is checked, and one with no picked vendor or category shows no offers', async () => {
 	const lines = [{ title: 'Mælk', quantity: 1, price: 10 }]
-	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-08-25', lines, keptOnly: false }), { shown: false })
-	assert.equal((await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-08-26', lines, keptOnly: true })).shown, true)
+	assert.equal((await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2024-01-15', lines, keptOnly: true })).shown, true)
 	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-ikea', categoryIds: [], date: '2026-10-26', lines, keptOnly: false }), { shown: false })
 	assert.equal(asked.length, 0)
 })

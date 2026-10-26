@@ -270,9 +270,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
-
-/* on a phone an offer's panel hangs under its whole row, end on the row's end: hung from the tag it
-   runs past the window's left edge (later.md) */
-.sp-touch .sp-list-item:has(> .sp-anchor > .sp-popover) { position: relative; }
-.sp-touch .sp-list-item > .sp-anchor:has(> .sp-popover) { position: static; }
-.sp-touch .sp-list-item > .sp-anchor > .sp-popover { top: calc(100% + var(--sp-2)); }

@@ -1,5 +1,5 @@
 import { db } from '../db.js'
-import { OFFER_MONTHS, OFFER_SOURCES, offerSourcesFor } from './index.js'
+import { OFFER_SOURCES, offerSourcesFor } from './index.js'
 
 /* The vendors and categories whose orders get each source's Check offers (Settings and import 11a). The first
    time a source is read for an account, the vendors it knows by name or alias are picked; never again after. */
@@ -43,7 +43,6 @@ export function offerPicks(userId) {
 		goods: source.goods,
 		country: source.country,
 		currencyName: source.currencyName,
-		months: OFFER_MONTHS,
 		usable: usable.has(source.key),
 		vendors: selectVendors.all(userId, source.key),
 		categories: selectCategories.all(userId, source.key)
@@ -73,7 +72,7 @@ const PICKED = {
 export function pickedFor(userId, kind, id) {
 	startPicks(userId)
 	const picked = new Set(PICKED[kind].select.all(userId, id).map(r => r.source_key))
-	return offerSourcesFor(userId).map(source => ({ key: source.key, name: source.name, months: OFFER_MONTHS, picked: picked.has(source.key) }))
+	return offerSourcesFor(userId).map(source => ({ key: source.key, name: source.name, picked: picked.has(source.key) }))
 }
 
 /** Picks or unpicks one vendor or category for the sources in `sources` ({ [key]: boolean }), as its page saves. */

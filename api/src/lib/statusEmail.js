@@ -102,6 +102,8 @@ export function writerFor({ locale, currency }) {
 	return {
 		money,
 		count: n => figure(n, 0),
+		// "1,5": a size, with no more decimals than it has, at most two
+		quantity: n => figure(n, Number.isInteger(n) ? 0 : Number.isInteger(n * 10) ? 1 : 2),
 		month: day => head(format({ month: 'long' }).format(dateOf(day))),
 		monthYear: day => head(format({ month: 'long', year: 'numeric' }).format(dateOf(day))),
 		// "30 Sep", with the year once it is not the year the email is about

@@ -70,7 +70,7 @@ function OrderView({ order, touch, onGone }) {
 	const tagOf = (item, index) => {
 		const offer = offers.offerOf(index)
 		return offer
-			? <OfferTag line={item} offer={offer} source={offers.source} open={offerOpen === index} onOpen={() => setOfferOpen(index)} onClose={() => setOfferOpen(null)} />
+			? <OfferTag line={item} offer={offer} source={offers.source} date={order.date} open={offerOpen === index} onOpen={() => setOfferOpen(index)} onClose={() => setOfferOpen(null)} />
 			: null
 	}
 
@@ -83,20 +83,19 @@ function OrderView({ order, touch, onGone }) {
 					const fileKey = item.attachments?.[0]?.id
 					const tag = tagOf(item, index)
 					// on a phone the photo is smaller than a fingertip, so the whole row opens it, and says so;
-					// a row with an offer's tag opens the photo from its mark, as no button sits inside a button
-					if (touch && photo && !tag)
+					// an offer's tag sits beside the part that opens (c15)
+					if (touch && photo)
 						return (
 							<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} />} onClick={() => open(fileKey)}
-								aria-label={`Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}`}>
+								control={tag} end={<LineAmount line={item} compact />}
+								{...(tag ? {} : { 'aria-label': `Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}` })}>
 								<LineText line={item} compact />
-								<LineAmount line={item} compact />
 							</ListItem>
 						)
 					return (
-						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}>
+						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}
+							control={tag} end={<LineAmount line={item} compact={touch} />}>
 							<LineText line={item} compact={touch} />
-							{tag}
-							<LineAmount line={item} compact={touch} />
 						</ListItem>
 					)
 				})}

@@ -252,7 +252,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const tagOf = line => {
 		const offer = offers.offerOf(included.indexOf(line))
 		return offer
-			? <OfferTag line={line} offer={offer} source={offers.source} open={offerOpen === line.key} onOpen={() => setOfferOpen(line.key)} onClose={() => setOfferOpen(null)} />
+			? <OfferTag line={line} offer={offer} source={offers.source} date={draft.date} open={offerOpen === line.key} onOpen={() => setOfferOpen(line.key)} onClose={() => setOfferOpen(null)} />
 			: null
 	}
 
@@ -993,12 +993,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<span className={['sp-subtitle', touch ? null : 'sp-truncate', ink].filter(Boolean).join(' ')}>{subtitle}</span>
 			</span>
 		)
-		// a phone's row is itself the button that opens the line, so the offer's tag cannot sit inside it
-		const tag = touch && !scan ? null : tagOf(line)
-		const text = (
+		// the offer's tag sits beside the part of the row that opens (c15)
+		const tag = tagOf(line)
+		const amountPart = (
 			<>
-				{words}
-				{tag}
 				{priceField
 					? <>
 						<span className="sp-subtitle sp-nowrap">{quantity(Number(line.quantity) || 0)} ×</span>
@@ -1022,16 +1020,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (touch && scan)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} opens
-					mark={<Include line={line} setLines={setLines} />}>
+					mark={<Include line={line} setLines={setLines} />} control={tag}>
 					{words}
-					{tag}
 				</ListItem>
 			)
 		if (touch && !reordering)
 			return (
 				<ListItem key={line.key} data-line={line.key} color={warn ? 'warning' : 'default'} mark={mark}
-					onClick={() => openLine(line)}>
-					{text}
+					onClick={() => openLine(line)} control={tag} end={amountPart}>
+					{words}
 				</ListItem>
 			)
 		const at = lines.indexOf(line)
@@ -1045,6 +1042,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				handle={scan ? undefined : <Icon name="grip-vertical" size={14} />}
 				handleLabel={`Reorder ${named}, currently position ${at + 1} of ${lines.length}`}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
+				// on a phone the two move buttons need the row's width, so the tag and amount step aside while reordering
+				control={touch ? null : tag}
+				end={touch ? null : amountPart}
 				actions={reordering
 					? <>
 						<IconButton variant="outline" icon="chevron-up" aria-label={`Move ${named} up`} disabled={at === 0} onClick={() => move(line.key, -1)} />
@@ -1056,8 +1056,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						{scan ? null : <IconButton variant="outline" danger icon="trash" aria-label={`Delete ${named}`} onClick={() => removeLine(line)} />}
 					</>}
 			>
-				{/* on a phone the two move buttons need the row's width, so the amount steps aside while reordering */}
-				{touch ? words : text}
+				{words}
 			</ListItem>
 		)
 	}

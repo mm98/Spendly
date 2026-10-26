@@ -1,18 +1,17 @@
 /* Tilbudsugen.dk: Danish grocery offers, from the search the site offers other programs (tilbudsugen.md).
    A request carries the items and shops asked for, nothing from the reader's own data. */
 
-// the headers the site's own pages send when a browser asks the same
+// Spendly names itself; it never poses as a browser
 const ASKED_WITH = {
-	Accept: 'application/json, text/plain, */*',
+	Accept: 'application/json',
 	'Accept-Language': 'da-DK,da;q=0.9,en;q=0.8',
-	Referer: 'https://www.tilbudsugen.dk/',
-	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
+	'User-Agent': 'Spendly (https://github.com/mm98/Spendly)'
 }
 const SEARCH_URL = 'https://www.tilbudsugen.dk/api/ai/v1/search'
-// the site's own search, the only one with pictures: one item a request, every shop's offers for it
-const PICTURES_URL = 'https://www.tilbudsugen.dk/api/api/product-offers-search/dk/'
-const PICTURES_ORIGIN = 'https://static.tilbudsugen.dk'
-const PICTURES_PER_PAGE = 48
+// the site's own search, the only one with each offer's paper: one item a request, every shop's offers for it
+const PAPERS_URL = 'https://www.tilbudsugen.dk/api/api/product-offers-search/dk/'
+const PAPERS_PER_PAGE = 48
+const SEARCH_PAGE_URL = 'https://www.tilbudsugen.dk/dk/ai-basket'
 const TIMEOUT_MS = 10_000
 
 // "Føtex", "REMA 1000" and "Dagli'Brugsen" fold to the keys below
@@ -37,7 +36,8 @@ const SHOP_KEYS = {
 }
 
 // each shop's logo, by its folded name, as the site's offer papers page draws it (tilbudsugen.md)
-const SHOP_LOGOS_URL = 'https://www.tilbudsugen.dk/chains/'
+const SHOP_LOGOS_ORIGIN = 'https://www.tilbudsugen.dk'
+const SHOP_LOGOS_URL = `${SHOP_LOGOS_ORIGIN}/chains/`
 const SHOP_LOGOS = {
 	bilka: 'bilka.png',
 	calle: 'calle.png',
@@ -103,7 +103,7 @@ function offerOf(offer) {
 		membersOnly: !!promotion.requiresMembership,
 		size: metrics.quantity && metrics.unit_type ? { amount: metrics.quantity, unit: metrics.unit_type } : null,
 		perUnit: perUnitKey ? { price: numberOr(metrics[perUnitKey]), unit: metrics.unit_type ?? null } : null,
-		image: null,
+		paper: null,
 		from: dayOf(offer.start_date),
 		to: dayOf(offer.end_date)
 	}
@@ -118,7 +118,8 @@ export const tilbudsugen = {
 	currency: 'DKK',
 	currencyName: 'Danish kroner',
 	shopKey,
-	picturesOrigin: PICTURES_ORIGIN,
+	logosOrigin: SHOP_LOGOS_ORIGIN,
+	searchUrl: item => `${SEARCH_PAGE_URL}?${new URLSearchParams({ q: item })}`,
 	async find({ items, shopKeys }, signal) {
 		const search = new URLSearchParams({ q: items.join(',') })
 		if (shopKeys.length) search.set('chains', shopKeys.join(','))
@@ -134,11 +135,11 @@ export const tilbudsugen = {
 			offers: (item.offers ?? []).filter(o => o.currency === 'DKK').map(offerOf)
 		}))
 	},
-	/** The small picture of each offer in `offers`, found among the site's own offers for `item`: by shop,
-	    price and first day. Answers the pictures in the order of `offers`, null where none was found. */
-	async pictures({ item, offers }, signal) {
-		const search = new URLSearchParams({ page: '1', numberPerPage: String(PICTURES_PER_PAGE), sortBy: 'pricePerUnit', sortDirection: 'ASC' })
-		const answer = await fetch(`${PICTURES_URL}${encodeURIComponent(item)}?${search}`, {
+	/** The shop's own offer paper of each offer in `offers`, found among the site's own offers for `item`: by
+	    shop, price and first day. Answers them in the order of `offers`, null where none was found. */
+	async papers({ item, offers }, signal) {
+		const search = new URLSearchParams({ page: '1', numberPerPage: String(PAPERS_PER_PAGE), sortBy: 'pricePerUnit', sortDirection: 'ASC' })
+		const answer = await fetch(`${PAPERS_URL}${encodeURIComponent(item)}?${search}`, {
 			headers: ASKED_WITH,
 			signal: AbortSignal.any([AbortSignal.timeout(TIMEOUT_MS), ...(signal ? [signal] : [])])
 		})
@@ -146,8 +147,8 @@ export const tilbudsugen = {
 		const listed = (await answer.json())?.pageOfOrganicProductOffers?.items ?? []
 		return offers.map(offer => {
 			const same = listed.find(o => o.chain?.name === offer.shop && Number(o.price) === offer.price && o.startDate === offer.from)
-			const url = same?.imageThumbnailUrl
-			return typeof url === 'string' && url.startsWith(`${PICTURES_ORIGIN}/`) ? url : null
+			const url = same?.offerUrl
+			return typeof url === 'string' && url.startsWith('https://') ? url : null
 		})
 	}
 }

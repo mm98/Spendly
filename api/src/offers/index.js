@@ -6,8 +6,6 @@ import { tilbudsugen } from './tilbudsugen.js'
    A source is { key, name, site, goods, country, currency, limits?, shopKey, find } (README here). */
 export const OFFER_SOURCES = [tilbudsugen]
 
-// how many months back an order's date may lie and still be checked against the offers running now
-export const OFFER_MONTHS = 2
 export const ITEMS_MOST = 30
 // what a source answered is kept this long and this many answers at most, so the same question is asked once
 const KEPT_MOST = 500
@@ -75,7 +73,7 @@ async function asked(source, key, run, { userId, today, keptOnly = false, counte
 		return { found }
 	} catch (error) {
 		if (signal?.aborted) throw error
-		// a picture that cannot be had is left out; only the site asking to wait stops the rest
+		// a paper that cannot be had is left out; only the site asking to wait stops the rest
 		if (counted || error?.retryAfter) pause(state, error)
 		return { failed: true }
 	}
@@ -88,21 +86,39 @@ function foundFor(source, { items, shopKeys = [], ...asking }, signal) {
 	return asked(source, key, () => source.find({ items, shopKeys }, signal), asking, signal)
 }
 
-/** `wanted` ([{ item, offer }]) with each offer's `image`: one request an item, outside the limits. */
-export async function withPictures(source, wanted, asking, signal) {
-	if (!source.pictures) return wanted
+/** `wanted` ([{ item, offer }]) with each offer's `paper`: one request an item, outside the limits. */
+export async function withPapers(source, wanted, asking, signal) {
+	if (!source.papers) return wanted
 	const byItem = Map.groupBy(wanted, w => w.item)
-	const pictured = new Map()
+	const papered = new Map()
 	for (const [item, group] of byItem) {
 		const offers = group.map(w => w.offer)
-		const key = JSON.stringify(['pictures', item, offers.map(o => [o.shop, o.price, o.from])])
-		const answer = await asked(source, key, () => source.pictures({ item, offers }, signal), { ...asking, counted: false }, signal)
-		group.forEach((w, i) => pictured.set(w, answer.found?.[i] ?? null))
+		const key = JSON.stringify(['papers', item, offers.map(o => [o.shop, o.price, o.from])])
+		const answer = await asked(source, key, () => source.papers({ item, offers }, signal), { ...asking, counted: false }, signal)
+		group.forEach((w, i) => papered.set(w, answer.found?.[i] ?? null))
 	}
-	return wanted.map(w => ({ ...w, offer: { ...w.offer, image: pictured.get(w) ?? w.offer.image ?? null } }))
+	return wanted.map(w => ({ ...w, offer: { ...w.offer, paper: papered.get(w) ?? w.offer.paper ?? null } }))
 }
 
-export const PICTURE_ORIGINS = OFFER_SOURCES.map(s => s.picturesOrigin).filter(Boolean)
+export const LOGO_ORIGINS = OFFER_SOURCES.map(s => s.logosOrigin).filter(Boolean)
+
+const selectVendorOfShop = db.prepare(`SELECT name, colour FROM vendors WHERE user_id = @userId AND name = @shop COLLATE NOCASE
+	UNION ALL SELECT name, colour FROM vendors WHERE id = (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND lower(name) = lower(@shop)) LIMIT 1`)
+
+/** `wanted` ([{ item, offer }]) as an offer is shown: the reader's `vendor` the shop is, by name or alias, and the
+    `link` of the product's name, the shop's own offer paper (`paper`) or else the source's search for the item. */
+export function shownOffers(source, userId, wanted) {
+	const vendors = new Map()
+	const vendorOf = shop => {
+		if (!vendors.has(shop)) vendors.set(shop, shop ? selectVendorOfShop.get({ userId, shop }) ?? null : null)
+		return vendors.get(shop)
+	}
+	return wanted.map(w => ({ ...w, offer: {
+		...w.offer,
+		vendor: vendorOf(w.offer.shop),
+		link: w.offer.paper ? { url: w.offer.paper, paper: true } : { url: source.searchUrl(w.item), paper: false }
+	} }))
+}
 
 export async function findOffers(source, { items, ...asked }, signal) {
 	const found = []

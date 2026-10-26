@@ -45,3 +45,18 @@ export function nextUnused(worn) {
 	}
 	return [...count].reduce((a, b) => (b[1] < a[1] ? b : a))[0]
 }
+
+// APCA's screen luminance, as react/src/components/colour.js works out a mark's ink
+const luminance = hex => {
+	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255) ** 2.4)
+	const y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
+	return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+}
+const contrast = (ink, fill) => {
+	const [t, b] = [luminance(ink), luminance(fill)]
+	return Math.abs((b > t ? b ** 0.56 - t ** 0.57 : b ** 0.65 - t ** 0.62) * 1.14)
+}
+
+/** The light theme's ink that reads better on `fill` (#rrggbb), white or near black, as an email draws a mark. */
+export const inkOn = fill => (!/^#[0-9a-f]{6}$/i.test(fill) || contrast('#ffffff', fill) >= contrast('#1b1a17', fill) ? '#ffffff' : '#1b1a17')
+

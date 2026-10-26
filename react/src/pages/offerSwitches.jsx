@@ -42,7 +42,7 @@ export function OfferSwitchesCard({ kind, switches, hold = control => control })
 							onChange={ev => switches.set(source.key, ev.target.checked)} />)}
 						<span className="sp-data">Check {source.name} offers</span>
 					</label>
-					<span className="sp-field__help" id={`${id}-${source.key}-help`}>{WHOSE[kind]} from the last {source.months} months get Check offers, against this week's offers in every shop {source.name} covers.</span>
+					<span className="sp-field__help" id={`${id}-${source.key}-help`}>{WHOSE[kind]} get Check offers, against this week's offers in every shop {source.name} covers.</span>
 				</div>
 			))}
 		</Card>

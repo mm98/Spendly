@@ -60,35 +60,11 @@ is removed in the change that settles it.
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
 
-## An offer's panel on a phone hangs from its row, not its tag
+## The plain-text email of a chat leaves its offers out
 
-- **Where:** `react/src/styles/app.css`, the three `.sp-touch .sp-list-item ... .sp-popover` rules;
-  `design/Order editing layouts.dc.html` 1c.
-- **What the reader sees:** on a phone the offer panel opens under the whole line, its right edge on
-  the line's right edge.
-- **What was found:** hung from the tag, as 1c draws it, the panel is wider than the room left of the
-  tag and ran 19px past the left edge of a 393px wide iPhone 15 screen.
-- **Proposed shape:** Claude Design takes the rule into the popover's touch rules, and these lines go.
-- **Found:** 2026-10-26.
-
-## A phone's line row cannot carry an offer's tag while the row opens the line
-
-- **Where:** the edit and new-order pages on a phone (`react/src/pages/OrderForm.jsx`), and an order
-  line with a photo on the order page on a phone (`react/src/pages/Order.jsx`).
-- **What the reader sees:** on a phone's edit page the head says how many lines are on offer, but
-  the lines show no tag. On the order page a line with a photo and an offer opens its photo from the
-  photo itself, not from the whole row.
-- **What was found:** there the whole row is one button, and a button cannot hold another button.
-  `ListItem` has no place for a control beside a row that opens, except with a reorder handle.
-- **Proposed shape:** Claude Design gives `ListItem` a place for one control beside the part that
-  opens, and the tag goes there.
-- **Found:** 2026-10-26.
-
-## An offer's picture was never seen loading
-
-- **Where:** the offer panel on an order, and the offers in an Ask answer.
-- **What the reader sees:** the product's small picture, or the empty photo box when it does not load.
-- **What was found:** Tilbudsugen's picture server refused the test machine (403, "Access denied"),
-  from a command line and from a browser alike, so no picture from it was seen in Spendly.
-- **To do:** open an order with an offer in an ordinary browser, and check that the picture shows.
+- **Where:** `api/src/emails/ask-chat.txt`, copied from `design/emails/ask-chat.txt`.
+- **What the reader sees:** an email program that shows only the text part shows the answer's words
+  and the credit line, but no offers. The HTML part shows them.
+- **What was found:** the text template has a part for files and charts, and none for `{{#offers}}`.
+- **Proposed shape:** Claude Design adds an offers part to the text template, one line an offer.
 - **Found:** 2026-10-26.
