@@ -24,6 +24,8 @@ import { router as viewsRouter } from './routes/views.js'
 import { router as mcpRouter } from './routes/mcp.js'
 import { router as mcpTokensRouter } from './routes/mcpTokens.js'
 import { router as askRouter, downloadFile } from './routes/ask.js'
+import { router as offersRouter } from './routes/offers.js'
+import { PICTURE_ORIGINS } from './offers/index.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -42,7 +44,7 @@ const CSP = [
 	   an injected <style> element is not. */
 	"style-src 'self'",
 	"style-src-attr 'unsafe-inline'",
-	"img-src 'self' data: blob:",
+	`img-src 'self' data: blob: ${PICTURE_ORIGINS.join(' ')}`.trim(),
 	"font-src 'self'",
 	"connect-src 'self'",
 	"manifest-src 'self'",
@@ -263,6 +265,7 @@ app.use('/api/account', profileRouter)
 app.use('/api/imports', importsRouter)
 app.use('/api/statuses', statusesRouter)
 app.use('/api/views', viewsRouter)
+app.use('/api/offers', offersRouter)
 // Mounted at the bare /api prefix: its one route is POST /api/demo-data, which shadows nothing.
 app.use('/api', accountRouter)
 app.use('/api/stats', statsRouter)

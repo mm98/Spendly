@@ -1,17 +1,21 @@
 # Where Ask finds offers
 
-Ask can tell what shops have on offer now. It reads that from other websites, one **source** each.
+Spendly can tell what shops have on offer now: in an Ask answer, and on a grocery order. It reads that
+from other websites, one **source** each.
 The folder:
 
 ```
 offers/
-  index.js          the sources, in order; the limits; the tool Claude is given
+  index.js          the sources, in order; the limits; one lookup, and the pictures for its offers
   tilbudsugen.js    groceries in Denmark, from tilbudsugen.dk
   tilbudsugen.md    everything known about that site: its addresses, answers, keys, terms and faults
+  lines.js          the offers for an order's lines: which order shows them, and how a line is matched
 ```
 
-Ask reads only `index.js`. Nothing else in the server names a source. `/mcp` never offers this tool:
-it fetches another site, and a token only opens routes that answer from what is stored.
+Ask's tool is the offers maker, `format/offers/`, which shows the offers as a block in the answer and
+keeps it with the chat. It and `lines.js` read only `index.js`; nothing else in the server names a
+source. `/mcp` never offers the tool: it fetches another site, and a token only opens routes that
+answer from what is stored.
 
 ## A source
 
@@ -32,13 +36,20 @@ export const pricesite = {
 	async find({ items, shopKeys }, signal) {
 		// one request for the whole list; an Error with retryAfter (seconds) when the site refuses
 		return [{ item, offersFound, offers: [{ product, brand, shop, borderShop, price, forHowMany,
-			membersOnly, size, perUnit: { price, unit }, from, to }] }]
+			membersOnly, size: { amount, unit }, perUnit: { price, unit }, image, from, to }] }]
+	},
+	picturesOrigin: 'https://img.pricesite.se',   // optional, with pictures: where they are served from
+	async pictures({ item, offers }, signal) {   // optional: the small picture of each offer, or null
+		return offers.map(() => null)
 	}
 }
 ```
 
 - `find` is called with every item of one question, never once per item, and only with shop keys
   `shopKey` gave. A shop it does not know is told back to Claude without a request.
+- `image` is the address of the product's small picture, or null. A source whose search has none fills it
+  with `pictures`, one request an item, only for the offers matched to an order's lines. Its
+  `picturesOrigin` is added to the pages' Content-Security-Policy, so the browser may load them.
 - An offer is what the shop has on offer, with the days it holds, as `YYYY-MM-DD`. Prices are in
   the source's `currency`, and an offer in any other currency is left out.
 - A request carries only the items and shops the question named. Nothing from the reader's own data
@@ -55,6 +66,7 @@ Each source is asked with care. A source's `limits` change any of these:
 | `keptMinutes`      | 60      | how long one answer is used again for the same items and shops       |
 | `pauseMinutes`     | 15      | how long the source is left alone after a failure, unless it says how long |
 
-A kept answer is used before any limit is counted. A limit reached or a pause is told to Claude as
-the tool's error, never waited out, so a question is never held up by it. The counts and kept
+A kept answer is used before any limit is counted. A request for pictures is kept the same way but
+not counted, and a failed one only pauses the source when the site said how long to wait. A limit reached or a pause is told to Claude, which
+says it in the answer, never waited out, so a question is never held up by it. The counts and kept
 answers are in memory: a restart forgets them.

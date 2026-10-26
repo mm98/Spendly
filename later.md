@@ -4,18 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The design does not say yet that the arrow keys page Statistics
-
-- **Where:** `design/Order statistics.dc.html`, the period control; the app's `react/src/pages/Statistics.jsx`.
-- **What the reader sees:** on Statistics the left and right arrow keys step to the previous or next
-  period, the same way they step the months on Budget. They do nothing while a field or a list has
-  the focus, while a modifier key is held, on a custom range, or past the newest period.
-- **What was found:** Budget's design says this for its months; the Statistics design does not
-  mention the keyboard for periods. The behaviour was added because the user asked for it.
-- **Proposed shape:** Claude Design adds the same sentence to the Statistics period control, and
-  this entry goes.
-- **Found:** 2026-10-25.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -71,3 +59,36 @@ is removed in the change that settles it.
 - **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
   delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
 - **Found:** 2026-10-20.
+
+## An offer's panel on a phone hangs from its row, not its tag
+
+- **Where:** `react/src/styles/app.css`, the three `.sp-touch .sp-list-item ... .sp-popover` rules;
+  `design/Order editing layouts.dc.html` 1c.
+- **What the reader sees:** on a phone the offer panel opens under the whole line, its right edge on
+  the line's right edge.
+- **What was found:** hung from the tag, as 1c draws it, the panel is wider than the room left of the
+  tag and ran 19px past the left edge of a 393px wide iPhone 15 screen.
+- **Proposed shape:** Claude Design takes the rule into the popover's touch rules, and these lines go.
+- **Found:** 2026-10-26.
+
+## A phone's line row cannot carry an offer's tag while the row opens the line
+
+- **Where:** the edit and new-order pages on a phone (`react/src/pages/OrderForm.jsx`), and an order
+  line with a photo on the order page on a phone (`react/src/pages/Order.jsx`).
+- **What the reader sees:** on a phone's edit page the head says how many lines are on offer, but
+  the lines show no tag. On the order page a line with a photo and an offer opens its photo from the
+  photo itself, not from the whole row.
+- **What was found:** there the whole row is one button, and a button cannot hold another button.
+  `ListItem` has no place for a control beside a row that opens, except with a reorder handle.
+- **Proposed shape:** Claude Design gives `ListItem` a place for one control beside the part that
+  opens, and the tag goes there.
+- **Found:** 2026-10-26.
+
+## An offer's picture was never seen loading
+
+- **Where:** the offer panel on an order, and the offers in an Ask answer.
+- **What the reader sees:** the product's small picture, or the empty photo box when it does not load.
+- **What was found:** Tilbudsugen's picture server refused the test machine (403, "Access denied"),
+  from a command line and from a browser alike, so no picture from it was seen in Spendly.
+- **To do:** open an order with an offer in an ordinary browser, and check that the picture shows.
+- **Found:** 2026-10-26.

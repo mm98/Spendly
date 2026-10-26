@@ -32,6 +32,8 @@ GET https://www.tilbudsugen.dk/api/ai/v1/search?q=mælk,smør&chains=netto,rema_
 ```
 
 - No sign-in and no key.
+- Spendly's requests carry the headers a browser on the site sends: a Chrome `User-Agent`, `Accept-Language`
+  Danish first, and `Referer: https://www.tilbudsugen.dk/`.
 - `q`: required. Items separated by commas, in the language the reader wrote them. The guide asks
   for one request per shopping list, never one per item. 30 items in one request was accepted.
 - `chains`: optional. Shop keys separated by commas (below). Leave it out for every shop;
@@ -86,10 +88,11 @@ Shop keys, as `agents.md` lists them: `netto`, `rema_1000`, `coop365`, `lidl`, `
 `meny`, `super-brugsen`, `kvickly`, `loevbjerg`, `daglibrugsen`, `min-koebmand`, `spar`, `letkoeb`.
 Other shops (ABC Lavpris, border shops) appear in answers but cannot be filtered by.
 
-## The site's own search (not used)
+## The site's own search (used for pictures only)
 
-The site's pages call routes under `/api/` that are not published for other programs, and can change
-with any release of the site:
+Spendly uses it for one thing: the small picture of an offer matched to an order's line, found by shop,
+price and first day among the offers for that line's search words. The site's pages call routes under
+`/api/` that are not published for other programs, and can change with any release of the site:
 
 ```
 GET https://www.tilbudsugen.dk/api/api/product-offers-search/dk/{product}?page=1&numberPerPage=10&triggeredFromSearchField=1&sortBy=pricePerUnit&sortDirection=ASC
@@ -103,7 +106,13 @@ It pages through every offer for one product (not a list), and answers
 more than the public search gives: ids for the offer, product, brand and shop, the category
 (`productVariant.category`, such as "Mælk"), `quantity` with `quantityUnitCode` (`LTR`), labels such as
 "Økologisk" and "Nøglehullet", and the offer's picture (`imageUrl`, `imageThumbnailUrl` on
-`static.tilbudsugen.dk`).
+`static.tilbudsugen.dk`). The thumbnail ends `_thumb.jpg`, the large picture `_zoom.jpg`; Spendly
+shows only the thumbnail. A product name there is often without the brand ("Kaffe Formalet").
+
+The pictures are loaded by the reader's browser, never by Spendly's server. `static.tilbudsugen.dk`
+answered `403` with `<Error><Code>AccessDenied</Code>...` to a cloud machine in October 2026, from a
+command line and from a headless Chromium alike; whether it answers an ordinary browser was not checked.
+A picture that does not load shows as the empty photo box.
 
 Other routes the site's pages call: `/api/typeahead-search/`, `/api/chains/list/`,
 `/api/chains/categories/list/`, `/api/product-offers-chain/`, `/api/product-offers-for-placement/`,

@@ -1,10 +1,11 @@
 import { fileMaker } from './file/index.js'
 import { chartMaker } from './chart/index.js'
+import { offersMaker } from './offers/index.js'
 
 /* What Ask makes while it answers, one maker each, in the order Claude is offered their tools. A maker is
-   { place, name, formats, example, note?, off?, tool, doing, make, byIds, emailBlocks, attachments, sweep }
+   { place, name, formats, example, note?, off?, tool, rules?, doing, make, byIds, emailBlocks, attachments, sweep }
    (README: "What Ask makes"). */
-export const MAKERS = [fileMaker, chartMaker]
+export const MAKERS = [fileMaker, chartMaker, offersMaker]
 
 /** What Ask can make, for the reader (Ask 24c): each maker with its formats' names and one example question.
     `off` says why a maker makes nothing on this server, and then it carries no note. */
@@ -14,7 +15,11 @@ export const askMakes = ({ unlimited = false } = {}) => MAKERS.map(m => {
 }).filter(m => m.formats.length)
 
 export const makerOfPlace = place => MAKERS.find(m => m.place === place) ?? null
-export const makerOfTool = name => MAKERS.find(m => m.tool.name === name) ?? null
+
+/** The makers the reader `userId` is offered, each with its tool: [{ maker, tool }]. */
+export const makersFor = userId => MAKERS
+	.map(maker => ({ maker, tool: typeof maker.tool === 'function' ? maker.tool(userId) : maker.tool }))
+	.filter(m => m.tool)
 
 const places = MAKERS.map(m => m.place).join('|')
 // a line that is only the place mark of something an answer made: {{file:ID}}

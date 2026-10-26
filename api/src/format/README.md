@@ -1,7 +1,7 @@
 # What Ask makes
 
-Ask answers with words, and with things it makes from the reader's own data: a file to download,
-or a chart drawn in the answer. Each kind of thing is a **maker**, and each maker offers
+Ask answers with words, and with things it makes: a file to download or a chart drawn in the answer,
+from the reader's own data, or a block of this week's offers, from another site. Each kind of thing is a **maker**, and each maker offers
 **formats**. The folders say which is which:
 
 ```
@@ -19,6 +19,8 @@ format/
     fields.js       how a chart's input is cleaned
     drawing.js      the canvas the email's chart pictures are drawn on
     bars.js  shares.js
+  offers/
+    index.js        the offers maker: this week's offers from a source in ../offers/, kept with the chat
 ```
 
 The rest of the server reads only these lists. Claude's tools, the answer loop, a chat opened
@@ -84,13 +86,14 @@ A new folder with an `index.js`, and one line in `index.js` here.
 export const mapMaker = {
 	place: 'map',                         // the place mark in an answer: {{map:ID}}
 	name: 'Maps',                         // its part on What Ask can do (Ask 24c)
-	formats: () => ['Street map'],        // its formats' names there, read each time
+	formats: () => ['Street map'],        // its formats' names there, read each time; none keeps it off the list
 	example: 'Show where I shop on a map',
 	note: 'Maps are kept for 30 days',    // optional, the footnote under the list
 	off: unlimited => null,               // optional, why this server makes none for the reader
-	tool: { name, description, input_schema },
+	tool: { name, description, input_schema },   // or userId => that tool, or null when the reader has none
+	rules: 'Use make_map only when ...',  // optional, added to what Claude is told when it has the tool
 	doing: input => 'Drawing your map',   // what Ask says while it makes one
-	make: async (input, making) => ({ item, said }),   // item has an id; said is the tool's answer to Claude
+	make: async (input, making) => ({ item, said }),   // item has an id, or { items }; said is the tool's answer to Claude
 	byIds: (userId, ids) => ({ [id]: item }),           // what was made, as it is now
 	emailBlocks: (ids, items, { attached, write, money }) => [block],
 	attachments: (userId, ids, items, write) => [{ id, inline, filename, content, contentType, cid }],

@@ -2,14 +2,12 @@ import { db } from '../db.js'
 import { getClient } from './scanParse.js'
 import { MCP_TOOLS, callTool } from './mcpTools.js'
 import { askedAtIn, fileWriter } from './askFiles.js'
-import { MAKERS, makerOfTool, nothingMade } from '../format/index.js'
+import { MAKERS, makersFor, nothingMade } from '../format/index.js'
 import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
-import { offersToolFor } from '../offers/index.js'
 
 /* Ask: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
-   tools of the makers in format/, which make a file or a chart from the reader's data, and the offers tool
-   of offers/, which reads what shops have on offer now from other websites. */
+   tools of the makers in format/, which make a file, a chart or a block of this week's offers. */
 
 export const ASK_MODEL = 'claude-opus-5-5'
 // a chat's heading is a few words, so the smallest model writes it
@@ -26,8 +24,8 @@ const REQUEST_TIMEOUT_MS = 60_000
 export const TURNS_MOST = 20
 export const TEXT_MOST = 2000
 
-// the makers' tools are only the app's; /mcp never offers them
-const TOOLS = [...MCP_TOOLS.map(({ name, description, inputSchema }) => ({ name, description, input_schema: inputSchema })), ...MAKERS.map(m => m.tool)]
+// what /mcp offers too; the makers' tools are the app's only, and each reader's own (makersFor)
+const READ_TOOLS = MCP_TOOLS.map(({ name, description, inputSchema }) => ({ name, description, input_schema: inputSchema }))
 
 const instructions = today => `You answer questions about one person's own money in Spendly: their orders, shops (called vendors), categories and budget. Today is ${today}.
 
@@ -42,7 +40,7 @@ Write only this simple format:
 - A link to one order: [text](order:ID), with the id from the tools.
 - A link to the orders an answer is about: [text](orders:FILTERS). FILTERS joins any of vendor=ID, category=ID, status=NAME, from=YYYY-MM-DD and to=YYYY-MM-DD with "&", for example [Food in August](orders:category=ID&from=2026-08-01&to=2026-08-31). Several ids are joined with ",". Give the period whenever the answer is about one. Use this link for a shop or a category, too.
 - Every amount as {{number}}, a plain number with a dot for decimals, for example {{4212.50}}. The app adds the currency.
-- A file or a chart: the place mark make_file or make_chart answered, such as {{file:ID}}, on a line of its own. Files made together go on lines next to each other.
+- A file, a chart or offers: the place mark the tool answered, such as {{file:ID}}, on a line of its own. Files made together go on lines next to each other.
 Nothing else: no bold, no headings, no other links.
 
 Make a file only when the reader asks for one, and a chart when the numbers read better drawn. Never write a link to a file. You cannot make pictures or photos, only charts.`
@@ -85,9 +83,9 @@ export function scheduleAskSweep() {
 export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
-	const offers = offersToolFor(userId)
-	const tools = offers ? [...TOOLS, offers.tool] : TOOLS
-	const system = offers ? `${instructions(today)}\n\n${offers.note}` : instructions(today)
+	const offered = makersFor(userId)
+	const tools = [...READ_TOOLS, ...offered.map(o => o.tool)]
+	const system = [instructions(today), ...offered.map(o => o.maker.rules).filter(Boolean)].join('\n\n')
 	const making = {
 		token, self, signal, userId, chatId, today, unlimited, made: nothingMade(),
 		question: turns.at(-1).text, askedAt: askedAtIn(zone), write: fileWriter(userId, locale)
@@ -113,17 +111,13 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 		if (response.stop_reason === 'pause_turn') continue
 		const calls = response.content.filter(b => b.type === 'tool_use')
 		const results = await Promise.all(calls.map(async call => {
-			const maker = makerOfTool(call.name)
+			const maker = offered.find(o => o.tool.name === call.name)?.maker
 			if (maker) {
 				onWorking?.({ doing: maker.doing(call.input ?? {}) })
 				const said = await Promise.resolve(maker.make(call.input ?? {}, making))
-					.then(({ item, said }) => { making.made[maker.place][item.id] = item; return said })
+					.then(({ item, items = [item], said }) => { for (const one of items) making.made[maker.place][one.id] = one; return said })
 					.catch(error => (signal?.aborted ? Promise.reject(error) : `Spendly could not make this: ${error.message}`))
 				return { type: 'tool_result', tool_use_id: call.id, content: said }
-			}
-			if (offers && call.name === offers.tool.name) {
-				const result = await offers.answer(call.input, signal)
-				return { type: 'tool_result', tool_use_id: call.id, content: result.content, is_error: !!result.isError }
 			}
 			const result = await callTool(call.name, call.input ?? {}, token, self)
 				.catch(() => ({ content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }))
