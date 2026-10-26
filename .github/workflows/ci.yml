@@ -11,6 +11,7 @@ on:
       - 'api/**'
       - 'react/**'
       - 'scripts/**'
+      - 'release-notes/**'
       - 'storybook/**'
       - 'Dockerfile'
       - '.dockerignore'
@@ -55,6 +56,13 @@ jobs:
         env:
           # github.event.before is the main this push landed on, so the diff is what the merge
           # actually brought in.
+          CHECK_BASE_SHA: ${{ github.event.before }}
+
+      # A change that reaches the app adds a release note written in the reader's words.
+      - name: Release notes
+        if: ${{ !cancelled() }}
+        run: node scripts/check-release-notes.mjs
+        env:
           CHECK_BASE_SHA: ${{ github.event.before }}
 
       - name: Install the app

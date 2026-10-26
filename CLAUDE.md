@@ -232,6 +232,14 @@ The runner records each file by name and never runs it twice, so an edited migra
 database that ran the old one. That includes the user's own copy of an unmerged branch: change the
 schema in a new migration.
 
+## Release notes
+
+### Every change that reaches the app adds its release note in the same pull request
+
+One file in `release-notes/`, named like the branch, written by the rule in its README: what the
+reader can now do or see, in the words on the screen. A change nobody can see says so in the file.
+`node scripts/check-release-notes.mjs` runs with the other checks before the merge.
+
 ## Verification
 
 ### Verification is one pass at the end, not a gate on every edit

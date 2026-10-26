@@ -78,5 +78,9 @@ ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA SPENDLY_VERSION=$V
 # endpoint answers null and the UI says the build was never measured.
 ARG LIGHTHOUSE
 ENV SPENDLY_LIGHTHOUSE=$LIGHTHOUSE
+# What changed in the newest versions, as scripts/release-notes.mjs prints it. In the image's own
+# settings, so a server on an older version can read the newer version's notes from the registry.
+ARG RELEASE_NOTES
+ENV SPENDLY_RELEASE_NOTES=$RELEASE_NOTES
 EXPOSE 4000
 CMD ["node", "api/src/server.js"]

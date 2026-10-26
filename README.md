@@ -333,6 +333,12 @@ build. Each change that reaches `main` raises one of them and sets the numbers a
 Each published image is tagged with its version too, so `ghcr.io/mm98/spendly:1.4.2` names one
 exact build.
 
+**Each version carries its release notes.** Every change that reaches the app adds one short file to
+`release-notes/`: up to three plain lines on what the user can now do or see, or "No change you can
+see." The image build gives each file the version of the change that added it, and carries the notes
+of the newest 20 versions that have any. A check in CI stops a change without a note, or a note in
+technical words. `release-notes/README.md` says how to write one.
+
 The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
 
 **Your data is one folder.** The database lives in the folder mounted at `/data`. Back up that
