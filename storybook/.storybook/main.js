@@ -41,6 +41,6 @@ export default {
 		},
 		// the dev server serves only files under its root unless told: react/ sits beside it
 		server: { ...config.server, fs: { ...config.server?.fs, allow: [...(config.server?.fs?.allow ?? []), app('')] } },
-		define: { ...config.define, __BUILD_COMMIT__: 'null' }
+		define: { ...config.define, __BUILD_COMMIT__: 'null', __BUILD_VERSION__: 'null' }
 	})
 }

@@ -13,10 +13,11 @@ COPY react/package.json react/package-lock.json react/
 # --include=dev regardless of NODE_ENV: vite is a devDependency and is the build.
 RUN npm --prefix react ci --include=dev
 COPY react react
-# the commit is baked into the bundle too, so an open tab can see the server was updated under it;
-# an ARG is per stage, so the final stage declares its own
+# the commit and version are baked into the bundle too, so an open tab can see the server was updated
+# under it and which versions it missed; an ARG is per stage, so the final stage declares its own
 ARG GIT_SHA
-ENV GIT_SHA=$GIT_SHA
+ARG VERSION
+ENV GIT_SHA=$GIT_SHA VERSION=$VERSION
 RUN npm --prefix react run build
 
 # The Storybook, served at /storybook. It builds from react/'s own packages, installed above.
