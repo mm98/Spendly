@@ -44,13 +44,11 @@ export function ChatScroll({ scrollRef, children, ...rest }) {
 		if (!box) return
 		const mark = () => markEdges(box)
 		mark()
-		const frame = requestAnimationFrame(mark)
 		const sizes = new ResizeObserver(mark)
 		sizes.observe(box)
 		for (const child of box.children) sizes.observe(child)
 		box.addEventListener('scroll', mark, { passive: true })
 		return () => {
-			cancelAnimationFrame(frame)
 			sizes.disconnect()
 			box.removeEventListener('scroll', mark)
 		}
