@@ -20,6 +20,7 @@ import { VendorMark } from '../app/categoryMark.jsx'
 import {
 	Bar, CardMenu, ConfirmDelete, MergeDialog, MergePicker, RowMenu, SortControl, archiveVendor, deleteNote, isGone, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
+import { usePageSearch } from '../app/afterDraw.js'
 
 const SHOWN = [{ value: 'active', label: 'Active' }, { value: 'archived', label: 'Archived' }]
 // at this width of the list or under, the last order joins the name's second line (5k)
@@ -45,6 +46,7 @@ const SORTS = [
 
 /** Vendors (5a): find a vendor and open it, or create one. Favourites are kept at the top. */
 export default function Vendors() {
+	const pageSearch = usePageSearch()
 	const touch = useShellShape() === 'touch'
 	const toast = useToast()
 	const settingsRead = useApi(getSettings)
@@ -159,7 +161,7 @@ export default function Vendors() {
 		<Controls ref={column}>
 			{touch ? null : (
 				<SearchInput value={query} onChange={q => write(q, sort.id)}
-					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" data-page-search="vendors" />
+					placeholder="Search vendors by name or alias" aria-label="Search vendors by name or alias" inputRef={pageSearch} />
 			)}
 			<Segmented name="vendors-shown" options={SHOWN} value={archived ? 'archived' : 'active'} variant={touch ? 'facet' : 'default'}
 				onChange={v => write(query, sort.id, v === 'archived')} role="radiogroup" aria-label="Which vendors" />

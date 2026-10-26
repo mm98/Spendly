@@ -36,6 +36,7 @@ import { BulkActions, useStatusName } from './OrderBulk.jsx'
 import { OrderCard, PressedRow, RowMenu, orderName } from './OrderMenu.jsx'
 import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
+import { usePageSearch } from '../app/afterDraw.js'
 
 const SORTS = [
 	{ id: 'date-desc', label: 'Newest first' },
@@ -625,6 +626,8 @@ function OrderSearch({ q, onSearch, ask, touch }) {
 		onSearch(settled)
 	}, [settled, onSearch, ask.on])
 	const field = useRef(null)
+	const pageSearch = usePageSearch()
+	const bind = useCallback(el => { field.current = el; pageSearch(el) }, [pageSearch])
 	// the field keeps focus across the switch, which draws it again
 	const switching = useRef(false)
 	useEffect(() => { if (switching.current) { switching.current = false; field.current?.focus() } })
@@ -645,11 +648,10 @@ function OrderSearch({ q, onSearch, ask, touch }) {
 			clear={false}
 			ends={ends}
 			readOnly={ask.working}
-			inputRef={field}
+			inputRef={bind}
 			onKeyDown={keys}
 			placeholder="Ask, for example: groceries over 500 last month"
 			aria-label="Ask about your orders"
-			data-page-search="orders"
 		/>
 	)
 	return (
@@ -657,11 +659,10 @@ function OrderSearch({ q, onSearch, ask, touch }) {
 			value={text}
 			onChange={setText}
 			ends={ends}
-			inputRef={field}
+			inputRef={bind}
 			onKeyDown={keys}
 			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
 			aria-label="Search orders"
-			data-page-search="orders"
 		/>
 	)
 }

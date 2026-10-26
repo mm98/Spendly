@@ -44,6 +44,7 @@ import {
 } from './OrderParts.jsx'
 import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
+import { useAfterDraw } from '../app/afterDraw.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Save or Create writes the order, then its files; a draft keeps the form as it is edited. */
@@ -153,6 +154,7 @@ const takeAway = address => {
 export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
 	const navigate = useNavigate()
 	const toast = useToast()
+	const afterDraw = useAfterDraw()
 	const listAddress = useListReturn('orders')
 	const touch = useShellShape() === 'touch'
 	const recentVendors = useRecent('vendor')
@@ -624,7 +626,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		else if (editing) {
 			if (!loose && Object.keys(lineErrors(editing.values)).length) {
 				setEditing(e => ({ ...e, tried: true }))
-				return focusFirst('.sp-line-editor')
+				return afterDraw(() => focusFirst('.sp-line-editor'))
 			}
 			current = editing.isNew
 				? [...lines, { ...editing.values, key: editing.key, include: true }]
@@ -634,16 +636,16 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		}
 		if (Object.keys(orderErrors(target, statuses.find(s => s.key === target.status)?.ownDate)).length) {
 			setFolded(false, { keep: false })
-			return focusFirst('[data-details]', quietVendor)
+			return afterDraw(() => focusFirst('[data-details]', quietVendor))
 		}
 		const kept = current.filter(l => l.include !== false)
 		if (!loose) {
 			const broken = kept.find(l => Object.keys(lineErrors(l)).length)
 			if (broken) {
 				setEditing({ key: broken.key, isNew: false, values: { ...broken }, tried: true })
-				return focusFirst('.sp-line-editor')
+				return afterDraw(() => focusFirst('.sp-line-editor'))
 			}
-			if (!kept.length) return focusFirst('[data-add]')
+			if (!kept.length) return afterDraw(() => focusFirst('[data-add]'))
 		}
 		// a draft still being made is the one this order is created from
 		clearTimeout(keepSoon.current)
@@ -1619,16 +1621,16 @@ export function discardWords(scan, read = 0, typed = 0) {
 const LOOK = '[data-line][data-color="warning"], .sp-field__label + .sp-field__help[data-color="warning"]'
 const INVALID = '[aria-invalid="true"] input, input[aria-invalid="true"], [aria-invalid="true"] button, button[aria-invalid="true"]'
 
-/** Focus the first field to fix inside `selector`. `quiet` is held while it takes focus, so a
-    picker that opens on focus stays closed over its own message. */
-const focusFirst = (selector, quiet) => requestAnimationFrame(() => {
+/** Focus the first field to fix inside `selector`, as drawn now. `quiet` is held while it takes focus,
+    so a picker that opens on focus stays closed over its own message. */
+const focusFirst = (selector, quiet) => {
 	const box = document.querySelector(selector)
 	const target = box?.querySelector(INVALID) ?? box?.querySelector('input, button') ?? box
 	if (quiet) quiet.current = true
 	target?.focus?.()
 	if (quiet) quiet.current = false
 	box?.scrollIntoView?.({ block: 'nearest' })
-})
+}
 
 /** The saved order's own files as the form shows them. */
 export const savedFilesOf = order => order.attachments.map(a => ({

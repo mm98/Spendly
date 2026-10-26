@@ -17,6 +17,7 @@ import {
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, detectLocale, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { landing } from './AuthParts.jsx'
+import { useAfterDraw } from '../app/afterDraw.js'
 
 // the currency a browser's region most likely keeps its books in
 const CURRENCY_OF = { 'da-DK': 'DKK', 'sv-SE': 'SEK', 'nb-NO': 'NOK', 'de-DE': 'EUR', 'en-GB': 'GBP', 'en-US': 'USD' }
@@ -51,6 +52,7 @@ export default function Welcome() {
 	const [currency, setCurrencyCode] = useState('DKK')
 	const [locale, setLocaleCode] = useState('auto')
 	const [pick, setPick] = useState(SUGGESTED[0].name)
+	const afterDraw = useAfterDraw()
 	const [own, setOwn] = useState({ name: '', icon: 'tag' })
 	const [problem, setProblem] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -163,7 +165,7 @@ export default function Welcome() {
 					)
 				})}
 				<ListItem variant={pick === OTHER ? 'primary' : 'outline'} role="radio" aria-checked={pick === OTHER ? 'true' : 'false'}
-					onClick={() => { setPick(OTHER); requestAnimationFrame(() => document.getElementById('welcome-name')?.focus()) }}
+					onClick={() => { setPick(OTHER); afterDraw(() => document.getElementById('welcome-name')?.focus()) }}
 					mark={<Mark size="small" fill="empty" aria-hidden="true" aria-label="Something else"><Icon name="plus" size={15} /></Mark>}>
 					<span className={pick === OTHER ? 'sp-title' : 'sp-data'}>Something else…</span>
 					<span className="sp-grow" />
