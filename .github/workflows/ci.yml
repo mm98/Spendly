@@ -129,10 +129,12 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('storybook/package-lock.json') }}
       - name: Install the browser the stories are tested in
         if: ${{ !cancelled() }}
-        # it takes under half a minute; a download that hangs fails here instead of holding the run
+        # it takes seconds; a download that hangs fails here instead of holding the run
         timeout-minutes: 1
         working-directory: storybook
-        run: npx playwright install --with-deps --only-shell chromium
+        # No --with-deps: the runner already has the libraries Chrome needs, and the stories bring
+        # their own fonts, so the system packages it would add are a slow download for nothing.
+        run: npx playwright install --only-shell chromium
       # Every story renders, runs its play steps and its accessibility check, and logs no error.
       - name: Every story passes its tests
         if: ${{ !cancelled() }}
