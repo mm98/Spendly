@@ -66,7 +66,7 @@ ENV SPENDLY_STORAGE=/storage
 # answers nulls, which the UI reads as an unstamped build.
 ARG BUILD_TIME
 ARG GIT_SHA
-# major.minor, counted by scripts/version.mjs
+# major.minor.build, counted by scripts/version.mjs
 ARG VERSION
 ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA SPENDLY_VERSION=$VERSION
 # The Lighthouse scores this exact image was measured at, as the JSON blob
