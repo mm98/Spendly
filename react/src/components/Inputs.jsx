@@ -110,9 +110,11 @@ export function PasswordField({ fullWidth = false, ...rest }) {
 		const frame = now => {
 			if (id !== run.current) return
 			const t = Math.min(1, (now - start) / ms)
-			// letters settle left to right; the ones not yet settled show a passing glyph
+			// showing settles left to right, hiding right to left, so hiding is showing played
+			// backwards; the letters not yet settled show a passing glyph
+			const n = target.length
 			setShuffle([...target].map((ch, i) => {
-				const at = (i + 1) / target.length
+				const at = next ? (i + 1) / n : (n - i) / n
 				return t >= at ? ch : t >= at - 0.5 ? GLYPHS[Math.floor(Math.random() * GLYPHS.length)] : from[i]
 			}).join(''))
 			if (t < 1) requestAnimationFrame(frame)
