@@ -12,7 +12,6 @@ import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { LayoutGroup, m } from '../components/motion.js'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast, Leaving } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
@@ -287,21 +286,19 @@ function useSeenSection(active) {
 
 function SectionNav({ current }) {
 	return (
-		<m.nav className="st-subnav" aria-label="Settings" layoutRoot layoutScroll>
+		<nav className="st-subnav" aria-label="Settings">
 			<div className="sp-stack sp-gap-8">
 				<span className="sp-section-label">Settings</span>
-				<LayoutGroup id="settings-sections">
-					<div className="sp-nav-list">
-						{SECTIONS.map(s => (
-							<Fragment key={s.key}>
-								{s.key === TOOLS ? <span className="sp-menu__sep sp-menu__sep--divider" role="separator" /> : null}
-								<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
-							</Fragment>
-						))}
-					</div>
-				</LayoutGroup>
+				<div className="sp-nav-list">
+					{SECTIONS.map(s => (
+						<Fragment key={s.key}>
+							{s.key === TOOLS ? <span className="sp-menu__sep sp-menu__sep--divider" role="separator" /> : null}
+							<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+						</Fragment>
+					))}
+				</div>
 			</div>
-		</m.nav>
+		</nav>
 	)
 }
 

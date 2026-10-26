@@ -4,20 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## The side menu's highlight jumps when the page scrolls as a row is picked
-
-- **Where:** the side menu on a desktop, the highlight drawn by `NavItem` (`react/src/components/Shell.jsx`).
-- **What the reader sees:** picking a Settings section, or leaving a scrolled-down page for another
-  menu row, makes the highlight start far above or below its row and slide back; while it is below,
-  the menu shows a scroll bar for a moment.
-- **What was found:** Motion measures the highlight on the whole page (screen place plus page scroll).
-  The side menu does not move with the page, so a page scroll between two measurements reads as
-  movement. When another row is picked, Motion measures the old highlight while the new page is being
-  prepared (`framer-motion` `use-visual-element.mjs`, "snapshot the lead now, while rendering"), before
-  the new page scrolls to the top. `layoutRoot` on the side menu does not change that measurement.
-  A component change, so a brief for Claude Design: `Brief-nav-highlight-layoutroot-follow-up.md`.
-- **Found:** 2026-10-26.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.

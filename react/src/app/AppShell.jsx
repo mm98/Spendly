@@ -2,7 +2,6 @@ import { Suspense, useCallback, useMemo, useEffect, useLayoutEffect, useRef, use
 import { EmailLine } from '../components/EmailLine.jsx'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, SidebarGrip, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
-import { m } from '../components/motion.js'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -322,7 +321,7 @@ function NavScroll({ navKey, children }) {
 		return () => { el.removeEventListener('scroll', check); watch.disconnect() }
 	}, [])
 	useLayoutEffect(() => current.current(), [navKey])
-	return <m.div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'} layoutScroll>{children}</m.div>
+	return <div ref={box} className={more ? 'ns-scroll ns-scroll--faded sp-scrolls' : 'ns-scroll sp-scrolls'}>{children}</div>
 }
 
 /* Scan receipt opens the file picker at once (16a). Before the email is confirmed the row only reports,

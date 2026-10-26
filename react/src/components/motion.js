@@ -1,5 +1,5 @@
 import { createContext, useContext, useLayoutEffect, useRef, useState } from 'react'
-import { AnimatePresence, LayoutGroup, LazyMotion, MotionConfig, animate, domMax, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
+import { AnimatePresence, LazyMotion, MotionConfig, animate, domMax, m, useIsPresent, useMotionValue, useReducedMotionConfig } from 'motion/react'
 
 /* Motion's settings, read from tokens.css. The stylesheet stays the only place the pace is written:
    this file reads --motion-in, --motion-out, --ease-enter, --ease-exit, --motion-rise and --motion-slide
@@ -86,11 +86,10 @@ export const PRESENCE = {
 
 /** A marker moving to a new place (the segmented selection, a radio row's tint, the sidebar's current
     row) and a row gliding to a new place both take the way in.
-    A box that stays on screen while the page scrolls under it (sticky or fixed: the Sidebar, a Panel,
-    Settings' section nav) is a `layoutRoot`, so its markers are measured on the screen and a page
-    scroll in the same moment never reads as movement; a box that scrolls its own rows is also
-    `layoutScroll`. A list of light rows that belongs to one page is its own `LayoutGroup`, so its
-    marker never glides across a page switch to another page's list. */
+    The segmented selection, the period presets and a radio row's tint are `layoutId` markers: they
+    sit in the page and move with it, so Motion measuring them on the page is right. The sidebar's
+    and the light lists' ground is not: those boxes stay put while the page scrolls under them, so
+    NavGround (Shell.jsx) reads the old row and the new row at one moment and slides by the difference. */
 export const glide = () => into()
 
 /** Lists glide their rows only up to this many: past it the moves are too many to follow, and the
@@ -247,4 +246,4 @@ export function slideLabels(nav, way, still, done) {
 	return () => run.stop()
 }
 
-export { AnimatePresence, LayoutGroup, animate, m, useMotionValue }
+export { AnimatePresence, animate, m, useMotionValue }

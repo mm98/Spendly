@@ -8,7 +8,6 @@ import { TextField } from '../components/Inputs.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { NavItem } from '../components/Shell.jsx'
-import { LayoutGroup } from '../components/motion.js'
 import { ReorderList } from '../components/Reorder.jsx'
 import { useDismiss } from '../components/Utilities.jsx'
 import { addView, changeView, deleteView, failureMessage, orderViewsAs } from '../api/client.js'
@@ -98,36 +97,34 @@ export function ViewsCard({ params, matched, summary, onList = true }) {
 				: null}>
 			<CardHeader name="Views" actionSize="xsmall" actions={[slot]} />
 			{/* at rest the views are links; editing, they are rows to move, rename and delete (9e) */}
-			<LayoutGroup id="views">
-				<div className="sp-nav-list">
-					{mode === 'editing'
-						? <NavItem variant="light" icon="receipt" current={onList && !active && !now} trail={<span className="sp-meta">locked</span>}>All orders</NavItem>
-						: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
-					{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
-					{mode === 'editing'
-						? (
-							<ReorderList items={shown} keyOf={view => view.id} nameOf={view => view.name} onMove={move}>
-								{view => (renaming === view.id
-									? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
-									: (
-										<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} handle={<Icon name="grip-vertical" size={12} />}
-											handleLabel={`Reorder ${view.name}`} current={active?.id === view.id}
-											trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onHighlight={() => highlight(view)} onDelete={() => setDeleting(view)} /></span>}>
-											{view.name}
-										</NavItem>
-									))}
-							</ReorderList>
-						)
-						: shown.map(view => (renaming === view.id
-							? <ViewName key={view.id} name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
-							: (
-								<NavItem key={view.id} variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
-									current={active?.id === view.id} count={count(view.count)} countColor={viewCountColor(view)}
-									title={active?.id === view.id && edited ? 'Changed since it was saved' : undefined}
-									>{view.name}</NavItem>
-							)))}
-				</div>
-			</LayoutGroup>
+			<div className="sp-nav-list">
+				{mode === 'editing'
+					? <NavItem variant="light" icon="receipt" current={onList && !active && !now} trail={<span className="sp-meta">locked</span>}>All orders</NavItem>
+					: <NavItem variant="light" icon="receipt" to={ALL_ORDERS} current={onList && !active && !now} count={count(answer.data?.all)}>All orders</NavItem>}
+				{mode === 'naming' ? <ViewName count={matched} onSave={save} onCancel={() => setMode('rest')} /> : null}
+				{mode === 'editing'
+					? (
+						<ReorderList items={shown} keyOf={view => view.id} nameOf={view => view.name} onMove={move}>
+							{view => (renaming === view.id
+								? <ViewName name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
+								: (
+									<NavItem variant={active?.id === view.id && edited ? 'edited' : 'light'} handle={<Icon name="grip-vertical" size={12} />}
+										handleLabel={`Reorder ${view.name}`} current={active?.id === view.id}
+										trail={<span className="sp-cell-menu"><ViewMenu view={view} onRename={() => setRenaming(view.id)} onDefault={() => makeDefault(view)} onHighlight={() => highlight(view)} onDelete={() => setDeleting(view)} /></span>}>
+										{view.name}
+									</NavItem>
+								))}
+						</ReorderList>
+					)
+					: shown.map(view => (renaming === view.id
+						? <ViewName key={view.id} name={view.name} count={view.count} onSave={name => rename(view, name)} onCancel={() => setRenaming(null)} />
+						: (
+							<NavItem key={view.id} variant={active?.id === view.id && edited ? 'edited' : 'light'} to={viewLink(view)} mark={<ViewMark query={view.query} />}
+								current={active?.id === view.id} count={count(view.count)} countColor={viewCountColor(view)}
+								title={active?.id === view.id && edited ? 'Changed since it was saved' : undefined}
+								>{view.name}</NavItem>
+						)))}
+			</div>
 			{mode === 'naming' ? <span className="sp-meta">{summary}</span> : null}
 			<Leaving>{deleting
 				? (
@@ -218,15 +215,13 @@ export function SheetViews({ params, onOpen }) {
 	if (!answer) return null
 	return (
 		<FieldGroup facet legend="Views">
-			<LayoutGroup id="views-sheet">
-				<div className="sp-nav-list">
-					<NavItem variant="light" icon="receipt" to={ALL_ORDERS} onClick={onOpen} current={!active && !now} count={amount(answer.all, 0)}>All orders</NavItem>
-					{answer.views.map(view => (
-						<NavItem key={view.id} variant="light" to={viewLink(view)} onClick={onOpen} mark={<ViewMark query={view.query} />} current={active?.id === view.id}
-							count={amount(view.count, 0)} countColor={viewCountColor(view)}>{view.name}</NavItem>
-					))}
-				</div>
-			</LayoutGroup>
+			<div className="sp-nav-list">
+				<NavItem variant="light" icon="receipt" to={ALL_ORDERS} onClick={onOpen} current={!active && !now} count={amount(answer.all, 0)}>All orders</NavItem>
+				{answer.views.map(view => (
+					<NavItem key={view.id} variant="light" to={viewLink(view)} onClick={onOpen} mark={<ViewMark query={view.query} />} current={active?.id === view.id}
+						count={amount(view.count, 0)} countColor={viewCountColor(view)}>{view.name}</NavItem>
+				))}
+			</div>
 		</FieldGroup>
 	)
 }
