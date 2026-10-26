@@ -275,6 +275,14 @@ Everything that needs you, on one page.
   is named with a link to Files. The button at the end opens the chat again.
 - **It reads like the assistant programs below**, with the same tools, as the person signed in. It
   cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
+- **Offers in shops now.** Ask "where is milk cheapest this week?" or give a shopping list, and Ask
+  finds what the shops have on offer, cheapest first, with the shop, the price per kilo or litre and
+  the last day of the offer. Groceries in Denmark come from [Tilbudsugen](https://www.tilbudsugen.dk),
+  for an account kept in Danish kroner. Only offers are found, not the shops' normal prices, and Ask
+  never counts an offer in your own figures. Only the items and shops you name are sent to the site.
+- **Spendly asks each offer site with care.** The same question is answered from memory for an hour,
+  the whole server asks a site at most 20 times a minute and once for each account at most 50 times a
+  day, and a site that refuses or fails is left alone for 15 minutes, or as long as it asks.
 - **Each account has 25 questions a day** (`SPENDLY_ASK_QUESTIONS_PER_DAY`), counted on the
   person's own calendar day. Ask in the order search counts too. When 3 or fewer are left, an
   alert at the top of the chat shows the count and when it starts again; it stays in view while the chat scrolls. A failed or stopped answer is not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
@@ -366,6 +374,8 @@ printed amounts.
 - **What Ask makes** is one maker for each kind of thing (a file, a chart), and one file for each
   format a maker offers (Excel, CSV, Word and PDF; bars and shares). A new format is one file, and
   the rest of the server reads the lists. How, in [`api/src/format`](api/src/format/README.md).
+- **Where Ask finds offers** is one file for each site, in a list, with its own limits. A new site is
+  one file and one line. How, in [`api/src/offers`](api/src/offers/README.md).
 - **Every change that lands on `main`** runs the checks below, then builds and publishes a new
   image. A server running Watchtower picks it up by itself.
 - **The checks:**
