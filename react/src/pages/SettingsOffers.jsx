@@ -69,7 +69,7 @@ function SourceCard({ source, first, onChange }) {
 			{source.usable
 				? (
 					<>
-						<span className="sp-data">Orders from the last 7 days get Check offers when their vendor or one of their categories is picked here. Every shop {source.name} covers is searched.</span>
+						<span className="sp-data">Orders from the last {source.months} months get Check offers when their vendor or one of their categories is picked here. Every shop {source.name} covers is searched.</span>
 						<Picks kind="vendor" rows={source.vendors} onChange={vendors => onChange({ vendors })} />
 						<Picks kind="category" rows={source.categories} onChange={categories => onChange({ categories })} />
 						{picked ? null : <span className="sp-meta">No orders are checked against {source.name}.</span>}

@@ -282,7 +282,7 @@ Everything that needs you, on one page.
   come from [Tilbudsugen](https://www.tilbudsugen.dk), for an account kept in Danish kroner. Only offers
   are found, not the shops' normal prices, and Ask never counts an offer in your own figures. An old
   chat keeps the offers it was answered with. Only the items and shops you name are sent to the site.
-- **This week's offers on a grocery order.** An order dated in the last 7 days has Check offers in its
+- **This week's offers on a grocery order.** An order dated in the last 2 months has Check offers in its
   Items card when its vendor, or one of its categories, is picked for Tilbudsugen. You pick them in
   Settings, Offers, or with the Offers switch on a vendor's or a category's page. At first, the grocery
   chains Tilbudsugen knows by name are picked for you. Check offers shows on the order, the edit page

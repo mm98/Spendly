@@ -6,8 +6,8 @@ import { tilbudsugen } from './tilbudsugen.js'
    A source is { key, name, site, goods, country, currency, limits?, shopKey, find } (README here). */
 export const OFFER_SOURCES = [tilbudsugen]
 
-// how many days back an order's date may lie and still meet the offers running now
-export const OFFER_DAYS = 7
+// how many months back an order's date may lie and still be checked against the offers running now
+export const OFFER_MONTHS = 2
 export const ITEMS_MOST = 30
 // what a source answered is kept this long and this many answers at most, so the same question is asked once
 const KEPT_MOST = 500

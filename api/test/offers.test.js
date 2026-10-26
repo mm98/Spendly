@@ -124,7 +124,7 @@ test('the first picks are the vendors the source knows by name or alias; a remov
 	assert.deepEqual(offerPicks(USER)[0].vendors, [])
 	assert.deepEqual(offerPicks(USER)[0].categories.map(c => c.id), ['c-food'])
 	setPickedFor(USER, 'vendor', 'v-netto', { tilbudsugen: true })
-	assert.deepEqual(pickedFor(USER, 'vendor', 'v-netto'), [{ key: 'tilbudsugen', name: 'Tilbudsugen', picked: true }])
+	assert.deepEqual(pickedFor(USER, 'vendor', 'v-netto'), [{ key: 'tilbudsugen', name: 'Tilbudsugen', months: 2, picked: true }])
 	assert.deepEqual(pickedFor(EURO_USER, 'vendor', 'v-netto'), [])
 })
 
@@ -164,7 +164,8 @@ test('a line with an offer gets the small picture of that offer, from a request 
 
 test('an older order, or one with no picked vendor or category, shows no offers', async () => {
 	const lines = [{ title: 'Mælk', quantity: 1, price: 10 }]
-	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-10-19', lines, keptOnly: false }), { shown: false })
+	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-08-25', lines, keptOnly: false }), { shown: false })
+	assert.equal((await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-netto', date: '2026-08-26', lines, keptOnly: true })).shown, true)
 	assert.deepEqual(await offersForOrder({ userId: USER, today: '2026-10-26', vendorId: 'v-ikea', categoryIds: [], date: '2026-10-26', lines, keptOnly: false }), { shown: false })
 	assert.equal(asked.length, 0)
 })

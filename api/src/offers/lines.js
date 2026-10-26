@@ -1,4 +1,4 @@
-import { OFFER_DAYS, findOffers, withPictures } from './index.js'
+import { OFFER_MONTHS, findOffers, withPictures } from './index.js'
 import { pickedSourceFor } from './picks.js'
 
 /* The offers for the lines of one order (Order editing layouts 1a): one request for every line, and for
@@ -55,7 +55,7 @@ export function matchFor(line, offers, date) {
 export function offerSourceForOrder({ userId, today, vendorId, categoryIds, date }) {
 	if (!date || !today || date > today) return null
 	const first = new Date(`${today}T00:00:00Z`)
-	first.setUTCDate(first.getUTCDate() - (OFFER_DAYS - 1))
+	first.setUTCMonth(first.getUTCMonth() - OFFER_MONTHS)
 	if (date < first.toISOString().slice(0, 10)) return null
 	return pickedSourceFor(userId, { vendorId, categoryIds })
 }

@@ -76,7 +76,7 @@ answers are in memory: a restart forgets them.
 
 ## Which orders get Check offers
 
-Each source has its own picked vendors and categories (`picks.js`). An order dated in the last 7 days
+Each source has its own picked vendors and categories (`picks.js`). An order dated in the last 2 months
 gets Check offers from the first source the account can use whose picks hold its vendor or one of its
 categories. The search itself always covers every shop of the source. The first time an account's
 picks are read, each source picks the vendors its `shopKey` knows by name or alias, and never again.
