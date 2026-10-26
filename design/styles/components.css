@@ -4194,6 +4194,8 @@ a.sp-chat__file-name { text-decoration: none; }
 .sp-alert > .sp-alert__mark { margin-top: calc((1lh - var(--mark-small)) / 2); }
 .sp-alert__title { font-size: var(--t-13); font-weight: 600; color: var(--amber-ink-2); }
 .sp-alert__note { font-size: var(--t-12); color: var(--amber-ink-2); }
+/* an action under the text, where the row has no room beside it (a phone): it keeps its own width */
+.sp-alert__body > .sp-btn { align-self: flex-start; }
 .sp-alert[data-color="danger"] { border-color: var(--red-ink); background: var(--red-tint); }
 .sp-alert[data-color="danger"] .sp-alert__mark { background: #e6c9c4; color: #8a4a41; }
 .sp-alert[data-color="danger"] .sp-alert__title,
@@ -6078,6 +6080,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-chat__file-name { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 /* a file that is gone keeps its row, its title and its mark; only the actions go */
 .sp-chat__file[data-state="gone"] .sp-chat__file-name { color: var(--ink-4); }
+/* an offer in an answer (Ask 24d 11) is a file row with the price column where Download sits:
+   the amount cell's stack, right-aligned, never shrinking */
+.sp-chat__file > .sp-chat__price { flex: none; }
 /* a chart in an answer: the figure frame with the Bars or the Donut and its shares inside,
    at their own sizes, under the chart's name and total. The frame does not scroll: a
    chart always fits its bubble, and its readout may hang over the frame's edge. */

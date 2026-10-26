@@ -1,90 +1,45 @@
-# This week's grocery offers on an order
+# This week's offers in an Ask answer
 
-## Fixed from handoff_grocery_offers_fixed
+Answers the request: Ask can be asked "cheapest milk prices for this week" and answers with this week's offers.
 
-### The offer shows the product's photo, and a match can be another brand
+## 1. The offers block in an answer
 
-- **The problem:** the offer popover named the matched product in text only, and every drawn match was the line's own brand, so a match to another brand was not shown.
-- **What changed:** the popover head shows the offer's product photo as a medium mark (`sp-mark sp-mark--medium sp-mark--photo`) beside the product name and "shop · until" line, in `sp-cell-flex`, the row pattern of a record cell. With no photo from the server it is the empty photo box, as on a line. A match can be another brand of the same kind of item: the coffee line "Merrild kaffe 500g" now matches "BKI Classic 500 g" at Rema 1000. The name and photo are always the shop's own, never the line's, so the brand shows as it is. No stylesheet changed.
-- **Where:** `Order editing layouts 1a` (the open popover, "A multi-buy offer", "A members-only offer", note "The offer is a suggestion") and `1c` (phone popover). App: the offer popover opened from `LineAmount` in `react/src/pages/OrderParts.jsx`; the server's match needs the offer's image URL.
+- **The problem:** Ask answered from the reader's own records only. A question about prices this week had no answer shape.
+- **What changed:** a price question is answered from this week's grocery offers, the source Check offers uses on an order, across every shop in the offers. The text states the cheapest in one sentence ("The cheapest milk this week is 10,00 kr. a litre, at Netto."), then a block of at most five offers, cheapest per litre, kg or piece first. Each offer is a file row in the file frame (`.sp-chat__files`, `.sp-chat__file`): the product photo as `sp-mark--medium sp-mark--photo`, the product and size as the title, "shop · until dd/mm/yyyy" in `sp-meta` (a members-only offer adds the club: "Lidl · until 29/10/2026 · Lidl Plus members"), and on the right the price column: the offer as the shop states it in `sp-amount`, the unit price under it in plain `sp-amount-secondary`. No comparison with what the reader paid, no saving. A row does nothing. The block closes with "Offers from Tilbudsugen" in `sp-meta`, once per block.
+- **Where:** `Ask Spendly 24d`, specimen 11 and the notes "This week's offers in an answer - 11 to 14"; the lede of 24d and the Answers note of 24a name offers as a block. `styles/components.css`: new rule `.sp-chat__file > .sp-chat__price { flex: none; }`, the price column is `sp-stacked sp-cell-amount sp-chat__price`. App: the Ask answer renderer (`react/src/pages/Ask.jsx` and its answer blocks), the assistant's offers tool on the server.
 - **What is still open:** nothing.
 
-## Fixed from handoff_grocery_offers
+## 2. Looking up, nothing on offer, lookups used up
 
-### On a phone, an alert's action sits under its text
-
-- **The problem:** on the phone's Compare with receipt screen, Jump to first sat beside the alert's text, squeezing the note into a narrow column.
-- **What changed:** on a phone the button sits under the note, at its own width, left-aligned with the text. On desktop it stays beside the text as before.
-- **Where:** `Order create 3d`, specimen "4 - Phone". `styles/components.css`, new rule `.sp-alert__body > .sp-btn { align-self: flex-start; }` beside the alert's rules: a button placed inside `.sp-alert__body` keeps its width. No existing alert rule changed. App: the alert in the phone layout of the compare-with-receipt screen places its action inside the alert body.
+- **The problem:** the block needed its waiting and empty states.
+- **What changed:** while looking up, the spinner bubble reads "Looking up this week's offers". Nothing found is a text answer naming the product, "No shop has oat milk on offer this week.", with the source link. The daily allowance used up is a text answer, "Today's offer lookups are used up. Ask again tomorrow.", or "Ask again in 15 minutes." for a wait, with no source link. One question is one lookup, cached an hour; a check on an order and a question here share one daily allowance. Offers in an old chat keep the prices they were answered with.
+- **Where:** `Ask Spendly 24d`, specimens 12, 13, 14 and their notes.
 - **What is still open:** nothing.
 
-## The original package
+## 3. On a phone
 
-Answers `Brief-grocery-offers-on-orders.md`. No stylesheet changed in the original package: every part is an existing component (`sp-icon-btn--small`, the c25 popover panel, `sp-sum`, `sp-meta`, `sp-btn--small`).
-
-## 1. Where the offer hint sits in a line row
-
-- **The problem:** a line had no place to say a shop has the same item on offer.
-- **What changed:** a small tag button sits between the line's name and its amount, on desktop and on the phone. It is shown only on a line whose matched offer is cheaper per unit than what the line paid, one per line (the cheapest match). Tapping it opens the offer in a popover; tapping elsewhere on the row does what the row already does. aria-label "Offer at Netto", tip "On offer at Netto". On touch it keeps its drawn size inside the 48px press area.
-- **Where:** `Order editing layouts 1a` (desktop specimen "A grocery order dated inside this week's offers") and `1c` (phone specimen "Grocery order · an offer tapped"). App: `LineText` / `LineAmount` in `react/src/pages/OrderParts.jsx`, the phone and desktop rows in `react/src/pages/Order.jsx`.
+- **The problem:** the phone needed the same answer.
+- **What changed:** a new phone frame, the Ask chat with the offers answer, at full column width as an answer with files is. The title takes two lines before it is cut; the price column keeps its width.
+- **Where:** `Mobile screens 7a`, "Ask - this week's offers", after "Ask - a file and a chart".
 - **What is still open:** nothing.
-
-## 2. How the hint says it is a guess
-
-- **The problem:** the match is a server guess on free text; a wrong match has to be easy to spot.
-- **What changed:** the popover head reads **Possible match**, then the product as the shop lists it with its size ("Arla Letmælk 1 L"), then "Netto · until 30/10/2026". Sum rows below: Offer as the shop states it ("15,00 kr.", "2 for 80,00 kr.", "12,00 kr. per kg"), the price per litre / kg / piece when the server has one (row absent otherwise), and You paid ("18,95 kr. each"). A members-only offer adds the popover note naming the club ("Lidl Plus members only"). No actions; Escape, a click outside or the tag closes it.
-- **Where:** `Order editing layouts 1a`, the open popover and the two static specimens "A multi-buy offer" and "A members-only offer".
-- **What is still open:** nothing.
-
-## 3. "At this week's offers" beside "Saved"
-
-- **The problem:** what the lines would have cost at the offers had to sit near the totals without reading as the reader's own saving.
-- **What changed:** in the Totals card, under Saved, its own group: one sum row "At this week's offers 122,00 kr." in ordinary ink, never green, then a meta line "3 of 5 lines, 175,80 kr. paid for them. Offers from Tilbudsugen". It counts only lines with a tag, so both amounts cover the same lines. A multi-buy counts only when the line's quantity reaches it; a members-only offer counts. No tag on any line, no row. Saved stays green above it and is the only figure in the item list footer.
-- **Where:** `Order editing layouts 1a`, Totals card. App: totals in `react/src/pages/Order.jsx`.
-- **What is still open:** nothing.
-
-## 4. While offers are looked up, and when they cannot be
-
-- **The problem:** a missing hint could mean no offer, a failed lookup or a lookup not made.
-- **What changed:** offers are looked up only when the reader taps **Check offers**, a small outline button in the Items card head (where Download all sits on Attachments). This keeps what Spendly told Tilbudsugen: only on request, one request for the whole list, kept an hour. The head then shows the result in meta ink: "3 lines on offer this week", "No lines on offer this week", "Offers could not be checked" with Try again, or "Offers can be checked again tomorrow" (or "in 15 minutes" for a wait asked by the site) with no button. While checking, the button is disabled and reads Checking offers; lines show nothing. Within the hour, reopening the order shows the result without asking again.
-- **Where:** `Order editing layouts 1a`, the five card-head specimens and the notes "Asked only when the reader asks" and "The head after a check".
-- **What is still open:** nothing.
-
-## 5. The new-order page after a scan
-
-- **The problem:** the brief asked whether hints show before the order is saved.
-- **What changed:** yes. The unsaved scan screen shows Check offers, the tags and the "At this week's offers" row exactly as the saved order. A line left out with its tick counts in neither the row nor its line count. In edit, a line whose name or quantity changes after a check loses its tag until offers are checked again.
-- **Where:** `Order create 3a`, note "Grocery offers before the order is created"; `Order editing layouts 1a`, note "Editing". App: the line list in `react/src/pages/OrderForm.jsx`.
-- **What is still open:** nothing.
-
-## 6. Naming the source
-
-- **The problem:** the offers must be credited to Tilbudsugen.
-- **What changed:** "Offers from Tilbudsugen" closes every offer popover and the "At this week's offers" meta line, a plain link to `https://tilbudsugen.dk` in a new tab. Nowhere else.
-- **Where:** `Order editing layouts 1a`.
-- **What is still open:** if Tilbudsugen's reply asks for a different credit or no link, please confirm the new wording.
-
-## When none of it shows
-
-Only an order the server treats as groceries, dated inside this week's offers, shows Check offers, tags or the row. An older order shows none of it, with no empty slot. A single offer is shown only when the order's date lies between that offer's first and last day. Where: `Order editing layouts 1a`, note "When it is there".
 
 ## later.md
 
-- **"The design does not say yet that the arrow keys page Statistics"** - already settled: `Order statistics 4a` carries the note "The left and right arrow keys step to the previous or next period, as they step the months on Budget..." with the same exceptions later.md lists. No design change needed; Claude Code can remove the entry.
-- **"A deleted record should not be removed for good at once"** - not drawn. The user chose to leave "Recently deleted" open for now; the entry stays.
-- **"Large accounts still make everyone wait on a few pages"** - not a design fix; untouched.
+- **The design does not say yet that the arrow keys page Statistics:** the sentence is already in `Order statistics 4a`, the note "The left and right arrow keys step to the previous or next period". Nothing changed in this package; the entry can be removed.
+- **A deleted record should not be removed for good at once:** left for a later task, by the user's choice.
+- **Large accounts still make everyone wait:** not a design entry.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Order editing layouts.dc.html` - 1a and 1c, the offers specimens and notes, with the product photo in the offer popover.
-- `Order create.dc.html` - 3a, the note on offers before an order is created; 3d, the phone alert's action under its text.
-- `support.js`, `components.js` - what the pages load to open.
-- `styles/components.css` - shared styles, with the one added `.sp-alert__body > .sp-btn` rule.
-- `styles/tokens.css`, `styles/doc.css` - shared styles, unchanged.
-- `styles/pages/order-editing.css`, `styles/pages/order-create.css` - the two pages' layout rules, unchanged.
+- `Ask Spendly.dc.html` - 24a, 24d changed.
+- `Mobile screens.dc.html` - 7a gained the offers frame.
+- `support.js`, `components.js`, `icons.js` - loaded by the pages.
+- `styles/tokens.css`, `styles/doc.css` - loaded by the pages.
+- `styles/components.css` - the `.sp-chat__price` rule.
+- `styles/pages/ask-spendly.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - linked by the two pages.
 
-## styles/check.js
+## Checks
 
-0 finding(s) across 27 pages.
+`styles/check.js`: 0 findings across 27 pages.
