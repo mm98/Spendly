@@ -6,7 +6,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { checkVersion, failureMessage, getVersion, startUpdate } from '../api/client.js'
+import { checkVersion, failureMessage, getReleaseNotes, getVersion, startUpdate } from '../api/client.js'
 import { activeLocaleCode } from '../api/format.js'
 import { landing } from './SettingsParts.jsx'
 
@@ -31,6 +31,19 @@ async function reloadOnNew(commit) {
 	throw new Error('The update did not finish.')
 }
 
+// the running version and the two before it, until Show all is pressed (11d)
+const VERSIONS_AT_FIRST = 3
+
+/** One version's number and its lines, in the 6d notice's list; `ink` colours both, as inside the amber notice. */
+function VersionNotes({ version, notes, ink }) {
+	return (
+		<div className="sp-stack sp-gap-6">
+			<span className={ink ? `sp-meta ${ink}` : 'sp-meta'}>{ink ? <b>{version}</b> : <b className="sp-ink">{version}</b>}</span>
+			<ul className={ink ? `sp-toast__changes ${ink}` : 'sp-toast__changes'}>{notes.map((note, i) => <li key={i}>{note}</li>)}</ul>
+		</div>
+	)
+}
+
 const stampOf = iso => {
 	const at = new Date(iso)
 	if (Number.isNaN(at.getTime())) return null
@@ -41,11 +54,22 @@ const stampOf = iso => {
    screen, then the card is back at rest: a stale "up to date" is worse than none. */
 export function BuildCard() {
 	const version = useApi(getVersion)
+	const releaseNotes = useApi(getReleaseNotes)
 	const [state, setState] = useState('rest')
 	const [why, setWhy] = useState(null)
 	const [newest, setNewest] = useState(null)
 	const [newestVersion, setNewestVersion] = useState(null)
+	const [newerNotes, setNewerNotes] = useState([])
+	const [allShown, setAllShown] = useState(false)
 	const card = useRef(null)
+
+	useEffect(() => {
+		const box = card.current
+		if (!allShown || !box) return
+		const watch = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) setAllShown(false) })
+		watch.observe(box)
+		return () => watch.disconnect()
+	}, [allShown])
 
 	useEffect(() => {
 		const box = card.current
@@ -61,6 +85,7 @@ export function BuildCard() {
 			if (answer.status === 'rejected') return setState('failed')
 			setNewest(answer.value.latestBuiltAt ? stampOf(answer.value.latestBuiltAt) : null)
 			setNewestVersion(answer.value.latestVersion ?? null)
+			setNewerNotes(answer.value.newerNotes ?? [])
 			setState(answer.value.current ? 'current' : answer.value.published ? 'behind' : 'unpublished')
 		})
 	}
@@ -95,6 +120,23 @@ export function BuildCard() {
 	)
 
 	const stamp = builtAt ? stampOf(builtAt) : null
+	const versions = releaseNotes.data?.versions ?? []
+	// the button counts the earlier versions only, whether or not the running one has notes
+	const earlier = versions.filter(v => v.version !== versionNumber).length
+	const shown = allShown ? versions : versions.slice(0, VERSIONS_AT_FIRST)
+	const whatChanged = versions.length > 0 && (
+		<div className="sp-stack sp-gap-12" aria-label="What changed">
+			<span className="sp-section-label">WHAT CHANGED</span>
+			{shown.map(v => <VersionNotes key={v.version} {...v} />)}
+			{shown.length < versions.length
+				? (
+					<div className="sp-row-flex">
+						<Button variant="outline" size="small" onClick={() => setAllShown(true)}>{`Show all ${earlier} earlier versions`}</Button>
+					</div>
+				)
+				: null}
+		</div>
+	)
 	const running = (
 		<span className="sp-data">
 			{versionNumber
@@ -132,6 +174,7 @@ export function BuildCard() {
 								? `${newest ? `Installed ${newest}. ` : ''}Updating reloads the app; nothing you have saved is affected.`
 								: 'The person who manages your Spendly can install it. Nothing you have saved is affected.'}
 						</span>
+						{newerNotes.map(v => <VersionNotes key={v.version} {...v} ink="sp-ink-warning" />)}
 					</Well>
 				)
 				: null}
@@ -167,6 +210,7 @@ export function BuildCard() {
 					</Well>
 				)
 				: null}
+			{whatChanged}
 		</Card>
 	)
 }

@@ -1,1 +1,2 @@
-No change you can see.
+- Settings shows what changed in each version, under This build.
+- When a newer version is ready, you see what is new in it before you update.

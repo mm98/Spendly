@@ -1062,8 +1062,15 @@ export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
+/** What changed in the running version and the ones before it, newest first: { versions: [{ version, notes }] },
+    empty outside the Docker image. A version with no notes is not listed. */
+export async function getReleaseNotes(signal) {
+	return request('/api/version/notes', { signal })
+}
+
 /** The running build against the newest published one, asked of the registry by the server:
-    { current, published, commit, latestBuiltAt, latestVersion }, the last two null when it is this one or unknown. */
+    { current, published, commit, latestBuiltAt, latestVersion, newerNotes }, latestBuiltAt and latestVersion null
+    when it is this one or unknown; newerNotes lists the versions newer than this one that have notes. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
 }
