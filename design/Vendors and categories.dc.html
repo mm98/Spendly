@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261025l">
+<link rel="stylesheet" href="styles/components.css?v=v20261026d">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -341,7 +341,6 @@
   <div class="doc-lede">The same page as <a href="#5b">5b</a> with the record loaded, at <code>/vendors/indbo/edit</code>. One card appears that create does not have: the end-of-life card. Aliases are on create too (<a href="#5b">5b</a>).</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Offers</b> is the last card: one switch per offer source, "Check Tilbudsugen offers". It is the same pick as this vendor's row in Settings, Offers (<a href="Settings and import.dc.html#11a">11a</a>): turning it on adds the vendor there, off removes it, and it saves with the page. Drawn off, as Indbo Møbler is not a grocery chain; a vendor Tilbudsugen knows by name starts on. The create page (<a href="#5b">5b</a>) carries the same card, off. An account not kept in Danish kroner shows no Offers card.</div>
     <div class="doc-note"><b>The rail counts every order from the vendor</b>, left out of statistics or not: it is the vendor's history. <b>See more in statistics</b> opens Statistics filtered to the vendor, where left-out orders follow the <a href="Order statistics.dc.html#4a">4a</a> rule.</div>
     <div class="doc-note"><b>Dirty tracking is per field</b> against the loaded values. Reverting a field by hand clears its flag; when none remain the save bar disappears. Whitespace-only edits do not count.</div>
     <div class="doc-note"><b>Leaving while dirty prompts</b>, including browser back and reload. Cancelling the prompt keeps the page and its state.</div>
@@ -428,16 +427,6 @@
               <span class="sp-data">Leave out of statistics</span>
             </label>
             <span class="sp-field__help" id="vc-stats2-help">For a vendor of one-off purchases, like a car dealer. A new order from this vendor starts with Leave out of statistics on, and you can still change it on the order.</span>
-          </div>
-        </div>
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">OFFERS</span></div>
-          <div class="sp-field">
-            <label class="sp-row-flex sp-gap-12">
-              <input class="sp-switch" id="vc-off1" type="checkbox" role="switch" aria-describedby="vc-off1-help">
-              <span class="sp-data">Check Tilbudsugen offers</span>
-            </label>
-            <span class="sp-field__help" id="vc-off1-help">Orders from this vendor from the last 7 days get Check offers, against this week's offers in every shop Tilbudsugen covers.</span>
           </div>
         </div>
         
@@ -992,7 +981,6 @@
   <div class="doc-lede">The same page as <a href="#5e">5e</a> with the record loaded, at <code>/categories/decor/edit</code>. The limit card gains this month's position against the limit, and the end-of-life card appears.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Offers</b> is the last card: one switch per offer source, "Check Tilbudsugen offers". It is the same pick as this category's row in Settings, Offers (<a href="Settings and import.dc.html#11a">11a</a>): turning it on adds the category there, off removes it, and it saves with the page. Drawn off; every category starts off. The create page (<a href="#5e">5e</a>) carries the same card, off. An account not kept in Danish kroner shows no Offers card.</div>
     <div class="doc-note"><b>Changing the limit is retroactive in display only.</b> The bar and every amber notice recompute against the new number immediately, and nothing already saved is rejected or re-validated. A limit is a fact about a month, not a rule about data.</div>
     <div class="doc-note"><b>The limit is not a series.</b> One amount, applied to every month, with no history of changes - see <a href="#5i">5i</a> for why, and for what to do instead if per-month planning is ever wanted.</div>
     <div class="doc-note"><b>Deleting or merging reaches bookmarks as well.</b> Delete takes the label off bookmarks the same way it does off orders, and Merge moves them to the target category. A bookmark keeps its other categories.</div>
@@ -1082,16 +1070,6 @@
             <label class="sp-field__label" for="vc-f13">Limit</label>
             <input class="sp-input" id="vc-f13" type="text">
             <span class="sp-field__help">One amount for every month. Statistics reads this.</span>
-          </div>
-        </div>
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">OFFERS</span></div>
-          <div class="sp-field">
-            <label class="sp-row-flex sp-gap-12">
-              <input class="sp-switch" id="vc-off2" type="checkbox" role="switch" aria-describedby="vc-off2-help">
-              <span class="sp-data">Check Tilbudsugen offers</span>
-            </label>
-            <span class="sp-field__help" id="vc-off2-help">Orders in this category from the last 7 days get Check offers, against this week's offers in every shop Tilbudsugen covers.</span>
           </div>
         </div>
         

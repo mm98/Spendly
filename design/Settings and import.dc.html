@@ -42,12 +42,6 @@
     <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in the frequency selected; on None it sends the weekly one. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
-    <div class="doc-note"><b>Offers</b> is its own pane, after Needs a look: one card per offer source, headed by the source's name and what it covers. Today that is Tilbudsugen, groceries in Denmark; a new source adds one more card of the same shape. Each card holds two picks, Vendors and Categories, and either can be empty. An order gets that source's Check offers (<a href="Order editing layouts.dc.html#1a">Order editing layouts 1a</a>) when its vendor is picked or any of its categories is. Changes go through the pane's save bar, as in Statuses.</div>
-    <div class="doc-note"><b>Offers: the picks.</b> The Add field is the search field; typing searches vendors (or categories) on the server and opens the Combobox panel under it, already picked ones left out; choosing one adds its row at the top. Each picked one is a row: its mark, its name, and Remove at the tail, shown on hover or focus and always on touch. The label carries the count. Five rows show; past five, "Show all 9" opens the rest in place and the button goes.</div>
-    <div class="doc-note"><b>Offers: the first state.</b> Vendors starts with the vendors Tilbudsugen knows by name or alias (Netto, Rema 1000, Føtex...) already picked, so it works with no setup; Categories starts empty. Nothing is picked again for the reader after that: a removed vendor stays removed.</div>
-    <div class="doc-note"><b>Offers: nothing picked.</b> Both fields empty, and one grey line under them: "No orders are checked against Tilbudsugen." No order shows Check offers for this source then; the order page draws nothing in its place.</div>
-    <div class="doc-note"><b>Offers: an account in another currency.</b> The card stays, with its head and one line, "Tilbudsugen works only for accounts kept in Danish kroner.", and no fields. The picks are kept and come back if the account changes to Danish kroner. The vendor and category pages show no Offers card for such an account (<a href="Vendors and categories.dc.html#5c">5c</a>, <a href="Vendors and categories.dc.html#5f">5f</a>).</div>
-    <div class="doc-note"><b>Offers: what does not change.</b> A check always searches every shop the source covers and only orders dated in the last 7 days; neither is a setting. The order, its edit page and a new order are not redrawn: Check offers shows on the orders the picks match.</div>
     <div class="doc-note"><b>AI assistants</b> is its own pane, after Statuses: the tokens an assistant program reads this account with. Its card is drawn here at rest with two tokens; every other state is in <a href="#11e">11e</a>.</div>
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
@@ -114,7 +108,6 @@
         <button type="button" class="sp-menu__item"><span>Lists</span></button>
         <button type="button" class="sp-menu__item"><span>Limit alerts</span></button>
         <button type="button" class="sp-menu__item"><span>Needs a look</span></button>
-        <button type="button" class="sp-menu__item"><span>Offers</span></button>
         <button type="button" class="sp-menu__item"><span>Statuses</span></button>
         <button type="button" class="sp-menu__item"><span>AI assistants</span></button>
         <div class="sp-menu__sep sp-menu__sep--divider"></div>
@@ -424,30 +417,6 @@
         </div>
 
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">TILBUDSUGEN</span><span class="sp-grow"></span><span class="sp-meta">Groceries in Denmark</span></div>
-          <span class="sp-data">Orders from the last 7 days get Check offers when their vendor or one of their categories is picked here. Every shop Tilbudsugen covers is searched.</span>
-          <div class="sp-field">
-            <div class="sp-row-flex sp-gap-8"><label class="sp-field__label" for="st-of1-v">Vendors</label><span class="sp-meta">9</span></div>
-            <div class="sp-picker__search"><span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span><input class="sp-input sp-input--lead sp-input--search" id="st-of1-v" type="search" placeholder="Add a vendor…" aria-label="Add a vendor"></div>
-            <div class="sp-stack sp-gap-6">
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium">NE</span><span class="sp-title sp-truncate">Netto</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Netto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium">RE</span><span class="sp-title sp-truncate">Rema 1000</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Rema 1000"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium">FØ</span><span class="sp-title sp-truncate">Føtex</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Føtex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium">BI</span><span class="sp-title sp-truncate">Bilka</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Bilka"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium">LI</span><span class="sp-title sp-truncate">Lidl</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Lidl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-            </div>
-            <div class="sp-row-flex"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show all 9</button></div>
-          </div>
-          <div class="sp-field">
-            <div class="sp-row-flex sp-gap-8"><label class="sp-field__label" for="st-of1-c">Categories</label><span class="sp-meta">1</span></div>
-            <div class="sp-picker__search"><span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span><input class="sp-input sp-input--lead sp-input--search" id="st-of1-c" type="search" placeholder="Add a category…" aria-label="Add a category"></div>
-            <div class="sp-stack sp-gap-6">
-              <div class="sp-list-item"><span class="sp-mark sp-mark--medium"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M15 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17h-11v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /></svg></span><span class="sp-title sp-truncate">Groceries</span><span class="sp-grow"></span><span class="sp-list-item__remove"><button type="button" class="sp-icon-btn" aria-label="Remove Groceries"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button></span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sp-card">
           <div class="sp-card__head">
             <span class="sp-section-label">STATUSES</span>
             <span class="sp-grow"></span>
@@ -654,31 +623,6 @@
         <button type="button" class="sp-btn sp-btn--outline">Add a status</button>
       </div>
     </div>
-  </div>
-
-  <div class="sp-stack sp-gap-6 doc-w440">
-    <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">OFFERS · NOTHING PICKED</span></div>
-    <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">TILBUDSUGEN</span><span class="sp-grow"></span><span class="sp-meta">Groceries in Denmark</span></div>
-          <span class="sp-data">Orders from the last 7 days get Check offers when their vendor or one of their categories is picked here. Every shop Tilbudsugen covers is searched.</span>
-          <div class="sp-field">
-            <label class="sp-field__label" for="st-of2-v">Vendors</label>
-            <div class="sp-picker__search"><span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span><input class="sp-input sp-input--lead sp-input--search" id="st-of2-v" type="search" placeholder="Add a vendor…" aria-label="Add a vendor"></div>
-          </div>
-          <div class="sp-field">
-            <label class="sp-field__label" for="st-of2-c">Categories</label>
-            <div class="sp-picker__search"><span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span><input class="sp-input sp-input--lead sp-input--search" id="st-of2-c" type="search" placeholder="Add a category…" aria-label="Add a category"></div>
-          </div>
-          <span class="sp-meta">No orders are checked against Tilbudsugen.</span>
-        </div>
-  </div>
-
-  <div class="sp-stack sp-gap-6 doc-w440">
-    <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">OFFERS · ACCOUNT IN EUROS</span></div>
-    <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">TILBUDSUGEN</span><span class="sp-grow"></span><span class="sp-meta">Groceries in Denmark</span></div>
-          <span class="sp-data">Tilbudsugen works only for accounts kept in Danish kroner.</span>
-        </div>
   </div>
 
 </section>
