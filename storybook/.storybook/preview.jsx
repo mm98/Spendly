@@ -11,8 +11,10 @@ import '../../react/src/styles/tokens.css'
 import '../../react/src/styles/components.css'
 import '../../react/src/styles/app.css'
 import '../../react/src/styles/pages.js'
+import isChromatic from 'chromatic/isChromatic'
 import { drawnArgTypes, lookArgTypes, typeArgTypes } from './types.js'
 import { shownArgTypes, variantArgTypes } from './variants.js'
+import { holdEverythingStill } from './held.js'
 
 // The app's own switch: tokens.css draws each theme from the root's data-theme, on a body of class sp.
 const withTheme = (Story, { globals }) => {
@@ -23,8 +25,9 @@ const withTheme = (Story, { globals }) => {
 
 // the app's one Motion setting, as main.jsx puts it around the app
 const withMotion = Story => <MotionShell><Story /></MotionShell>
-// under npm test every move ends at once, so a story's checks read the state it ends in, never a frame mid-fade
-if (globalThis.__vitest_browser__) MotionGlobalConfig.skipAnimations = true
+// Under npm test, and while Chromatic takes its pictures, every move ends at once: a story's checks
+// read the state it ends in, and a picture is never a frame mid-fade.
+if (globalThis.__vitest_browser__ || isChromatic()) MotionGlobalConfig.skipAnimations = true
 
 // a page story brings the app's own router, and a router cannot sit inside another
 const withRouter = (Story, { parameters }) => parameters.ownRouter ? <Story /> : <MemoryRouter><Story /></MemoryRouter>
@@ -65,7 +68,12 @@ export default {
 	tags: ['autodocs'],
 	decorators: [withDrawnParts, withShape, withRouter, withMotion, withTheme],
 	argTypesEnhancers: [shownArgTypes, variantArgTypes, drawnArgTypes, typeArgTypes, lookArgTypes],
-	beforeEach: () => { reported = [] },
+	// Every story is drawn at one moment, with one series of random values and one language, so two
+	// runs of the same code draw the same pixels (.storybook/held.js).
+	beforeEach: () => {
+		reported = []
+		return holdEverythingStill()
+	},
 	afterEach: failOnConsoleError,
 	globalTypes: {
 		theme: {
@@ -79,6 +87,9 @@ export default {
 		backgrounds: { disable: true },
 		controls: { expanded: true },
 		a11y: { test: 'error' },
+		// A picture is taken once the story has settled, with every CSS animation at its end, so a
+		// fade or a slide is never caught part way. Motion's own moves are off (above).
+		chromatic: { pauseAnimationAtEnd: true, delay: 300 },
 		viewport: {
 			// the sizes the screenshots in docs/ are taken at
 			options: {

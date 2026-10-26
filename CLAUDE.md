@@ -159,6 +159,17 @@ gets a `play` step that uses it and checks the result. Allowed values come from 
 on an accessibility fault; a story marked `knownAccessibilityFaults` has its faults in `later.md`,
 and a story is never marked to make a new fault pass.
 
+### A story draws the same thing on every run, or the picture comparison is worthless
+
+Chromatic compares each picture with the last one approved. A story that draws something else each
+time reports a change nobody made, and the real change then hides among the noise. So the clock, the
+random values, the language and the timezone are all held still around every story, in
+`.storybook/held.js`, and movement is finished before a picture is taken. A story writes a date, an
+amount or an id out in full; it never reads one. `npm run held:check` is the guard and runs in CI.
+
+A component that reads the real clock or a random value is right to: it is Claude Design's code and
+the app needs it. Storybook changes what the component reads, never the component.
+
 ## Build for the general case
 
 A feature is built for every case its idea covers, not only for the case that asked for it. Name and

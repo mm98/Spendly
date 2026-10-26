@@ -2,18 +2,12 @@
 // given back to the page's own requests, and the clock set to when they were kept, so a page that
 // counts from today draws the same days on every run. Each returns the function that undoes it.
 
-const Real = Date
+import { holdClock } from '../.storybook/held.js'
 
-// the clock runs on from the moment the answers were kept, so timers and motion still move
-export function setClock(at) {
-	const shift = at - Real.now()
-	class Kept extends Real {
-		constructor(...parts) { super(...(parts.length ? parts : [Real.now() + shift])) }
-		static now() { return Real.now() + shift }
-	}
-	globalThis.Date = Kept
-	return () => { globalThis.Date = Real }
-}
+// The clock stands at the moment the answers were kept, and does not move: a page that counts from
+// today draws the same days on every run, and anything it draws from the time left stands still too.
+// That moment is kept beside the answers, so it changes only when they are recorded again.
+export const setClock = at => holdClock(at)
 
 // A question asked again gets the next answer kept for it, and the last one after that. A
 // question that was never asked during the recording gets the answer to the same address with
