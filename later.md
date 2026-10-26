@@ -10,8 +10,9 @@ is removed in the change that settles it.
 - **What the reader sees:** scrolled down Settings or Statistics, a click on another menu row makes the
   highlight start far below its row and slide up; the menu shows a scroll bar for a moment.
 - **What was found:** the highlight measures rows on the whole page, not on the screen, so a page
-  scroll in the same moment reads as movement. The old page's own moving parts make it measure again
-  after the scroll, which app code cannot hold off. A brief for Claude Design is written.
+  scroll in the same moment reads as movement. Claude Design's answer (the side menu as a Motion
+  `layoutRoot`) is built in, but measured frame by frame it does not stop this: leaving Statistics or
+  Settings scrolled down, the highlight still starts up to the scroll distance below its row.
 - **Found:** 2026-10-26.
 
 ## Large accounts still make everyone wait on a few pages

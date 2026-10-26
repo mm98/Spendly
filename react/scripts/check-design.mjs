@@ -207,6 +207,8 @@ for (const [p, ast] of parsed) {
 // what a child expression can put in its place: the element itself, or either branch of a condition
 const placed = c => {
 	if (!c) return []
+	// a LayoutGroup draws nothing: what it holds is placed where it stands
+	if (c.type === 'JSXElement' && c.openingElement.name.name === 'LayoutGroup') return c.children.flatMap(placed)
 	if (c.type === 'JSXElement') return [c]
 	if (c.type === 'JSXExpressionContainer') return placed(c.expression)
 	if (c.type === 'ConditionalExpression') return [...placed(c.consequent), ...placed(c.alternate)]

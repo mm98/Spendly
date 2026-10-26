@@ -31,8 +31,10 @@ async function reloadOnNew(commit) {
 	throw new Error('The update did not finish.')
 }
 
-// the running version and the two before it, until Show all is pressed (11d)
+// the running version and the two before it, until Show earlier versions is pressed; never more than
+// VERSIONS_AT_MOST, the running one included (11d)
 const VERSIONS_AT_FIRST = 3
+const VERSIONS_AT_MOST = 20
 
 /** One version's number and its lines, in the 6d notice's list; `ink` colours both, as inside the amber notice. */
 function VersionNotes({ version, notes, ink }) {
@@ -120,8 +122,8 @@ export function BuildCard() {
 	)
 
 	const stamp = builtAt ? stampOf(builtAt) : null
-	const versions = releaseNotes.data?.versions ?? []
-	// the button counts the earlier versions only, whether or not the running one has notes
+	const versions = (releaseNotes.data?.versions ?? []).slice(0, VERSIONS_AT_MOST)
+	// the button counts the earlier versions the list will hold, whether or not the running one has notes
 	const earlier = versions.filter(v => v.version !== versionNumber).length
 	const shown = allShown ? versions : versions.slice(0, VERSIONS_AT_FIRST)
 	const whatChanged = versions.length > 0 && (
@@ -131,7 +133,7 @@ export function BuildCard() {
 			{shown.length < versions.length
 				? (
 					<div className="sp-row-flex">
-						<Button variant="outline" size="small" onClick={() => setAllShown(true)}>{`Show all ${earlier} earlier versions`}</Button>
+						<Button variant="outline" size="small" onClick={() => setAllShown(true)}>{`Show ${earlier} earlier versions`}</Button>
 					</div>
 				)
 				: null}
