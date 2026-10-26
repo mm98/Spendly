@@ -1,5 +1,7 @@
 // the commit this bundle was built from (vite.config.js); typeof, since an undeclared name throws
 const BUNDLE_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : null
+// its version, "1.11.3", to tell which of the server's release notes this tab has not seen
+export const BUNDLE_VERSION = typeof __BUILD_VERSION__ === 'string' ? __BUILD_VERSION__ : null
 
 let notify = null
 let behind = null

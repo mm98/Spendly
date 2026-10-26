@@ -40,9 +40,12 @@ export default defineConfig({
 	base: './',
 	plugins: [jsxInComponentJs(), react(), stripHtmlComments()],
 	optimizeDeps: componentJsScan,
-	// the commit this bundle was built from (the Dockerfile passes GIT_SHA);
+	// the commit and version this bundle was built from (the Dockerfile passes GIT_SHA and VERSION);
 	// null anywhere else, which the update notice reads as "nothing to be out of date with"
-	define: { __BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null) },
+	define: {
+		__BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null),
+		__BUILD_VERSION__: JSON.stringify(process.env.VERSION || null)
+	},
 	server: {
 		port: 5173,
 		// Same-origin from the browser's point of view, so the session cookie the API sets is a

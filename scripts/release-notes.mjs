@@ -3,7 +3,8 @@
 // Prints, as one line of JSON, the release notes of the newest versions on main up to `ref` (default
 // HEAD), newest first: [{ version, notes: ["...", ...] }]. Each change adds one file to .releases/
 // (its README says how), and a file belongs to the version of the change on main that added it.
-// A version whose file says no change can be seen is left out. Needs the history's trees, not its
+// A version with no file, or whose file says no change can be seen, has the one line NOTHING_TO_SEE.
+// Versions older than the first note are left out: they had no notes, so the line would not be true. Needs the history's trees, not its
 // files (a checkout with fetch-depth: 0 and filter: blob:none).
 
 import { execFileSync } from "node:child_process";
@@ -16,7 +17,7 @@ const EARLIER_NOTES_FOLDERS = ["release-notes"];
 // "{yyyyMMdd}.{HHmm} - {Title}.md", the time written (UTC). No colon in the time and none of
 // \ / : * ? " < > | in the title, since Windows cannot hold such a file and git cannot check it out there.
 export const NOTE_NAME = /^\d{8}\.\d{4} - [^\s\\/:*?"<>|][^\\/:*?"<>|]*\.md$/;
-// how far back Settings can look: the image carries this many versions that have notes
+// how far back Settings can look: the image carries this many versions
 const VERSIONS_KEPT = 20;
 const MAX_NOTES = 3;
 const MAX_NOTE_LENGTH = 100;
@@ -49,7 +50,7 @@ export function readNote(text) {
 // core.quotePath=false: a name with a letter outside ASCII is printed as it is, not quoted
 const git = args => execFileSync("git", ["-c", "core.quotePath=false", ...args], { encoding: "utf8", maxBuffer: 1 << 28 });
 
-/** The notes of the newest versions up to `ref` that have any, newest first. */
+/** The notes of the newest versions up to `ref`, newest first. */
 export function releaseNotes(ref = "HEAD") {
 	const folders = [NOTES_FOLDER, ...EARLIER_NOTES_FOLDERS];
 	const paths = folders.flatMap(folder => [`${folder}/*.md`, `:!${folder}/README.md`]);
@@ -69,14 +70,17 @@ export function releaseNotes(ref = "HEAD") {
 		for (let moves = 0; movedTo.has(file) && moves < movedTo.size; moves++) file = movedTo.get(file);
 		return file;
 	};
+	const onMain = versionsOnMain(ref);
+	const first = onMain.findIndex(({ commit }) => filesOf.has(commit));
+	if (first < 0) return [];
 	const versions = [];
-	for (const { commit, version } of versionsOnMain(ref).reverse()) {
+	for (const { commit, version } of onMain.slice(first).reverse()) {
 		if (versions.length === VERSIONS_KEPT) break;
 		// the text as it is at `ref`, so a note corrected later is shown corrected
 		const notes = (filesOf.get(commit) ?? []).flatMap(file => {
 			try { return readNote(git(["show", `${ref}:${pathAtRef(file)}`])).notes } catch { return [] }
 		});
-		if (notes.length) versions.push({ version, notes });
+		versions.push({ version, notes: notes.length ? notes : [NOTHING_TO_SEE] });
 	}
 	return versions;
 }
