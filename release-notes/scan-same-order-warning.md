@@ -1,0 +1,1 @@
+- A new order warns you when you already have one like it: same shop, close date and total.

@@ -26,7 +26,7 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
+	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrderLookalike, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
 	getVendorPage, discardDraft, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
@@ -1314,6 +1314,23 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		))
 		: null
 
+	// the same purchase entered twice, by scan, by hand or by copy: amber beside the limits, never in the way
+	const vendorTyped = (draft.vendor ?? '').trim()
+	const lookalike = useApi(getOrderLookalike, [vendorTyped, draft.date, Math.round(sums.total * 100) / 100, orderId ?? ''],
+		{ enabled: Boolean(vendorTyped) && dated && sums.total > 0 }).data?.order
+	const lookalikeNotice = lookalike && vendorTyped && dated && sums.total > 0
+		? (
+			<ListItem color="warning" count="!">
+				<span className="sp-stack sp-gap-6">
+					<span className="sp-title sp-ink-warning">You already have an order like this</span>
+					<span className="sp-meta sp-ink-warning">
+						{money(lookalike.total)} at {vendorTyped} on {dayShortMonth(lookalike.date)}. You can still {creating ? 'create' : 'save'} this one.
+					</span>
+				</span>
+			</ListItem>
+		)
+		: null
+
 	const leaveWord = creating || touch ? 'Discard' : 'Cancel'
 	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
@@ -1330,7 +1347,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			after={crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
 		>
 			{scan ? <CardHeader name="Totals" /> : null}
-			{touch ? null : limitNotice}
+			{touch ? null : lookalikeNotice}{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
 					? <>
@@ -1532,7 +1549,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{lookalikeNotice}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)

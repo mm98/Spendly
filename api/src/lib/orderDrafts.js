@@ -18,13 +18,6 @@ export const UPLOAD_TTL_SECONDS = 24 * 60 * 60
 
 const selectFormDefaults = db.prepare('SELECT default_status, default_kind, scan_overrides FROM user_settings WHERE user_id = ?')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
-/* A possible duplicate: the same vendor within two weeks of the read date, nearest first. Wider would
-   flag every order from a vendor the account buys from often. */
-const selectPossibleDuplicate = db.prepare(`
-	SELECT id, date, item_count, total FROM orders
-	WHERE user_id = @userId AND vendor_id = @vendorId AND date BETWEEN @from AND @to
-	ORDER BY ABS(date - @target) ASC LIMIT 1`)
-
 // what each kind of document sets when the account lets a scan override its defaults (Settings, Defaults)
 const FROM_DOCUMENT = {
 	receipt: { status: 'delivered' }, order_confirmation: { status: 'ordered' },
@@ -69,23 +62,13 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 				: process.env.ANTHROPIC_API_KEY
 					? 'This document could not be read automatically. Add the line items and totals below yourself.'
 					: 'This document has not been read automatically. Add the line items and totals below yourself.',
-			checks: [], unclear: [], duplicate: null, suggestions: []
+			checks: [], unclear: [], suggestions: []
 		}
 	}
 
 	const vendorId = findVendorIdForReceipt(userId, read, vendorOf)
 	const vendorMatched = Boolean(vendorId)
 	const vendorName = vendorId ? selectVendorName.get(vendorId, userId)?.name : null
-
-	let duplicate = null
-	if (!look && vendorId && read.date) {
-		const target = toEpoch(read.date)
-		const row = selectPossibleDuplicate.get({ userId, vendorId, target, from: target - 14 * 86400, to: target + 14 * 86400 })
-		if (row) duplicate = {
-			orderId: row.id, title: fromEpoch(row.date),
-			meta: `${row.item_count} item${row.item_count === 1 ? '' : 's'}`, total: row.total
-		}
-	}
 
 	return {
 		documentKey: upload.id, file, failure: null, found: null,
@@ -142,8 +125,7 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 				? [{ id: 'lineTotals', warning: false, title: 'Price per item worked out from the line amount',
 					meta: `${read.linesFromTotals === 1 ? 'One line' : `${read.linesFromTotals} lines`} showed the amount for all items. It is divided by the quantity.` }]
 				: [])
-		],
-		duplicate
+		]
 	}
 }
 
