@@ -1,44 +1,28 @@
-# Changes: the side menu's highlight, the cause and the change that fixes it
+# The filter row places focus without a microtask
 
-Answers `Brief-nav-highlight-layoutroot-follow-up.md`. It replaces point 1 of `handoff_nav_highlight_page_scroll/CHANGES.md` (`layoutRoot` on `Sidebar`), which was built and measured and did not fix the fault.
+This answers "Brief: the filter row places focus without a microtask" (26 October 2026), its one point. The change is in one part in `react_handoff/`. No exported component gains or changes a prop. Take the file in unchanged.
 
-## 1. The current row's ground slides by the difference between two rows read at one moment
+## 1. Filters: focus when the row goes with its last crumb
 
-**The problem.** Picking a Settings section made the Settings highlight in the side menu jump away and slide back. Scrolled down Statistics or Settings, pressing another menu row made the highlight start up to 4000px from its row. Leaving Settings for Home, Vendors or Budget gave the menu's scrolling list a scroll bar for a moment and changed its width. The highlight was a Motion `layoutId` marker, which is measured on the page; the old one is measured while the new page is prepared, before it scrolls, so any page scroll between the two measurements read as the row moving. `layoutRoot` does not change a `layoutId` handover.
-
-**What changed.** `NavItem` draws its ground with `NavGround`, a small part in `Shell.jsx`, in place of the `layoutId` marker. It keeps the row the ground was last on and where on that row, reads that row and the new row at the same moment, and slides by the difference with Motion's `animate` and `glide()` (`y` and `scaleY`). A page scroll moves both rows equally, so it never counts. The code is the brief's, unchanged.
-
-- The ground slides only between rows of one box (the nearest `.sp-scrolls` or `.sp-nav-list`): inside the menu's scrolling list, inside the pinned rows (Ask, Settings, the account row), or inside one light list. Between the scrolling list and the pinned rows it is drawn at once on the new row. The list clipped that slide already, and drawing it at once removes the scroll bar. Taken as the brief proposes.
-- Leaving Settings for All orders, the Views card's ground is drawn in place.
-- Under reduced motion the ground is drawn at once, as before.
-- `.sp-nav-item > .sp-marker` gains `transform-origin: top;`, so the `scaleY` runs from the row's top. No look changes at rest.
-
-**What goes.** Nothing in the side menu or the light lists uses `layoutId` any more, so:
-- `Sidebar` renders `<nav>` again, without `layoutRoot`.
-- `Panel` renders `<div>` again, without `layoutRoot`, and `Card.jsx` no longer imports `m`. The brief asks to check it before keeping it. A Segmented or radio-row marker inside a sticky Panel moves on a pick, and a pick does not scroll the page, so there is no page scroll for `layoutRoot` to guard against; and by the brief's cause it would not guard a `layoutId` handover anyway. It goes.
-- `motion.js` no longer imports or re-exports `LayoutGroup`, and the `glide` comment states the new rule: Segmented, PeriodPicker and Choice keep `layoutId`, since they move with the page; the menu and the light lists use `NavGround`.
-- In the app: `layoutScroll` on `NavScroll` (`react/src/app/AppShell.jsx`), `layoutRoot layoutScroll` on Settings' `SectionNav` (`react/src/pages/Settings.jsx`, back to `<nav className="st-subnav" aria-label="Settings">`), and the `LayoutGroup`s in `Settings.jsx` (`settings-sections`) and `OrderViews.jsx` (`views`, `views-sheet`), with their imports.
-
-**Where.** `Navigation shell` 9g: the note "The current row's ground slides from the row left to the row reached" rewritten, and a new note "The ground slides only inside one box of rows". `Settings and import` 11a: the note "The section nav's ground slides from section to section" rewritten. `React components`, Shell segment: the "Motion" and "A page scroll never moves the marker" notes rewritten, and `LayoutGroup` dropped from the harness scope. `react_handoff/Shell.jsx` (`NavGround`, `NavItem`, `Sidebar`), `react_handoff/Card.jsx` (`Panel`), `react_handoff/motion.js`, `styles/components.css` (`.sp-nav-item > .sp-marker` and the `.sp-marker` comment). App files: `react/src/components/Shell.jsx`, `react/src/components/Card.jsx`, `react/src/components/motion.js`, `react/src/app/AppShell.jsx`, `react/src/pages/Settings.jsx`, `react/src/pages/OrderViews.jsx`. The Shell and NavItem stories draw the same part with no change of their own.
-
-**What is still open.** Nothing to decide. The Panel removal was not measured in the built app; please confirm a Segmented inside a sticky Panel still slides straight when the page is scrolled.
+- **The problem:** when Clear all, or removing the only crumb, takes the filter row away, `useKeptFocus`'s cleanup queued the placement with `queueMicrotask`: one deferred step after React's work.
+- **What changed:** as the brief's patch. The cleanup runs while the row's controls are still on the page and still hold focus, so it moves focus there and then to the first control in `order` that is still on the page and not inside the row. It does so only when focus is on nothing, on the page, or inside the row, so a reader who has already moved on keeps their place. The comment above `useKeptFocus` now ends "...take the row away with them: then focus moves out of the row as it goes." `placeFocus` stays; the per-drawing placement still uses it. What the reader sees is unchanged: focus lands on the first control after the row, as the Actions note in Components c12 already says.
+- **Where:** `react_handoff/List.jsx`, `useKeptFocus`. App: `react/src/components/List.jsx`; it reaches the crumbs row on `react/src/pages/Orders.jsx`, `Categories.jsx`, `Bookmarks.jsx` and `Vendors.jsx`, which need no change. Components c12 needs no change.
+- **What is still open:** nothing. The brief measured both Categories cases and the 12 earlier cases on its tested copy.
 
 ## later.md
 
-Read on main before this task. No entry is a design fix this project can settle now. "A deleted record should not be removed for good at once" still waits on the user's answers about Recently deleted, put off earlier, and stays as it is.
+- "A deleted record should not be removed for good at once": kept for later, at the user's decision, as in the last packages. Not changed in this pass.
+- "Large accounts still make everyone wait" and "The status guard does not run in project threads" are not design work.
 
 ## Files
 
-- `README.md`: the design's overview, unchanged.
-- `CHANGES.md`: this note.
-- `Navigation shell.dc.html`: 9g notes.
-- `Settings and import.dc.html`: 11a note.
-- `React components.dc.html`: Shell motion notes, harness scope.
-- `react_handoff/`: every component file, since React components loads them all. Changed: `Shell.jsx`, `Card.jsx`, `motion.js`. No exported component gained or changed a prop, so no JSDoc block changed; `NavGround` is not exported.
-- `support.js`, `components.js`, `icons.js`: loaded by the pages.
-- `styles/components.css`: `.sp-nav-item > .sp-marker` gains `transform-origin: top`.
-- `styles/tokens.css`, `styles/doc.css`, `styles/pages/navigation-shell.css`, `styles/pages/settings.css`: loaded by the pages, unchanged.
+- `README.md` - the design's overview, unchanged copy of the project root.
+- `CHANGES.md` - this note.
+- `React components.dc.html` - renders `react_handoff/`, so the changed part can be tried; unchanged.
+- `react_handoff/` - every component, as the React components page loads them. Changed: `List.jsx`.
+- `support.js`, `components.js`, `icons.js` - what the pages load.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - what the page links, unchanged.
 
 ## styles/check.js
 
-Not run to completion: it timed out at the 30 s limit, as in the last two sessions. A sweep of every changed file for em dashes, en dashes, curly quotes and their entities found none.
+Not run to completion: the checker timed out (30 s limit) in this session, as in the last package. No stylesheet, page or prop changed, so no assertion is affected. A sweep of the changed files for em dashes, en dashes and curly quotes found none.
