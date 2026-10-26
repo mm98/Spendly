@@ -66,7 +66,9 @@ ENV SPENDLY_STORAGE=/storage
 # answers nulls, which the UI reads as an unstamped build.
 ARG BUILD_TIME
 ARG GIT_SHA
-ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA
+# major.minor, counted by scripts/version.mjs
+ARG VERSION
+ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA SPENDLY_VERSION=$VERSION
 # The Lighthouse scores this exact image was measured at, as the JSON blob
 # react/scripts/lighthouse.mjs writes. Stamped rather than measured at runtime: the numbers
 # describe a build, so they belong to the image the way its commit does, and a container asked

@@ -44,6 +44,7 @@ export function BuildCard() {
 	const [state, setState] = useState('rest')
 	const [why, setWhy] = useState(null)
 	const [newest, setNewest] = useState(null)
+	const [newestVersion, setNewestVersion] = useState(null)
 	const card = useRef(null)
 
 	useEffect(() => {
@@ -59,6 +60,7 @@ export function BuildCard() {
 		Promise.allSettled([checkVersion(), new Promise(done => setTimeout(done, HOLD_MS))]).then(([answer]) => {
 			if (answer.status === 'rejected') return setState('failed')
 			setNewest(answer.value.latestBuiltAt ? stampOf(answer.value.latestBuiltAt) : null)
+			setNewestVersion(answer.value.latestVersion ?? null)
 			setState(answer.value.current ? 'current' : answer.value.published ? 'behind' : 'unpublished')
 		})
 	}
@@ -74,7 +76,7 @@ export function BuildCard() {
 	}
 
 	const heading = <CardHeader name="This build" {...landing('build')} />
-	const { builtAt, commit, canUpdate } = version.data ?? {}
+	const { version: versionNumber, builtAt, commit, canUpdate } = version.data ?? {}
 
 	if (!version.data) return (
 		<Card ref={card} aria-busy={version.error ? undefined : 'true'}>
@@ -95,7 +97,10 @@ export function BuildCard() {
 	const stamp = builtAt ? stampOf(builtAt) : null
 	const running = (
 		<span className="sp-data">
-			You're running the version installed on <b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
+			{versionNumber
+				? <>You're running version <b className="sp-ink">{versionNumber}</b>, installed on </>
+				: "You're running the version installed on "}
+			<b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
 		</span>
 	)
 	const installs = canUpdate && (state === 'behind' || state === 'updating' || state === 'update-failed')
@@ -121,7 +126,7 @@ export function BuildCard() {
 			{state === 'behind'
 				? (
 					<Well color="warning">
-						<span className="sp-title sp-ink-warning">A newer version is available.</span>
+						<span className="sp-title sp-ink-warning">{newestVersion ? `Version ${newestVersion} is available.` : 'A newer version is available.'}</span>
 						<span className="sp-meta sp-ink-warning">
 							{canUpdate
 								? `${newest ? `Installed ${newest}. ` : ''}Updating reloads the app; nothing you have saved is affected.`

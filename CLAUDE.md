@@ -548,6 +548,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
 - **When waiting on a run, poll the thing that actually knows, at an interval matched to how fast it
   finishes** (CI here finishes in 20-90s — a 20s poll interval is fine, longer than that just makes
   the wait look like the work). Prefer asking an API for run state over sleeping between guesses.
+- **`[major]` in a pull request's title is the user's call.** It raises the major version when
+  the change is merged (`scripts/version.mjs`). Never add it, or the `major` label, unless asked.
 - **A follow-up requested after a PR merged is a new branch, not a new commit on the old one.** A
   merged branch is finished — check `git fetch origin main` first; if the branch's history is already
   in `main`, restart it from `main` (`git checkout -B <branch> origin/main`, rebasing any unmerged

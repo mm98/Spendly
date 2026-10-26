@@ -1061,14 +1061,14 @@ export async function getSettings(signal) {
 	return request('/api/settings', { signal })
 }
 
-/** The running build: { builtAt, commit }, both null outside the Docker image, and `canUpdate`, whether
+/** The running build: { version, builtAt, commit }, all null outside the Docker image, and `canUpdate`, whether
     this server can install a newer one itself. */
 export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
 /** The running build against the newest published one, asked of the registry by the server:
-    { current, published, commit, latestBuiltAt }, the last null when it is this one or unknown. */
+    { current, published, commit, latestBuiltAt, latestVersion }, the last two null when it is this one or unknown. */
 export async function checkVersion(signal) {
 	return request('/api/version/check', { signal })
 }
