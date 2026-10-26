@@ -6228,7 +6228,8 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    data-closing="true" on the host while its fade out runs; see each panel's own show rule. */
 
 /* The selection drawn once and moved to the option picked: the segmented control, the period
-   picker's window sizes, a set of radio rows, the sidebar's current row. Motion moves it (layoutId).
+   picker's window sizes, a set of radio rows, the sidebar's current row. Motion moves it (layoutId;
+   the sidebar's and the light lists' ground by NavGround in Shell.jsx, which scales it from its top).
    The option holding it draws no ground of its own; the marker sits under its words. An option
    is its own stacking context, never the row of options, so a panel the row holds stays on top. */
 .sp-marker {
@@ -6248,7 +6249,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
    text in place of the option, as on touch (c5) */
 .sp-segmented__item:has(> .sp-marker) { overflow: visible; }
 .sp-segmented__item:has(> .sp-marker) > .sp-label { inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-.sp-nav-item > .sp-marker { border-radius: var(--r-field); background: var(--shell-current); }
+.sp-nav-item > .sp-marker { border-radius: var(--r-field); background: var(--shell-current); transform-origin: top; }
 .sp-nav-item--light > .sp-marker { background: var(--green-tint-2); }
 
 /* What folds by height (a card's body, a facet group's values): its parts keep the gap they had
