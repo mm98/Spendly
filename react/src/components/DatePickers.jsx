@@ -169,16 +169,22 @@ function Month({
 		// the day in the month that owns it, not the faded copy in its neighbour
 		const find = () => scope().querySelector(`[data-day="${next2}"]:not([data-outside])`)
 			?? scope().querySelector(`[data-day="${next2}"]`)
-		requestAnimationFrame(() => {
-			const there = find()
-			if (there) return there.focus()
-			// by however many months it is away, not by one: Shift and PageUp is a year
-			const at = parse(next2)
-			if (!at) return
-			onMove?.((at.getFullYear() - year) * 12 + (at.getMonth() - month))
-			requestAnimationFrame(() => find()?.focus())
-		})
+		const there = find()
+		if (there) return there.focus()
+		// by however many months it is away, not by one: Shift and PageUp is a year
+		const at = parse(next2)
+		if (!at) return
+		wanted.current = find
+		onMove?.((at.getFullYear() - year) * 12 + (at.getMonth() - month))
 	}
+	// a day in a month not drawn yet takes focus as that month is drawn
+	const wanted = useRef(null)
+	useLayoutEffect(() => {
+		const there = wanted.current?.()
+		if (!there) return
+		wanted.current = null
+		there.focus()
+	})
 
 	const onKeyDown = (ev, day) => {
 		const by = {
@@ -870,6 +876,14 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 	// the calendar fades out as it closes: the field keeps it drawn until then
 	const calendar = useRef({ get current() { return wrap.current?.querySelector(':scope > .sp-calendar') ?? null } }).current
 	const closing = usePanelMotion(calendar, !isNative && open)
+	// the calendar opened by openTo hands focus to its day as it is drawn; above the native
+	// return, like every hook here
+	const opening = useRef(false)
+	useLayoutEffect(() => {
+		if (!open || !opening.current) return
+		opening.current = false
+		wrap.current?.querySelector('.sp-range__day[tabindex="0"]')?.focus()
+	}, [open])
 
 	// the trail opens the same platform picker the field does, drawn with the register's calendar
 	const pickNative = () => {
@@ -904,9 +918,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		const at = parse(date || iso(new Date()))
 		setShown({ year: at.getFullYear(), month: at.getMonth() })
 		setOpen(true)
-		requestAnimationFrame(() => {
-			wrap.current?.querySelector('.sp-range__day[tabindex="0"]')?.focus()
-		})
+		opening.current = true
 	}
 
 	return (

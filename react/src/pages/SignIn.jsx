@@ -7,7 +7,7 @@ import { Check, Choice } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { failureMessage, login } from '../api/client.js'
 import {
-	EMAIL_PATTERN, EMAIL_PROBLEM, focusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
+	EMAIL_PATTERN, EMAIL_PROBLEM, useFocusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
 } from './AuthParts.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { closedPrompt, deviceFailed, passkeysHere, signInWithPasskey, stopPasskeyOffer } from '../app/passkeys.js'
@@ -16,6 +16,7 @@ const UNREACHABLE = 'Spendly could not be reached. Check your connection and try
 const PASSKEY_FAILED = "That passkey didn't work. Try again, or use your password."
 
 export default function SignIn() {
+	const focusField = useFocusField()
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
 	// a confirming link hands its address over (20b), so only the password is left to type

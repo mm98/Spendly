@@ -71,17 +71,6 @@ export function AppShell() {
 		const back = rememberedList(key)
 		return !back || back === pathname + params ? to : back
 	}
-	// G then a letter lands in the section's own search, once that page is drawn (9d)
-	const searchOn = key => {
-		const until = Date.now() + 2000
-		const look = () => {
-			const field = document.querySelector(`[data-page-search="${key}"]`)
-			if (field?.getClientRects().length) return field.focus()
-			if (Date.now() < until) setTimeout(look, 50)
-		}
-		setTimeout(look, 0)
-	}
-
 	/* On a desktop the palette floats over the page. On a phone it takes the screen and is a
 	   step in the history, so Back closes it and the page comes back where it stood (7b). */
 	const listQuery = pathname === '/orders' ? new URLSearchParams(params).get('q') ?? '' : ''
@@ -155,7 +144,7 @@ export function AppShell() {
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	const asks = !!useApi(getAsk).data?.ready
 	useShortcutKeys({
-		enabled: !touch && !palette && !keysShown, asks, onSheet: showKeys, onGo: (key, to) => { navigate(go(key, to)); searchOn(key) },
+		enabled: !touch && !palette && !keysShown, asks, onSheet: showKeys, onGo: (key, to) => navigate(go(key, to), { state: { pageSearch: true } }),
 		onScan: held ? null : scan.open, onNew: () => navigate('/orders/new')
 	})
 	const keySheet = keysShown ? <ShortcutSheet asks={asks} onClose={() => setKeysShown(false)} /> : null

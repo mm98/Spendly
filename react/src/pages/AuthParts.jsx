@@ -10,6 +10,7 @@ import { Gauge } from '../components/Data.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { getAuthOptions, getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
+import { useAfterDraw } from '../app/afterDraw.js'
 
 // the server refuses anything shorter
 export const MIN_PASSWORD = 12
@@ -42,8 +43,12 @@ export function PasswordHint({ password, hint }) {
 // the server's own rule, so an address it would refuse is named before it is sent
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const EMAIL_PROBLEM = 'Enter a valid email address.'
-// after the render that binds the field's message, so it is read out with the field
-export const focusField = id => requestAnimationFrame(() => document.getElementById(id)?.focus())
+/** Focus for a field, once the page has drawn the message bound to it, so it is read out with the
+    field, once the request that failed has unlocked it. */
+export function useFocusField() {
+	const afterDraw = useAfterDraw()
+	return id => afterDraw(() => document.getElementById(id)?.focus())
+}
 
 /** "4 minutes", "1 minute", or seconds under a minute: a wait as the reader counts it. */
 export const waitWords = seconds => (seconds >= 60

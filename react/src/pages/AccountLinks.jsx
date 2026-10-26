@@ -7,7 +7,7 @@ import {
 	askPasswordReset, confirmEmail, failureMessage, getCurrentUser, readResetLink, resendConfirmation, resetPassword, stopStatusEmail
 } from '../api/client.js'
 import {
-	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, focusField, onward, useAuthOptions, useCountdown, useMail
+	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, useFocusField, onward, useAuthOptions, useCountdown, useMail
 } from './AuthParts.jsx'
 import { addPasskeyHere, alreadyHere, closedPrompt, deviceFailed, passkeysHere } from '../app/passkeys.js'
 
@@ -182,6 +182,7 @@ export function ConfirmLink() {
 
 /** /reset: ask for a link (20c 1 and 2). The answer is the same whether or not the address has an account. */
 export function ResetAsk() {
+	const focusField = useFocusField()
 	const [params] = useSearchParams()
 	const mail = useMail()
 	const [email, setEmail] = useState(params.get('email') ?? '')
@@ -226,6 +227,7 @@ export function ResetAsk() {
 
 /** /reset/:token: the new password, or the expired link's way back (20c 3 and expired). */
 export function ResetLink() {
+	const focusField = useFocusField()
 	const { token } = useParams()
 	const navigate = useNavigate()
 	const [link, setLink] = useState(null)
