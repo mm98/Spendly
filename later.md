@@ -6,6 +6,7 @@ is removed in the change that settles it.
 
 ## A deleted record should not be removed for good at once
 
+- **Status:** an idea for later, not a planned task. Nothing is built for it until the user asks.
 - **Where:** Delete order (`react/src/pages/DeleteOrder.jsx`, `DELETE /api/orders/:id`), bulk
   delete (`react/src/pages/OrderBulk.jsx`, `POST /api/orders/bulk`), and the delete of every other
   kind of record a reader may want back (vendors, categories, bookmarks).
@@ -47,6 +48,6 @@ is removed in the change that settles it.
   Restore button. Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included.
   Restore brings back the record and what went with it. A restore that conflicts still restores, and
   the toast says what changed: "Order restored. Its vendor Proshop is gone, so it has no vendor." or
-  "Category restored as Garden (2), since Garden is taken." The user chose to build it in its own
-  pull request. Before it is built, `design/` draws the card in Settings 11a.
+  "Category restored as Garden (2), since Garden is taken." If it is ever built, it is its own pull
+  request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
