@@ -210,7 +210,7 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 	const scope = weekly ? ` in ${write.month(last)} so far` : ''
 
 	const common = {
-		app_url: link('/'), settings_url: link('/settings/account'), unsubscribe_url: stopUrl,
+		app_url: link('/'), settings_url: link('/settings/status-email'), unsubscribe_url: stopUrl,
 		categories_url: link('/categories'), orders_url: link(`/orders?from=${period.from}&to=${last}`),
 		bookmarks_url: link('/bookmarks'), budget_url: link('/budget'),
 		your_label: weekly ? 'Your week' : 'Your month',

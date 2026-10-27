@@ -4,6 +4,16 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## On a phone a Settings list row puts its buttons under the name
+
+- **Where:** `react/src/styles/app.css`, `.sp-touch .st-pk-row`.
+- **What the reader sees:** on a phone, a passkey, a token and two-step sign-in's On since row show
+  the name on its own line and the buttons under it. The drawing (25b) shows these rows only on a
+  computer, where the buttons sit at the right; at 375px they squeezed the name to one word.
+- **Rule the app adds:** on touch a list row wraps, its name first at the full width.
+  For Claude Design to take into `design/` (25f).
+- **Found:** 2026-10-27.
+
 ## A card name beside a head button does not wrap
 
 - **Where:** `react/src/styles/app.css`, the rule for `.sp-card__head:has(> .sp-btn) > .sp-section-label`.
@@ -58,7 +68,7 @@ is removed in the change that settles it.
   - Restore inserts only the columns the copy has and the table still has, as `orderTrash.js`
     does, so a later migration does not break it.
   - One cleanup removes copies older than the kept time, and one "Recently deleted" place lists
-    them all. `design/` does not draw that place yet.
+    them all.
   - No other read changes, unique names stay unique, and cascades still run.
   - Each kind needs a rule for a restore that conflicts with what changed meanwhile: its vendor is
     gone, or its name is taken.
@@ -66,8 +76,9 @@ is removed in the change that settles it.
   but needs partial unique indexes, adjusted stored counts and its own handling of linked rows in
   every table. A Deleted status type, which every read of `orders` would have to skip. Cancelled,
   which is a real order the reader keeps.
-- **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
-  delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
+- **Settled in `design/`:** Recently deleted is a card in Settings, Data (Settings structure options
+  25e). Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included. The user
+  chose to build it in its own pull request, after the five Settings groups.
 - **Found:** 2026-10-20.
 
 ## The status guard does not run in project threads

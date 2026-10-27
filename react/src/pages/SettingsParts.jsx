@@ -54,9 +54,8 @@ export function useSettingsHead(section) {
 	}
 }
 
-/** One setting as one row of the wide form (25): its name and help at the left, the control at the
-    right. `top` starts both columns at the top, for a control that is a list. `htmlFor` names the
-    field the label belongs to; a control without one carries the label's words as its own name. */
+/** One setting as one row of the wide form (25). `top` starts both columns at the top, for a list;
+    a control without `htmlFor` carries the label's words as its own name. */
 export function SettingRow({ label, help, helpDanger = false, htmlFor, top = false, children }) {
 	return (
 		<div className={top ? 'st-form-row st-form-row--top' : 'st-form-row'}>

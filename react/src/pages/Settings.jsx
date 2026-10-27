@@ -268,13 +268,13 @@ export default function Settings() {
 	)
 }
 
-/* The first card moves between the five groups (25): picking one opens its address. */
+/* The first card moves between the five groups (25): picking one opens its address. The five never grow, so they stay segments. */
 function GroupPicker({ current }) {
 	const navigate = useNavigate()
 	return (
 		<Card>
 			<CardHeader name="Settings" id="settings-groups-label" />
-			<Segmented name="settings-group" fullWidth role="radiogroup" aria-labelledby="settings-groups-label"
+			<Segmented name="settings-group" fullWidth fixed role="radiogroup" aria-labelledby="settings-groups-label"
 				options={GROUPS.map(g => ({ value: g.key, label: g.label }))} value={current}
 				onChange={key => navigate(`/settings/${key}`)} />
 		</Card>

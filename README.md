@@ -179,20 +179,25 @@ Everything that needs you, on one page.
 
 ![Settings](docs/settings.png)
 
-- **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN), and
-  **two-step sign-in** (a code from an app on your phone).
-- **Status email** - a weekly or monthly summary of spending, saving, limits, your latest orders and bookmarks.
-- **Appearance** - light, dark or follow the system; comfortable or compact rows.
-- **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
-- **Defaults** for a new order, **lists** (page size, sort, how many saved views and recent
-  orders), **limit alerts**, and which **Needs a look** rules show on Home.
-- **Statuses** - add, rename, colour and reorder your own.
-- **AI assistants** - make and remove the tokens an assistant program reads your account with. See [AI assistants](#ai-assistants).
-- **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
-  duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
-- **Demo data** - fill an account with realistic orders to try Spendly out.
-- **This build** - the installed version number, what changed in it and the versions before it, and
-  "Update and reload" when a newer one is ready, with what is new in it.
+Settings has five groups, one shown at a time, each setting one row: what it is at the left, the
+control at the right. On a phone Settings is a list of the five groups, each with what it is set to.
+
+- **Account** - picture, name, email and password.
+- **Sign-in and security** - **passkeys** (fingerprint, face or device PIN), **two-step sign-in**
+  (a code from an app on your phone), and **AI assistants**: make and remove the tokens an assistant
+  program reads your account with. See [AI assistants](#ai-assistants).
+- **Preferences** - light, dark or follow the system; comfortable or compact rows; currency (DKK,
+  SEK, NOK, EUR, USD, GBP) and date format; defaults for a new order; and lists (page size, sort,
+  how many saved views and recent orders).
+- **Notifications** - the **status email** (a weekly or monthly summary of spending, saving, limits,
+  your latest orders and bookmarks), **limit alerts**, and which **Needs a look** rules show on Home.
+- **Data** - **statuses** (add, rename, colour and reorder your own); **import** orders from CSV,
+  XLSX or JSON: map the columns, review totals and possible duplicates, download skipped rows, and
+  undo an import for 24 hours, with a template to start from; **this build**: the installed version
+  number, what changed in it and the versions before it, and "Update and reload" when a newer one is
+  ready; and **demo data** to fill an account with realistic orders to try Spendly out.
+- A change waits for **Save**, and the save bar names the group. Leaving a group with unsaved
+  changes asks first.
 
 ### Light, dark and phone
 
@@ -220,10 +225,10 @@ Everything that needs you, on one page.
 - **Changing the password** in Settings signs out every other device. A **password reset** signs
   out every device and removes every passkey.
 - **Adding a passkey** asks for the password first.
-- **Two-step sign-in** is turned on in Settings, Account and profile: give your password, scan the
+- **Two-step sign-in** is turned on in Settings, Sign-in and security: give your password, scan the
   QR code with an authenticator app (or type its key), then type the first code. Signing in with a
   password then asks for the 6-digit code from the app. A passkey sign-in does not.
-- **10 recovery codes** are shown once when it is turned on, to write down or download. Each
+- **10 recovery codes** are shown once when it is turned on, to copy, write down or download. Each
   works once in place of a code from the app. "New recovery codes" makes a new set, and the old one
   stops working.
 - **Turning it off** asks for the password and a code. Turning it on signs out every other device. A
@@ -318,7 +323,7 @@ Everything that needs you, on one page.
 - **It only reads.** It can find orders and open one, list categories and shops with what was
   spent, sorted and filtered as their pages are, read a year's budget, read statistics for a period
   and the months behind it, and use the same search as the app. It cannot change or delete anything.
-- **Tokens are made in Settings, AI assistants.** Give a token a name, and Spendly shows it one
+- **Tokens are made in Settings, Sign-in and security, AI assistants.** Give a token a name, and Spendly shows it one
   time, with the address to paste. On a computer it also shows the setup text for Claude, Claude
   Code, Cursor and ChatGPT, with the token filled in. Each value has a copy button.
 - **Each token belongs to one account.** The assistant sends it as `Authorization: Bearer
@@ -459,7 +464,7 @@ cd api && npm install && PORT=4000 npm run dev
 cd react && npm install && npm run dev
 ```
 
-Open http://localhost:5173, create an account, and fill it from Settings, Demo data.
+Open http://localhost:5173, create an account, and fill it from Settings, Data, Demo data.
 
 To test a change, `node scripts/session.mjs` in `react/` starts both on a scratch database and keeps
 one filled test account signed in, so every check and screenshot after it starts at once.
