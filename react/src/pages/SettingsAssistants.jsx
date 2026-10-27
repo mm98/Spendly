@@ -11,7 +11,7 @@ import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { createMcpToken, failureMessage, getMcpTokens, removeMcpToken } from '../api/client.js'
 import { dayShortMonthYear, dot, isToday } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
-import { landing } from './SettingsParts.jsx'
+import { SettingRow, landing } from './SettingsParts.jsx'
 
 const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
 // the server refuses a 21st token with the same number
@@ -65,7 +65,7 @@ export function useCopy() {
 }
 
 /* AI assistants (11e): the tokens an assistant program reads this account with, in the Passkeys
-   family. A pane of its own on a wide screen, and a page of its own on a phone (7a). */
+   family. A card in Sign-in and security (25b). */
 export function AssistantsCard({ state, touch }) {
 	const list = useApi(getMcpTokens)
 	const { naming, setNaming, made, setMade } = state
@@ -74,27 +74,36 @@ export function AssistantsCard({ state, touch }) {
 	const full = (rows?.length ?? 0) >= MOST
 	return (
 		<Card footerCommits footer={made ? <Button fullWidth onClick={() => setMade(null)}>Done</Button> : undefined}>
-			<CardHeader name="AI assistants" {...landing('assistants')}
-				control={<Button variant="outline" size="small" disabled={naming || made != null || full || !rows} onClick={() => setNaming(true)}><Icon name="plus" size={14} />New token</Button>} />
-			<span className="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
-			{full ? <span className="sp-meta">{MOST} of {MOST} tokens. Remove one to make another.</span> : null}
-			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
-			{!rows && !list.error ? <Skeleton shape="line" /> : null}
-			{naming ? <NameToken onCancel={() => setNaming(false)} onMade={token => { setNaming(false); setMade(token) }} /> : null}
-			{made ? <MadeToken token={made} touch={touch} /> : null}
-			{rows?.map((t, i) => (
-				<Fragment key={t.id}>
-					{i || made ? <span className="sp-rule" /> : null}
-					<div className="sp-row-flex sp-gap-12 st-pk-row">
-						<Stacked>
-							<span className="sp-title sp-truncate">{t.name}</span>
-							<span className="sp-meta">Made {dayShortMonthYear(t.createdAt)}{dot}{used(t.lastUsedAt)}</span>
-						</Stacked>
-						<span className="sp-grow" />
-						<Button variant="outline" size="small" onClick={() => setRemoving(t)}>Remove</Button>
-					</div>
-				</Fragment>
-			))}
+			<CardHeader name="AI assistants" {...landing('assistants')} />
+			<SettingRow top label="Tokens" help="Let an assistant such as Claude look up your orders, vendors and budget. A token can read, never change or delete.">
+				<div className="sp-stack sp-gap-6">
+					{full ? <span className="sp-meta">{MOST} of {MOST} tokens. Remove one to make another.</span> : null}
+					{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
+					{!rows && !list.error ? <Skeleton shape="line" /> : null}
+					{naming ? <NameToken onCancel={() => setNaming(false)} onMade={token => { setNaming(false); setMade(token) }} /> : null}
+					{made ? <MadeToken token={made} touch={touch} /> : null}
+					{rows?.map((t, i) => (
+						<Fragment key={t.id}>
+							{i || made ? <span className="sp-rule" /> : null}
+							<div className="sp-row-flex sp-gap-12 st-pk-row">
+								<Stacked>
+									<span className="sp-title sp-truncate">{t.name}</span>
+									<span className="sp-meta">Made {dayShortMonthYear(t.createdAt)}{dot}{used(t.lastUsedAt)}</span>
+								</Stacked>
+								<span className="sp-grow" />
+								<Button variant="outline" size="small" onClick={() => setRemoving(t)}>Remove</Button>
+							</div>
+						</Fragment>
+					))}
+					{naming || made
+						? null
+						: (
+							<div className="sp-row-flex">
+								<Button variant="outline" size="small" disabled={full || !rows} onClick={() => setNaming(true)}>New token</Button>
+							</div>
+						)}
+				</div>
+			</SettingRow>
 			<Leaving>{removing ? <Remove token={removing} onDone={() => setRemoving(null)}
 				onRemoved={() => { setRemoving(null); if (made?.id === removing.id) setMade(null) }} /> : null}</Leaving>
 		</Card>
@@ -213,10 +222,4 @@ function Remove({ token, onDone, onRemoved }) {
 			</DialogActions>
 		</Dialog>
 	)
-}
-
-/** The phone list's AI assistants row says how many tokens there are (7a). */
-export function useAssistantTokenCount() {
-	const list = useApi(getMcpTokens)
-	return list.data?.tokens.length ?? null
 }

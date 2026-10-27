@@ -4,6 +4,16 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## A card name beside a head button does not wrap
+
+- **Where:** `react/src/styles/app.css`, the rule for `.sp-card__head:has(> .sp-btn) > .sp-section-label`.
+- **What the reader sees:** on a phone, Settings' first card in Sign-in and security reads
+  SIGN-IN AND SECURITY · TWO-STEP SIGN-IN beside All settings. The design keeps a card name on one
+  line, so the button was pushed out of the card.
+- **Rule the app adds:** a card name beside a head button may shrink and wrap onto a second line.
+  For Claude Design to take into `design/` (25f and the card head, c1).
+- **Found:** 2026-10-27.
+
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -72,23 +82,14 @@ is removed in the change that settles it.
 - **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
 - **Found:** 2026-10-26.
 
-## Two-step sign-in: questions for Claude Design
+## A sign-in code field needs the even-width digits variant
 
-- **Where:** Settings, Two-step sign-in (`react/src/pages/SettingsTwoStep.jsx`), and the code step
-  when signing in (`react/src/pages/SignIn.jsx`, `react/src/app/SessionDialog.jsx`).
-- **What the reader sees:** the recovery codes can only be downloaded. The design notes name a
-  "Copy all" button, but the drawing shows only Download, so it is not built. The 6-digit code field
-  shows its digits in the normal text style, not in even-width digits, because the field cannot take
-  a style of its own.
-- **What is wanted:** Claude Design decides whether "Copy all" is drawn beside Download, and whether
-  the code field gets an even-width digits variant. The wait after too many wrong codes is not drawn
-  for New recovery codes and Turn off either; the build uses the warning row from the code step.
+- **Where:** every code field: sign-in's code step (`react/src/pages/SignIn.jsx`,
+  `react/src/app/SessionDialog.jsx`) and Turn on, New recovery codes and Turn off
+  (`react/src/pages/SettingsTwoStep.jsx`).
+- **What the reader sees:** the digits of a code shift a little as they are typed, since each digit
+  takes its own width.
+- **What is wanted:** `design/` adds `.sp-input--code` (Auth and first run 20g, Settings 11f), but
+  the TextField component has no variant that sets it. The component change is Claude Design's.
 - **Found:** 2026-10-27.
 
-## Settings menu line under a notice
-
-- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
-- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
-  notice to confirm the email sits above the page, the line now starts under the notice instead.
-- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
-- **Found:** 2026-10-27.

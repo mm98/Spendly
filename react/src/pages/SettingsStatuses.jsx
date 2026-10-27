@@ -12,7 +12,9 @@ import { Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData, orderStatusesAs } from '../api/client.js'
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
-import { landing } from './SettingsParts.jsx'
+import { SettingRow, useSettingsHead, landing } from './SettingsParts.jsx'
+
+const HELP = 'The steps an order goes through. Drag to reorder; a status with no orders can be deleted.'
 
 const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
 
@@ -45,6 +47,7 @@ export async function saveStatuses(after) {
 /** Statuses (11a): every move, rename, delete and new status waits for the page's save bar.
     `value('statuses')` is the list as edited, `saved` as stored; Draft is built in. */
 export function StatusesCard({ value, change, saved, touch = false }) {
+	const { named, back } = useSettingsHead('statuses')
 	const list = value('statuses') ?? null
 	const [editing, setEditing] = useState(null)
 	const made = useRef(0)
@@ -52,10 +55,12 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	if (!list)
 		return (
 			<Card>
-				<CardHeader name="Statuses" {...landing('statuses')} />
-				<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Loading your statuses">
-					<Skeleton shape="line" /><Skeleton shape="line" /><Skeleton shape="line" />
-				</div>
+				<CardHeader name={named('Statuses')} {...landing('statuses')} actions={back} />
+				<SettingRow top label="Statuses" help={HELP}>
+					<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Loading your statuses">
+						<Skeleton shape="line" /><Skeleton shape="line" /><Skeleton shape="line" />
+					</div>
+				</SettingRow>
 			</Card>
 		)
 
@@ -67,45 +72,50 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	}
 
 	return (
-		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
-			footerLayout="stack" footerCommits>
-			<CardHeader name="Statuses" {...landing('statuses')} aside="Drag to reorder" />
-			<div className="sp-stack sp-gap-6">
-				<ReorderList items={list} keyOf={status => status.key} nameOf={status => status.name} onMove={edit}>
-					{status => (editing === status.key
-						? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
+		<Card>
+			<CardHeader name={named('Statuses')} {...landing('statuses')} actions={back} />
+			<SettingRow top label="Statuses" help={HELP}>
+				<div className="sp-stack sp-gap-6">
+					<ReorderList items={list} keyOf={status => status.key} nameOf={status => status.name} onMove={edit}>
+						{status => (editing === status.key
+							? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
+							: (
+								<ListItem editable
+									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
+									data-status={status.key}>
+									<StatusLook tone={status.tone}>{status.name}</StatusLook>
+									<span className="sp-grow" />
+									{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}
+									{touch ? null : <span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>}
+									{status.builtIn ? <Pill>built in</Pill> : null}
+									{touch
+										? <StatusMenu status={status} onRename={() => setEditing(status.key)} onDelete={() => remove(status)} />
+										: (
+											<>
+												<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
+													<Icon name="pencil" size={14} />
+												</Mark>
+												{deletable(status)
+													? (
+														<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
+															<Icon name="trash" size={14} />
+														</Mark>
+													)
+													: null}
+											</>
+										)}
+								</ListItem>
+						))}
+					</ReorderList>
+					{editing === 'new'
+						? <StatusEditor touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
 						: (
-							<ListItem editable
-								handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
-								data-status={status.key}>
-								<StatusLook tone={status.tone}>{status.name}</StatusLook>
-								<span className="sp-grow" />
-								{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}
-								{touch ? null : <span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>}
-								{status.builtIn ? <Pill>built in</Pill> : null}
-								{touch
-									? <StatusMenu status={status} onRename={() => setEditing(status.key)} onDelete={() => remove(status)} />
-									: (
-										<>
-											<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
-												<Icon name="pencil" size={14} />
-											</Mark>
-											{deletable(status)
-												? (
-													<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
-														<Icon name="trash" size={14} />
-													</Mark>
-												)
-												: null}
-										</>
-									)}
-							</ListItem>
-					))}
-				</ReorderList>
-				{editing === 'new'
-					? <StatusEditor touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(null, next)} />
-					: null}
-			</div>
+							<div className="sp-row-flex">
+								<Button variant="outline" size="small" onClick={() => setEditing('new')}>Add a status</Button>
+							</div>
+						)}
+				</div>
+			</SettingRow>
 		</Card>
 	)
 }

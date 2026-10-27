@@ -1,22 +1,15 @@
-import { Fragment, useEffect, useReducer, useRef, useState } from 'react'
-import { EmailLine } from '../components/EmailLine.jsx'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
-import { Field } from '../components/Field.jsx'
-import { Choice, FieldGroup, Switch } from '../components/Choice.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
-import { NavItem } from '../components/Shell.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useToast, Leaving } from '../components/Overlays.jsx'
-import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
-import { useMedia, useShellShape } from '../app/useMedia.js'
+import { useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
@@ -26,36 +19,36 @@ import {
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
-import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
+import { AccountCard, StatusEmailCard } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { TwoStepCard, useTwoStepWord } from './SettingsTwoStep.jsx'
-import { AssistantsCard, useAssistantTokenCount, useAssistantsState } from './SettingsAssistants.jsx'
+import { AssistantsCard, useAssistantsState } from './SettingsAssistants.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
-import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
+import { Choose, SettingRow, SettingRows, SettingsGroup, SwitchRow, landing, useSettingsHead } from './SettingsParts.jsx'
+import { useAuthOptions } from './AuthParts.jsx'
 import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
-// `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
-const SECTIONS = [
-	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
-	{ key: 'appearance', label: 'Appearance', keys: ['density', 'compareMonth'] },
-	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
-	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
-	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
-	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
-	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
-	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
-	{ key: 'assistants', label: 'AI assistants' },
-	{ key: 'import', label: 'Import' },
-	{ key: 'demo', label: 'Demo data' },
-	{ key: 'build', label: 'This build' }
+/* Settings in five groups, one shown at a time (25). `sections` are its cards, in order, each also an
+   address that opens the group at that card; `keys` are the stored settings its save bar saves. */
+const GROUPS = [
+	{ key: 'account', label: 'Account', sections: ['account'], keys: ['name', 'picture'] },
+	{ key: 'security', label: 'Sign-in and security', sections: ['passkeys', 'two-step', 'assistants'], keys: [] },
+	{
+		key: 'preferences', label: 'Preferences', sections: ['appearance', 'money', 'defaults', 'lists'],
+		keys: ['density', 'compareMonth', 'currency', 'locale', 'defaultKind', 'defaultStatus', 'scanOverrides', 'orderViews', 'pageSize', 'recentRows', 'sort', 'listSort']
+	},
+	{
+		key: 'notifications', label: 'Notifications', sections: ['status-email', 'alerts', 'looks'],
+		keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly', ...LOOKS.map(l => `look.${l.id}`)]
+	},
+	{ key: 'data', label: 'Data', sections: ['statuses', 'import', 'build', 'demo'], keys: ['statuses'] }
 ]
 
-// the first of the panes that are tools rather than preferences, which the nav sets apart (11a)
-const TOOLS = 'import'
+const groupOf = section => GROUPS.find(g => g.key === section || g.sections.includes(section)) ?? null
 
 const PAGE_SIZES = [5, 10, 15, 20, 25, 50, 100]
 // how many orders Home's Recent orders card can show, as the server allows
@@ -63,10 +56,11 @@ const RECENT_ROWS = Array.from({ length: 15 }, (_, i) => i + 1)
 // how many saved views the sidebar lists (11a), as the server allows
 const VIEWS_SHOWN = [2, 3, 4, 5, 6, 8, 10]
 
-const THEMES = [
+// a phone fits three across only with the shorter name (25f)
+const themes = touch => [
 	{ value: 'light', label: 'Light' },
 	{ value: 'dark', label: 'Dark' },
-	{ value: 'system', label: 'Follow system' }
+	{ value: 'system', label: touch ? 'System' : 'Follow system' }
 ]
 
 const DENSITIES = [
@@ -92,7 +86,7 @@ const lookValues = settings => Object.fromEntries(LOOKS.map(l => [`look.${l.id}`
 
 const currencyLabel = c => `${c.label} (${c.symbol})`
 const localeLabel = l => `${l.label} (${localeSample(l.code)})`
-// the chosen currency, not the saved one: the preview shows what Save would make every amount
+// the chosen currency, not the saved one: the help shows what Save would make every amount
 const previewAmount = code => {
 	const c = CURRENCIES.find(x => x.code === code) ?? CURRENCIES[0]
 	return c.before ? c.symbol + amount(1234.5) : `${amount(1234.5)} ${c.symbol}`
@@ -106,14 +100,14 @@ const dropStale = () => {
 
 export default function Settings() {
 	const { section } = useParams()
-	// each opening of a section is its own visit, so opening the one already open goes back to it
+	// each opening of an address is its own visit, so opening the one already open goes back to it
 	const visit = useLocation().key
-	const row = useRef(null)
 	const shape = useShellShape()
-	const narrow = useMedia('(max-width: 899.98px)')
+	const touch = shape === 'touch'
 	const settings = useApi(getSettings)
 	const user = useApi(getCurrentUser)
 	const statuses = useApi(getStatuses)
+	const options = useAuthOptions()
 	const toast = useToast()
 	const [draft, setDraft] = useState({})
 	// what a save just stored stays on screen until the page reads it back, so the old value never shows between
@@ -124,10 +118,10 @@ export default function Settings() {
 	const saved = settings.data && user.data
 		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
-	// Passkeys and two-step sign-in are cards under Account and profile, and on a phone pages of their own (7a)
-	const ownPages = ['passkeys', 'two-step']
-	const current = SECTIONS.some(s => s.key === section) || ownPages.includes(section) ? section : null
-	const navCurrent = key => (ownPages.includes(key) ? 'account' : key)
+	// a phone without a group in the address shows the list of groups (25f); elsewhere /settings opens Account
+	const group = groupOf(section) ?? (touch ? null : GROUPS[0])
+	// the card an address names, which the group opens at
+	const target = group?.sections.includes(section) ? section : null
 
 	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data])
 	const stored = key => (key in landed ? landed[key] : saved?.[key])
@@ -137,15 +131,27 @@ export default function Settings() {
 		if (saved && stored(key) === next) delete out[key]
 		return out
 	})
-	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
+	const dirty = Object.keys(draft).length > 0
 	const importing = useImportState()
 	const assistants = useAssistantsState()
+
+	// leaving a group asks first, so what it had open is gone once another group shows
+	const open = useRef(group?.key)
+	useEffect(() => {
+		if (open.current === group?.key) return
+		open.current = group?.key
+		setDraft({})
+		importing.setStage({ name: 'rest' })
+		importing.setReuse(null)
+		assistants.setNaming(false)
+		assistants.setMade(null)
+	}, [group?.key])
+
 	const unimported = importUnsaved(importing)
 	const leaveBody = !unimported ? undefined
-		: !dirty.length ? importLeaveBody(unimported)
-		: `Your changes in ${dirty.map(s => s.label).join(' and in ')} are not saved, and ${unimported} is not imported yet. If you leave now, they are lost. No orders have been written.`
-	// moving between panes keeps the draft and the import, so only leaving Settings asks first, naming what is lost
-	const guard = useLeaveGuard(dirty.length > 0 || unimported != null, { within: '/settings', names: dirty.map(s => s.label), body: leaveBody })
+		: !dirty ? importLeaveBody(unimported)
+		: `Your changes in ${group.label} are not saved, and ${unimported} is not imported yet. If you leave now, they are lost. No orders have been written.`
+	const guard = useLeaveGuard(dirty || unimported != null, { within: group ? `/settings/${group.key}` : '/settings', names: group ? [group.label] : [], body: leaveBody })
 
 	const save = () => {
 		setSaving(true)
@@ -184,30 +190,28 @@ export default function Settings() {
 			.finally(() => setSaving(false))
 	}
 
-	const touch = shape === 'touch'
 	const fields = { value, change, touch }
 	const cards = {
-		account: touch
-			? <AccountCard key="account" user={user.data} {...fields} />
-			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />, <TwoStepCard key="two-step" />],
+		account: <AccountCard key="account" user={user.data} {...fields} />,
 		passkeys: <PasskeysCard key="passkeys" />,
 		'two-step': <TwoStepCard key="two-step" />,
+		assistants: <AssistantsCard key="assistants" state={assistants} touch={touch} />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
+		'status-email': <StatusEmailCard key="status-email" user={user.data} />,
 		alerts: <AlertsCard key="alerts" {...fields} />,
 		looks: <LooksCard key="looks" {...fields} />,
 		statuses: <StatusesCard key="statuses" saved={saved?.statuses} {...fields} />,
-		assistants: <AssistantsCard key="assistants" state={assistants} touch={touch} />,
 		import: <ImportCard key="import" state={importing} />,
-		demo: <DemoCard key="demo" />,
-		build: <BuildCard key="build" />
+		build: <BuildCard key="build" />,
+		demo: <DemoCard key="demo" />
 	}
 
 	const discard = () => setDraft({})
-	// on a phone the bar takes the tab bar's place at the bottom edge (r13, 5b)
-	const saveBar = !dirty.length ? null
+	// on a phone the bar takes the tab bar's place at the bottom edge (25f, 5b)
+	const saveBar = !dirty ? null
 		: touch
 			? (
 				<SaveBar>
@@ -218,16 +222,13 @@ export default function Settings() {
 			)
 			: (
 				<ListItem variant="sticky">
-					<span className="sp-data">
-						{dirty.length === 1 ? `Unsaved changes in ${dirty[0].label}` : `Unsaved changes in ${dirty.length} sections`}
-					</span>
+					<span className="sp-data">Unsaved changes in {group.label}</span>
 					<span className="sp-grow" />
 					<Button variant="outline" size="small" disabled={saving} onClick={discard}>Discard</Button>
 					<Button disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</Button>
 				</ListItem>
 			)
 
-	const seen = useSeenSection(!touch && saved != null)
 	const failed = settings.error ?? user.error
 	const body = failed && !saved
 		? <Failed what="Your settings" error={failed} onRetry={() => { settings.refresh(); user.refresh() }} />
@@ -237,9 +238,20 @@ export default function Settings() {
 
 	if (touch) {
 		if (body) return body
+		// the card whose head names the group: the first one this account has (25f)
+		const first = !group ? null
+			: group.key === 'security' ? (options?.passkeys ? 'passkeys' : 'two-step')
+			: group.key === 'notifications' ? (user.data?.mail ? 'status-email' : 'alerts')
+			: group.sections[0]
 		return (
 			<>
-				{current ? <Arrive section={current} visit={visit}>{cards[current]}</Arrive> : <PhoneIndex user={user.data} />}
+				{group
+					? (
+						<SettingsGroup.Provider value={{ name: group.label, first }}>
+							<Arrive section={target} visit={visit}>{group.sections.map(s => cards[s])}</Arrive>
+						</SettingsGroup.Provider>
+					)
+					: <PhoneIndex user={user.data} value={value} statuses={statuses.data} />}
 				{saveBar}
 				<Leaving>{guard.prompt}</Leaving>
 			</>
@@ -247,109 +259,32 @@ export default function Settings() {
 	}
 
 	return (
-		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
-			{narrow ? null : <SectionNav current={navCurrent(seen ?? current)} />}
-			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
-				{narrow ? <SectionPicker current={navCurrent(seen ?? current)} /> : null}
-				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
-				{body ? null : saveBar}
-			</div>
+		<div className="sp-stack sp-gap-12">
+			<GroupPicker current={group.key} />
+			{body ?? <Arrive section={target} visit={visit}>{group.sections.map(s => cards[s])}</Arrive>}
+			{body ? null : saveBar}
 			<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 }
 
-/* The section the nav marks is the last one whose heading has reached where opening a section puts
-   it; the room under the last card lets every heading get there. The address stays as it is. */
-function useSeenSection(active) {
-	const [seen, setSeen] = useState(null)
-	useEffect(() => {
-		if (!active) return
-		let frame = 0
-		const look = () => {
-			frame = 0
-			const heads = [...document.querySelectorAll('[data-section]')]
-			if (!heads.length) return
-			const tops = heads.map(h => h.getBoundingClientRect().top)
-			const line = tops[0] + window.scrollY + 24
-			setSeen(heads[Math.max(0, tops.findLastIndex(t => t <= line))].dataset.section)
-		}
-		const onScroll = () => { if (!frame) frame = requestAnimationFrame(look) }
-		window.addEventListener('scroll', onScroll, { passive: true })
-		window.addEventListener('resize', onScroll)
-		onScroll()
-		return () => {
-			window.removeEventListener('scroll', onScroll)
-			window.removeEventListener('resize', onScroll)
-			if (frame) cancelAnimationFrame(frame)
-		}
-	}, [active])
-	return seen
-}
-
-function SectionNav({ current }) {
-	return (
-		<nav className="st-subnav" aria-label="Settings">
-			<div className="sp-stack sp-gap-8">
-				<span className="sp-section-label">Settings</span>
-				<div className="sp-nav-list">
-					{SECTIONS.map(s => (
-						<Fragment key={s.key}>
-							{s.key === TOOLS ? <span className="sp-menu__sep sp-menu__sep--divider" role="separator" /> : null}
-							<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
-						</Fragment>
-					))}
-				</div>
-			</div>
-		</nav>
-	)
-}
-
-/* Below 900 the section nav is a select above the cards (11a). */
-function SectionPicker({ current }) {
+/* The first card moves between the five groups (25): picking one opens its address. */
+function GroupPicker({ current }) {
 	const navigate = useNavigate()
-	const chosen = SECTIONS.find(s => s.key === current)
 	return (
-		<Combobox value={chosen?.label ?? 'Go to a section'} aria-label="Settings section">
-			{SECTIONS.map(s => (
-				<ComboboxOption key={s.key} selected={s.key === current} onSelect={() => navigate(`/settings/${s.key}`)}>{s.label}</ComboboxOption>
-			))}
-		</Combobox>
+		<Card>
+			<CardHeader name="Settings" id="settings-groups-label" />
+			<Segmented name="settings-group" fullWidth role="radiogroup" aria-labelledby="settings-groups-label"
+				options={GROUPS.map(g => ({ value: g.key, label: g.label }))} value={current}
+				onChange={key => navigate(`/settings/${key}`)} />
+		</Card>
 	)
 }
 
-/* Arriving at /settings/<section> brings that card to where the first card sits and moves
+/* An address that names a card brings that card to where the group's first card sits and moves
    focus to its heading (9c), so a keyboard reader knows where they landed. */
-function Arrive({ section, visit, room, children }) {
+function Arrive({ section, visit, children }) {
 	const column = useRef(null)
-	// after the page's own refs are in place, and before the scroll below that may need the room
-	useEffect(() => {
-		const box = column.current
-		const holder = room?.current
-		if (!holder || !box) return
-		// room under the cards for the last heading to reach where the first one sits; counted from the
-		// cards' own end, since the menu's height can make the page longer than the cards
-		const cards = box.parentElement
-		const fit = () => {
-			const heads = box.querySelectorAll('[data-section]')
-			if (heads.length < 2) return
-			const now = parseFloat(cards.style.paddingBottom) || 0
-			const travel = heads[heads.length - 1].getBoundingClientRect().top - heads[0].getBoundingClientRect().top
-			const cardsEnd = cards.getBoundingClientRect().bottom + window.scrollY - now
-			const below = document.documentElement.scrollHeight - holder.getBoundingClientRect().bottom - window.scrollY
-			const need = Math.max(0, Math.ceil(travel + window.innerHeight - below - cardsEnd))
-			cards.style.paddingBottom = need ? need + 'px' : ''
-		}
-		fit()
-		const watch = new ResizeObserver(fit)
-		watch.observe(cards)
-		window.addEventListener('resize', fit)
-		return () => {
-			watch.disconnect()
-			window.removeEventListener('resize', fit)
-			cards.style.removeProperty('padding-bottom')
-		}
-	}, [room])
 	useEffect(() => {
 		const box = column.current
 		const target = section && box?.querySelector(`[data-section="${section}"]`)
@@ -366,6 +301,7 @@ function Arrive({ section, visit, room, children }) {
 
 /* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does. */
 function AppearanceCard({ value, change, touch }) {
+	const { named, back } = useSettingsHead('appearance')
 	useTheme()
 	const [, redraw] = useReducer(n => n + 1, 0)
 	const pick = next => {
@@ -375,118 +311,65 @@ function AppearanceCard({ value, change, touch }) {
 	}
 	return (
 		<Card>
-			<CardHeader name="Appearance" {...landing('appearance')} />
-			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
-				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
-			</Field>
-			<span className="sp-rule" />
-			<Field label="Row density" message="Compact fits more rows on screen.">
-				<Segmented name="density" variant={touch ? 'default' : 'narrow'} options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
-			</Field>
-			<span className="sp-rule" />
-			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
-				<Choose narrow={!touch} value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
-			</Field>
+			<CardHeader name={named('Appearance')} {...landing('appearance')} actions={back} />
+			<SettingRows>
+				<SettingRow label="Theme" help={touch ? undefined : 'You can also switch this from the sidebar.'}>
+					<Segmented name="theme" fullWidth role="radiogroup" aria-label="Theme"
+						options={themes(touch)} value={chosenTheme() ?? 'system'} onChange={pick} />
+				</SettingRow>
+				<SettingRow label="Row density" help="Compact fits more rows on screen.">
+					<Segmented name="density" fullWidth role="radiogroup" aria-label="Row density"
+						options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+				</SettingRow>
+				<SettingRow label="Compare this month with" help="What Home and the monthly summary measure this month against.">
+					<Choose aria-label="Compare this month with" value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
+				</SettingRow>
+			</SettingRows>
 		</Card>
 	)
 }
 
-/* Two fields side by side on a wide screen; stacked on a phone, where a half is too narrow. */
-function Pair({ touch, children }) {
-	return touch ? children : <Halves>{children}</Halves>
-}
-
-function MoneyCard({ value, change, touch }) {
+function MoneyCard({ value, change }) {
 	return (
 		<Card>
 			<CardHeader name="Money, dates and times" {...landing('money')} />
-			<Pair touch={touch}>
-				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them." messageType="quiet">
-					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
+			<SettingRows>
+				<SettingRow label="Currency" help="The currency all amounts are shown in. This renames your figures. It does not convert them.">
+					<Choose aria-label="Currency" value={value('currency')} onChange={v => change('currency', v)}
 						options={CURRENCIES.map(c => ({ id: c.code, label: currencyLabel(c) }))} />
-				</Field>
-				<Field label="Date and time format" message="How dates, times and numbers are written. Times always show in your own clock." messageType="quiet">
-					<Choose narrow={!touch} value={value('locale')} onChange={v => change('locale', v)}
+				</SettingRow>
+				<SettingRow label="Date and time format" help={`How dates, times and numbers are written: ${previewAmount(value('currency'))} · ${localeSample(value('locale'))}`}>
+					<Choose aria-label="Date and time format" value={value('locale')} onChange={v => change('locale', v)}
 						options={LOCALES.map(l => ({ id: l.code, label: localeLabel(l) }))} />
-				</Field>
-			</Pair>
-			<ListItem>
-				<span className="sp-section-label">Preview</span>
-				<span className="sp-amount">{previewAmount(value('currency'))}</span>
-				<span className="sp-rule sp-rule--vertical" />
-				<span className="sp-data">{localeSample(value('locale'))}</span>
-			</ListItem>
+				</SettingRow>
+			</SettingRows>
 		</Card>
 	)
 }
 
 /* `reads` is whether this server reads receipts: without that a scan finds nothing to override with,
    so the switch is not offered. */
-function DefaultsCard({ value, change, touch, reads }) {
+function DefaultsCard({ value, change, reads }) {
 	const statuses = useStatuses()
 	return (
 		<Card>
 			<CardHeader name="Defaults for a new order" {...landing('defaults')} />
-			<Pair touch={touch}>
-				<Field label="Kind" message="What the Kind field opens with on a new order." messageType="quiet">
-					<Choose narrow={!touch} value={value('defaultKind')} onChange={v => change('defaultKind', v)}
+			<SettingRows>
+				<SettingRow label="Kind" help="What the Kind field opens with on a new order.">
+					<Choose aria-label="Kind" value={value('defaultKind')} onChange={v => change('defaultKind', v)}
 						options={spendKinds.map(k => ({ id: k, label: k }))} />
-				</Field>
-				<Field label="Status">
-					<Choose narrow={!touch} value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
+				</SettingRow>
+				<SettingRow label="Status" help="What the Status field opens with.">
+					<Choose aria-label="Status" value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
 						options={statuses.map(s => ({ id: s.key, label: s.name }))} />
-				</Field>
-			</Pair>
-			{reads
-				? (
-					<>
-						<span className="sp-rule" />
-						<div className="sp-stack">
-							<Choice variant="described" descriptionTone="help"
-								control={<Switch checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
-								description="When a scan shows what the paper is, such as an order confirmation or a return, the scan sets the status or the kind to match. Off means your defaults always apply.">
-								Let a scan override these
-							</Choice>
-						</div>
-					</>
-				)
-				: null}
-		</Card>
-	)
-}
-
-/* How loudly a category's limit speaks up (8b), in the app only. */
-function AlertsCard({ value, change }) {
-	const switchOf = (key, label, rest) => (
-		<Choice control={<Switch checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
-	)
-	return (
-		<Card footerLayout="stack" footer={[
-			<span key="label" className="sp-section-label" id="alerts-early">Tell me early, at</span>,
-			<Segmented key="early" variant="facet" name="alerts-early" options={EARLY} value={value('notifyEarly')}
-				onChange={v => change('notifyEarly', v)} role="radiogroup" aria-labelledby="alerts-early" />
-		]}>
-			<CardHeader name="Limit alerts" {...landing('alerts')} />
-			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
-			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
-		</Card>
-	)
-}
-
-/* What Home's Needs a look points out (Settings 11a): one switch per rule, in the order Home ranks them. */
-function LooksCard({ value, change }) {
-	return (
-		<Card>
-			<CardHeader name="Needs a look" {...landing('looks')} />
-			<span className="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
-			<FieldGroup aria-label="Rows Home can show">
-				{LOOKS.map(l => (
-					<Choice key={l.id} variant="described" descriptionTone="help" description={l.help}
-						control={<Switch aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
-						{l.label}
-					</Choice>
-				))}
-			</FieldGroup>
+				</SettingRow>
+				{reads
+					? (
+						<SwitchRow label="Let a scan override these" checked={value('scanOverrides')} onChange={v => change('scanOverrides', v)}
+							help="When a scan shows what the paper is, such as an order confirmation or a return, it sets the status or the kind to match." />
+					)
+					: null}
+			</SettingRows>
 		</Card>
 	)
 }
@@ -494,88 +377,110 @@ function LooksCard({ value, change }) {
 // a stored sort the lists do not offer opens them on their first, so that is what shows here
 const known = (options, id) => (options.some(o => o.id === id) ? id : options[0].id)
 
-function ListsCard({ value, change, touch }) {
+function ListsCard({ value, change }) {
+	const views = value('orderViews')
 	const rows = value('pageSize')
 	const recent = value('recentRows')
 	return (
 		<Card>
 			<CardHeader name="Lists" {...landing('lists')} />
-			<Field label="Order views in the menu" message="How many order views the sidebar shows before the rest fold under More." messageType="quiet">
-				<Choose value={value('orderViews')} onChange={v => change('orderViews', v)}
-					figure={<span className="sp-data sp-number">{value('orderViews')}</span>}
-					suffix={<span className="sp-data sp-ink-5">views</span>}
-					options={VIEWS_SHOWN.map(n => ({ id: n, label: `${n} views` }))} />
-			</Field>
-			<span className="sp-rule" />
-			<Field label="Rows per page" message="How many rows the order, vendor and category lists show before Load more." messageType="quiet">
-				<Choose value={rows} onChange={v => change('pageSize', v)}
-					figure={<span className="sp-data sp-number">{rows}</span>}
-					suffix={<span className="sp-data sp-ink-5">rows</span>}
-					options={PAGE_SIZES.map(n => ({ id: n, label: `${n} rows` }))} />
-			</Field>
-			<span className="sp-rule" />
-			<Field label="Recent orders on Home" message="How many of your newest orders Home shows." messageType="quiet">
-				<Choose value={recent} onChange={v => change('recentRows', v)}
-					figure={<span className="sp-data sp-number">{recent}</span>}
-					suffix={<span className="sp-data sp-ink-5">{recent === 1 ? 'order' : 'orders'}</span>}
-					options={RECENT_ROWS.map(n => ({ id: n, label: plural(n, 'order') }))} />
-			</Field>
-			<Pair touch={touch}>
-				<Field label="Sort orders by" message="The order All orders opens with." messageType="quiet">
-					<Choose value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={sorts} />
-				</Field>
-				<Field label="Sort vendors and categories by" message="The order both lists open with." messageType="quiet">
-					<Choose value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={listSorts} />
-				</Field>
-			</Pair>
+			<SettingRows>
+				<SettingRow label="Order views in the menu" help="How many order views the sidebar shows before the rest fold under More.">
+					<Choose aria-label="Order views in the menu" value={views} onChange={v => change('orderViews', v)}
+						figure={<span className="sp-data sp-number">{views}</span>}
+						suffix={<span className="sp-data sp-ink-5">views</span>}
+						options={VIEWS_SHOWN.map(n => ({ id: n, label: `${n} views` }))} />
+				</SettingRow>
+				<SettingRow label="Rows per page" help="How many rows the order, vendor and category lists show before Load more.">
+					<Choose aria-label="Rows per page" value={rows} onChange={v => change('pageSize', v)}
+						figure={<span className="sp-data sp-number">{rows}</span>}
+						suffix={<span className="sp-data sp-ink-5">rows</span>}
+						options={PAGE_SIZES.map(n => ({ id: n, label: `${n} rows` }))} />
+				</SettingRow>
+				<SettingRow label="Recent orders on Home" help="How many of your newest orders Home shows.">
+					<Choose aria-label="Recent orders on Home" value={recent} onChange={v => change('recentRows', v)}
+						figure={<span className="sp-data sp-number">{recent}</span>}
+						suffix={<span className="sp-data sp-ink-5">{recent === 1 ? 'order' : 'orders'}</span>}
+						options={RECENT_ROWS.map(n => ({ id: n, label: plural(n, 'order') }))} />
+				</SettingRow>
+				<SettingRow label="Sort orders by" help="The order All orders opens with.">
+					<Choose aria-label="Sort orders by" value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={sorts} />
+				</SettingRow>
+				<SettingRow label="Sort vendors and categories by" help="The order both lists open with.">
+					<Choose aria-label="Sort vendors and categories by" value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={listSorts} />
+				</SettingRow>
+			</SettingRows>
 		</Card>
 	)
 }
 
-/* Below 640 the panes are a list (7a): the account first, then its passkeys and two-step sign-in, then one row per pane. */
-function PhoneIndex({ user }) {
+/* How loudly a category's limit speaks up (8b), in the app only. */
+function AlertsCard({ value, change }) {
+	const { named, back } = useSettingsHead('alerts')
+	const switchRow = (key, label, help) => (
+		<SwitchRow key={key} label={label} help={help} checked={value(key)} onChange={v => change(key, v)} />
+	)
+	return (
+		<Card>
+			<CardHeader name={named('Limit alerts')} {...landing('alerts')} actions={back} />
+			<SettingRows>
+				{switchRow('notifyWhileSaving', 'Warn me while I am saving an order', 'When the order would take a category past its limit.')}
+				{switchRow('notifyMonthlySummary', 'Monthly summary', 'On the first of the month, in the app.')}
+				<SettingRow key="early" label="Tell me early, at" help="How close to a limit counts as near it.">
+					<Segmented name="alerts-early" fullWidth role="radiogroup" aria-label="Tell me early, at"
+						options={EARLY} value={value('notifyEarly')} onChange={v => change('notifyEarly', v)} />
+				</SettingRow>
+			</SettingRows>
+		</Card>
+	)
+}
+
+/* What Home's Needs a look points out: one switch per rule, in the order Home ranks them. */
+function LooksCard({ value, change }) {
+	return (
+		<Card>
+			<CardHeader name="Needs a look" {...landing('looks')} aside="Home shows at most three, in this order" />
+			<SettingRows>
+				{LOOKS.map(l => (
+					<SwitchRow key={l.id} label={l.label} help={l.help} checked={value(`look.${l.id}`)} onChange={v => change(`look.${l.id}`, v)} />
+				))}
+			</SettingRows>
+		</Card>
+	)
+}
+
+/* On a phone Settings is a list of the five groups, each with what it is set to (25f). */
+function PhoneIndex({ user, value, statuses }) {
+	useTheme()
 	const chevron = <Icon name="chevron-right" />
 	const passkeys = usePasskeyCount()
 	const twoStep = useTwoStepWord()
-	// a pane's row can carry a count beside its name, as AI assistants does (7a)
-	const counts = { assistants: useAssistantTokenCount() }
 	const email = user?.email
-	const name = user?.name || email?.split('@')[0]
+	const currency = CURRENCIES.find(c => c.code === value('currency'))
+	const emailWord = { weekly: 'Weekly email', monthly: 'Monthly email', none: 'No email' }[value('statusEmail') ?? 'none']
+	const alertsOn = ['notifyWhileSaving', 'notifyMonthlySummary'].filter(key => value(key)).length
+	const said = {
+		account: user?.name || email?.split('@')[0],
+		security: [passkeys == null ? null : plural(passkeys, 'passkey'), { On: 'two-step on', Off: 'two-step off' }[twoStep]],
+		preferences: [themes(true).find(t => t.value === (chosenTheme() ?? 'system'))?.label, currency?.label, plural(value('pageSize'), 'row')],
+		notifications: [user?.mail ? emailWord : null, alertsOn ? `${plural(alertsOn, 'alert')} on` : 'Alerts off'],
+		data: [statuses ? plural(statuses.length, 'status', 'statuses') : null]
+	}
+	const line = key => [said[key]].flat().filter(Boolean).join(', ')
 	return (
-		<>
-			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label="Account and profile"
-				mark={!email ? null : user.picture
-					? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
-					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
-				{email
-					? (
+		<Card>
+			<CardHeader name="Settings" />
+			<div className="sp-stack sp-gap-6">
+				{GROUPS.map(g => (
+					<ListItem key={g.key} variant="card" chevron={chevron} to={`/settings/${g.key}`}>
 						<Stacked>
-							{user.name ? <span className="sp-heading sp-truncate">{user.name}</span> : null}
-							<EmailLine email={email} tone="meta" />
+							<span className="sp-data">{g.label}</span>
+							{line(g.key) ? <span className="sp-meta">{line(g.key)}</span> : null}
 						</Stacked>
-					)
-					: <Skeleton shape="line" />}
-			</ListItem>
-			{passkeys === undefined
-				? null
-				: (
-					<ListItem variant="card" chevron={chevron} to="/settings/passkeys">
-						<span className="sp-data sp-grow">Passkeys</span>
-						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
 					</ListItem>
-				)}
-			<ListItem variant="card" chevron={chevron} to="/settings/two-step">
-				<span className="sp-data sp-grow">Two-step sign-in</span>
-				{twoStep ? <span className="sp-meta">{twoStep}</span> : null}
-			</ListItem>
-			<StatusEmailRows user={user} />
-			{SECTIONS.filter(s => s.key !== 'account').map(s => (
-				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
-					<span className="sp-data sp-grow">{s.label}</span>
-					{counts[s.key] == null ? null : <span className="sp-meta">{counts[s.key]}</span>}
-				</ListItem>
-			))}
-		</>
+				))}
+			</div>
+		</Card>
 	)
 }
 
@@ -590,4 +495,3 @@ function LoadingCard() {
 		</Card>
 	)
 }
-

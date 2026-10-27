@@ -270,3 +270,7 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
+
+/* a card name beside a head button gives way to the button, wrapping onto a second line, so a long
+   name never pushes the button out of the card (Settings 25f: GROUP · CARD and All settings) */
+.sp-card > .sp-card__head:first-child:has(> .sp-btn) > .sp-section-label:first-child { flex: 0 1 auto; min-width: 0; white-space: normal; }

@@ -8,7 +8,7 @@ import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import { checkVersion, failureMessage, getReleaseNotes, getVersion, startUpdate } from '../api/client.js'
 import { activeLocaleCode } from '../api/format.js'
-import { landing } from './SettingsParts.jsx'
+import { SettingRow, landing } from './SettingsParts.jsx'
 
 // a check that answers at once still shows Checking for this long, or it reads as nothing happening
 const HOLD_MS = 2000
@@ -63,6 +63,7 @@ export function BuildCard() {
 	const [newestVersion, setNewestVersion] = useState(null)
 	const [newerNotes, setNewerNotes] = useState([])
 	const [allShown, setAllShown] = useState(false)
+	const [notesOpen, setNotesOpen] = useState(false)
 	const card = useRef(null)
 
 	useEffect(() => {
@@ -109,7 +110,7 @@ export function BuildCard() {
 		<Card ref={card} aria-busy={version.error ? undefined : 'true'}>
 			{heading}
 			{version.error
-				? <span className="sp-data">Couldn't read which version is running.</span>
+				? <SettingRow label="This build" help="Couldn't read which version is running." />
 				: <Skeleton shape="line" />}
 		</Card>
 	)
@@ -117,7 +118,8 @@ export function BuildCard() {
 	if (!commit) return (
 		<Card ref={card}>
 			{heading}
-			<span className="sp-data">This copy of Spendly was not installed from a published version, so there is nothing to check.</span>
+			<SettingRow label={versionNumber ? `Version ${versionNumber}` : 'This build'}
+				help="This copy of Spendly was not installed from a published version, so there is nothing to check." />
 		</Card>
 	)
 
@@ -126,7 +128,7 @@ export function BuildCard() {
 	// the button counts the earlier versions the list will hold, whether or not the running one has notes
 	const earlier = versions.filter(v => v.version !== versionNumber).length
 	const shown = allShown ? versions : versions.slice(0, VERSIONS_AT_FIRST)
-	const whatChanged = versions.length > 0 && (
+	const whatChanged = notesOpen && versions.length > 0 && (
 		<div className="sp-stack sp-gap-12" aria-label="What changed">
 			<span className="sp-section-label">WHAT CHANGED</span>
 			{shown.map(v => <VersionNotes key={v.version} {...v} />)}
@@ -139,31 +141,28 @@ export function BuildCard() {
 				: null}
 		</div>
 	)
-	const running = (
-		<span className="sp-data">
-			{versionNumber
-				? <>You're running version <b className="sp-ink">{versionNumber}</b>, installed on </>
-				: "You're running the version installed on "}
-			<b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
-		</span>
-	)
+	const installed = `Installed on ${stamp ?? 'an unknown date'} (${commit.slice(0, 7)}).`
 	const installs = canUpdate && (state === 'behind' || state === 'updating' || state === 'update-failed')
 	// only an update on offer has a primary button: it is the one press here with a consequence
 	const button = installs
 		? state === 'updating'
-			? <Button key="update" fullWidth disabled><Spinner />Updating…</Button>
-			: <Button key="update" fullWidth onClick={update}>{state === 'update-failed' ? 'Try again' : 'Update and reload'}</Button>
+			? <Button key="update" size="small" disabled><Spinner />Updating…</Button>
+			: <Button key="update" size="small" onClick={update}>{state === 'update-failed' ? 'Try again' : 'Update and reload'}</Button>
 		: state === 'checking'
-			? <Button key="check" variant="outline" fullWidth disabled><Spinner />Checking…</Button>
-			: <Button key="check" variant="outline" fullWidth onClick={check}>{state === 'failed' ? 'Try again' : 'Check for updates'}</Button>
+			? <Button key="check" variant="outline" size="small" disabled><Spinner />Checking…</Button>
+			: <Button key="check" variant="outline" size="small" onClick={check}>{state === 'failed' ? 'Try again' : 'Check for updates'}</Button>
 
 	return (
-		<Card ref={card} footerCommits footer={button}>
+		<Card ref={card}>
 			{heading}
-			{running}
-			{state === 'rest' || state === 'checking'
-				? <span className="sp-meta">Press the button below to check online for a newer version.</span>
-				: null}
+			<SettingRow label={versionNumber ? `Version ${versionNumber}` : 'This build'} help={installed}>
+				<span className="sp-row-flex sp-gap-8">
+					{button}
+					{versions.length
+						? <Button variant="outline" size="small" aria-expanded={notesOpen} onClick={() => setNotesOpen(o => !o)}>What changed</Button>
+						: null}
+				</span>
+			</SettingRow>
 			{state === 'current'
 				? <ListItem color="success"><Icon name="check" />This is the newest version.</ListItem>
 				: null}
