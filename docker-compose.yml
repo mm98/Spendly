@@ -39,6 +39,9 @@ services:
       # Optional: how many questions each account can ask on Ask each day. Every question is paid
       # on the key above. 0 turns Ask off.
       # SPENDLY_ASK_QUESTIONS_PER_DAY: 25
+      # Which Claude model answers on Ask. claude-haiku-5-5 is the cheapest and fastest. For better
+      # answers write claude-sonnet-5-5 (about 20 times the cost) or claude-opus-5-5 (about 40 times).
+      SPENDLY_ASK_MODEL: claude-haiku-5-5
       # Optional: how many files (spreadsheets, documents, PDF and CSV) Ask can make for each account
       # each day. The owner has no limit. 0 makes none.
       # SPENDLY_ASK_FILES_PER_DAY: 10
