@@ -27,7 +27,7 @@
    - vendors.png     /vendors.
    - categories.png  /categories, this month against each limit.
    - bookmarks.png   /bookmarks.
-   - settings.png    /settings/appearance. Dateless.
+   - settings.png    /settings/preferences, the Preferences group. Dateless.
    - dark.png        Home with the system set to dark.
    Dateless shots reproduce byte for byte from unchanged source: all-orders, order-list, new-order,
    settings. The rest show this month's figures or dates that move with the seed. statistics.png also
@@ -218,7 +218,7 @@ await area(tab, `/#/budget/${BUDGET.years[0].year}`, 'text=Rent', 'budget.png', 
 await area(tab, '/#/vendors', '.sp-list-item, tbody tr', 'vendors.png')
 await area(tab, '/#/categories', '.sp-list-item, tbody tr', 'categories.png')
 await area(tab, '/#/bookmarks', '.sp-record', 'bookmarks.png')
-await area(tab, '/#/settings/appearance', 'form, .sp-card', 'settings.png')
+await area(tab, '/#/settings/preferences', 'form, .sp-card', 'settings.png')
 await desktop.close()
 
 // -- desktop, dark: Home --

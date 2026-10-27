@@ -4,6 +4,26 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
+## On a phone a Settings list row puts its buttons under the name
+
+- **Where:** `react/src/styles/app.css`, `.sp-touch .st-pk-row`.
+- **What the reader sees:** on a phone, a passkey, a token and two-step sign-in's On since row show
+  the name on its own line and the buttons under it. The drawing (25b) shows these rows only on a
+  computer, where the buttons sit at the right; at 375px they squeezed the name to one word.
+- **Rule the app adds:** on touch a list row wraps, its name first at the full width.
+  For Claude Design to take into `design/` (25f).
+- **Found:** 2026-10-27.
+
+## A card name beside a head button does not wrap
+
+- **Where:** `react/src/styles/app.css`, the rule for `.sp-card__head:has(> .sp-btn) > .sp-section-label`.
+- **What the reader sees:** on a phone, Settings' first card in Sign-in and security reads
+  SIGN-IN AND SECURITY · TWO-STEP SIGN-IN beside All settings. The design keeps a card name on one
+  line, so the button was pushed out of the card.
+- **Rule the app adds:** a card name beside a head button may shrink and wrap onto a second line.
+  For Claude Design to take into `design/` (25f and the card head, c1).
+- **Found:** 2026-10-27.
+
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -48,7 +68,7 @@ is removed in the change that settles it.
   - Restore inserts only the columns the copy has and the table still has, as `orderTrash.js`
     does, so a later migration does not break it.
   - One cleanup removes copies older than the kept time, and one "Recently deleted" place lists
-    them all. `design/` does not draw that place yet.
+    them all.
   - No other read changes, unique names stay unique, and cascades still run.
   - Each kind needs a rule for a restore that conflicts with what changed meanwhile: its vendor is
     gone, or its name is taken.
@@ -56,8 +76,9 @@ is removed in the change that settles it.
   but needs partial unique indexes, adjusted stored counts and its own handling of linked rows in
   every table. A Deleted status type, which every read of `orders` would have to skip. Cancelled,
   which is a real order the reader keeps.
-- **Open questions for the user:** how long a copy is kept; which kinds get it; whether bulk
-  delete keeps copies too; where "Recently deleted" lives, which goes to Claude Design.
+- **Settled in `design/`:** Recently deleted is a card in Settings, Data (Settings structure options
+  25e). Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included. The user
+  chose to build it in its own pull request, after the five Settings groups.
 - **Found:** 2026-10-20.
 
 ## The status guard does not run in project threads
@@ -72,23 +93,14 @@ is removed in the change that settles it.
 - **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
 - **Found:** 2026-10-26.
 
-## Two-step sign-in: questions for Claude Design
+## A sign-in code field needs the even-width digits variant
 
-- **Where:** Settings, Two-step sign-in (`react/src/pages/SettingsTwoStep.jsx`), and the code step
-  when signing in (`react/src/pages/SignIn.jsx`, `react/src/app/SessionDialog.jsx`).
-- **What the reader sees:** the recovery codes can only be downloaded. The design notes name a
-  "Copy all" button, but the drawing shows only Download, so it is not built. The 6-digit code field
-  shows its digits in the normal text style, not in even-width digits, because the field cannot take
-  a style of its own.
-- **What is wanted:** Claude Design decides whether "Copy all" is drawn beside Download, and whether
-  the code field gets an even-width digits variant. The wait after too many wrong codes is not drawn
-  for New recovery codes and Turn off either; the build uses the warning row from the code step.
+- **Where:** every code field: sign-in's code step (`react/src/pages/SignIn.jsx`,
+  `react/src/app/SessionDialog.jsx`) and Turn on, New recovery codes and Turn off
+  (`react/src/pages/SettingsTwoStep.jsx`).
+- **What the reader sees:** the digits of a code shift a little as they are typed, since each digit
+  takes its own width.
+- **What is wanted:** `design/` adds `.sp-input--code` (Auth and first run 20g, Settings 11f), but
+  the TextField component has no variant that sets it. The component change is Claude Design's.
 - **Found:** 2026-10-27.
 
-## Settings menu line under a notice
-
-- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
-- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
-  notice to confirm the email sits above the page, the line now starts under the notice instead.
-- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
-- **Found:** 2026-10-27.

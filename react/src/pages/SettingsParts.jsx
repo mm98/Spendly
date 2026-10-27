@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { Children, Fragment, createContext, useContext, useEffect, useRef } from 'react'
+import { Switch } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
-import { reject } from '../components/variants.js'
 
 /** What a card's head carries to be where /settings/<section> lands focus (9c). */
 export const landing = section => ({ 'data-section': section, tabIndex: -1 })
@@ -8,10 +8,10 @@ export const landing = section => ({ 'data-section': section, tabIndex: -1 })
 /** A combobox over a fixed list of `{ id, label }`. `figure` and `suffix` draw a number and its
     unit in the trigger, as Rows per page does; both sit in the value, so the trigger's name reads them.
     `narrow` caps it at the field width 11a draws a half's combobox at. */
-export function Choose({ options, value, onChange, figure, suffix, id, narrow = false }) {
+export function Choose({ options, value, onChange, figure, suffix, id, narrow = false, ...named }) {
 	const chosen = options.find(o => o.id === value)
 	return (
-		<Combobox id={id} variant={narrow ? 'narrow' : 'default'} value={figure ? <span className="sp-row-flex sp-gap-8">{figure} {suffix}</span> : chosen?.label ?? ''}>
+		<Combobox id={id} variant={narrow ? 'narrow' : 'default'} {...named} value={figure ? <span className="sp-row-flex sp-gap-8">{figure} {suffix}</span> : chosen?.label ?? ''}>
 			{options.map(o => (
 				<ComboboxOption key={o.id} selected={o.id === value} onSelect={() => onChange(o.id)}>{o.label}</ComboboxOption>
 			))}
@@ -39,43 +39,60 @@ export function useStepFocus(stage) {
 	return { box, then: target => { next.current = target } }
 }
 
-const lines = tone => (
-	<>
-		<span className="st-theme__rail" />
-		<span className="st-theme__body">
-			<span className={`st-theme__line st-theme__line--${tone}`} />
-			<span className={`st-theme__line st-theme__line--${tone}`} />
-		</span>
-	</>
-)
+/** On a phone, the group a Settings page shows, and the section of its first card: that card's head
+    carries the group's name before its own, and the way back to the list (25f). Null off a phone. */
+export const SettingsGroup = createContext(null)
 
-const LOOK = {
-	light: <span className="st-theme__preview st-theme__preview--light">{lines('light')}</span>,
-	dark: <span className="st-theme__preview st-theme__preview--dark" data-theme="dark">{lines('dark')}</span>,
-	system: (
-		<span className="st-theme__preview st-theme__preview--split">
-			<span className="st-theme__half st-theme__half--light">{lines('light')}</span>
-			<span className="st-theme__half st-theme__half--dark" data-theme="dark">{lines('dark')}</span>
-		</span>
-	)
+/** A Settings card's head on a phone, where the group's first card also names the group and leads
+    back to the list (25f): `named` puts the group's name before the card's, `back` is All settings. */
+export function useSettingsHead(section) {
+	const group = useContext(SettingsGroup)
+	const first = group?.first === section
+	return {
+		named: name => (first ? `${group.name} · ${name}` : name),
+		back: first ? [{ label: 'All settings', to: '/settings' }] : undefined
+	}
 }
 
-/** The theme to pick, one tile per theme, each drawn as the app looks in it (Settings 11a). */
-export function ThemeTiles({ name, options = [], value, onChange, ...rest }) {
-	reject(rest, 'ThemeTiles')
+/** One setting as one row of the wide form (25). `top` starts both columns at the top, for a list;
+    a control without `htmlFor` carries the label's words as its own name. */
+export function SettingRow({ label, help, helpDanger = false, htmlFor, top = false, children }) {
 	return (
-		<div className="st-trio" {...rest}>
-			{options.map(option => (
-				<label className="sp-well st-theme" key={option.value}>
-					<input type="radio" className="sp-radio" name={name} value={option.value}
-						checked={value === option.value} onChange={() => onChange?.(option.value)} />
-					{LOOK[option.value]}
-					<span className="sp-subtitle sp-center st-theme__name">{option.label}</span>
-				</label>
-			))}
+		<div className={top ? 'st-form-row st-form-row--top' : 'st-form-row'}>
+			<span className="sp-stacked">
+				{htmlFor
+					? <label className="sp-field__label" htmlFor={htmlFor}>{label}</label>
+					: <span className="sp-field__label">{label}</span>}
+				{help
+					? <span className={helpDanger ? 'sp-meta sp-ink-danger' : 'sp-meta'} role={helpDanger ? 'alert' : undefined}>{help}</span>
+					: null}
+			</span>
+			{children}
 		</div>
 	)
 }
 
-// a set of radios, so Field names it with a legend rather than a label
-ThemeTiles.fieldRole = 'group'
+/** A setting that is a switch: the whole row is its label, so a tap anywhere on it flips the switch. */
+export function SwitchRow({ label, help, checked, onChange }) {
+	return (
+		<label className="st-form-row">
+			<span className="sp-stacked">
+				<span className="sp-field__label">{label}</span>
+				{help ? <span className="sp-meta">{help}</span> : null}
+			</span>
+			<span className="sp-row-flex">
+				<Switch checked={checked} onChange={ev => onChange(ev.target.checked)} />
+			</span>
+		</label>
+	)
+}
+
+/** The rows of one card, with the card's rule between each two; a row left out takes its rule with it. */
+export function SettingRows({ children }) {
+	return Children.toArray(children).filter(Boolean).map((row, i) => (
+		<Fragment key={row.key ?? i}>
+			{i ? <span className="sp-rule" /> : null}
+			{row}
+		</Fragment>
+	))
+}

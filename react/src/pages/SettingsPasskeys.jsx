@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Leaving } from '../components/Overlays.jsx'
@@ -11,15 +10,16 @@ import { dayShortMonthYear, dot, isToday } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
 import { addPasskeyHere, alreadyHere, closedPrompt, deviceFailed, passkeysHere } from '../app/passkeys.js'
 import { useAuthOptions } from './AuthParts.jsx'
-import { landing } from './SettingsParts.jsx'
+import { SettingRow, useSettingsHead, landing } from './SettingsParts.jsx'
 
 const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
 
 const used = seconds => (seconds == null ? 'not used yet' : `last used ${isToday(seconds) ? 'today' : dayShortMonthYear(seconds)}`)
 
-/* Passkeys, a card under Account and profile (11a) and a page of its own on a phone (7a). The
+/* Passkeys, a card in Sign-in and security (25b). The
    password always keeps working, so removing the last passkey locks nobody out. */
 export function PasskeysCard() {
+	const { named, back } = useSettingsHead('passkeys')
 	const options = useAuthOptions()
 	const list = useApi(getPasskeys)
 	const [adding, setAdding] = useState(false)
@@ -42,39 +42,46 @@ export function PasskeysCard() {
 	const rows = list.data?.passkeys
 	return (
 		<Card>
-			<CardHeader name="Passkeys" {...landing('passkeys')} control={here
-				? <Button variant="outline" size="small" disabled={adding} onClick={add}><Icon name="key" size={14} />Add a passkey</Button>
-				: null} />
-			<span className="sp-data">Sign in with your fingerprint or face instead of typing your password. Your password keeps working.</span>
-			{here ? null : (
-				<span className="sp-meta">
-					{location.origin === options.passkeys
-						? 'This browser cannot add a passkey.'
-						: `To add a passkey, open Spendly at ${new URL(options.passkeys).host}.`}
-				</span>
-			)}
-			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
-			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
-			{!rows && !list.error ? <Skeleton shape="line" /> : null}
-			{rows?.map((p, i) => (
-				<Fragment key={p.id}>
-					{i ? <span className="sp-rule" /> : null}
-					{renaming === p.id
-						? <Rename passkey={p} onDone={() => setRenaming(null)} />
-						: (
-							<div className="sp-row-flex sp-gap-12 st-pk-row">
-								<Stacked>
-									<span className="sp-title sp-truncate">{p.name}</span>
-									<span className="sp-meta">Added {dayShortMonthYear(p.createdAt)}{dot}{used(p.lastUsedAt)}</span>
-								</Stacked>
-								<div className="sp-row-flex sp-gap-8 sp-flex-none">
-									<Button variant="outline" size="small" onClick={() => setRenaming(p.id)}>Rename</Button>
-									<Button variant="outline" size="small" onClick={() => setRemoving(p)}>Remove</Button>
-								</div>
+			<CardHeader name={named('Passkeys')} {...landing('passkeys')} actions={back} />
+			<SettingRow top label="Passkeys" help="Sign in with your fingerprint or face instead of typing your password. Your password keeps working.">
+				<div className="sp-stack sp-gap-6">
+					{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
+					{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
+					{!rows && !list.error ? <Skeleton shape="line" /> : null}
+					{rows?.map((p, i) => (
+						<Fragment key={p.id}>
+							{i ? <span className="sp-rule" /> : null}
+							{renaming === p.id
+								? <Rename passkey={p} onDone={() => setRenaming(null)} />
+								: (
+									<div className="sp-row-flex sp-gap-12 st-pk-row">
+										<Stacked>
+											<span className="sp-title sp-truncate">{p.name}</span>
+											<span className="sp-meta">Added {dayShortMonthYear(p.createdAt)}{dot}{used(p.lastUsedAt)}</span>
+										</Stacked>
+										<div className="sp-row-flex sp-gap-8 sp-flex-none">
+											<Button variant="outline" size="small" onClick={() => setRenaming(p.id)}>Rename</Button>
+											<Button variant="outline" size="small" onClick={() => setRemoving(p)}>Remove</Button>
+										</div>
+									</div>
+								)}
+						</Fragment>
+					))}
+					{here
+						? (
+							<div className="sp-row-flex">
+								<Button variant="outline" size="small" disabled={adding} onClick={add}>Add a passkey</Button>
 							</div>
+						)
+						: (
+							<span className="sp-meta">
+								{location.origin === options.passkeys
+									? 'This browser cannot add a passkey.'
+									: `To add a passkey, open Spendly at ${new URL(options.passkeys).host}.`}
+							</span>
 						)}
-				</Fragment>
-			))}
+				</div>
+			</SettingRow>
 			<Leaving>{removing ? <Remove passkey={removing} onDone={() => setRemoving(null)} /> : null}</Leaving>
 			<Leaving>{adding ? <AddPasskey onDone={() => setAdding(false)} onDeviceRefused={deviceRefused} /> : null}</Leaving>
 		</Card>
@@ -174,7 +181,7 @@ function Remove({ passkey, onDone }) {
 	)
 }
 
-/** The phone list's Passkeys row says how many there are (7a). */
+/** The phone's Settings list says how many passkeys there are (25f); undefined while the server has none to offer. */
 export function usePasskeyCount() {
 	const options = useAuthOptions()
 	const list = useApi(getPasskeys)

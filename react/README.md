@@ -76,7 +76,7 @@ a wishlist.
 | `/ask/:chatId` | Ask with a kept chat open; `?file=ID` opens it at the answer that made that file |
 | `/ask/chats` | Chats: the chats kept for 30 days after their last question, to open, search or delete |
 | `/ask/files` | Files: what Ask made in the last 30 days, to download again or delete; `?download=ID` starts that download after sign-in |
-| `/settings`, `/settings/:section` | Settings, import, demo data, this build |
+| `/settings`, `/settings/:group` | Settings in five groups: `account`, `security`, `preferences`, `notifications`, `data`. A card's own name (`two-step`, `import`, `lists`) opens its group at that card. On a phone, `/settings` is the list of groups |
 | `/more` | The phone's list of what the tab bar does not hold |
 | `/more/views` | Saved order views |
 | `/signin`, `/register`, `/welcome`, `/confirm`, `/reset`, `/terms`, `/privacy` | Outside the shell: sign in, create an account, first run, the links in emails, and the notices |
