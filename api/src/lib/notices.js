@@ -32,7 +32,7 @@ export const sendPasswordChanged = (req, userId) =>
 	notify(req, userId, 'password-changed', email => ({ action_url: linkTo(req, '/reset?email=' + encodeURIComponent(email)) }))
 
 export const sendPasskeyAdded = (req, userId, passkeyName) =>
-	notify(req, userId, 'passkey-added', () => ({ passkey_name: passkeyName, action_url: linkTo(req, '/settings/passkeys') }))
+	notify(req, userId, 'passkey-added', () => ({ passkey_name: passkeyName, action_url: linkTo(req, '/settings/account') }))
 
 export const sendTwoStepOn = (req, userId) => notify(req, userId, 'two-step-on', () => ({ action_url: settingsLink(req) }))
 

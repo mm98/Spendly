@@ -15,7 +15,7 @@ import { dayShortMonthYear } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
 import { useCountdown, waitWords } from './AuthParts.jsx'
 import { useCopy } from './SettingsAssistants.jsx'
-import { SettingRow, useSettingsHead, landing } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
 const LINE = 'After your password, Spendly also asks for a code from an app on your phone.'
@@ -30,9 +30,9 @@ const lockedOut = e => (e?.status === 429 && e.body?.retryAfter ? e.body.retryAf
 const codesLeftLine = left => `${left} of ${RECOVERY_CODE_COUNT} recovery codes left${left === 0 ? '. Make new ones now.'
 	: left <= FEW_CODES ? '. Make new ones before they run out.' : ''}`
 
-/* Two-step sign-in (11f), a card in Sign-in and security (25b). Off until the person turns it on. */
+/* Two-step sign-in (11f): a card under Passkeys in Account and profile, and a page of its own on a
+   phone (7a). Off until the person turns it on. */
 export function TwoStepCard() {
-	const { named, back } = useSettingsHead('two-step')
 	const state = useApi(getTwoStep)
 	const toast = useToast()
 	const [open, setOpen] = useState(null)
@@ -43,35 +43,30 @@ export function TwoStepCard() {
 	}
 	return (
 		<Card>
-			<CardHeader name={named('Two-step sign-in')} {...landing('two-step')} actions={back} />
-			<SettingRow top label="Two-step sign-in" help={LINE}>
-				<div className="sp-stack sp-gap-6">
-					{state.error && !data ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(state.error, UNREACHABLE)}</span> : null}
-					{!data && !state.error ? <Skeleton shape="line" /> : null}
-					{data && !data.available ? <span className="sp-meta">Two-step sign-in is not available on this server.</span> : null}
-					{data?.available && !data.on
-						? (
-							<div className="sp-row-flex">
-								<Button variant="outline" size="small" disabled={open === 'on'} onClick={() => setOpen('on')}>Turn on</Button>
-							</div>
-						)
-						: null}
-					{data?.on
-						? (
-							<div className="sp-row-flex sp-gap-12 st-pk-row">
-								<Stacked>
-									<span className="sp-title sp-truncate">On since {dayShortMonthYear(data.onSince)}</span>
-									<span className={data.recoveryCodesLeft <= FEW_CODES ? 'sp-meta sp-ink-warning' : 'sp-meta'}>{codesLeftLine(data.recoveryCodesLeft)}</span>
-								</Stacked>
-								<div className="sp-row-flex sp-gap-8 sp-flex-none">
-									<Button variant="outline" size="small" onClick={() => setOpen('codes')}>New recovery codes</Button>
-									<Button variant="outline" size="small" onClick={() => setOpen('off')}>Turn off</Button>
-								</div>
-							</div>
-						)
-						: null}
-				</div>
-			</SettingRow>
+			<CardHeader name="Two-step sign-in" {...landing('two-step')} control={data?.available && !data.on
+				? <Button variant="outline" size="small" disabled={open === 'on'} onClick={() => setOpen('on')}><Icon name="lock" size={14} />Turn on</Button>
+				: null} />
+			<span className="sp-data">{LINE}</span>
+			{state.error && !data ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(state.error, UNREACHABLE)}</span> : null}
+			{!data && !state.error ? <Skeleton shape="line" /> : null}
+			{data && !data.available ? <span className="sp-meta">Two-step sign-in is not available on this server.</span> : null}
+			{data?.on
+				? (
+					<>
+						<div className="sp-row-flex sp-gap-12 st-pk-row">
+							<Stacked>
+								<span className="sp-title sp-truncate">On since {dayShortMonthYear(data.onSince)}</span>
+								<span className={data.recoveryCodesLeft <= FEW_CODES ? 'sp-meta sp-ink-warning' : 'sp-meta'}>{codesLeftLine(data.recoveryCodesLeft)}</span>
+							</Stacked>
+						</div>
+						<div className="sp-card__footer sp-row-flex sp-gap-8">
+							<span className="sp-grow" />
+							<Button variant="outline" size="small" onClick={() => setOpen('codes')}>New recovery codes</Button>
+							<Button variant="outline" size="small" onClick={() => setOpen('off')}>Turn off</Button>
+						</div>
+					</>
+				)
+				: null}
 			<Leaving>{open === 'on' ? <TurnOn onDone={close} /> : null}</Leaving>
 			<Leaving>{open === 'codes' ? <NewCodes onDone={close} /> : null}</Leaving>
 			<Leaving>{open === 'off' ? <TurnOff onDone={close} /> : null}</Leaving>
@@ -79,7 +74,7 @@ export function TwoStepCard() {
 	)
 }
 
-/** On, Off or Not available, for the phone's Settings list (25f); undefined until the server answers. */
+/** The phone list's row says On, Off or Not available (7a); undefined until the server answers. */
 export function useTwoStepWord() {
 	const data = useApi(getTwoStep).data
 	return data ? (!data.available ? 'Not available' : data.on ? 'On' : 'Off') : undefined

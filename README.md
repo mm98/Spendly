@@ -179,25 +179,20 @@ Everything that needs you, on one page.
 
 ![Settings](docs/settings.png)
 
-Settings has five groups, one shown at a time, each setting one row: what it is at the left, the
-control at the right. On a phone Settings is a list of the five groups, each with what it is set to.
-
-- **Account** - picture, name, email and password.
-- **Sign-in and security** - **passkeys** (fingerprint, face or device PIN), **two-step sign-in**
-  (a code from an app on your phone), and **AI assistants**: make and remove the tokens an assistant
-  program reads your account with. See [AI assistants](#ai-assistants).
-- **Preferences** - light, dark or follow the system; comfortable or compact rows; currency (DKK,
-  SEK, NOK, EUR, USD, GBP) and date format; defaults for a new order; and lists (page size, sort,
-  how many saved views and recent orders).
-- **Notifications** - the **status email** (a weekly or monthly summary of spending, saving, limits,
-  your latest orders and bookmarks), **limit alerts**, and which **Needs a look** rules show on Home.
-- **Data** - **statuses** (add, rename, colour and reorder your own); **import** orders from CSV,
-  XLSX or JSON: map the columns, review totals and possible duplicates, download skipped rows, and
-  undo an import for 24 hours, with a template to start from; **this build**: the installed version
-  number, what changed in it and the versions before it, and "Update and reload" when a newer one is
-  ready; and **demo data** to fill an account with realistic orders to try Spendly out.
-- A change waits for **Save**, and the save bar names the group. Leaving a group with unsaved
-  changes asks first.
+- **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN), and
+  **two-step sign-in** (a code from an app on your phone).
+- **Status email** - a weekly or monthly summary of spending, saving, limits, your latest orders and bookmarks.
+- **Appearance** - light, dark or follow the system; comfortable or compact rows.
+- **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
+- **Defaults** for a new order, **lists** (page size, sort, how many saved views and recent
+  orders), **limit alerts**, and which **Needs a look** rules show on Home.
+- **Statuses** - add, rename, colour and reorder your own.
+- **AI assistants** - make and remove the tokens an assistant program reads your account with. See [AI assistants](#ai-assistants).
+- **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
+  duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
+- **Demo data** - fill an account with realistic orders to try Spendly out.
+- **This build** - the installed version number, what changed in it and the versions before it, and
+  "Update and reload" when a newer one is ready, with what is new in it.
 
 ### Light, dark and phone
 
@@ -225,7 +220,7 @@ control at the right. On a phone Settings is a list of the five groups, each wit
 - **Changing the password** in Settings signs out every other device. A **password reset** signs
   out every device and removes every passkey.
 - **Adding a passkey** asks for the password first.
-- **Two-step sign-in** is turned on in Settings, Sign-in and security: give your password, scan the
+- **Two-step sign-in** is turned on in Settings, Account and profile: give your password, scan the
   QR code with an authenticator app (or type its key), then type the first code. Signing in with a
   password then asks for the 6-digit code from the app. A passkey sign-in does not.
 - **10 recovery codes** are shown once when it is turned on, to copy, write down or download. Each
@@ -253,85 +248,12 @@ control at the right. On a phone Settings is a list of the five groups, each wit
 
 ### AI assistants
 
-- **Ask** is a page for questions about your money, in the sidebar above Settings (on a
-  phone, under More). Type a question, or press one of your saved questions. Spendly answers with amounts,
-  short lists, small tables and links. A link to an order opens that order. A link to a vendor, a
-  category or a group of orders opens the order list with those filters, and with the period the
-  answer is about. A follow-up
-  question uses the earlier ones. **Stop** ends an answer that is coming, and a failed answer can be
-  tried again.
-- **Every message shows its time** under it, and a line with the day (Today, Yesterday, 12 Oct)
-  starts each new day of a chat. An older message saved without a time shows none. A long chat fades at
-  the top and bottom while there is more to scroll to.
-- **Every chat is kept** for 30 days after its last question, with its own address, so a reload or a
-  bookmark opens it again and it can be continued. Spendly writes a short heading for it after the
-  first answer; this does not count toward the day's questions.
-- **Chats** is a page that lists the kept chats, the latest first, with a search over the headings,
-  questions and answers. A heading opens its chat. Delete removes the chat and the files it made, and
-  offers Undo. When Undo is over, nothing of the chat or its files is left on the server.
-- **Chats and Files keep the chat bar** at the bottom on a computer. Back to chat beside Send returns
-  to the chat open last, and a question typed there goes to that chat, or starts one.
-- **What Ask can do** is a button at the right edge of the chat field, everywhere the field is. It lists
-  what Ask can make: the file formats and the kinds of chart, each with an example question. Press an
-  example to put it in the field, change it if you like, and send it. The list comes from the server,
-  so a new format shows up there by itself.
-- **Save a question** with the bookmark beside it, to ask it again with one press on a later visit.
-  Saved questions show under the empty page, each with an x that removes it. Up to 8 per account, kept on the
-  server. Every account starts with three example questions saved, and they can be removed too.
-- **Files and charts in answers.** Ask for a spreadsheet, a document, a PDF or a CSV file, and the
-  answer holds it with a Download button. Spendly makes it from your own orders and numbers. A PDF or
-  a document is tall, or wide when you ask for it or a table has many columns. Ask for
-  numbers over time or the shares of a whole, and the answer draws them as bars or a ring. Hover or tap
-  a bar to read its amount. A share of a category or vendor opens its orders.
-- **Files** is a page that lists every file Ask made in the last 30 days, newest first, with a search
-  over the file names. Each can open the chat that made it, be downloaded again or be deleted, and a
-  delete offers Undo. A downloaded file is named after the heading at
-  its top, then the day and time it was asked: "Orders in October 2026 (2026-10-22 14.05.33).xlsx". In the
-  answer and on Files, a file shows that name without the day and time: "Orders in October 2026.xlsx". After
-  30 days a file is removed. A deleted file's content is removed from the server when Undo is over; only
-  its name stays, while the chat that made it shows it as deleted. Only you, signed in, can download your files. A download link in a tab that
-  is signed out asks you to sign in first.
-- **Each account can make 10 files a day** (`SPENDLY_ASK_FILES_PER_DAY`). A file that cannot be
-  made, because there are too many orders or the day's files are used, says why in the answer. The
-  server's owner has no daily limit.
-- **The menu beside Send** holds Chats, Files, Email this chat and New chat. On a phone it is the
-  menu at the top. New chat opens the empty page; the chat that was open stays on Chats.
-- **Email this chat** sends the chat to your own address, at most once a minute. The email shows each
-  chart as a picture and attaches the files that are still kept, up to 15 MB in all. A file past that
-  is named with a link to Files. The button at the end opens the chat again.
-- **It reads like the assistant programs below**, with the same tools, as the person signed in. It
-  cannot change anything. It needs `ANTHROPIC_API_KEY` on the server.
-- **Offers in shops now.** Ask "what are the cheapest milk prices this week?" and the answer names the
-  cheapest, then shows up to five offers, one for each shop: the shop's logo (or your own mark for that
-  shop), the product's name and size, the shop, the last day, the price and the price per litre, kilo or
-  piece, cheapest first. A shop shows its cheapest offer without sugar, or else its cheapest offer. The product's name opens the shop's offer paper on the offer's page, or else a search for the
-  item on Tilbudsugen, in a new tab. Groceries in Denmark come from [Tilbudsugen](https://www.tilbudsugen.dk),
-  for an account kept in Danish kroner. Only offers are found, not the shops' normal prices, and Ask
-  never counts an offer in your own figures. An old chat keeps the offers it was answered with, and a
-  chat sent by email shows them too. Only the items and shops you name are sent to the site.
-- **Spendly asks each offer site with care.** Offers are asked for only when you ask in Ask. The same
-  question is answered from memory for an hour. The whole server asks a site at most 20 times a
-  minute, and at most 50 times a day for each account; finding an offer's paper is not counted. A
-  site that refuses or fails is left alone for 15 minutes, or as long as it asks. Spendly names itself
-  to the site and never poses as a web browser.
-- **Each account has 25 questions a day** (`SPENDLY_ASK_QUESTIONS_PER_DAY`), counted on the
-  person's own calendar day. Ask in the order search counts too. When 3 or fewer are left, an
-  alert at the top of the chat shows the count and when it starts again; it stays in view while the chat scrolls. A failed or stopped answer is not counted. One question is answered at a time. The server's owner (`SPENDLY_OWNER_EMAIL`) has no
-  daily limit and sees no count.
-- **An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can read your account
-  through the address `/mcp` on your Spendly server.
-- **It only reads.** It can find orders and open one, list categories and shops with what was
-  spent, sorted and filtered as their pages are, read a year's budget, read statistics for a period
-  and the months behind it, and use the same search as the app. It cannot change or delete anything.
-- **Tokens are made in Settings, Sign-in and security, AI assistants.** Give a token a name, and Spendly shows it one
-  time, with the address to paste. On a computer it also shows the setup text for Claude, Claude
-  Code, Cursor and ChatGPT, with the token filled in. Each value has a copy button.
-- **Each token belongs to one account.** The assistant sends it as `Authorization: Bearer
-  <token>`, or as the end of the address, `/mcp/<token>`, for a program that takes only an
-  address. The list shows when each token was made and last used. An account can have 20.
-- **Removing a token** asks first, and stops it at once.
-- **A token can read 60 times a minute.** Past that, the assistant is told how many seconds to
-  wait. One request to `/mcp` can carry at most 20 questions.
+- **Ask** - ask questions about your money in plain words, and Spendly answers from your own
+  orders with amounts, tables, charts and links. It can make a spreadsheet, document, PDF or CSV file
+  to download, and look up this week's grocery offers in Danish shops. Chats and files are kept for 30
+  days. Ask only reads, never changes anything, and needs `ANTHROPIC_API_KEY` on the server.
+- **Assistant programs** such as Claude, Cursor or ChatGPT can read your account through `/mcp`, with
+  a token made in Settings, AI assistants. They only read, too.
 
 ## Running it
 
@@ -464,7 +386,7 @@ cd api && npm install && PORT=4000 npm run dev
 cd react && npm install && npm run dev
 ```
 
-Open http://localhost:5173, create an account, and fill it from Settings, Data, Demo data.
+Open http://localhost:5173, create an account, and fill it from Settings, Demo data.
 
 To test a change, `node scripts/session.mjs` in `react/` starts both on a scratch database and keeps
 one filled test account signed in, so every check and screenshot after it starts at once.

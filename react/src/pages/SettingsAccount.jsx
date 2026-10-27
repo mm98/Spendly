@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { EmailLine } from '../components/EmailLine.jsx'
-import { Card, CardHeader } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
+import { ListItem } from '../components/ListItem.jsx'
 import { Segmented } from '../components/Segmented.jsx'
+import { Halves } from '../components/Well.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { changePassword, failureMessage, getSettings, saveStatusEmail, sendTestStatusEmail } from '../api/client.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './AuthParts.jsx'
-import { SettingRow, SettingRows, useSettingsHead, landing } from './SettingsParts.jsx'
+import { landing } from './SettingsParts.jsx'
 
 const DAY = 24 * 60 * 60
 
@@ -88,38 +90,50 @@ function useStatusEmailTest() {
 	return { sending, send }
 }
 
-/** The Status email card (25d), in Notifications. Absent while this server cannot send email, as
-    nothing would arrive. The choice and the test act at once, so the save bar is never involved. */
+/** The Status email card (11a), under the account card on a desktop. Absent while this server cannot
+    send email, as nothing would arrive. */
 export function StatusEmailCard({ user }) {
-	const { named, back } = useSettingsHead('status-email')
 	const { ready, value, choose } = useStatusEmail()
 	const { sending, send } = useStatusEmailTest()
 	if (!user?.mail || !ready) return null
+	const button = sending
+		? <Button key="test" variant="outline" fullWidth disabled><Spinner />Sending…</Button>
+		: <Button key="test" variant="outline" fullWidth onClick={send}>Send a test email</Button>
 	return (
-		<Card>
-			<CardHeader name={named('Status email')} {...landing('status-email')} actions={back} />
-			<SettingRows>
-				<SettingRow label="How often"
-					help="What you spent and saved, limits passed, your latest orders and bookmarks. Weekly arrives on Monday, Monthly on the 1st.">
-					<Segmented name="status-email" fullWidth options={STATUS_EMAILS} value={value} onChange={choose}
-						role="radiogroup" aria-label="How often" />
-				</SettingRow>
-				<SettingRow label="Send a test email" help="Sends the last period's email to your address now.">
-					<span className="sp-row-flex">
-						{sending
-							? <Button variant="outline" size="small" disabled><Spinner />Sending…</Button>
-							: <Button variant="outline" size="small" onClick={send}>Send a test email</Button>}
-					</span>
-				</SettingRow>
-			</SettingRows>
+		<Card footerCommits footer={button}>
+			<CardHeader name="Status email" id="status-email-label" />
+			<span className="sp-data">
+				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>. Weekly arrives on Monday, Monthly on the 1st.
+			</span>
+			<Segmented name="status-email" fullWidth options={STATUS_EMAILS} value={value} onChange={choose}
+				role="radiogroup" aria-labelledby="status-email-label" />
 		</Card>
 	)
 }
 
-/** The account's own card (25a): picture, name, the email it signs in with, and the password. The
-    picture applies with the save bar, like the name (16a): `picture` holds a new file, or null to remove. */
-export function AccountCard({ user, value, change }) {
-	const { named, back } = useSettingsHead('account')
+/** The status email in the phone's Settings list (7a): the switch in its row, then Send a test email. */
+export function StatusEmailRows({ user }) {
+	const { ready, value, choose } = useStatusEmail()
+	const { sending, send } = useStatusEmailTest()
+	if (!user?.mail || !ready) return null
+	return (
+		<>
+			<ListItem variant="card" setting>
+				<span className="sp-field__label sp-grow" id="status-email-row-label">Status email</span>
+				<Segmented name="status-email-row" options={STATUS_EMAILS} value={value} onChange={choose}
+					role="radiogroup" aria-labelledby="status-email-row-label" />
+			</ListItem>
+			<ListItem variant="card" onClick={send} disabled={sending}>
+				<span className="sp-data sp-grow">{sending ? 'Sending…' : 'Send a test email'}</span>
+				{sending ? <Spinner /> : null}
+			</ListItem>
+		</>
+	)
+}
+
+/** The account's own card (11a): picture, name, the email it signs in with, and the password. The
+    picture applies with the card's Save, like the name (16a): `picture` holds a new file, or null to remove. */
+export function AccountCard({ user, value, change, touch }) {
 	const toast = useToast()
 	const input = useRef(null)
 	const [problem, setProblem] = useState(null)
@@ -150,35 +164,46 @@ export function AccountCard({ user, value, change }) {
 			? <Mark size="large" fill="solid" swatch="green-3" round {...drop}><>{initialsOf(shownName)}</></Mark>
 			: <Mark size="large" fill="empty" round {...drop} />
 
+	const fields = (
+		<>
+			<Field label="Name" id="account-name">
+				<TextField autoComplete="name" value={name} maxLength={80} onChange={v => change('name', v)} />
+			</Field>
+			{/* read-only, so not a field to type in: the address kept whole on one line (11a) */}
+			<div className="sp-field">
+				<span className="sp-field__label" id="account-email-label">Email</span>
+				<div className="sp-input sp-input--readonly" id="account-email" role="textbox" aria-readonly="true" aria-labelledby="account-email-label">
+					<EmailLine email={user?.email ?? ''} />
+				</div>
+			</div>
+		</>
+	)
+
 	return (
 		<Card>
-			<CardHeader name={named('Profile')} {...landing('account')} actions={back} />
-			<SettingRows>
-				<SettingRow label="Photo" help={problem ?? 'JPG or PNG, at least 128×128.'} helpDanger={problem != null}>
-					<span className="sp-row-flex sp-gap-12">
-						{avatar}
+			<CardHeader name="Account and profile" {...landing('account')} />
+			<div className="sp-row-flex sp-gap-16">
+				{avatar}
+				<div className="sp-stack sp-gap-6">
+					<div className="sp-row-flex sp-gap-8">
 						<input ref={input} id="account-picture" type="file" accept="image/jpeg,image/png" hidden
 							onChange={ev => choose(ev.target.files?.[0])} />
 						<Button variant="outline" size="small" onClick={() => input.current?.click()}>Upload a photo</Button>
 						{shown ? <Button variant="outline" size="small" onClick={remove}>Remove</Button> : null}
-					</span>
-				</SettingRow>
-				<SettingRow label="Name" htmlFor="account-name">
-					<TextField id="account-name" autoComplete="name" value={name} maxLength={80} onChange={v => change('name', v)} />
-				</SettingRow>
-				{/* read-only, so not a field to type in: the address kept whole on one line (11a) */}
-				<SettingRow label="Email" help="Where sign-in links and the status email go.">
-					<div className="sp-input sp-input--readonly" id="account-email" role="textbox" aria-readonly="true" aria-label="Email">
-						<EmailLine email={user?.email ?? ''} />
 					</div>
-				</SettingRow>
-				<SettingRow label="Password"
-					help={user?.passwordChangedAt ? `Last changed ${ago(user.passwordChangedAt)}.` : 'Not changed here yet.'}>
-					<span className="sp-row-flex">
-						<Button variant="outline" size="small" onClick={() => setAsking(true)}>Change password</Button>
+					<span className={problem ? 'sp-meta sp-ink-danger' : 'sp-meta'} role={problem ? 'alert' : undefined}>
+						{problem ?? 'JPG or PNG, at least 128×128.'}
 					</span>
-				</SettingRow>
-			</SettingRows>
+				</div>
+			</div>
+			{touch ? fields : <Halves>{fields}</Halves>}
+			<CardFooter>
+				<span className="sp-data">
+					{user?.passwordChangedAt ? `Password last changed ${ago(user.passwordChangedAt)}.` : 'Your password has not been changed here.'}
+				</span>
+				<span className="sp-grow" />
+				<Button variant="outline" size="small" onClick={() => setAsking(true)}>Change password</Button>
+			</CardFooter>
 			<Leaving>{asking ? <PasswordDialog onClose={() => setAsking(false)} onSaved={() => { setAsking(false); toast({ message: 'Your password is changed.' }) }} /> : null}</Leaving>
 		</Card>
 	)

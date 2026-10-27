@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
+import { FileDrop } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Well } from '../components/Well.jsx'
@@ -16,10 +18,11 @@ import {
 } from '../api/client.js'
 import { amount, amountRound, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { buildOrders, download, guessMapping, readSheet, reuseMapping, skippedCsv, templateWorkbook } from '../api/orderImport.js'
-import { SettingRow, SettingRows, landing, useStepFocus } from './SettingsParts.jsx'
+import { landing, useStepFocus } from './SettingsParts.jsx'
 import { ImportFooter, MapStep } from './SettingsImportMap.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { useShellShape } from '../app/useMedia.js'
+import { ImportButton } from './BudgetImport.jsx'
 import { LeaveDialog } from './vendorsCategories.jsx'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
@@ -131,8 +134,6 @@ export function ImportCard({ state }) {
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	const { stage, setStage, reuse, setReuse } = state
 	const { box, then } = useStepFocus(stage)
-	const chooser = useRef(null)
-	const [historyOpen, setHistoryOpen] = useState(false)
 
 	// a refused file mounts a fresh picker, which is what lets the same file be chosen again
 	const refuse = problem => { then(FILE_ID); setStage(s => ({ name: 'rest', problem, attempt: (s.attempt ?? 0) + 1 })) }
@@ -210,32 +211,25 @@ export function ImportCard({ state }) {
 		</Card>
 	)
 
-	const earlier = history.data?.length ?? 0
 	return (
 		<>
 			<Card ref={box}>
 				<CardHeader name="Import" {...landing('import')} />
-				<SettingRows>
-					<SettingRow label="Import a file" help={held ? 'Available once your email is confirmed.' : 'CSV, XLSX or a JSON export from another app.'}>
-						<span className="sp-row-flex sp-gap-8">
-							{/* a refused file mounts a fresh chooser, which is what lets the same file be chosen again */}
-							<input key={stage.attempt ?? 0} ref={chooser} type="file" accept={ACCEPT} hidden onChange={ev => read(ev.target.files)} />
-							<Button id={FILE_ID} variant="outline" size="small" disabled={held} onClick={() => chooser.current?.click()}>Import a file</Button>
-							{earlier
-								? (
-									<Button variant="outline" size="small" aria-expanded={historyOpen} onClick={() => setHistoryOpen(o => !o)}>
-										{plural(earlier, 'earlier import')}
-									</Button>
-								)
-								: null}
-						</span>
-					</SettingRow>
-					<SettingRow label="Start from a template" help="Fill it in and upload it. The columns are already named correctly.">
-						<span className="sp-row-flex">
-							<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>Download</Button>
-						</span>
-					</SettingRow>
-				</SettingRows>
+				{held
+					? (
+						<FileDrop disabled>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title sp-ink-2">Drop a file, or choose one</span>
+							<span className="sp-meta">Available once your email is confirmed</span>
+						</FileDrop>
+					)
+					: (
+						<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
+							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title">Drop a file, or choose one</span>
+							<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order - both work.</span>
+						</FileDrop>
+					)}
 				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">
@@ -257,9 +251,33 @@ export function ImportCard({ state }) {
 						</Well>
 					)
 					: null}
+				<div className="sp-stack sp-gap-8">
+					<span className="sp-section-label">Or start from a template</span>
+					<ListItem variant="outline">
+						<Icon name="file" />
+						<span className="sp-data sp-grow sp-truncate">{TEMPLATE}</span>
+						<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>Download</Button>
+					</ListItem>
+					<span className="sp-meta">Fill it in and upload it - the columns are already named correctly.</span>
+				</div>
 			</Card>
-			{historyOpen ? <History history={history} onReuse={item => { setReuse({ ...item.mapping, fileName: item.fileName }); then(FILE_ID) }} /> : null}
+			<History history={history} onReuse={item => { setReuse({ ...item.mapping, fileName: item.fileName }); then(FILE_ID) }} />
+			<BudgetImport />
 		</>
+	)
+}
+
+/** The budget's own Excel import, the same button Budget has (21f): it opens the newest year it brought in. */
+function BudgetImport() {
+	const navigate = useNavigate()
+	return (
+		<Card>
+			<CardHeader name="Budget" />
+			<span className="sp-data">An Excel workbook with one sheet for each year, named like 2026. You see the years it holds before anything is written.</span>
+			<div className="sp-row-flex">
+				<ImportButton onImported={years => navigate(`/budget/${Math.max(...years)}`)} />
+			</div>
+		</Card>
 	)
 }
 

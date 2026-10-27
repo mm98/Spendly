@@ -18,7 +18,7 @@ Spendly is an application and its documentation. **`react/` is the source.** The
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
 directory, and the pages are real ones with the controls wired.
 
-`README.md` is the product's front page: what Spendly does, every feature in it, how it is run, and
+`README.md` is the product's front page: what Spendly does, its main features, how it is run, and
 the design system the app implements, whose specification is `design/`. `docs/` holds the screenshots
 that document shows.
 
@@ -82,10 +82,12 @@ name the code that draws it happens to have. A raw number is the same failure wi
 Three documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
 stated twice and obeyed once.
 
-- **`README.md` is the product** — what it does, every feature a user can use with a screenshot of
-  each major area, how it is run, the stack and how it is built in outline, and the design system's
+- **`README.md` is the product** — what it does, its main features in general terms with a
+  screenshot of each major area, how it is run, the stack and how it is built in outline, and the design system's
   rules: what the UI must do, in general terms. A change that adds, removes or changes a feature, a
-  server setting or a part of the stack updates its line in the same pull request.
+  server setting or a part of the stack updates its line in the same pull request. A feature gets a
+  line or two on what it lets the reader do, not how each part of it behaves: no limits, counts,
+  wording on screen or edge cases.
 - **The app's own README is the app's own business** — the detail behind that outline: routes, shell,
   data, build, chunking, measurements.
   Nothing in it is a rule about the product.
