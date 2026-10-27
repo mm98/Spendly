@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
 <link rel="stylesheet" href="styles/components.css?v=v20261026d">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
-<link rel="stylesheet" href="styles/pages/settings.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/settings.css?v=v20261027b">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
@@ -37,6 +37,7 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
     <div class="doc-note"><b>Passkeys</b> is a card under Account and profile. Add a passkey opens the device's prompt (iPhone, Android, 1Password); the new row takes the name the device reports, which Rename changes. Rename turns the row into its name field with Cancel and Save, drawn on the 1Password row, the same as renaming a status; Enter saves and Escape cancels. Remove asks first with the confirm dialog, and the password always keeps working, so removing the last one locks nobody out. With none, the card holds only its line and Add a passkey. Adding one sends the passkey-added email (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
+    <div class="doc-note"><b>Two-step sign-in</b> is its own card right under Passkeys, drawn here on. Every state and its three dialogs are in <a href="#11f">11f</a>.</div>
     <div class="doc-note"><b>Passkeys: Rename does not move the card.</b> A passkey row is one height at rest and while renaming: the name field's 42px (<code>--control-h</code>). At rest the row holds that height with the name and its date line centred in it; on Rename the field, Cancel and Save fill it exactly, so the rows and rules below stay where they are. Lock the row's height, not its content: a row sized by its text grows by 3px when the field appears.</div>
     <div class="doc-note"><b>Status email</b> is its own card in Account and profile, right under the account card: None (the default for every account), Weekly or Monthly, on the Segmented in its fill variant (<code>.sp-segmented--fill</code>, <a href="Components.dc.html#c5">c5</a>), so the three options share the card's width. It saves on change, with no Save button. Weekly is drawn selected here to show the test button in use; a new account starts on None. Stop these emails in the email sets it back to None.</div>
     <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in the frequency selected; on None it sends the weekly one. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
@@ -182,6 +183,22 @@
               <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
               <button type="button" class="sp-btn">Save</button>
             </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span></div>
+          <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+          <div class="sp-row-flex sp-gap-12 st-pk-row">
+            <div class="sp-stacked">
+              <span class="sp-title sp-truncate">On since 14 Oct 2026</span>
+              <span class="sp-meta">7 of 10 recovery codes left</span>
+            </div>
+          </div>
+          <div class="sp-card__footer sp-row-flex sp-gap-8">
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">New recovery codes</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Turn off</button>
           </div>
         </div>
 
@@ -1682,6 +1699,347 @@
       <div class="doc-note"><b>At 20 tokens</b> New token is disabled and the line "20 of 20 tokens. Remove one to make another." sits under the card's line. The drawing shows two of the twenty rows.</div>
       <div class="doc-note"><b>Remove asks first</b> with the confirm dialog (state 7), since the program using the token stops at once. There is no undo. After it, the row is gone and the toast says "Token removed."</div>
       <div class="doc-note"><b>On a phone</b> the pane is its own page, opened from the AI assistants row in Settings, which shows the count (<a href="Mobile screens.dc.html#7a">7a</a>). The card's contents are the same, at the phone's width, except that the new token shows without Set up in: the four labels do not fit a phone, and the programs it sets up run on a computer. The token and both addresses are there to copy. Remove asks with the same dialog.</div>
+    </div>
+  </div>
+</section>
+
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="11f">11f</span>
+    <span class="doc-section__title">Two-step sign-in - every state</span>
+  </div>
+  <div class="doc-lede">The two-step sign-in card in Account and profile, right under Passkeys, and the three dialogs it opens: turning it on, new recovery codes, and turning it off. Off until the person turns it on.</div>
+  <div class="sp-stack sp-gap-12">
+    <span class="sp-section-label">THE CARD</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">1 - OFF</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>Turn on</button></div>
+            <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">2 - ON</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span></div>
+            <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">On since 14 Oct 2026</span>
+                <span class="sp-meta">7 of 10 recovery codes left</span>
+              </div>
+            </div>
+            <div class="sp-card__footer sp-row-flex sp-gap-8">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">New recovery codes</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Turn off</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">3 - ON, 3 OR FEWER CODES LEFT</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span></div>
+            <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">On since 14 Oct 2026</span>
+                <span class="sp-meta sp-ink-warning">3 of 10 recovery codes left. Make new ones before they run out.</span>
+              </div>
+            </div>
+            <div class="sp-card__footer sp-row-flex sp-gap-8">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">New recovery codes</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Turn off</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">4 - ON, NO CODES LEFT</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span></div>
+            <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+            <div class="sp-row-flex sp-gap-12 st-pk-row">
+              <div class="sp-stacked">
+                <span class="sp-title sp-truncate">On since 14 Oct 2026</span>
+                <span class="sp-meta sp-ink-warning">0 of 10 recovery codes left. Make new ones now.</span>
+              </div>
+            </div>
+            <div class="sp-card__footer sp-row-flex sp-gap-8">
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">New recovery codes</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Turn off</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">5 - THE SERVER CANNOT OFFER IT</span>
+          <div class="sp-card">
+            <div class="sp-card__head"><span class="sp-section-label">TWO-STEP SIGN-IN</span><span class="sp-grow"></span></div>
+            <span class="sp-data">After your password, Spendly also asks for a code from an app on your phone.</span>
+            <span class="sp-meta">Two-step sign-in is not available on this server.</span>
+          </div>
+        </div>
+    </div>
+    <span class="sp-section-label">TURNING IT ON</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T1 - PASSWORD</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">1 of 3</span></div>
+            <span class="sp-dialog__body">Enter your password first.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-p1">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-2s-p1" type="password" autoComplete="current-password" defaultValue="">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Continue</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T1 - WRONG PASSWORD</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">1 of 3</span></div>
+            <span class="sp-dialog__body">Enter your password first.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-p2">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-2s-p2" type="password" autoComplete="current-password" defaultValue="correct-hors" aria-invalid="true" aria-describedby="st-2s-p2-help">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+              <span class="sp-field__help" data-color="danger" id="st-2s-p2-help">That password isn't right.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Continue</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T1 - TOO MANY ATTEMPTS</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">1 of 3</span></div>
+            <div class="sp-list-item sp-list-item--top" data-color="warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-title sp-ink-warning">Too many attempts</div>
+                <div class="sp-meta sp-ink-warning">Try again in <b>4 minutes</b>.</div>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-p3">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-2s-p3" type="password" autoComplete="current-password" defaultValue="" disabled="{{ true }}">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn" disabled="{{ true }}">Continue</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T2 - SCAN</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">2 of 3</span></div>
+            <span class="sp-dialog__body">Scan this with your authenticator app. Google Authenticator, Microsoft Authenticator and 1Password all work, and 1Password can read it straight from this screen.</span>
+            <img class="st-qr" src="assets/two-step-qr.svg" alt="QR code to scan with your authenticator app">
+            <span class="sp-meta">Can't scan it? Type this key into the app instead.</span>
+            <div class="sp-well sp-well--snippet"><span class="sp-data sp-number">JBSW Y3DP EHPK 3PXP K4ZQ 7TNA M2RC 6WVE</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the key"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Next</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T3 - CONFIRM, EMPTY</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">3 of 3</span></div>
+            <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-c1">Code</label>
+              <input class="sp-input sp-number" id="st-2s-c1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T3 - CONFIRM, TYPING</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">3 of 3</span></div>
+            <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-c2">Code</label>
+              <input class="sp-input sp-number" id="st-2s-c2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="4821" data-focus="true">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T3 - WRONG CODE</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">3 of 3</span></div>
+            <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-c3">Code</label>
+              <input class="sp-input sp-number" id="st-2s-c3" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-c3-help">
+              <span class="sp-field__help" data-color="danger" id="st-2s-c3-help">That code is not right. Check the time on your phone, and try the newest code.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T3 - TOO MANY TRIES</span>
+          <div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">3 of 3</span></div>
+            <div class="sp-list-item sp-list-item--top" data-color="warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-title sp-ink-warning">Too many tries</div>
+                <div class="sp-meta sp-ink-warning">Wait <b>4 minutes</b>, then type the newest code.</div>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-c4">Code</label>
+              <input class="sp-input sp-number" id="st-2s-c4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn" disabled="{{ true }}">Turn on</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T2 - SCAN, ON A PHONE</span>
+          <div class="sp-phone sp-touch"><div class="sp-dialog">
+            <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-heading">Turn on two-step sign-in</span><span class="sp-grow"></span><span class="sp-meta sp-nowrap">2 of 3</span></div>
+            <span class="sp-dialog__body">Scan this with your authenticator app. Google Authenticator, Microsoft Authenticator and 1Password all work, and 1Password can read it straight from this screen.</span>
+            <img class="st-qr" src="assets/two-step-qr.svg" alt="QR code to scan with your authenticator app">
+            <span class="sp-meta">Can't scan it? Type this key into the app instead.</span>
+            <div class="sp-well sp-well--snippet"><span class="sp-data sp-number">JBSW Y3DP EHPK 3PXP K4ZQ 7TNA M2RC 6WVE</span><button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the key"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Next</button></div>
+          </div></div>
+        </div>
+    </div>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T4 - RECOVERY CODES, SHOWN ONCE</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Two-step sign-in is on</span>
+            <div class="sp-well" data-color="warning">
+              <span class="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
+              <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
+            </div>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">K7QM-3XRA</span><span class="sp-data sp-number">P2WD-8HNE</span><span class="sp-data sp-number">ZT4C-9GLB</span><span class="sp-data sp-number">M8RV-2YKF</span><span class="sp-data sp-number">Q5NJ-7DXP</span><span class="sp-data sp-number">H3LA-6TWC</span><span class="sp-data sp-number">W9EB-4MZR</span><span class="sp-data sp-number">C2YK-8PQS</span><span class="sp-data sp-number">N6FU-3VHT</span><span class="sp-data sp-number">R4XG-5JEM</span></div></div>
+            <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">T4 - ON A PHONE</span>
+          <div class="sp-phone sp-touch"><div class="sp-dialog">
+            <span class="sp-heading">Two-step sign-in is on</span>
+            <div class="sp-well" data-color="warning">
+              <span class="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
+              <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
+            </div>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">K7QM-3XRA</span><span class="sp-data sp-number">P2WD-8HNE</span><span class="sp-data sp-number">ZT4C-9GLB</span><span class="sp-data sp-number">M8RV-2YKF</span><span class="sp-data sp-number">Q5NJ-7DXP</span><span class="sp-data sp-number">H3LA-6TWC</span><span class="sp-data sp-number">W9EB-4MZR</span><span class="sp-data sp-number">C2YK-8PQS</span><span class="sp-data sp-number">N6FU-3VHT</span><span class="sp-data sp-number">R4XG-5JEM</span></div></div>
+            <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
+          </div></div>
+        </div>
+    </div>
+    <span class="sp-section-label">NEW RECOVERY CODES</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">N1 - CONFIRM</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">New recovery codes</span>
+            <span class="sp-dialog__body">Type a code from your authenticator app, or one of your recovery codes.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-n1">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-2s-n1" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="" data-focus="true">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Make new codes</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">N1 - WRONG CODE</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">New recovery codes</span>
+            <span class="sp-dialog__body">Type a code from your authenticator app, or one of your recovery codes.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-n2">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-2s-n2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-n2-help">
+              <span class="sp-field__help" data-color="danger" id="st-2s-n2-help">That code is not right. Check the time on your phone, and try the newest code.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Make new codes</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">N2 - THE NEW CODES</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Your new recovery codes</span>
+            <div class="sp-well" data-color="warning">
+              <span class="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
+              <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
+            </div>
+            <span class="sp-data">Your old recovery codes no longer work.</span>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">T8VD-2KQN</span><span class="sp-data sp-number">B5MZ-7XRC</span><span class="sp-data sp-number">L3WP-9HFA</span><span class="sp-data sp-number">G6YC-4NTE</span><span class="sp-data sp-number">D9QK-3BWL</span><span class="sp-data sp-number">F2XR-8MJV</span><span class="sp-data sp-number">S7HN-5CPD</span><span class="sp-data sp-number">J4TB-6ZQY</span><span class="sp-data sp-number">V8LE-2RGK</span><span class="sp-data sp-number">X3CW-7FNM</span></div></div>
+            <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
+          </div>
+        </div>
+    </div>
+    <span class="sp-section-label">TURNING IT OFF</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">O1 - CONFIRM</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Turn off two-step sign-in?</span>
+            <span class="sp-dialog__body">The app's key and your recovery codes are removed, and signing in asks only for your password.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-o1">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-2s-o1" type="password" autoComplete="current-password" defaultValue="">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-o2">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-2s-o2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Turn off</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">O1 - WRONG PASSWORD OR CODE</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Turn off two-step sign-in?</span>
+            <span class="sp-dialog__body">The app's key and your recovery codes are removed, and signing in asks only for your password.</span>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-o3">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-2s-o3" type="password" autoComplete="current-password" defaultValue="correct-horse">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-2s-o4">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-2s-o4" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-o4-help">
+              <span class="sp-field__help" data-color="danger" id="st-2s-o4-help">That password and code do not match. Check both and try again.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Turn off</button></div>
+          </div>
+        </div>
+    </div>
+    <div class="doc-notes">
+      <span class="doc-notes__label">Notes for implementation</span>
+      <div class="doc-note"><b>One card, the Passkeys family</b> (<a href="#11a">11a</a>): its own card right under Passkeys in Account and profile, not a shared "Signing in" heading. The head, the line and the 42px fact row (<code>.st-pk-row</code>) are the Passkeys card's. On a computer and a phone the card is the same; on a phone it is a page of its own, opened from the Two-step sign-in row in Settings under Passkeys, which reads On or Off (<a href="Mobile screens.dc.html#7a">7a</a>).</div>
+      <div class="doc-note"><b>Off</b> holds the line and Turn on in the head, as Add a passkey sits there. <b>On</b> drops Turn on and adds the fact row: "On since" and the day, then "N of 10 recovery codes left". The two actions sit in the card's footer, so they keep one line on a phone.</div>
+      <div class="doc-note"><b>3 or fewer codes left</b> turns the count line to the warning ink and adds "Make new ones before they run out."; at 0 it reads "Make new ones now." in the same warning ink. Warning, not danger: the app still signs in.</div>
+      <div class="doc-note"><b>The server cannot offer it</b>: the line stays, Turn on is absent and the meta line "Two-step sign-in is not available on this server." takes its place under the line. On a phone the Settings row reads Not available and the page shows the same card.</div>
+      <div class="doc-note"><b>Turning it on is one dialog in three steps</b>, the Add a passkey dialog's shape (<code>SettingsPasskeys.jsx</code>), on a phone too, where the dialog sits at the phone's inset and its buttons are 48px. The step count "1 of 3" sits on the heading's line. Cancel, Escape and the scrim close it at steps 1 to 3, and nothing is turned on until step 3 is right. Back on step 3 returns to the same QR and key, not a new one; closing and opening again makes a new key.</div>
+      <div class="doc-note"><b>Step 1</b> is the password, with the errors Add a passkey shows: the server's field message under the field, and the lock-out as the warning row above it with the field and Continue disabled until the wait ends, counting down as sign-in does.</div>
+      <div class="doc-note"><b>Step 2, the QR code</b> is a real image on the page, an <code>&lt;img&gt;</code> or inline <code>&lt;svg&gt;</code>, never behind a click or a blur: 1Password on a computer scans it straight off the screen, as a phone camera does. It is drawn from the <code>otpauth://totp/Spendly:&lt;email&gt;?secret=&lt;key&gt;&amp;issuer=Spendly</code> address, 168px, dark modules on white with its quiet zone in both themes, so a camera reads it in dark mode too. The key under it is the same secret, in groups of 4, in the snippet well (<code>.sp-well--snippet</code>, <a href="Components.dc.html#c26">c26</a>) so it wraps on a phone; Copy copies it without the spaces, swaps the icon for a check for 2 seconds and shows the toast "Copied." The order is the same on a phone.</div>
+      <div class="doc-note"><b>Step 3</b> is one field, <code>inputmode="numeric"</code> and <code>autocomplete="one-time-code"</code>, 6 digits; spaces typed or pasted are dropped. Turn on with the field empty says "Enter the code." under it. A wrong code keeps the digits, selects them and shows the line under the field. Too many tries is the warning row with the field and Turn on disabled, counting down.</div>
+      <div class="doc-note"><b>Step 4, the recovery codes, is shown once</b>, right after it turns on: 10 codes of 8 letters and digits in two groups, two columns, in a well. Copy all copies them one per line; Download saves <code>spendly-recovery-codes.txt</code>, one code per line under the account's address and the date. The dialog has no Cancel, no Escape and no scrim close here: only I have saved them closes it. Then the card shows On and the toast says "Two-step sign-in is on."</div>
+      <div class="doc-note"><b>New recovery codes</b> asks for a code from the app or a recovery code in one field, which takes either: 6 digits, or 8 letters and digits with or without the hyphen. A right one replaces all 10 codes and shows them as step 4 does, with the line "Your old recovery codes no longer work." The card's count returns to 10 of 10.</div>
+      <div class="doc-note"><b>Turn off</b> asks for the password and a code in one go, and answers a wrong pair vaguely, as sign-in does, so it does not say which half was wrong. Turn off is the danger button. After it the card shows Off, the toast says "Two-step sign-in is off." and the turned-off email is sent (<a href="Auth and first run.dc.html#20f">20f</a>). Turning it on sends the turned-on email.</div>
     </div>
   </div>
 </section>
