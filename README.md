@@ -374,6 +374,7 @@ log is only in the container.
 | Setting | Turns on | Without it |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Reading receipts, the light-bulb button that suggests categories (it can propose a new one), and Ask | The receipt is attached and you type the details yourself. There is no Ask page. |
+| `ANTHROPIC_API_MODEL` | Which Claude model answers on Ask, for example `claude-sonnet-5-5` for better answers at a higher cost | `claude-haiku-5-5`, the cheapest and fastest. |
 | `SPENDLY_ASK_QUESTIONS_PER_DAY` | How many questions each account can ask a day (default 25); `0` turns Ask off | 25. |
 | `SPENDLY_STORAGE` | Where the files Ask makes are kept, outside the database (`/storage` in the container) | A `storage` folder beside the database. |
 | `SPENDLY_LOGS` | A copy of the container log in this folder (`/logs` in the container), one file a day, kept for 30 days | The log is only in the container. |
