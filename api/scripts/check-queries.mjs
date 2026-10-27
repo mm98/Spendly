@@ -223,6 +223,8 @@ const fixtureBudget = year => ({
 	]
 })
 const fixtureAccounts = ['Salary', 'Budget', 'Savings']
+// the fixture's budget replaces the demo fill's, so its shape stays the one the baseline was taken with
+db.exec('DELETE FROM budget_years; DELETE FROM budget_accounts;')
 replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget), fixtureAccounts)
 for (let i = 0; i < NEIGHBOURS; i++)
 	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)

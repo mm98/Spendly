@@ -65,7 +65,7 @@ export function DemoCard() {
 			</Field>
 			<Well color="danger">
 				<span className="sp-title sp-ink-danger">This replaces what is here now</span>
-				<span className="sp-meta sp-ink-danger">Every order, bookmark, vendor and category you have added is removed first.</span>
+				<span className="sp-meta sp-ink-danger">Every order, bookmark, vendor, category and budget you have added is removed first.</span>
 			</Well>
 		</Card>
 	)
