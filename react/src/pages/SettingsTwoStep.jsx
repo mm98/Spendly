@@ -165,7 +165,8 @@ function TurnOn({ onDone }) {
 			.catch(e => failed(e, 'code'))
 	}
 
-	if (codes) return <RecoveryCodes title="Two-step sign-in is on" codes={codes} onDone={() => onDone('Two-step sign-in is on.')} />
+	const codeParts = useRecoveryCodeParts({ title: 'Two-step sign-in is on', codes, onDone: () => onDone('Two-step sign-in is on.') })
+	if (codeParts) return <Dialog>{codeParts}</Dialog>
 	const cancel = busy ? undefined : () => onDone()
 	const qr = setup ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(setup.qr)}` : null
 	return (
@@ -217,9 +218,13 @@ function TurnOn({ onDone }) {
 	)
 }
 
-/** Shown once: only "I have saved them" closes it, not Escape or the scrim (11f). */
-function RecoveryCodes({ title, codes, renewed = false, onDone }) {
+/** Shown once: only "I have saved them" closes it, not Escape or the scrim (11f). The parts go in the
+    dialog that asked for the code, so it changes in place and does not open a second time. Null until there are codes. */
+function useRecoveryCodeParts({ title, codes, renewed = false, onDone }) {
 	const email = useApi(getCurrentUser).data?.email
+	// the button that sent the code is gone, so focus would fall to the page behind
+	useEffect(() => { if (codes) document.querySelector('.sp-dialog__actions button')?.focus() }, [codes])
+	if (!codes) return null
 	const download = () => {
 		const text = [email, dayShortMonthYear(Math.floor(Date.now() / 1000)), '', ...codes, ''].filter(line => line != null).join('\n')
 		const link = document.createElement('a')
@@ -228,25 +233,23 @@ function RecoveryCodes({ title, codes, renewed = false, onDone }) {
 		link.click()
 		setTimeout(() => URL.revokeObjectURL(link.href), 0)
 	}
-	return (
-		<Dialog>
-			<DialogTitle>{title}</DialogTitle>
-			<Well color="warning">
-				<span className="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
-				<span className="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
-			</Well>
-			{renewed ? <span className="sp-data">Your old recovery codes no longer work.</span> : null}
-			<Well>
-				<div className="st-codes">{codes.map(code => <span key={code} className="sp-data sp-number">{code}</span>)}</div>
-			</Well>
-			<div className="sp-row-flex sp-gap-8">
-				<Button variant="outline" size="small" onClick={download}><Icon name="download" size={14} />Download</Button>
-			</div>
-			<DialogActions>
-				<Button onClick={onDone}>I have saved them</Button>
-			</DialogActions>
-		</Dialog>
-	)
+	return [
+		<DialogTitle key="title">{title}</DialogTitle>,
+		<Well key="warning" color="warning">
+			<span className="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
+			<span className="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
+		</Well>,
+		renewed ? <span key="renewed" className="sp-data">Your old recovery codes no longer work.</span> : null,
+		<Well key="codes">
+			<div className="st-codes">{codes.map(code => <span key={code} className="sp-data sp-number">{code}</span>)}</div>
+		</Well>,
+		<div key="download" className="sp-row-flex sp-gap-8">
+			<Button variant="outline" size="small" onClick={download}><Icon name="download" size={14} />Download</Button>
+		</div>,
+		<DialogActions key="actions">
+			<Button onClick={onDone}>I have saved them</Button>
+		</DialogActions>
+	]
 }
 
 /** A right code from the app or a recovery code replaces all 10 (11f). */
@@ -257,6 +260,8 @@ function NewCodes({ onDone }) {
 	const [waitFor, setWaitFor] = useCountdown()
 	const [codes, setCodes] = useState(null)
 	const waiting = waitFor > 0
+	// the dialog puts focus on its buttons, so the field takes it back
+	useEffect(() => { if (!waiting) document.getElementById('two-step-renew')?.focus() }, [waiting])
 	const send = () => {
 		if (!code) {
 			setProblem('Enter the code.')
@@ -273,7 +278,8 @@ function NewCodes({ onDone }) {
 				selectField('two-step-renew')
 			})
 	}
-	if (codes) return <RecoveryCodes title="Your new recovery codes" codes={codes} renewed onDone={() => onDone()} />
+	const codeParts = useRecoveryCodeParts({ title: 'Your new recovery codes', codes, renewed: true, onDone: () => onDone() })
+	if (codeParts) return <Dialog>{codeParts}</Dialog>
 	const cancel = busy ? undefined : () => onDone()
 	return (
 		<Dialog onCancel={cancel}>
@@ -302,6 +308,7 @@ function TurnOff({ onDone }) {
 	const [busy, setBusy] = useState(false)
 	const [waitFor, setWaitFor] = useCountdown()
 	const waiting = waitFor > 0
+	useEffect(() => { if (!waiting) document.getElementById('two-step-off-password')?.focus() }, [waiting])
 	const send = () => {
 		if (!password) {
 			setProblem({ password: 'Enter your password.' })

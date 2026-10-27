@@ -84,3 +84,11 @@ is removed in the change that settles it.
   the code field gets an even-width digits variant. The wait after too many wrong codes is not drawn
   for New recovery codes and Turn off either; the build uses the warning row from the code step.
 - **Found:** 2026-10-27.
+
+## Settings menu line under a notice
+
+- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
+- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
+  notice to confirm the email sits above the page, the line now starts under the notice instead.
+- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
+- **Found:** 2026-10-27.
