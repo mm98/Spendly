@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { securityLog } from '../lib/securityLog.js'
 import { createMcpToken, listMcpTokens, removeMcpToken } from '../lib/mcpTokens.js'
 import { MAX_NAME, cleanName } from './auth.js'
 
@@ -16,11 +17,14 @@ router.post('/', (req, res) => {
 	if (!name) return res.status(400).json({ error: 'Give the token a name, so you know where it is used.' })
 	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
 	if (listMcpTokens(req.user.id).length >= MAX_TOKENS) return res.status(409).json({ error: `An account can have ${MAX_TOKENS} tokens. Remove one first.` })
-	res.status(201).json(createMcpToken(req.user.id, name))
+	const made = createMcpToken(req.user.id, name)
+	securityLog(req, 'assistant-token-made', { tokenId: made.id, name })
+	res.status(201).json(made)
 })
 
 // a removed token stops working at once: the next request with it is refused
 router.delete('/:id', (req, res) => {
 	if (!removeMcpToken(req.user.id, req.params.id)) return res.status(404).json({ error: 'That token is not on this account.' })
+	securityLog(req, 'assistant-token-removed', { tokenId: req.params.id })
 	res.status(204).end()
 })

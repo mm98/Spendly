@@ -87,4 +87,7 @@
 	/* the preview table scrolls sideways on a phone rather than squeezing the vendor column to nothing */
 	.st-sideways { overflow-x: auto; }
 	.st-table[data-cols="preview"], .st-table[data-cols="imports"] { min-width: 540px; }
+	/* 11f: the QR code is dark on white with its quiet zone in both themes, so a camera reads it in dark mode too */
+	.st-qr { display: block; width: 168px; height: 168px; align-self: center; border: 1px solid var(--line); border-radius: var(--r-tile); }
+	.st-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-16); }
 }

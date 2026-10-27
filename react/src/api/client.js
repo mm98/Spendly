@@ -121,11 +121,56 @@ export async function register(email, password, name, signal) {
 	return user
 }
 
+/** The user, or `{ twoStep: true, ticket }` when the account asks for a code next: no one is signed in yet. */
 export async function login(email, password, remember = true, signal) {
 	const user = await request('/api/auth/login', { method: 'POST', body: { email, password, remember }, signal })
+	if (user.twoStep) return user
 	signedOut = false
 	invalidate()
 	return user
+}
+
+/* ---- two-step sign-in (20g, Settings 11f) ---- */
+
+/** The code step after the password: a code from the app or a recovery code. */
+export async function finishTwoStepSignIn(ticket, code, signal) {
+	const user = await request('/api/auth/two-step', { method: 'POST', body: { ticket, code }, signal })
+	signedOut = false
+	invalidate()
+	return user
+}
+
+/** Back on the code step ends it, so the ticket opens nothing later. */
+export async function cancelTwoStepSignIn(ticket) {
+	await request('/api/auth/two-step/cancel', { method: 'POST', body: { ticket } })
+}
+
+export async function getTwoStep(signal) {
+	return request('/api/account/two-step', { signal })
+}
+
+/** A new key for the app, once the password is given: `{ key, uri, qr }`. Nothing is on yet. */
+export async function startTwoStep(password, signal) {
+	return request('/api/account/two-step/start', { method: 'POST', body: { password }, signal })
+}
+
+/** The app's first code turns it on; the answer carries the recovery codes, this one time. */
+export async function confirmTwoStep(code, signal) {
+	const out = await request('/api/account/two-step/confirm', { method: 'POST', body: { code }, signal })
+	invalidate(getTwoStep)
+	return out
+}
+
+export async function renewRecoveryCodes(code, signal) {
+	const out = await request('/api/account/two-step/recovery-codes', { method: 'POST', body: { code }, signal })
+	invalidate(getTwoStep)
+	return out
+}
+
+export async function turnOffTwoStep(password, code, signal) {
+	const out = await request('/api/account/two-step/off', { method: 'POST', body: { password, code }, signal })
+	invalidate(getTwoStep)
+	return out
 }
 
 /** What the signed-out pages may offer: `mail` (this server can send a link), `terms` and

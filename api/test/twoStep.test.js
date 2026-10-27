@@ -66,9 +66,10 @@ test('the key is stored locked, with a key file only its owner can read', () => 
 })
 
 test('turning on needs the first right code, and gives 10 recovery codes', () => {
-	const { key, uri } = startTwoStep(USER, 'two-step@example.com')
+	const { key, uri, qr } = startTwoStep(USER, 'two-step@example.com')
 	assert.match(key, /^[A-Z2-7]{32}$/)
-	assert.ok(uri.startsWith('otpauth://totp/Spendly%3Atwo-step%40example.com?secret=' + key))
+	assert.ok(qr.startsWith('<svg'))
+	assert.equal(uri, 'otpauth://totp/Spendly%3Atwo-step%40example.com?secret=' + key + '&issuer=Spendly')
 	assert.deepEqual(fromBase32(key), secretOf())
 	assert.equal(twoStepOn(USER), false)
 	assert.deepEqual(confirmTwoStep(USER, '000000').ok, undefined)
@@ -113,6 +114,6 @@ test('a ticket opens the code step once', () => {
 test('turning off removes the key and the codes', () => {
 	turnOffTwoStep(USER)
 	assert.equal(twoStepOn(USER), false)
-	assert.deepEqual(twoStepState(USER), { on: false, onSince: null, recoveryCodesLeft: 0 })
+	assert.deepEqual(twoStepState(USER), { available: true, on: false, onSince: null, recoveryCodesLeft: 0 })
 	assert.equal(db.prepare('SELECT COUNT(*) AS n FROM user_two_step_recovery_codes').get().n, 0)
 })

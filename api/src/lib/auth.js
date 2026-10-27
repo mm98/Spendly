@@ -5,6 +5,8 @@ import { newSessionId } from './ids.js'
 import { nowEpoch } from './dates.js'
 import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js'
 import { mcpMayRead, mcpReadWait, mcpTokenUser } from './mcpTokens.js'
+import { windowCounter } from './rateLimit.js'
+import { securityLog } from './securityLog.js'
 
 const scryptAsync = promisify(scrypt)
 
@@ -96,6 +98,8 @@ export function sessionUser(req) {
 	return token ? selectSessionUser.get(token, nowEpoch()) ?? null : null
 }
 
+const refusedLately = windowCounter({ most: 1, perSeconds: 10 * 60 })
+
 /** Loads req.user from the session token — Authorization: Bearer or the session cookie — or
     responds 401. Every data route sits behind this: a route never trusts a userId from the
     request body or params, only from here.
@@ -111,8 +115,13 @@ export function requireAuth(req, res, next) {
 	if (!user) {
 		// an assistant's token opens only the read routes /mcp asks for what its tools answer
 		const reader = mcpMayRead(req) ? mcpTokenUser(token) : null
-		if (!reader) return res.status(401).json({ error: 'Not signed in.' })
+		if (!reader) {
+			// once per token in a while: a tab left open on an ended session asks again and again
+			if (token && !refusedLately(token)) securityLog(req, 'session-refused', { reason: 'ended, unknown or removed' })
+			return res.status(401).json({ error: 'Not signed in.' })
+		}
 		const wait = mcpReadWait(token)
+		if (wait) securityLog(req, 'assistant-token-rate-limited', { userId: reader.id, email: reader.email, waitSeconds: wait })
 		if (wait) return res.status(429).set('Retry-After', String(wait)).json({ error: `Too many requests with this token. Try again in ${wait} seconds.`, retryAfter: wait })
 		req.user = reader
 		return next()

@@ -32,6 +32,16 @@ function loadKey() {
 	return key
 }
 
+/** False when no key can be had, such as a data folder that cannot be written: nothing can be locked. */
+export function secretBoxReady() {
+	try {
+		return Boolean(loadKey())
+	} catch (e) {
+		console.error(`[two-step] no key to lock with: ${e.message}`)
+		return false
+	}
+}
+
 /** nonce (12) + tag (16) + the locked bytes */
 export function lockSecret(plain) {
 	const nonce = randomBytes(12)

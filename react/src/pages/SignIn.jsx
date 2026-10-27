@@ -5,9 +5,9 @@ import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Check, Choice } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { failureMessage, login } from '../api/client.js'
+import { cancelTwoStepSignIn, failureMessage, finishTwoStepSignIn, login } from '../api/client.js'
 import {
-	EMAIL_PATTERN, EMAIL_PROBLEM, useFocusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
+	ActionLink, CODE_KINDS, LOST_BOTH, cleanCode, EMAIL_PATTERN, EMAIL_PROBLEM, useFocusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
 } from './AuthParts.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { closedPrompt, deviceFailed, passkeysHere, signInWithPasskey, stopPasskeyOffer } from '../app/passkeys.js'
@@ -31,6 +31,12 @@ export default function SignIn() {
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const [lockedFor, setLockedFor] = useCountdown()
+	const [ticket, setTicket] = useState(null)
+	const [kind, setKind] = useState('app')
+	const [code, setCode] = useState('')
+	const [codeProblem, setCodeProblem] = useState(null)
+	const [codeWait, setCodeWait] = useCountdown()
+	const [timedOut, setTimedOut] = useState(false)
 	const mail = useMail()
 	const passkeys = passkeysHere(useAuthOptions())
 	const [asking, setAsking] = useState(false)
@@ -56,7 +62,15 @@ export default function SignIn() {
 		setBusy(true)
 		setAlert(null)
 		login(email.trim().toLowerCase(), password, remember)
-			.then(user => navigate(onward(user, landing(params)), { replace: true }))
+			.then(user => {
+				if (!user.twoStep) return navigate(onward(user, landing(params)), { replace: true })
+				setBusy(false)
+				setPassword('')
+				setKind('app')
+				setCode('')
+				setTicket(user.ticket)
+				focusField('signin-code')
+			})
 			.catch(e => {
 				setBusy(false)
 				if (e?.status === 429 && e.body?.retryAfter) {
@@ -68,6 +82,45 @@ export default function SignIn() {
 					? "That email and password don't match. Check both and try again."
 					: failureMessage(e, UNREACHABLE))
 				document.getElementById('signin-password')?.focus()
+			})
+	}
+
+	// Back, Back to sign in and Start again: the email stays, the password is typed again
+	const leaveCodeStep = () => {
+		if (ticket && !timedOut) cancelTwoStepSignIn(ticket).catch(() => {})
+		setTicket(null)
+		setTimedOut(false)
+		setCodeWait(0)
+		setCodeProblem(null)
+		setAlert(null)
+		focusField('signin-password')
+	}
+	const switchKind = () => {
+		setKind(k => (k === 'app' ? 'recovery' : 'app'))
+		setCode('')
+		setCodeProblem(null)
+		focusField('signin-code')
+	}
+	const sendCode = () => {
+		if (codeWait > 0 || timedOut) return leaveCodeStep()
+		if (!code) {
+			setCodeProblem('Enter the code.')
+			return focusField('signin-code')
+		}
+		setBusy(true)
+		setAlert(null)
+		finishTwoStepSignIn(ticket, code)
+			.then(user => navigate(onward(user, landing(params)), { replace: true }))
+			.catch(e => {
+				setBusy(false)
+				if (e?.status === 429 && e.body?.retryAfter) return setCodeWait(e.body.retryAfter)
+				if (e?.status === 410) return setTimedOut(true)
+				if (e?.status === 401) {
+					setCodeProblem(CODE_KINDS[kind].wrong)
+					// the code is kept and selected, so the next one types over it
+					return requestAnimationFrame(() => document.getElementById('signin-code')?.select())
+				}
+				setAlert(failureMessage(e, UNREACHABLE))
 			})
 	}
 
@@ -104,6 +157,29 @@ export default function SignIn() {
 	const canReset = mail && !locked
 
 	if (!signedOut) return null
+	if (ticket) {
+		const words = CODE_KINDS[kind]
+		const waiting = codeWait > 0
+		const back = <ActionLink onClick={leaveCodeStep}>Back</ActionLink>
+		if (timedOut) return (
+			<AuthCard title="Two-step sign-in" alertColor="warning" alertIcon="clock" alertTitle="This step timed out"
+				alert="The code has to be typed within 5 minutes of the password. Sign in again from the start."
+				onSubmit={leaveCodeStep} submit="Start again" across={back} note={LOST_BOTH} />
+		)
+		return (
+			<AuthCard title="Two-step sign-in" lead={waiting ? null : words.line}
+				alert={waiting ? <>Sign in is paused for <b>{waitWords(codeWait)}</b>. Then sign in again from the start.</> : alert}
+				alertColor={waiting ? 'warning' : 'danger'} alertIcon={waiting ? 'lock' : 'alert-circle'} alertTitle="Too many tries"
+				onSubmit={sendCode} submit={waiting ? 'Back to sign in' : 'Sign in'} busy={busy} busyLabel="Signing in…"
+				secondary={waiting ? null : <span className="sp-data sp-center"><ActionLink onClick={switchKind}>{words.other}</ActionLink></span>}
+				across={back} note={LOST_BOTH}>
+				<Field label={words.label} id="signin-code" message={codeProblem ?? undefined} messageType={codeProblem ? 'danger' : 'hint'}>
+					<TextField {...words.field} value={code} disabled={waiting || busy}
+						onChange={v => { setCode(cleanCode(v)); setCodeProblem(null) }} />
+				</Field>
+			</AuthCard>
+		)
+	}
 	if (locked) return (
 		<AuthCard title="Sign in to Spendly" alertColor="warning" alertIcon="lock" alertTitle="Too many attempts"
 			alert={<>Sign in is paused for <b>{waitWords(lockedFor)}</b>.{mail ? ' You can reset your password instead - that works straight away.' : ''}</>}

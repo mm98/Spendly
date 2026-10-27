@@ -33,7 +33,7 @@ const SETUPS = [
 ]
 
 /* An address opened over plain http on a home network has no clipboard API, so the older way is tried there. */
-async function copyText(text) {
+export async function copyText(text) {
 	if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text)
 	const box = document.createElement('textarea')
 	box.value = text
@@ -48,7 +48,7 @@ async function copyText(text) {
 }
 
 /** The copy button's icon turns to a check for two seconds, and the toast says so (11e). */
-function useCopy() {
+export function useCopy() {
 	const toast = useToast()
 	const [copied, setCopied] = useState(null)
 	const timer = useRef(0)

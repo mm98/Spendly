@@ -14,6 +14,7 @@ import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
 import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
+import { securityLog } from './lib/securityLog.js'
 import { router as twoStepRouter, signInRouter as twoStepSignInRouter } from './routes/twoStep.js'
 import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
@@ -78,7 +79,10 @@ app.use((req, res, next) => {
 app.use('/api', (req, res, next) => {
 	if (req.method === 'GET' || req.method === 'HEAD') return next()
 	const from = req.headers['sec-fetch-site']
-	if (from && from !== 'same-origin' && from !== 'none') return res.status(403).json({ error: 'This request did not come from Spendly.' })
+	if (from && from !== 'same-origin' && from !== 'none') {
+		securityLog(req, 'request-from-another-site', { fetchSite: from, origin: req.headers.origin ?? null })
+		return res.status(403).json({ error: 'This request did not come from Spendly.' })
+	}
 	next()
 })
 

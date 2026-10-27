@@ -1,3 +1,5 @@
+import { securityLog } from './securityLog.js'
+
 /* Counts in memory: a restart forgets every count, which only lets a visitor start again. */
 
 // past this many keys, the oldest go, so many visitors cannot fill the server's memory
@@ -27,7 +29,10 @@ export function limitPerVisitor({ most, perSeconds }) {
 	const take = windowCounter({ most, perSeconds })
 	return (req, res, next) => {
 		const wait = take(req.ip)
-		if (wait) return res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+		if (wait) {
+			securityLog(req, 'rate-limited', { waitSeconds: wait })
+			return res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+		}
 		next()
 	}
 }

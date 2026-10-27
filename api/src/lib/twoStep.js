@@ -1,7 +1,8 @@
 import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto'
+import { renderSVG } from 'uqr'
 import { db } from '../db.js'
 import { nowEpoch } from './dates.js'
-import { lockSecret, unlockSecret } from './secretBox.js'
+import { lockSecret, secretBoxReady, unlockSecret } from './secretBox.js'
 
 /* Two-step sign-in: time-based codes from an authenticator app (RFC 6238: SHA-1, 6 digits,
    30 seconds, the values every app expects), and one-time recovery codes in their place. */
@@ -87,7 +88,7 @@ export const twoStepOn = userId => Boolean(selectTwoStep.get(userId)?.turned_on_
 export function twoStepState(userId) {
 	const row = selectTwoStep.get(userId)
 	const on = Boolean(row?.turned_on_at)
-	return { on, onSince: on ? row.turned_on_at : null, recoveryCodesLeft: on ? countCodes.get(userId).n : 0 }
+	return { available: secretBoxReady(), on, onSince: on ? row.turned_on_at : null, recoveryCodesLeft: on ? countCodes.get(userId).n : 0 }
 }
 
 /** A new key, waiting for its first right code. Replaces one that waited before. */
@@ -96,7 +97,9 @@ export function startTwoStep(userId, email) {
 	upsertWaiting.run(userId, lockSecret(secret), nowEpoch())
 	const key = base32(secret)
 	const label = encodeURIComponent(`Spendly:${email}`)
-	return { key, uri: `otpauth://totp/${label}?secret=${key}&issuer=Spendly&algorithm=SHA1&digits=${DIGITS}&period=${STEP_SECONDS}` }
+	// SHA-1, 6 digits and 30 seconds are what an app assumes when the address names none
+	const uri = `otpauth://totp/${label}?secret=${key}&issuer=Spendly`
+	return { key, uri, qr: renderSVG(uri) }
 }
 
 function newRecoveryCodes(userId) {

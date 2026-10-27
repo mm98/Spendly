@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { hashPassword, verifyPassword, createSession, destroySession, requireAuth } from '../lib/auth.js'
+import { hashPassword, verifyPassword, createSession, destroySession, requireAuth, sessionUser } from '../lib/auth.js'
 import { LOCALES } from '../lib/constants.js'
 import { nowEpoch } from '../lib/dates.js'
 import { emailMessage } from '../lib/emails.js'
@@ -13,6 +13,7 @@ import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib
 import { seedAccountDefaults } from '../seed.js'
 import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 import { openTicket, twoStepOn } from '../lib/twoStep.js'
+import { securityLog } from '../lib/securityLog.js'
 
 export const router = Router()
 
@@ -51,7 +52,10 @@ export const locked = (res, wait) => res.status(429).json({ error: 'Too many att
     `{ wait }` in seconds while locked, `{}` when it is wrong. */
 export async function checkPassword(req, email, password) {
 	const wait = lockedFor(email, req.ip)
-	if (wait) return { wait }
+	if (wait) {
+		securityLog(req, 'password-locked', { email, waitSeconds: wait })
+		return { wait }
+	}
 	// counted before the check and cleared once it is right, so attempts sent at once all count
 	const now = nowEpoch()
 	db.transaction(() => {
@@ -61,6 +65,7 @@ export async function checkPassword(req, email, password) {
 	const user = findUserByEmail.get(email)
 	if (!user || !(await verifyPassword(password, user.password_hash))) {
 		const after = lockedFor(email, req.ip, now)
+		securityLog(req, 'password-wrong', { email, account: user ? user.id : 'none', ...(after ? { nowLockedSeconds: after } : {}) })
 		return after ? { wait: after } : {}
 	}
 	clearFailures.run(email)
@@ -127,6 +132,7 @@ router.post('/register', registerLimit, async (req, res) => {
 
 	if (!confirmed) inBackground(sendLink(req, { id, name }, 'confirm', email))
 	const token = createSession(req, res, id)
+	securityLog(req, 'account-created', { email, userId: id })
 	res.status(201).json({ id, email, token, needsSetup: true, emailConfirmed: Boolean(confirmed) })
 })
 
@@ -138,12 +144,18 @@ router.post('/login', signInLimit, async (req, res) => {
 	if (!user) return res.status(401).json({ error: 'Wrong email or password.' })
 	const remember = req.body?.remember !== false
 	// no session yet: the code step (POST /api/auth/two-step) opens it with this ticket
-	if (twoStepOn(user.id)) return res.json({ twoStep: true, ticket: openTicket(user.id, remember) })
+	if (twoStepOn(user.id)) {
+		securityLog(req, 'password-right-code-asked', { email: user.email, userId: user.id })
+		return res.json({ twoStep: true, ticket: openTicket(user.id, remember) })
+	}
+	securityLog(req, 'signed-in', { email: user.email, userId: user.id, with: 'password', remember })
 	const token = createSession(req, res, user.id, { remember })
 	res.json({ id: user.id, email: user.email, token, needsSetup: Boolean(user.needs_setup) })
 })
 
 router.post('/logout', (req, res) => {
+	const user = sessionUser(req)
+	if (user) securityLog(req, 'signed-out', { email: user.email, userId: user.id })
 	destroySession(req, res)
 	res.status(204).end()
 })
@@ -216,12 +228,16 @@ router.post('/confirm', (req, res) => {
 	const { state, row } = readToken(token, 'confirm')
 	const user = row ? selectUser.get(row.user_id) : null
 	// a link for any address but the account's own confirms nothing: the address cannot be changed (20b)
-	if (state === 'expired' || row.email !== user.email) return res.json({ state: 'expired', email: user?.email ?? null })
+	if (state === 'expired' || row.email !== user.email) {
+		securityLog(req, 'email-link-refused', { kind: 'confirm', state, email: user?.email ?? null })
+		return res.json({ state: 'expired', email: user?.email ?? null })
+	}
 	if (state === 'used') return res.json({ state: user.email_confirmed ? 'already' : 'expired', email: user.email })
 	db.transaction(() => {
 		confirmEmail.run(user.id)
 		useToken(token)
 	})()
+	securityLog(req, 'email-confirmed', { email: row.email, userId: user.id })
 	res.json({ state: 'confirmed', email: row.email })
 })
 
@@ -237,7 +253,9 @@ router.post('/reset', resetLimit, (req, res) => {
 	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
 	const user = findUserByEmail.get(email)
 	// never awaited: how long the send takes, or whether it fails, must not tell which addresses have accounts
-	if (user && !resendWait(user.id, 'reset') && !resetEmailWait(user.id)) inBackground(sendLink(req, user, 'reset', email))
+	const sending = Boolean(user && !resendWait(user.id, 'reset') && !resetEmailWait(user.id))
+	securityLog(req, 'reset-asked', { email, account: user ? user.id : 'none', sent: sending })
+	if (sending) inBackground(sendLink(req, user, 'reset', email))
 	res.json({ email })
 })
 
@@ -250,7 +268,10 @@ router.get('/reset/:token', (req, res) => {
 /** The new password from a reset link: every other session and every passkey ends, and this browser is signed in. */
 router.post('/reset/:token', async (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
-	if (state !== 'valid') return res.status(410).json({ error: 'That link has expired.', state })
+	if (state !== 'valid') {
+		securityLog(req, 'email-link-refused', { kind: 'reset', state, email: row?.email ?? null })
+		return res.status(410).json({ error: 'That link has expired.', state })
+	}
 	const password = String(req.body?.password ?? '')
 	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
 	const hash = await hashPassword(password)
@@ -262,6 +283,7 @@ router.post('/reset/:token', async (req, res) => {
 	})()
 	clearFailures.run(row.email)
 	sendPasswordChanged(req, row.user_id)
+	securityLog(req, 'password-reset', { email: row.email, userId: row.user_id, endedEverySession: true, removedPasskeys: true })
 	createSession(req, res, row.user_id)
 	res.json({ email: row.email })
 })

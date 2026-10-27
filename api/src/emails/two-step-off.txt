@@ -1,0 +1,13 @@
+Subject: Two-step sign-in is off for your Spendly account
+
+Two-step sign-in is off
+
+Two-step sign-in was turned off for {{email}} on {{changed_at}}. Signing in now asks only for the password.
+
+Open Settings:
+{{action_url}}
+
+If this was not you, reset your password and ask the person who runs this Spendly server.
+
+--
+We write to you whenever two-step sign-in is turned on or off.
