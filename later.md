@@ -4,26 +4,6 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## On a phone a Settings list row puts its buttons under the name
-
-- **Where:** `react/src/styles/app.css`, `.sp-touch .st-pk-row`.
-- **What the reader sees:** on a phone, a passkey, a token and two-step sign-in's On since row show
-  the name on its own line and the buttons under it. The drawing (25b) shows these rows only on a
-  computer, where the buttons sit at the right; at 375px they squeezed the name to one word.
-- **Rule the app adds:** on touch a list row wraps, its name first at the full width.
-  For Claude Design to take into `design/` (25f).
-- **Found:** 2026-10-27.
-
-## A card name beside a head button does not wrap
-
-- **Where:** `react/src/styles/app.css`, the rule for `.sp-card__head:has(> .sp-btn) > .sp-section-label`.
-- **What the reader sees:** on a phone, Settings' first card in Sign-in and security reads
-  SIGN-IN AND SECURITY · TWO-STEP SIGN-IN beside All settings. The design keeps a card name on one
-  line, so the button was pushed out of the card.
-- **Rule the app adds:** a card name beside a head button may shrink and wrap onto a second line.
-  For Claude Design to take into `design/` (25f and the card head, c1).
-- **Found:** 2026-10-27.
-
 ## Large accounts still make everyone wait on a few pages
 
 - **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
@@ -104,3 +84,19 @@ is removed in the change that settles it.
   the TextField component has no variant that sets it. The component change is Claude Design's.
 - **Found:** 2026-10-27.
 
+## Settings menu line under a notice
+
+- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
+- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
+  notice to confirm the email sits above the page, the line now starts under the notice instead.
+- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
+- **Found:** 2026-10-27.
+
+## Settings is built in its earlier layout, not the one in `design/`
+
+- **Where:** Settings (`react/src/pages/Settings*.jsx`, `react/src/styles/pages/settings.css`).
+- **What the reader sees:** the menu of sections beside the cards (11a). `design/` draws Settings in
+  five groups, one at a time (Settings structure options, 25).
+- **Why:** the user chose to keep the earlier layout. A build from `design/` brings the five groups
+  back, so Claude Design changes Settings in `design/` first.
+- **Found:** 2026-10-27.

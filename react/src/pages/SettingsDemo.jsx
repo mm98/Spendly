@@ -9,7 +9,7 @@ import { Gauge } from '../components/Data.jsx'
 import { invalidate } from '../api/useApi.js'
 import { populateDemoData } from '../api/client.js'
 import { amount, plural } from '../api/format.js'
-import { Choose, SettingRow, landing, useStepFocus } from './SettingsParts.jsx'
+import { Choose, landing, useStepFocus } from './SettingsParts.jsx'
 
 const COUNTS = [500, 1000, 5000, 10000, 25000, 50000]
 // months, which is the unit the fill spreads by; offered in years
@@ -52,7 +52,7 @@ export function DemoCard() {
 
 	if (stage.name === 'choosing') return (
 		<Card ref={box} footerCommits footerLayout="split" footer={[
-			<Button key="cancel" variant="outline" onClick={() => go({ name: 'rest' })}>Cancel</Button>,
+			<Button key="cancel" variant="outline" onClick={() => go({ name: 'rest' }, 'action')}>Cancel</Button>,
 			<Button key="confirm" color="danger" onClick={fill}>Yes, fill it</Button>
 		]}>
 			{heading}
@@ -120,13 +120,9 @@ export function DemoCard() {
 	)
 
 	return (
-		<Card ref={box}>
+		<Card ref={box} footerCommits footer={<Button key="start" variant="outline" fullWidth onClick={choose}>Fill with demo data</Button>}>
 			{heading}
-			<SettingRow label="Demo data" help="Fill the account with made-up orders so the lists and charts have something to show.">
-				<span className="sp-row-flex">
-					<Button variant="outline" size="small" onClick={choose}>Fill with demo data</Button>
-				</span>
-			</SettingRow>
+			<span className="sp-data">{INTRO}</span>
 		</Card>
 	)
 }
