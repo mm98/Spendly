@@ -10,6 +10,10 @@ const wipeLedger = userId => {
 	db.prepare('DELETE FROM bookmarks WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM vendors WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
+	// the budget: years cascade their groups, rows and amounts
+	db.prepare('DELETE FROM budget_years WHERE user_id = ?').run(userId)
+	db.prepare('DELETE FROM budget_accounts WHERE user_id = ?').run(userId)
+	db.prepare('DELETE FROM budget_bank_links WHERE user_id = ?').run(userId)
 }
 
 // a filled account has something in it, so the first run (/welcome) is over

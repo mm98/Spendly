@@ -190,7 +190,7 @@ Everything that needs you, on one page.
 - **AI assistants** - make and remove the tokens an assistant program reads your account with. See [AI assistants](#ai-assistants).
 - **Import** orders from CSV, XLSX or JSON: map the columns, review totals and possible
   duplicates, download skipped rows, and undo an import for 24 hours. A template is included.
-- **Demo data** - fill an account with realistic orders to try Spendly out.
+- **Demo data** - fill an account with realistic orders and a budget for several years to try Spendly out.
 - **This build** - the installed version number, what changed in it and the versions before it, and
   "Update and reload" when a newer one is ready, with what is new in it.
 

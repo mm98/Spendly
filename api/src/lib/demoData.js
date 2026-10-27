@@ -1,5 +1,6 @@
 import { db } from '../db.js'
 import { counted } from './aggregate.js'
+import { populateDemoBudget } from './demoBudget.js'
 import { newId } from './ids.js'
 import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
 
@@ -290,5 +291,9 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 		}
 	})()
 
-	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, bookmarks: BOOKMARKS.length }
+	const firstYear = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - (months - 1), 1)).getUTCFullYear()
+	const budgetYears = populateDemoBudget(userId, { today, firstYear })
+
+	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, bookmarks: BOOKMARKS.length,
+		budgetYears }
 }
