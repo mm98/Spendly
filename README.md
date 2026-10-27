@@ -248,28 +248,12 @@ Everything that needs you, on one page.
 
 ### AI assistants
 
-**Ask** is a page for questions about your money, in the sidebar above Settings (on a phone, under
-More). Type a question and Spendly answers from your own orders, with amounts, short lists, tables,
-charts and links to the orders, vendors and categories it talks about. It only reads; it never
-changes anything. It needs `ANTHROPIC_API_KEY` on the server.
-
-- **Chats are kept** for 30 days after the last question. **Chats** lists them with a search, and
-  each can be opened, continued, emailed to yourself or deleted.
-- **Files and charts.** Ask for a spreadsheet, document, PDF or CSV file and the answer holds it to
-  download. **Files** lists what Ask made in the last 30 days.
-- **What Ask can do** lists the file formats and chart kinds, each with an example question.
-- **Saved questions** can be asked again with one press, up to 8 per account.
-- **Offers in shops now.** Ask for the cheapest price of a grocery item this week, and Spendly shows
-  current offers from Danish shops through [Tilbudsugen](https://www.tilbudsugen.dk). Offers are only
-  looked up when you ask, and never count in your own figures.
-- **Daily limits:** 25 questions (`SPENDLY_ASK_QUESTIONS_PER_DAY`) and 10 files
-  (`SPENDLY_ASK_FILES_PER_DAY`) per account. The server's owner (`SPENDLY_OWNER_EMAIL`) has none.
-
-**An assistant program** such as Claude, Claude Code, Cursor or ChatGPT can also read your account,
-through the address `/mcp` on your Spendly server. It can find orders, categories, shops, budgets
-and statistics, and cannot change anything. Make a token for it in Settings, AI assistants: give it
-a name, and Spendly shows the token once, with the setup text to paste. Removing a token stops it
-at once.
+- **Ask** - ask questions about your money in plain words, and Spendly answers from your own
+  orders with amounts, tables, charts and links. It can make a spreadsheet, document, PDF or CSV file
+  to download, and look up this week's grocery offers in Danish shops. Chats and files are kept for 30
+  days. Ask only reads, never changes anything, and needs `ANTHROPIC_API_KEY` on the server.
+- **Assistant programs** such as Claude, Cursor or ChatGPT can read your account through `/mcp`, with
+  a token made in Settings, AI assistants. They only read, too.
 
 ## Running it
 
