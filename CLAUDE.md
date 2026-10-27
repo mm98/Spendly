@@ -137,9 +137,10 @@ have to. Putting screens together from its patterns is the build's job:
   in the note. When the answer comes back, check all of them in one pass.
 - **A design fault is the build's to fix.** A rule that breaks in practice (a clipped outline, a
   column that does not fit, an overflow) is fixed in `app.css` with the smallest change that keeps
-  the drawn look, listed once in the pull request so the user can overrule it, and written in
-  `later.md` with the rule it adds, so Claude Design can take it into `design/`. It is not a brief.
-  The change that brings the rule into `design/` removes it from `app.css` and its `later.md` entry.
+  the drawn look, and listed once in the pull request so the user can overrule it. The rule it adds
+  still has to reach `design/`: ask the user, before the pull request opens, whether a brief goes to
+  Claude Design now or the rule waits in `later.md`. The change that brings the rule into `design/`
+  removes it from `app.css` and from `later.md`.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
@@ -553,9 +554,10 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   rendered it. Mid-work, "not rendered yet" is a complete, honest status.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag what you couldn't close, in the same breath as what you did.
-- **A problem found that is not the change's own, and not urgent, goes in `later.md`,** never
-  into the change, and so does anything to remember or look at again: where, what the reader sees,
-  what was found and when. The change that settles one removes its entry.
+- **A problem found that is not the change's own, and not urgent, stays out of the change.** An
+  entry is never added to `later.md` without asking: the user decides whether it is settled now (a
+  brief to Claude Design, or a fix in this session) or waits in `later.md`. An entry says where, what
+  the reader sees, what was found and when. The change that settles one removes its entry.
 - **The pull request is where the session ends. Never offer to watch it.** This has been asked and
   declined repeatedly across this repo's history — it isn't a default choice to offer. If watching is
   wanted, it will be asked for explicitly, and then the PR is subscribed to and driven to merge.
