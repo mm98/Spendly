@@ -12,6 +12,7 @@ const GO_KEYS = [
 	['t', 'statistics', '/statistics', 'Statistics'],
 	['v', 'vendors', '/vendors', 'Vendors'],
 	['c', 'categories', '/categories', 'Categories'],
+	['b', 'budget', '/budget', 'Budget'],
 	['a', 'ask', '/ask', 'Ask'],
 	['s', 'settings', '/settings', 'Settings']
 ]
