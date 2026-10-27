@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { securityLog } from '../lib/securityLog.js'
 import { mcpTokenUser } from '../lib/mcpTokens.js'
 import { callTool, toolList } from '../lib/mcpTools.js'
 
@@ -57,6 +58,7 @@ async function answer(message, token, self) {
 function signedIn(req, res, next) {
 	const token = tokenOf(req)
 	if (!mcpTokenUser(token)) {
+		securityLog(req, 'assistant-token-refused', { reason: token ? 'unknown or removed token' : 'no token' })
 		res.setHeader('WWW-Authenticate', 'Bearer realm="spendly"')
 		return res.status(401).json(refuse(null, INVALID_REQUEST, 'The token is missing, or it was removed in Settings.'))
 	}

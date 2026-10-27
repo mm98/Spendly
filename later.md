@@ -71,3 +71,24 @@ is removed in the change that settles it.
   lines were as common after the guard was added as before. The repo cannot switch the hook on.
 - **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
 - **Found:** 2026-10-26.
+
+## Two-step sign-in: questions for Claude Design
+
+- **Where:** Settings, Two-step sign-in (`react/src/pages/SettingsTwoStep.jsx`), and the code step
+  when signing in (`react/src/pages/SignIn.jsx`, `react/src/app/SessionDialog.jsx`).
+- **What the reader sees:** the recovery codes can only be downloaded. The design notes name a
+  "Copy all" button, but the drawing shows only Download, so it is not built. The 6-digit code field
+  shows its digits in the normal text style, not in even-width digits, because the field cannot take
+  a style of its own.
+- **What is wanted:** Claude Design decides whether "Copy all" is drawn beside Download, and whether
+  the code field gets an even-width digits variant. The wait after too many wrong codes is not drawn
+  for New recovery codes and Turn off either; the build uses the warning row from the code step.
+- **Found:** 2026-10-27.
+
+## Settings menu line under a notice
+
+- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
+- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
+  notice to confirm the email sits above the page, the line now starts under the notice instead.
+- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
+- **Found:** 2026-10-27.

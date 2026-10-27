@@ -28,6 +28,7 @@ import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './Se
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
+import { TwoStepCard, useTwoStepWord } from './SettingsTwoStep.jsx'
 import { AssistantsCard, useAssistantTokenCount, useAssistantsState } from './SettingsAssistants.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
@@ -123,9 +124,10 @@ export default function Settings() {
 	const saved = settings.data && user.data
 		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
-	// Passkeys is a card under Account and profile, and on a phone a page of its own (7a)
-	const current = SECTIONS.some(s => s.key === section) || section === 'passkeys' ? section : null
-	const navCurrent = key => (key === 'passkeys' ? 'account' : key)
+	// Passkeys and two-step sign-in are cards under Account and profile, and on a phone pages of their own (7a)
+	const ownPages = ['passkeys', 'two-step']
+	const current = SECTIONS.some(s => s.key === section) || ownPages.includes(section) ? section : null
+	const navCurrent = key => (ownPages.includes(key) ? 'account' : key)
 
 	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data])
 	const stored = key => (key in landed ? landed[key] : saved?.[key])
@@ -187,8 +189,9 @@ export default function Settings() {
 	const cards = {
 		account: touch
 			? <AccountCard key="account" user={user.data} {...fields} />
-			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />],
+			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />, <TwoStepCard key="two-step" />],
 		passkeys: <PasskeysCard key="passkeys" />,
+		'two-step': <TwoStepCard key="two-step" />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
@@ -529,10 +532,11 @@ function ListsCard({ value, change, touch }) {
 	)
 }
 
-/* Below 640 the panes are a list (7a): the account first, then its passkeys, then one row per pane. */
+/* Below 640 the panes are a list (7a): the account first, then its passkeys and two-step sign-in, then one row per pane. */
 function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
 	const passkeys = usePasskeyCount()
+	const twoStep = useTwoStepWord()
 	// a pane's row can carry a count beside its name, as AI assistants does (7a)
 	const counts = { assistants: useAssistantTokenCount() }
 	const email = user?.email
@@ -560,6 +564,10 @@ function PhoneIndex({ user }) {
 						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
 					</ListItem>
 				)}
+			<ListItem variant="card" chevron={chevron} to="/settings/two-step">
+				<span className="sp-data sp-grow">Two-step sign-in</span>
+				{twoStep ? <span className="sp-meta">{twoStep}</span> : null}
+			</ListItem>
 			<StatusEmailRows user={user} />
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>

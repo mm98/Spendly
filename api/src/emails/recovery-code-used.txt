@@ -1,0 +1,13 @@
+Subject: A recovery code was used for your Spendly account
+
+A recovery code was used
+
+A recovery code was used to sign in to {{email}} on {{changed_at}}. {{codes_left}} of 10 recovery codes are left.
+
+Make new codes:
+{{action_url}}
+
+If this was not you, reset your password and ask the person who runs this Spendly server.
+
+--
+We write to you whenever a recovery code is used.

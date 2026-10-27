@@ -3,6 +3,7 @@ import { upload } from '../lib/upload.js'
 import sharp from 'sharp'
 import { db } from '../db.js'
 import { endOtherSessions, hashPassword } from '../lib/auth.js'
+import { securityLog } from '../lib/securityLog.js'
 import { nowEpoch } from '../lib/dates.js'
 import { detectFileType } from '../lib/fileType.js'
 import { toSquare } from '../lib/images.js'
@@ -73,6 +74,7 @@ router.post('/password', async (req, res) => {
 		setPassword.run(newHash, req.user.id)
 		endOtherSessions(req, req.user.id)
 	})()
+	securityLog(req, 'password-changed', { endedOtherSessions: true })
 	sendPasswordChanged(req, req.user.id)
 	res.json({ passwordChangedAt: nowEpoch() })
 })

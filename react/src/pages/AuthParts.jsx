@@ -163,3 +163,26 @@ export function useMail() {
 export function useAuthOptions() {
 	return useApi(getAuthOptions).data ?? null
 }
+
+/* The code step (20g): after a right password, for an account with two-step sign-in on. A code
+   from the app, or one of the recovery codes, in the one field. */
+export const CODE_KINDS = {
+	app: {
+		label: 'Code', line: 'Type the 6-digit code from your authenticator app.', other: 'Use a recovery code instead',
+		wrong: 'That code is not right. Check the time on your phone, and try the newest code.',
+		field: { inputMode: 'numeric', autoComplete: 'one-time-code', pattern: '[0-9]*', maxLength: 6 }
+	},
+	recovery: {
+		label: 'Recovery code', line: 'Type one of your recovery codes.', other: 'Use a code from the app instead',
+		wrong: 'That recovery code is not right, or it was used already.',
+		field: { autoComplete: 'off', autoCapitalize: 'characters', spellCheck: false, maxLength: 9 }
+	}
+}
+export const LOST_BOTH = 'Lost your phone and your recovery codes? Ask the person who runs this Spendly server.'
+// spaces typed or pasted are dropped (20g)
+export const cleanCode = value => value.replace(/\s+/g, '')
+
+/** A link that does something on this page rather than go anywhere. */
+export function ActionLink({ onClick, children }) {
+	return <a href="#" role="button" className="sp-strong au-across" onClick={ev => { ev.preventDefault(); onClick() }}>{children}</a>
+}

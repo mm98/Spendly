@@ -179,7 +179,8 @@ Everything that needs you, on one page.
 
 ![Settings](docs/settings.png)
 
-- **Account** - name, picture, password, and **passkeys** (fingerprint, face or device PIN).
+- **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN), and
+  **two-step sign-in** (a code from an app on your phone).
 - **Status email** - a weekly or monthly summary of spending, saving, limits, your latest orders and bookmarks.
 - **Appearance** - light, dark or follow the system; comfortable or compact rows.
 - **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
@@ -219,6 +220,23 @@ Everything that needs you, on one page.
 - **Changing the password** in Settings signs out every other device. A **password reset** signs
   out every device and removes every passkey.
 - **Adding a passkey** asks for the password first.
+- **Two-step sign-in** is turned on in Settings, Account and profile: give your password, scan the
+  QR code with an authenticator app (or type its key), then type the first code. Signing in with a
+  password then asks for the 6-digit code from the app. A passkey sign-in does not.
+- **10 recovery codes** are shown once when it is turned on, to write down or download. Each
+  works once in place of a code from the app. "New recovery codes" makes a new set, and the old one
+  stops working.
+- **Turning it off** asks for the password and a code. Turning it on signs out every other device. A
+  password reset keeps it on. You get an email when it is turned on or off, and when a recovery code
+  signs in.
+- **After 5 wrong codes** in 15 minutes, the code step pauses for 5 minutes. The code step lasts 5
+  minutes after the password.
+- **Lost your phone and your recovery codes?** The person who runs the server types
+  `docker exec spendly node api/scripts/two-step-off.mjs you@example.com`. It turns two-step sign-in
+  off for that account, signs it out everywhere and sends the email.
+- **Every security event is written to the log**: each sign-in, wrong password, wrong code, lock-out,
+  refused link, passkey, assistant token, ended session and request from another site, with the
+  account, the network address and the browser. A password, code, link or token is never written.
 - **After 5 wrong passwords** in 15 minutes from one device, signing in to that email from that
   device pauses for 5 minutes. Each device also has a limit on how often it can try to sign in,
   register or ask for a reset email.
@@ -364,6 +382,7 @@ log is only in the container.
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |
 | `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and uses Ask without a daily limit | The first account made on the server. |
+| `SPENDLY_SECRET_KEY` | Your own key for the codes of two-step sign-in, kept outside `/data`, so a copy of that folder does not hold it | Spendly makes a key in `/data/secret.key`. Keep it with the backup: without it, two-step sign-in must be turned on again. |
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |
@@ -384,6 +403,7 @@ printed amounts.
 | Category suggestions | A small language model, run on the server with [Transformers.js](https://huggingface.co/docs/transformers.js) |
 | PDFs and pictures | [MuPDF](https://mupdf.com) and [sharp](https://sharp.pixelplumbing.com) |
 | Passkeys | [SimpleWebAuthn](https://simplewebauthn.dev) |
+| QR code for two-step sign-in | [uqr](https://github.com/unjs/uqr) |
 | Assistants | The [Model Context Protocol](https://modelcontextprotocol.io), over HTTP |
 | Email | [Nodemailer](https://nodemailer.com) |
 | Shipping | [Docker](https://www.docker.com), built and published by GitHub Actions |

@@ -5,8 +5,8 @@ import { Icon } from '../components/Icon.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
-import { failureMessage, login } from '../api/client.js'
-import { useCountdown, waitWords } from '../pages/AuthParts.jsx'
+import { cancelTwoStepSignIn, failureMessage, finishTwoStepSignIn, login } from '../api/client.js'
+import { ActionLink, CODE_KINDS, cleanCode, useCountdown, waitWords } from '../pages/AuthParts.jsx'
 
 /** A session that ended mid-use (20e, level 3): the reader signs in again over the page, which
     stays mounted with whatever was typed. With no address in hand, Sign in goes to the sign-in page. */
@@ -17,7 +17,12 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const [lockedFor, setLockedFor] = useCountdown()
-	useEffect(() => { if (asking) document.getElementById('session-password')?.focus() }, [asking])
+	// the code step (20g): the same step as the sign-in page, in this dialog, without the lost-phone line
+	const [ticket, setTicket] = useState(null)
+	const [kind, setKind] = useState('app')
+	const [code, setCode] = useState('')
+	const [timedOut, setTimedOut] = useState(false)
+	useEffect(() => { if (asking) document.getElementById(ticket ? 'session-code' : 'session-password')?.focus() }, [asking, ticket, kind])
 
 	const submit = () => {
 		if (!password) {
@@ -27,7 +32,14 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 		setBusy(true)
 		setAlert(null)
 		login(email, password, true)
-			.then(() => { setPassword(''); onSignedIn() })
+			.then(user => {
+				setPassword('')
+				if (!user.twoStep) return onSignedIn()
+				setBusy(false)
+				setKind('app')
+				setCode('')
+				setTicket(user.ticket)
+			})
 			.catch(e => {
 				setBusy(false)
 				if (e?.status === 429 && e.body?.retryAfter) return setLockedFor(e.body.retryAfter)
@@ -39,15 +51,64 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 	}
 	const locked = lockedFor > 0
 
+	const leaveCodeStep = () => {
+		if (ticket && !timedOut) cancelTwoStepSignIn(ticket).catch(() => {})
+		setTicket(null)
+		setTimedOut(false)
+		setLockedFor(0)
+		setAlert(null)
+		setProblem(null)
+	}
+	const sendCode = () => {
+		if (!code) {
+			setProblem('Enter the code.')
+			return document.getElementById('session-code')?.focus()
+		}
+		setBusy(true)
+		setAlert(null)
+		finishTwoStepSignIn(ticket, code)
+			.then(() => { setTicket(null); onSignedIn() })
+			.catch(e => {
+				setBusy(false)
+				if (e?.status === 429 && e.body?.retryAfter) return setLockedFor(e.body.retryAfter)
+				if (e?.status === 410) return setTimedOut(true)
+				setAlert(e?.status === 401 ? CODE_KINDS[kind].wrong : failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
+				requestAnimationFrame(() => document.getElementById('session-code')?.select())
+			})
+	}
+	const words = CODE_KINDS[kind]
+	const stopped = locked || timedOut
+
 	return (
 		<Dialog onCancel={onLater} aria-label="You've been signed out">
-			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (asking && !locked) submit() }}>
+			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (asking && !stopped && !busy) (ticket ? sendCode : submit)() }}>
 				<DialogTitle>You've been signed out</DialogTitle>
-				<DialogBody>Your session expired. Sign in again to carry on - nothing was lost.</DialogBody>
-				{asking && locked
+				<DialogBody>{ticket ? words.line : 'Your session expired. Sign in again to carry on - nothing was lost.'}</DialogBody>
+				{ticket && timedOut
+					? <Alert color="warning" mark={<Icon name="clock" />} title="This step timed out">The code has to be typed within 5 minutes of the password. Sign in again from the start.</Alert>
+					: ticket && locked
+						? <Alert color="warning" mark={<Icon name="lock" />} title="Too many tries">Sign in is paused for <b>{waitWords(lockedFor)}</b>. Then sign in again from the start.</Alert>
+						: null}
+				{ticket
+					? (
+						<>
+							{alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
+							<Field label={words.label} id="session-code" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
+								<TextField {...words.field} value={code} disabled={stopped || busy}
+									onChange={v => { setCode(cleanCode(v)); setProblem(null); setAlert(null) }} />
+							</Field>
+							{stopped ? null : (
+								<span className="sp-meta">
+									<ActionLink onClick={() => { setKind(k => (k === 'app' ? 'recovery' : 'app')); setCode(''); setProblem(null); setAlert(null) }}>{words.other}</ActionLink>
+								</span>
+							)}
+						</>
+					)
+					: null}
+				{!ticket && asking && locked
 					? <Alert color="warning" mark={<Icon name="lock" />} title="Too many attempts">Sign in is paused for <b>{waitWords(lockedFor)}</b>.</Alert>
-					: asking && alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
-				{asking
+					: !ticket && asking && alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
+				{asking && !ticket
 					? (
 						<>
 							<Field label="Email" id="session-email">
@@ -61,8 +122,11 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 					)
 					: null}
 				<DialogActions>
+					{ticket ? <><Button variant="outline" size="small" onClick={leaveCodeStep}>Back</Button><span className="sp-grow" /></> : null}
 					<Button variant="outline" size="small" onClick={onLater}>Later</Button>
-					{asking
+					{ticket
+						? <Button type="submit" size="small" disabled={busy || stopped}>{busy ? 'Signing in…' : 'Sign in'}</Button>
+						: asking
 						? <Button type="submit" size="small" disabled={busy || locked}>{busy ? 'Signing in…' : 'Sign in'}</Button>
 						: <Button size="small" onClick={() => (email ? setAsking(true) : onSignInPage())}>Sign in</Button>}
 				</DialogActions>

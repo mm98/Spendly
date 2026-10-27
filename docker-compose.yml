@@ -63,6 +63,9 @@ services:
       SPENDLY_UPDATER_URL: "http://watchtower:8080/v1/update"
       # Change it here and in WATCHTOWER_HTTP_API_TOKEN to the same long random text.
       SPENDLY_UPDATER_TOKEN: "change-this-demo-key"
+      # Optional: the key that locks the codes of two-step sign-in. Any long random text. Without it,
+      # Spendly makes /data/secret.key. Never change it later: two-step sign-in would stop working.
+      # SPENDLY_SECRET_KEY: change-this-to-long-random-text
       # Only this account may use "Update and reload". Without it, the first account made on this server may.
       # SPENDLY_OWNER_EMAIL: you@example.com
     volumes:

@@ -14,6 +14,8 @@ import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
 import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
+import { securityLog } from './lib/securityLog.js'
+import { router as twoStepRouter, signInRouter as twoStepSignInRouter } from './routes/twoStep.js'
 import { router as importsRouter } from './routes/imports.js'
 import { router as statsRouter } from './routes/stats.js'
 import { router as scanRouter } from './routes/scan.js'
@@ -77,7 +79,10 @@ app.use((req, res, next) => {
 app.use('/api', (req, res, next) => {
 	if (req.method === 'GET' || req.method === 'HEAD') return next()
 	const from = req.headers['sec-fetch-site']
-	if (from && from !== 'same-origin' && from !== 'none') return res.status(403).json({ error: 'This request did not come from Spendly.' })
+	if (from && from !== 'same-origin' && from !== 'none') {
+		securityLog(req, 'request-from-another-site', { fetchSite: from, origin: req.headers.origin ?? null })
+		return res.status(403).json({ error: 'This request did not come from Spendly.' })
+	}
 	next()
 })
 
@@ -105,7 +110,7 @@ app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '
 // address: a debug log is still a log a terminal keeps scrollback of. Registered only when on,
 // rather than checked every request, so a normal run pays nothing.
 if (process.argv.includes('--debug') || process.env.DEBUG) {
-	const REDACT_KEYS = ['password', 'current', 'token']
+	const REDACT_KEYS = ['password', 'current', 'token', 'code', 'ticket']
 	// a link's code sits in the address too: /api/auth/reset/<code>, /open/confirm/<code>, /api/auth/status-email/stop/<code>, /mcp/<token>
 	const redactedUrl = url => url.replace(/\/(reset|confirm|stop|mcp)\/[^/?#]+/, '/$1/***')
 	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
@@ -269,6 +274,7 @@ app.use('/mcp', mcpRouter)
 
 app.use('/api/auth', authRouter)
 app.use('/api/auth/passkey', passkeySignInRouter)
+app.use('/api/auth/two-step', twoStepSignInRouter)
 
 // a file Ask made is downloaded by following a link, so a signed-out tab is sent to sign-in rather than refused
 app.get('/api/ask/files/:id/download', downloadFile)
@@ -289,6 +295,7 @@ app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/account/passkeys', passkeysRouter)
 app.use('/api/account/mcp-tokens', mcpTokensRouter)
+app.use('/api/account/two-step', twoStepRouter)
 app.use('/api/account', profileRouter)
 app.use('/api/imports', importsRouter)
 app.use('/api/statuses', statusesRouter)

@@ -9,6 +9,7 @@ import { sendPasskeyAdded } from '../lib/notices.js'
 import { keepChallenge, newTicket, passkeyName, passkeySite, takeChallenge } from '../lib/passkeys.js'
 import { forgetReads } from '../lib/readCache.js'
 import { limitPerVisitor } from '../lib/rateLimit.js'
+import { securityLog } from '../lib/securityLog.js'
 import { MAX_NAME, checkPassword, cleanName, locked } from './auth.js'
 
 /* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
@@ -54,16 +55,23 @@ signInRouter.post('/finish', async (req, res) => {
 	const answer = req.body?.response
 	const row = challenge && typeof answer?.id === 'string' ? selectForSignIn.get(answer.id) : null
 	const handle = answer?.response?.userHandle
-	if (!row || (handle && handle !== userHandleOf(row.user_id))) return res.status(401).json({ error: DID_NOT_WORK })
+	if (!row || (handle && handle !== userHandleOf(row.user_id))) {
+		securityLog(req, 'passkey-sign-in-refused', { reason: !challenge ? 'no open prompt' : !row ? 'unknown passkey' : 'passkey of another account', ...(row ? { email: row.email, userId: row.user_id } : {}) })
+		return res.status(401).json({ error: DID_NOT_WORK })
+	}
 	const result = await verifyAuthenticationResponse({
 		response: answer, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		credential: { id: row.id, publicKey: new Uint8Array(row.public_key), counter: row.counter, transports: transportsOf(row) },
 		requireUserVerification: false
 	}).catch(() => null)
-	if (!result?.verified) return res.status(401).json({ error: DID_NOT_WORK })
+	if (!result?.verified) {
+		securityLog(req, 'passkey-sign-in-refused', { reason: 'did not prove itself', email: row.email, userId: row.user_id, passkeyId: row.id })
+		return res.status(401).json({ error: DID_NOT_WORK })
+	}
 	markUsed.run(result.authenticationInfo.newCounter, nowEpoch(), row.id)
 	// "last used" changed outside any request of the account's own, so its cached reads go
 	forgetReads(row.user_id)
+	securityLog(req, 'signed-in', { email: row.email, userId: row.user_id, with: 'passkey', passkeyId: row.id })
 	const token = createSession(req, res, row.user_id, { remember: req.body?.remember !== false })
 	res.json({ id: row.user_id, email: row.email, token, needsSetup: Boolean(row.needs_setup) })
 })
@@ -101,7 +109,10 @@ router.post('/', async (req, res) => {
 		response: req.body?.response, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		requireUserVerification: false
 	}).catch(() => null)
-	if (!result?.verified) return res.status(400).json({ error: 'The passkey could not be added. Try again.' })
+	if (!result?.verified) {
+		securityLog(req, 'passkey-add-refused', { reason: 'did not prove itself' })
+		return res.status(400).json({ error: 'The passkey could not be added. Try again.' })
+	}
 	const { credential, aaguid } = result.registrationInfo
 	const name = passkeyName(aaguid, req.get('user-agent'))
 	const at = nowEpoch()
@@ -112,6 +123,7 @@ router.post('/', async (req, res) => {
 		if (e.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') return res.status(409).json({ error: 'That passkey is already added.' })
 		throw e
 	}
+	securityLog(req, 'passkey-added', { passkeyId: credential.id, name })
 	sendPasskeyAdded(req, req.user.id, name)
 	res.status(201).json(shown({ id: credential.id, name, created_at: at }))
 })
@@ -127,5 +139,6 @@ router.patch('/:id', (req, res) => {
 /** Removing one sends nothing, and the password keeps working, so removing the last one locks nobody out. */
 router.delete('/:id', (req, res) => {
 	if (!deletePasskey.run(req.params.id, req.user.id).changes) return res.status(404).json({ error: 'That passkey is not on this account.' })
+	securityLog(req, 'passkey-removed', { passkeyId: req.params.id })
 	res.status(204).end()
 })
