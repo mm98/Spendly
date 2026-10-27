@@ -80,10 +80,10 @@ router.post('/', async (req, res) => {
 			return res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
 		}
 		const answerMs = Math.round(performance.now() - received)
-		endTurn(turn.turnId, 'answered', out.answer, { answerMs, answerTokens: out.tokens })
+		endTurn(turn.turnId, 'answered', out.answer, { answerMs, answerTokens: out.tokens, answerRounds: out.rounds })
 		noteAnswered(req.user.id, req.today)
 		if (turn.first) writeChatHeading(turn.chatId, turn.turns.at(-1).text, out.answer)
-		res.end(JSON.stringify({ answer: out.answer, made: out.made, answerMs, answerTokens: out.tokens, left: state.left === null ? null : state.left - 1 }) + '\n')
+		res.end(JSON.stringify({ answer: out.answer, made: out.made, answerMs, answerTokens: out.tokens, answerRounds: out.rounds, left: state.left === null ? null : state.left - 1 }) + '\n')
 	} catch (error) {
 		endTurn(turn.turnId, stop.signal.aborted ? 'stopped' : 'failed')
 		if (stop.signal.aborted) return

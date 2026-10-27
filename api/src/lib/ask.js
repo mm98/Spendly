@@ -84,8 +84,8 @@ export function scheduleAskSweep() {
 	setInterval(sweep, 60 * 1000).unref()
 }
 
-/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made, tokens }, or null; `made` holds what
-    each maker made, by id, `tokens` all Claude read and wrote. Tools read with the session `token`; what is being made is told to `onWorking`. */
+/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made, tokens, rounds }, or null; `made` holds
+    what each maker made, by id, `tokens` all Claude read and wrote, `rounds` how often it was asked. Tools read with the session `token`; what is being made is told to `onWorking`. */
 export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
@@ -112,7 +112,7 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 		if (response.stop_reason === 'refusal') return null
 		if (response.stop_reason !== 'tool_use' && response.stop_reason !== 'pause_turn') {
 			const answer = textOf(response.content)
-			return answer ? { answer: withPlaces(answer, making.made), made: making.made, tokens } : null
+			return answer ? { answer: withPlaces(answer, making.made), made: making.made, tokens, rounds: round + 1 } : null
 		}
 		messages.push({ role: 'assistant', content: response.content })
 		if (response.stop_reason === 'pause_turn') continue

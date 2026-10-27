@@ -231,8 +231,12 @@ export default function Ask() {
 }
 
 // the time under a message, from epoch seconds; none while there is none. An answer's time carries what it took
-// on the server, when that was kept: "14:32 (2300 ms, 3410 tokens)"
-const tookOf = turn => [turn?.answerMs != null && `${turn.answerMs} ms`, turn?.answerTokens != null && `${turn.answerTokens} tokens`].filter(Boolean).join(', ')
+// on the server, when that was kept: "14:32 (2300 ms, 3410 tokens, 2 rounds)"
+const tookOf = turn => [
+	turn?.answerMs != null && `${turn.answerMs} ms`,
+	turn?.answerTokens != null && `${turn.answerTokens} tokens`,
+	turn?.answerRounds != null && `${turn.answerRounds} ${turn.answerRounds === 1 ? 'round' : 'rounds'}`
+].filter(Boolean).join(', ')
 const timeOf = (at, turn) => {
 	if (!at) return {}
 	const took = tookOf(turn)

@@ -21,9 +21,9 @@ const touchChat = db.prepare('UPDATE user_ask_chats SET question_count = questio
 const touchCharts = db.prepare('UPDATE user_ask_charts SET expires_at = ? WHERE chat_id = ?')
 const insertTurn = db.prepare("INSERT INTO user_ask_chat_turns (chat_id, question, state, asked_at) VALUES (?, ?, 'working', ?)")
 const selectTurn = db.prepare('SELECT id, question, state FROM user_ask_chat_turns WHERE id = ? AND chat_id = ?')
-const restartTurn = db.prepare("UPDATE user_ask_chat_turns SET state = 'working', answer = NULL, answered_at = NULL, answer_ms = NULL, answer_tokens = NULL WHERE id = ?")
-const finishTurn = db.prepare('UPDATE user_ask_chat_turns SET state = ?, answer = ?, answered_at = ?, answer_ms = ?, answer_tokens = ? WHERE id = ?')
-const selectTurns = db.prepare('SELECT id, question, answer, state, asked_at, answered_at, answer_ms, answer_tokens FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id')
+const restartTurn = db.prepare("UPDATE user_ask_chat_turns SET state = 'working', answer = NULL, answered_at = NULL, answer_ms = NULL, answer_tokens = NULL, answer_rounds = NULL WHERE id = ?")
+const finishTurn = db.prepare('UPDATE user_ask_chat_turns SET state = ?, answer = ?, answered_at = ?, answer_ms = ?, answer_tokens = ?, answer_rounds = ? WHERE id = ?')
+const selectTurns = db.prepare('SELECT id, question, answer, state, asked_at, answered_at, answer_ms, answer_tokens, answer_rounds FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id')
 const selectFirstTurn = db.prepare('SELECT MIN(id) id FROM user_ask_chat_turns WHERE chat_id = ?')
 const selectAnsweredBefore = db.prepare(`SELECT question, answer FROM user_ask_chat_turns
 	WHERE chat_id = ? AND id < ? AND state = 'answered' ORDER BY id DESC LIMIT ?`)
@@ -85,11 +85,12 @@ export const restartFailedTurn = db.transaction(({ userId, chatId, turnId, day, 
 	return { chatId, turnId: turn.id, turns, first: selectFirstTurn.get(chatId).id === turn.id }
 })
 
-/** Ends a question as answered with `answer`, the milliseconds `answerMs` it took and the `answerTokens` Claude
-    spent on it, failed, or stopped; a stopped one has no answer, so no time for it. */
-export const endTurn = (turnId, state, answer = null, { answerMs = null, answerTokens = null } = {}) => {
+/** Ends a question as answered with `answer`, the milliseconds `answerMs` it took and the `answerTokens` and
+    `answerRounds` Claude spent on it, failed, or stopped; a stopped one has no answer, so no time for it. */
+export const endTurn = (turnId, state, answer = null, { answerMs = null, answerTokens = null, answerRounds = null } = {}) => {
 	const answered = state === 'answered'
-	finishTurn.run(state, answer, state === 'stopped' ? null : nowEpoch(), answered ? answerMs : null, answered ? answerTokens : null, turnId)
+	finishTurn.run(state, answer, state === 'stopped' ? null : nowEpoch(),
+		answered ? answerMs : null, answered ? answerTokens : null, answered ? answerRounds : null, turnId)
 }
 
 /** Keeps the chat's heading, written once after its first answer; a heading already there stays. */
@@ -99,14 +100,14 @@ export function nameChat(chatId, heading) {
 }
 
 /** The chat as Ask shows it again: its turns in order, each answered, failed or stopped, with the epoch seconds
-    it was asked and answered at (null on a turn from before times were kept) and the milliseconds and tokens the answer
+    it was asked and answered at (null on a turn from before times were kept) and the milliseconds, tokens and rounds the answer
     took (null when it is not answered, or was answered before they were kept). Null when it
     is deleted or past its days. A question still being answered reads as stopped, as there is nothing to wait for. */
 export function chatOf(userId, chatId) {
 	const chat = selectOpen.get(chatId, userId, nowEpoch())
 	if (!chat) return null
 	const turns = selectTurns.all(chatId).map(t => ({
-		id: t.id, question: t.question, answer: t.answer, state: t.state === 'working' ? 'stopped' : t.state, askedAt: t.asked_at, answeredAt: t.answered_at, answerMs: t.answer_ms, answerTokens: t.answer_tokens
+		id: t.id, question: t.question, answer: t.answer, state: t.state === 'working' ? 'stopped' : t.state, askedAt: t.asked_at, answeredAt: t.answered_at, answerMs: t.answer_ms, answerTokens: t.answer_tokens, answerRounds: t.answer_rounds
 	}))
 	return { id: chat.id, heading: chat.heading ?? chat.first_question, turns }
 }

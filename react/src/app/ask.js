@@ -2,9 +2,9 @@ import { useSyncExternalStore } from 'react'
 import { askQuestion, getAskFileStates, getChat } from '../api/client.js'
 
 /* The chats opened in this visit (24a, 24f), so an answer still coming when the page is left lands in its chat.
-   A turn is { id, question, answer, made, state, doing, askedAt, answeredAt, answerMs, answerTokens }; `made` holds
-   what the answer made by maker and id (file, chart), `doing` says what is being made, the two times are epoch
-   seconds or null, and `answerMs` and `answerTokens` are what the answer took on the server, or null.
+   A turn is { id, question, answer, made, state, doing, askedAt, answeredAt, answerMs, answerTokens, answerRounds };
+   `made` holds what the answer made by maker and id (file, chart), `doing` says what is being made, the two times
+   are epoch seconds or null, and `answerMs`, `answerTokens` and `answerRounds` are what the answer took on the server, or null.
    A chat the server has not named yet is the draft, shown at /ask. */
 
 let owner = null
@@ -136,7 +136,7 @@ function send(body, key) {
 		run.key = step.turn
 	}).then(
 		out => patch(run.chatId, run.key, { state: 'answered', answer: out.answer, made: out.made ?? {}, doing: null, answeredAt: nowSeconds(),
-			answerMs: out.answerMs ?? null, answerTokens: out.answerTokens ?? null }),
+			answerMs: out.answerMs ?? null, answerTokens: out.answerTokens ?? null, answerRounds: out.answerRounds ?? null }),
 		error => {
 			if (error.status === 404 && error.body?.gone) {
 				chats.set(run.chatId, { id: run.chatId, status: 'gone', turns: [] })
@@ -178,7 +178,7 @@ export const useAsking = () => useSyncExternalStore(subscribe, () => !!asking)
 /** Asks a failed turn's question again, in its own place. */
 export function askAgain(id) {
 	if (asking || !shownId) return
-	patch(shownId, id, { state: 'working', doing: null, answeredAt: null, answerMs: null, answerTokens: null })
+	patch(shownId, id, { state: 'working', doing: null, answeredAt: null, answerMs: null, answerTokens: null, answerRounds: null })
 	send({ chatId: shownId, retry: id }, id)
 }
 
