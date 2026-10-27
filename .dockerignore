@@ -1,11 +1,24 @@
+# Only what a stage of the Dockerfile copies is sent to the build. Release notes and the version
+# are worked out on the runner before the build and reach the image as build arguments.
+*
+!api
+!react
+!storybook
+
 **/node_modules
+**/.gitignore
+**/*.md
 react/dist
-design
 storybook/dist
-docs
-*.html
-*.md
-*.sqlite3
-data
-.git
 api/.models
+api/*.sqlite3
+
+# Checks and tests. api/scripts stays: fetch-model.mjs is run by the build, the rest inside a
+# running container. react/scripts/precompress.mjs runs after the app build.
+api/test
+api/query-plans.json
+api/scripts/check-queries.mjs
+react/scripts
+!react/scripts/precompress.mjs
+storybook/tests
+storybook/scripts
