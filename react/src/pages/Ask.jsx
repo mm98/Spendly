@@ -182,7 +182,7 @@ export default function Ask() {
 									t.state === 'stopped'
 										? null
 										: (
-											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id} {...timeOf(answeredAt)}>
+											<ChatMessage key={`a${t.id}`} mark={<SpendlyMark />} data-turn={t.id} {...timeOf(answeredAt, t.state === 'answered' ? t : null)}>
 												<ChatReply state={t.state} doing={t.doing?.doing} onRetry={() => askAgain(t.id)}>
 													{t.state === 'answered' ? <AnswerText text={t.answer} made={t.made} onOpen={to => navigate(to)} /> : null}
 												</ChatReply>
@@ -230,8 +230,14 @@ export default function Ask() {
 	)
 }
 
-// the time under a message, from epoch seconds; none while there is none
-const timeOf = at => (at ? { time: messageTime(at), sentAt: new Date(at * 1000).toISOString() } : {})
+// the time under a message, from epoch seconds; none while there is none. An answer's time carries what it took
+// on the server, when that was kept: "14:32 (2300 ms, 3410 tokens)"
+const tookOf = turn => [turn?.answerMs != null && `${turn.answerMs} ms`, turn?.answerTokens != null && `${turn.answerTokens} tokens`].filter(Boolean).join(', ')
+const timeOf = (at, turn) => {
+	if (!at) return {}
+	const took = tookOf(turn)
+	return { time: took ? `${messageTime(at)} (${took})` : messageTime(at), sentAt: new Date(at * 1000).toISOString() }
+}
 
 /* The reader's own mark, the one the sidebar's account row shows: the photo, or initials on its swatch. */
 function AccountMark({ name, email, picture }) {
