@@ -73,15 +73,6 @@ is removed in the change that settles it.
 - **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
 - **Found:** 2026-10-26.
 
-## Settings is built in its earlier layout, not the one in `design/`
-
-- **Where:** Settings (`react/src/pages/Settings*.jsx`, `react/src/styles/pages/settings.css`).
-- **What the reader sees:** the menu of sections beside the cards (11a). `design/` draws Settings in
-  five groups, one at a time (Settings structure options, 25).
-- **Why:** the user chose to keep the earlier layout. A build from `design/` brings the five groups
-  back, so Claude Design changes Settings in `design/` first.
-- **Found:** 2026-10-27.
-
 ## A row's grip lets the screen scroll on a touch screen
 
 - **Where:** every list a row is moved in by its grip: Saved views, Statuses, budget accounts,
