@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261026d">
+<link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/settings.css?v=v20261027b">
 <script src="./components.js?v=v20261024s"></script>
@@ -1855,7 +1855,7 @@
             <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-c1">Code</label>
-              <input class="sp-input sp-number" id="st-2s-c1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+              <input class="sp-input sp-input--code" id="st-2s-c1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
           </div>
@@ -1867,7 +1867,7 @@
             <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-c2">Code</label>
-              <input class="sp-input sp-number" id="st-2s-c2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="4821" data-focus="true">
+              <input class="sp-input sp-input--code" id="st-2s-c2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="4821" data-focus="true">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
           </div>
@@ -1879,7 +1879,7 @@
             <span class="sp-dialog__body">Type the 6-digit code the app now shows.</span>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-c3">Code</label>
-              <input class="sp-input sp-number" id="st-2s-c3" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-c3-help">
+              <input class="sp-input sp-input--code" id="st-2s-c3" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-c3-help">
               <span class="sp-field__help" data-color="danger" id="st-2s-c3-help">That code is not right. Check the time on your phone, and try the newest code.</span>
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Turn on</button></div>
@@ -1898,7 +1898,7 @@
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-c4">Code</label>
-              <input class="sp-input sp-number" id="st-2s-c4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
+              <input class="sp-input sp-input--code" id="st-2s-c4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Back</button><span class="sp-grow"></span><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn" disabled="{{ true }}">Turn on</button></div>
           </div>
@@ -2036,9 +2036,9 @@
       <div class="doc-note"><b>Turning it on is one dialog in three steps</b>, the Add a passkey dialog's shape (<code>SettingsPasskeys.jsx</code>), on a phone too, where the dialog sits at the phone's inset and its buttons are 48px. The step count "1 of 3" sits on the heading's line. Cancel, Escape and the scrim close it at steps 1 to 3, and nothing is turned on until step 3 is right. Back on step 3 returns to the same QR and key, not a new one; closing and opening again makes a new key.</div>
       <div class="doc-note"><b>Step 1</b> is the password, with the errors Add a passkey shows: the server's field message under the field, and the lock-out as the warning row above it with the field and Continue disabled until the wait ends, counting down as sign-in does.</div>
       <div class="doc-note"><b>Step 2, the QR code</b> is a real image on the page, an <code>&lt;img&gt;</code> or inline <code>&lt;svg&gt;</code>, never behind a click or a blur: 1Password on a computer scans it straight off the screen, as a phone camera does. It is drawn from the <code>otpauth://totp/Spendly:&lt;email&gt;?secret=&lt;key&gt;&amp;issuer=Spendly</code> address, 168px, dark modules on white with its quiet zone in both themes, so a camera reads it in dark mode too. The key under it is the same secret, in groups of 4, in the snippet well (<code>.sp-well--snippet</code>, <a href="Components.dc.html#c26">c26</a>) so it wraps on a phone; Copy copies it without the spaces, swaps the icon for a check for 2 seconds and shows the toast "Copied." The order is the same on a phone.</div>
-      <div class="doc-note"><b>Step 3</b> is one field, <code>inputmode="numeric"</code> and <code>autocomplete="one-time-code"</code>, 6 digits; spaces typed or pasted are dropped. Turn on with the field empty says "Enter the code." under it. A wrong code keeps the digits, selects them and shows the line under the field. Too many tries is the warning row with the field and Turn on disabled, counting down.</div>
+      <div class="doc-note"><b>Step 3</b> is one field, <code>inputmode="numeric"</code> and <code>autocomplete="one-time-code"</code>, 6 digits in even-width digits (<code>.sp-input--code</code>), so the code does not shift as it is typed; spaces typed or pasted are dropped. Turn on with the field empty says "Enter the code." under it. A wrong code keeps the digits, selects them and shows the line under the field. Too many tries is the warning row with the field and Turn on disabled, counting down.</div>
       <div class="doc-note"><b>Step 4, the recovery codes, is shown once</b>, right after it turns on: 10 codes of 8 letters and digits in two groups, two columns, in a well. Copy all copies them one per line; Download saves <code>spendly-recovery-codes.txt</code>, one code per line under the account's address and the date. The dialog has no Cancel, no Escape and no scrim close here: only I have saved them closes it. Then the card shows On and the toast says "Two-step sign-in is on."</div>
-      <div class="doc-note"><b>New recovery codes</b> asks for a code from the app or a recovery code in one field, which takes either: 6 digits, or 8 letters and digits with or without the hyphen. A right one replaces all 10 codes and shows them as step 4 does, with the line "Your old recovery codes no longer work." The card's count returns to 10 of 10.</div>
+      <div class="doc-note"><b>New recovery codes</b> asks for a code from the app or a recovery code in one field, which takes either: 6 digits, or 8 letters and digits with or without the hyphen. Too many wrong codes here, and in Turn off, shows the code step's warning row with the field and the button disabled, counting down, as in T3. A right one replaces all 10 codes and shows them as step 4 does, with the line "Your old recovery codes no longer work." The card's count returns to 10 of 10.</div>
       <div class="doc-note"><b>Turn off</b> asks for the password and a code in one go, and answers a wrong pair vaguely, as sign-in does, so it does not say which half was wrong. Turn off is the danger button. After it the card shows Off, the toast says "Two-step sign-in is off." and the turned-off email is sent (<a href="Auth and first run.dc.html#20f">20f</a>). Turning it on sends the turned-on email.</div>
     </div>
   </div>

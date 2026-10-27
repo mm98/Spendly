@@ -1070,6 +1070,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   padding: 0 var(--sp-6);
   font-size: var(--t-12);
   font-weight: 500;
+  border-radius: calc(var(--r-field) / 1.5);
 }
 
 /* icon-only button: row menu, field trail, chip clear */
@@ -1094,8 +1095,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
 .sp-icon-btn--field { width: var(--field-trail); height: var(--field-trail); }
 /* beside an xsmall button, the same 22px; on touch it takes the row size */
-.sp-icon-btn--xsmall { width: 22px; height: 22px; }
-.sp-touch .sp-icon-btn--xsmall { width: 32px; height: 32px; }
+.sp-icon-btn--xsmall { width: 22px; height: 22px; border-radius: calc(var(--r-field) / 1.5); }
+.sp-touch .sp-icon-btn--xsmall { width: 32px; height: 32px; border-radius: var(--r-tile); }
 
 /* ---------- pill - LOCKED c6 ---------- */
 
@@ -1949,7 +1950,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
    otherwise two commits and their label cannot share 375px. */
 .sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 /* xsmall is a desktop size: on touch it is the small button, height and width */
-.sp-touch .sp-btn--xsmall { width: auto; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; }
+.sp-touch .sp-btn--xsmall { width: auto; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; border-radius: var(--r-field); }
 /* A small button in a head - a card's or a list toolbar's - keeps its 34px box on touch,
    so the 54px head keeps the space above and below it, and takes the touch height as
    an invisible area above and below, as the bookmark chip does (Brief 36). The area is
@@ -5621,6 +5622,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a field showing a value the user cannot change here - c17 variant */
 .sp-input--readonly { background: var(--surface-2); color: var(--ink-2); }
+/* a sign-in code (6 digits, or a recovery code): every digit the same width, so the code does
+   not shift as it is typed. A variant of the field, since the field takes no class of its own */
+.sp-input--code { font-variant-numeric: tabular-nums; }
 /* a field with nothing in it yet, where the emptiness is the point - c17 variant */
 .sp-input--empty { border-style: dashed; color: var(--ink-5); }
 /* the same statement on a picker: nothing is chosen, and that is a choice - c8 */
@@ -6398,3 +6402,4 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-nav-item,
 .sp-sum--edits,
 .sp-choice--row { transition: background-color 120ms ease; }
+

@@ -137,6 +137,12 @@
     border-radius: var(--r-tile);
   }
   /* 11f: ten recovery codes in two columns inside their well */
+  /* Settings structure 25: the content column at its full width, and a setting as one
+     row of a wide form - what it is at the left, the control at the right */
+  .st-wide { padding: var(--card-pad); }
+  .st-form-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--sp-16); align-items: center; }
+  .st-form-row.sp-top { align-items: start; }
+  .sp-touch .st-form-row { grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); }
   .st-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-16); }
 
 }

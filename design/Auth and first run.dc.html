@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261026d">
+<link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20261027a">
 <script src="./icons.js?v=v20260917b"></script>
@@ -278,7 +278,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
-    <div class="doc-note"><b class="sp-ink">One field, not six boxes.</b> The code field is <b>type="text"</b> with <b>inputmode="numeric"</b>, <b>autocomplete="one-time-code"</b> and <b>pattern="[0-9]*"</b>, so a phone opens the number keyboard and offers the code from its own app or from a message. Pasting works as in any field; spaces are dropped. It takes focus when the step opens, and Enter submits. A 6th digit typed does not submit by itself.</div>
+    <div class="doc-note"><b class="sp-ink">One field, not six boxes.</b> The code field is <b>type="text"</b> with <b>inputmode="numeric"</b>, <b>autocomplete="one-time-code"</b> and <b>pattern="[0-9]*"</b>, so a phone opens the number keyboard and offers the code from its own app or from a message. Its digits are even-width (<code>.sp-input--code</code>), so the code does not shift as it is typed. Pasting works as in any field; spaces are dropped. It takes focus when the step opens, and Enter submits. A 6th digit typed does not submit by itself.</div>
     <div class="doc-note"><b class="sp-ink">Use a recovery code instead</b> swaps the field in place: the label becomes Recovery code, the line "Type one of your recovery codes.", the keyboard the ordinary one, and the link "Use a code from the app instead" swaps it back. It takes 8 letters and digits, with or without the hyphen, any case. The step remembers neither choice.</div>
     <div class="doc-note"><b class="sp-ink">Back</b> returns to the email and password step with the email kept and the password empty, and ends this step on the server.</div>
     <div class="doc-note"><b class="sp-ink">Wrong code</b> keeps the digits, selects them and shows the line under the field; a wrong recovery code reads "That recovery code is not right, or it was used already." <b class="sp-ink">Too many tries</b> is the amber row, as the password lock-out is: the field is disabled and the only action is Back to sign in. <b class="sp-ink">Timed out</b>: the step lasts 5 minutes from the right password; after that a submit shows the amber row with the clock, and Start again returns to 20a with the email kept.</div>
@@ -301,7 +301,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-2s-1">Code</label>
-            <input class="sp-input sp-number" id="au-2s-1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+            <input class="sp-input sp-input--code" id="au-2s-1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
           </div>
         </div>
         <div class="sp-stack sp-gap-14">
@@ -326,7 +326,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-2s-2">Code</label>
-            <input class="sp-input sp-number" id="au-2s-2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+            <input class="sp-input sp-input--code" id="au-2s-2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
           </div>
         </div>
         <div class="sp-stack sp-gap-14">
@@ -375,7 +375,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-2s-4">Code</label>
-            <input class="sp-input sp-number" id="au-2s-4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="au-2s-4-help" data-focus="true">
+            <input class="sp-input sp-input--code" id="au-2s-4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="au-2s-4-help" data-focus="true">
             <span class="sp-field__help" data-color="danger" id="au-2s-4-help">That code is not right. Check the time on your phone, and try the newest code.</span>
           </div>
         </div>
@@ -431,7 +431,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-2s-6">Code</label>
-            <input class="sp-input sp-number" id="au-2s-6" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
+            <input class="sp-input sp-input--code" id="au-2s-6" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
           </div>
         </div>
         <div class="sp-stack sp-gap-14">
@@ -478,7 +478,7 @@
         <div class="sp-stack sp-gap-12">
           <div class="sp-field">
             <label class="sp-field__label" for="au-2s-8">Code</label>
-            <input class="sp-input sp-number" id="au-2s-8" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" disabled="{{ true }}">
+            <input class="sp-input sp-input--code" id="au-2s-8" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" disabled="{{ true }}">
           </div>
         </div>
         <div class="sp-stack sp-gap-14">
@@ -508,7 +508,7 @@
             <div class="sp-meta">Type the 6-digit code from your authenticator app.</div>
             <div class="sp-field">
             <label class="sp-field__label" for="au-2s-s1">Code</label>
-            <input class="sp-input sp-number" id="au-2s-s1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+            <input class="sp-input sp-input--code" id="au-2s-s1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
           </div>
             <div class="sp-meta"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
             <div class="sp-row-flex sp-gap-8">

@@ -1,93 +1,96 @@
-# Two-step sign-in (codes from an authenticator app)
+# Settings in five groups, one at a time, as a wide form
 
-## Fixed from handoff_two_step_sign_in
+The brief: the Settings page has grown too big. Thirteen panes sit in one long scroll beside a second menu, and the cards are capped at 640px however wide the window is. This package replaces that with five groups, one shown at a time, each setting one row of a wide form, and settles the four later.md entries that touch Settings.
 
-- **Auth and first run 20g, 7 (signing in again over the page):** the drawing's frame was too short for the dialog with the code field, so the dialog's title and its Back, Later and Sign in buttons were cut off. The frame now uses `.au-frame--tall` (min-height 160px) in `styles/pages/auth-and-first-run.css`; `.au-frame` itself and 20e are unchanged. This is a fault in the drawing only; nothing changes in the app.
+## 1. Five groups instead of thirteen panes
 
-Answers `Brief-two-step-sign-in.md`. Light and dark come from each page's theme switch (View, theme); every screen is drawn for a computer and, where it differs, for a phone.
-
-## 1. Settings: the two-step sign-in card
-
-- **The problem:** nothing for two-step sign-in was drawn. The brief asked whether the card sits beside Passkeys or under a shared "Signing in" heading.
-- **What changed:** two-step sign-in has its own card right under Passkeys in Account and profile, built like the Passkeys card: the same head, line and 42px fact row (`.st-pk-row`). There is no new heading. The line reads "After your password, Spendly also asks for a code from an app on your phone."
-  - Off: the line and Turn on (lock icon) in the head, where Add a passkey sits.
-  - On: "On since 14 Oct 2026" over "7 of 10 recovery codes left". New recovery codes and Turn off sit in the card's footer, so they keep to one line on a phone.
-  - 3 or fewer left: the count line takes the warning ink and adds "Make new ones before they run out."; at 0 it reads "Make new ones now." Warning, not danger.
-  - The server cannot offer it: the line stays, Turn on is absent, and "Two-step sign-in is not available on this server." takes its place.
-  - On a phone the card is a page of its own, opened from a new "Two-step sign-in" row under Passkeys in the Settings list. The row reads On, Off or Not available.
-- **Where:** `Settings and import.dc.html` 11a (the card, drawn On) and 11f (every state). `Mobile screens.dc.html` 7a (the Settings row and the Two-step sign-in page). App: `react/src/pages/Settings.jsx` (Account and profile cards, phone index row), a new card beside `react/src/pages/SettingsPasskeys.jsx`.
+- **The problem:** thirteen panes in one scroll, with a section menu that follows the scroll position and a sticky save bar so the dirty card can be found again.
+- **What changed:** Settings has five groups, each its own page and address:
+  - Account (/settings/account): photo, name, email, password.
+  - Sign-in and security (/settings/security): passkeys, two-step sign-in, AI assistants.
+  - Preferences (/settings/preferences): appearance, money, dates and times, defaults for a new order, lists.
+  - Notifications (/settings/notifications): status email, limit alerts, needs a look.
+  - Data (/settings/data): statuses, import, this build, recently deleted, demo data.
+  - /settings opens Account. Only the open group's cards are on the page, so no group scrolls on a laptop.
+- **Where:** Settings structure options 25g (working example), 25a to 25e (one screen per group). App: react/src/pages/Settings.jsx and the pane pages under react/src/pages/Settings*.jsx, react/src/styles/pages/settings.css.
 - **What is still open:** nothing.
 
-## 2. Turning it on
+## 2. Moving between groups: the first card
 
-- **The problem:** the brief asked whether this is a dialog, a page of its own on a phone, or steps inside the card.
-- **What changed:** one dialog in three steps, shaped like the Add a passkey dialog, and the same dialog on a phone. The heading "Turn on two-step sign-in" has "1 of 3" on its line. Cancel, Escape and the scrim close it at steps 1 to 3, and nothing is turned on until step 3 is right.
-  - T1 Password: "Enter your password first." Wrong password and the lock-out are the Add a passkey errors: the field message, or the warning row "Too many attempts / Try again in 4 minutes." with the field and Continue disabled.
-  - T2 Scan: "Scan this with your authenticator app. Google Authenticator, Microsoft Authenticator and 1Password all work, and 1Password can read it straight from this screen." Then the QR code, 168px, dark on white in both themes, drawn from `otpauth://totp/Spendly:<email>?secret=<key>&issuer=Spendly`. It is a real image on the page (`<img>` or inline `<svg>`), never behind a click or a blur, so 1Password on a computer can scan it off the screen. Under it: "Can't scan it? Type this key into the app instead." and the key in groups of 4 in the snippet well (`.sp-well--snippet`), with a Copy button that copies it without spaces. The order is the same on a phone.
-  - T3 Confirm: "Type the 6-digit code the app now shows." One Code field (`inputmode="numeric"`, `autocomplete="one-time-code"`). Actions: Back, Cancel, Turn on. Empty submit: "Enter the code." Wrong code: "That code is not right. Check the time on your phone, and try the newest code." Too many tries: the warning row "Too many tries / Wait 4 minutes, then type the newest code.", field and Turn on disabled.
-  - T4 Recovery codes, shown once: heading "Two-step sign-in is on". A warning well: "Save these codes now. They won't be shown again." / "Each code works once, in place of a code from the app." 10 codes (`K7QM-3XRA`) in two columns in a well, then Copy all and Download (`spendly-recovery-codes.txt`). Only "I have saved them" closes this step; Escape and the scrim do not. After it the toast reads "Two-step sign-in is on."
-- **Where:** `Settings and import.dc.html` 11f, T1 to T4, with T2 and T4 also on a phone. `styles/pages/settings.css`: `.st-qr` (the QR's size and border) and `.st-codes` (the two-column grid). The QR sample is `assets/two-step-qr.svg`, which scans to the sample key.
+- **The problem:** a menu beside the cards takes width and was the source of the "menu line under a notice" fault; a dropdown hides which groups exist.
+- **What changed:** the first card on every group page has the head SETTINGS and the five groups on the Segmented in its fill variant (.sp-segmented--fill, c5). The open group is the selected one; picking another opens its address. There is no page name above the cards. The section menu (.st-subnav) and its sliding ground are removed from Settings.
+- **Where:** Settings structure options 25g, 25a to 25e.
 - **What is still open:** nothing.
 
-## 3. New recovery codes
+## 3. A setting is one row of a wide form
 
-- **The problem:** no drawing.
-- **What changed:** "New recovery codes" from the card opens a dialog: "Type a code from your authenticator app, or one of your recovery codes." One field, labelled "Code from the app or a recovery code", takes either: 6 digits, or 8 letters and digits with or without the hyphen. Then "Your new recovery codes", the T4 screen with the line "Your old recovery codes no longer work." The count goes back to 10 of 10.
-- **Where:** `Settings and import.dc.html` 11f, N1 and N2.
+- **The problem:** fields stacked in a 640px column, with most of a wide screen empty.
+- **What changed:** each setting is one row: its name and help at the left, the control at the right, in a two-column grid (left 1fr, right 1.2fr, gap 16). The columns line up down the whole group. A row holding a list (passkeys, tokens, statuses, recently deleted) starts both columns at the top. Rows in a card are separated by the card's rule. The content column uses the full width beside the 248px sidebar, padded by --card-pad. Below 900px a row stacks, label over control, gap 8.
+- **Where:** Settings structure options 25a to 25e; styles/pages/settings.css (.st-wide, .st-form-row, .st-form-row.sp-top, .sp-touch .st-form-row). In the app this is a new component (a settings row), since every group uses it.
 - **What is still open:** nothing.
 
-## 4. Turning it off
+## 4. Saving
 
-- **The problem:** no drawing.
-- **What changed:** "Turn off two-step sign-in?" with "The app's key and your recovery codes are removed, and signing in asks only for your password." Fields: Password, and "Code from the app or a recovery code". Actions: Cancel, then Turn off in the danger style. A wrong pair is answered vaguely, as sign-in does: "That password and code do not match. Check both and try again." After it the toast reads "Two-step sign-in is off." and the turned-off email is sent.
-- **Where:** `Settings and import.dc.html` 11f, O1.
+- **The problem:** with thirteen panes the save bar had to name which card was dirty.
+- **What changed:** the save bar reads "Unsaved changes in Preferences" (the group's name) and sits at the foot of the column, only with unsaved changes. Picking another group, or leaving Settings, with unsaved changes asks first with the confirm dialog. Rows that act at once (passkeys, tokens, status email, Restore, the buttons) do not touch the bar, as today.
+- **Where:** Settings structure options 25c (drawn with Row density changed), 25g.
 - **What is still open:** nothing.
 
-## 5. The code step at sign-in
+## 5. Recently deleted, in Data
 
-- **The problem:** the brief asked for one field or 6 boxes, and whether the step looks the same when signing in again over the page.
-- **What changed:** one field. After a right email and password the same auth card goes on to "Two-step sign-in" / "Type the 6-digit code from your authenticator app." Code field (`type="text"`, `inputmode="numeric"`, `autocomplete="one-time-code"`, `pattern="[0-9]*"`), Sign in, then the links "Use a recovery code instead" and "Back", then "Lost your phone and your recovery codes? Ask the person who runs this Spendly server."
-  - Recovery code: the field becomes "Recovery code", the line "Type one of your recovery codes.", and the link "Use a code from the app instead" switches back.
-  - Wrong code: the brief's line under the field. Wrong recovery code: "That recovery code is not right, or it was used already."
-  - Too many tries: the amber row "Too many tries / Sign in is paused for 4 minutes. Then sign in again from the start.", field disabled, primary "Back to sign in".
-  - Timed out after 5 minutes: the amber row with the clock, "This step timed out / The code has to be typed within 5 minutes of the password. Sign in again from the start.", primary "Start again". The email is kept.
-  - Signing in: the button disabled with the spinner, "Signing in…".
-  - Back returns to the email and password with the email kept.
-  - A passkey sign-in does not ask for a code.
-- **Signing in again over the page:** the same step, inside the 20e level 3 dialog. The title stays "You've been signed out", the line becomes the code step's, and the code field takes the password's place, with "Use a recovery code instead" under it. Actions: Back, Later, Sign in. The states are the same and show as the dialog's alert row. The lost-phone line is left out of the dialog.
-- **Where:** `Auth and first run.dc.html` 20g (new section, 1 to 7, with a phone specimen), and a note in 20a. App: `react/src/pages/SignIn.jsx`, `react/src/pages/AuthParts.jsx`, `react/src/app/SessionDialog.jsx`.
+- **The problem:** later.md "A deleted record should not be removed for good at once" asks where Recently deleted lives, how long a copy is kept, which kinds get it and whether bulk delete keeps copies.
+- **What changed:** Recently deleted is a card in Data. Orders, vendors, categories and bookmarks are kept for 30 days, bulk delete included, then removed for good. Each row reads the kind and name ("Order · Zalando"), "Deleted 25 Oct 2026 · removed on 24 Nov", and Restore, which brings back the record and what went with it.
+- **Where:** Settings structure options 25e.
+  - A restore that conflicts still restores, and the toast says what changed: "Order restored. Its vendor Proshop is gone, so it has no vendor." or "Category restored as Garden (2), since Garden is taken."
+- **What is still open:** nothing. Remove this entry from later.md.
+
+## 6. Phone
+
+- **The problem:** five groups do not fit across a phone.
+- **What changed:** on a phone Settings (from More, as today) is a SETTINGS card listing the five groups as rows, each with what is set ("Dark, Danish krone, 10 rows"). A row opens its group; the first card's head carries the group's name before its own (PREFERENCES · APPEARANCE) and All settings to go back. Rows stack, label over control. The save bar takes the tab bar's place while a group has unsaved changes, as on the order edit screen.
+- **Where:** Settings structure options 25f.
 - **What is still open:** nothing.
 
-## 6. Three emails
+## later.md: Settings menu line under a notice
 
-- **The problem:** no emails for two-step sign-in.
-- **What changed:** three emails built from the passkey-added template (mark, heading, line, button to `/settings/account`, the link written out, footer):
-  - `two-step-on`: "Two-step sign-in is on". Footer: "We write to you whenever two-step sign-in is turned on or off."
-  - `two-step-off`: "Two-step sign-in is off". The same email whether the person or the server's owner turned it off.
-  - `recovery-code-used`: "A recovery code was used", with "{{codes_left}} of 10 recovery codes are left." Button: Make new codes. Sent when a recovery code signs in, not when one confirms New recovery codes or Turn off.
-  - All three carry "If this was not you, reset your password and ask the person who runs this Spendly server."
-  - New merge field: `{{codes_left}}`.
-- **Where:** `emails/two-step-on.*`, `emails/two-step-off.*`, `emails/recovery-code-used.*`, `emails/README.md`. Specimens in `Auth and first run.dc.html` 20f, 12 to 14.
+- **The problem:** the Settings menu's divider started under the confirm-email notice instead of at the top bar.
+- **What changed:** settled by section 2: Settings has no menu beside the cards any more, so there is no divider to place. Remove this entry from later.md.
+- **Where:** Settings structure options 25a to 25e.
 - **What is still open:** nothing.
 
-## later.md
+## later.md: Two-step sign-in questions (Copy all, even-width digits, the wait)
 
-- **A deleted record should not be removed for good at once:** its "Recently deleted" place is still not drawn, and its open questions are unanswered. Kept for a later task, at the user's choice in this pass. Not settled; leave the entry in place.
-- The other two entries are not design work.
+- **The problem:** the recovery codes had only Download in the app; the code field showed its digits in the normal text style; the wait after too many wrong codes was not drawn for New recovery codes and Turn off.
+- **What changed:**
+  - Copy all sits beside Download under the recovery codes, as drawn in 11f step 4 and New recovery codes. Copy all copies the codes one per line.
+  - The code field takes a new variant, .sp-input--code (font-variant-numeric: tabular-nums), so every digit is the same width and the code does not shift as it is typed. It is on every code field: sign-in's code step and recovery code (Auth and first run 20g), and Turn on, New recovery codes and Turn off (Settings and import 11f).
+  - Too many wrong codes in New recovery codes and in Turn off shows the code step's warning row, with the field and the button disabled, counting down, as T3 does.
+- **Where:** Settings and import 11f; Auth and first run 20g; styles/components.css (.sp-input--code). App: react/src/pages/SettingsTwoStep.jsx, react/src/pages/SignIn.jsx, react/src/app/SessionDialog.jsx, and the Input component, which needs a way to take the variant. Remove this entry from later.md.
+- **What is still open:** nothing.
+
+## Extra small button radius
+
+- **The problem:** the 22px extra small button had the 42px field's radius (9px), so it read rounder than the controls beside it. The 22px extra small icon button, which sits beside it, had the same fault: it kept the 32px icon button's 8px.
+- **What changed:**
+  - .sp-btn--xsmall and .sp-icon-btn--xsmall take `border-radius: calc(var(--r-field) / 1.5)` (6px), so the two match where they sit together.
+  - On touch, where both grow to their larger sizes (the 34px small button, the 32px icon button), they take those sizes' radii back: `var(--r-field)` and `var(--r-tile)`. The touch look is unchanged.
+  - Nothing else in the system has an xsmall size.
+- **Where:** styles/components.css (.sp-btn--xsmall, .sp-icon-btn--xsmall, and their .sp-touch rules); drawn in Order list 2b and 2d (rail heads) and Auth and first run. App: the xsmall size in react/src/components/Button.jsx and the IconButton, react/src/styles/app.css, and CardHeader actionSize="xsmall" in react/src/components/Card.jsx, which uses it.
+- **What is still open:** nothing.
 
 ## Files
 
-- `README.md`: the design's overview, unchanged from the project root.
-- `CHANGES.md`: this note.
-- `Settings and import.dc.html`: 11a card, 11f every state and dialog.
-- `Mobile screens.dc.html`: 7a Settings row and the Two-step sign-in page.
-- `Auth and first run.dc.html`: 20g code step, 20a note, 20f specimens 12 to 14.
-- `emails/`: the three new emails (.html and .txt) and `README.md`, plus every email the 20f specimens load, so the page opens from this folder.
-- `assets/two-step-qr.svg`: the sample QR code drawn in 11f; `assets/shop-logo.svg`: loaded by Mobile screens.
-- `support.js`, `components.js`, `icons.js`: loaded by the pages.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css`: unchanged, loaded by the pages.
-- `styles/pages/settings.css`: `.st-qr` and `.st-codes` added. `styles/pages/auth-and-first-run.css`: `.au-frame--tall` added for the 20g drawing. `styles/pages/mobile-screens.css`, `styles/pages/budget.css`: unchanged, loaded by the pages.
+- README.md: the design's overview, unchanged.
+- CHANGES.md: this note.
+- Settings structure options.dc.html: the new Settings, 25g working example, 25a to 25f.
+- Settings and import.dc.html: 11f with the code field variant and the wait in New recovery codes and Turn off. 11a is kept as it was.
+- Auth and first run.dc.html: 20g with the code field variant.
+- support.js, components.js, icons.js: what the pages load to open.
+- styles/tokens.css, styles/components.css, styles/doc.css: shared styles; components.css adds .sp-input--code and the xsmall radius.
+- styles/pages/settings.css: the Settings pages, with .st-wide and .st-form-row.
+- styles/pages/auth-and-first-run.css: the Auth page.
+- assets/two-step-qr.svg: the QR code in 11f.
 
 ## styles/check.js
 
-0 findings across 27 pages.
+0 findings across 28 pages. The "Status and Kind are selects" rule now also accepts a field label followed by its help line before the select, as a settings row has.
