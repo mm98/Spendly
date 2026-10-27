@@ -84,9 +84,8 @@ export function scheduleAskSweep() {
 	setInterval(sweep, 60 * 1000).unref()
 }
 
-/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made, tokens }, or null; `made`
-    holds what each maker made, by id, and `tokens` counts every token Claude read and wrote over all its rounds.
-    Tools read with the session `token`; what is being made is told to `onWorking`. */
+/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made, tokens }, or null; `made` holds what
+    each maker made, by id, `tokens` all Claude read and wrote. Tools read with the session `token`; what is being made is told to `onWorking`. */
 export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
