@@ -364,6 +364,7 @@ log is only in the container.
 | `SPENDLY_PUBLIC_URL` | Passkeys, and the links in emails | Passkeys are not offered. |
 | `SPENDLY_UPDATER_URL` and `SPENDLY_UPDATER_TOKEN` | "Update and reload" in Settings, for the person who manages the server | Settings can only check for a newer version. |
 | `SPENDLY_OWNER_EMAIL` | Which account manages the server, may install updates and uses Ask without a daily limit | The first account made on the server. |
+| `SPENDLY_SECRET_KEY` | Your own key for the codes of two-step sign-in, kept outside `/data`, so a copy of that folder does not hold it | Spendly makes a key in `/data/secret.key`. Keep it with the backup: without it, two-step sign-in must be turned on again. |
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |

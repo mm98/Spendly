@@ -12,6 +12,7 @@ import { passkeySite } from '../lib/passkeys.js'
 import { issueToken, readToken, resendWait, settleToken, useToken } from '../lib/tokens.js'
 import { seedAccountDefaults } from '../seed.js'
 import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
+import { openTicket, twoStepOn } from '../lib/twoStep.js'
 
 export const router = Router()
 
@@ -135,7 +136,10 @@ router.post('/login', signInLimit, async (req, res) => {
 	const { user, wait } = await checkPassword(req, email, password)
 	if (wait) return locked(res, wait)
 	if (!user) return res.status(401).json({ error: 'Wrong email or password.' })
-	const token = createSession(req, res, user.id, { remember: req.body?.remember !== false })
+	const remember = req.body?.remember !== false
+	// no session yet: the code step (POST /api/auth/two-step) opens it with this ticket
+	if (twoStepOn(user.id)) return res.json({ twoStep: true, ticket: openTicket(user.id, remember) })
+	const token = createSession(req, res, user.id, { remember })
 	res.json({ id: user.id, email: user.email, token, needsSetup: Boolean(user.needs_setup) })
 })
 

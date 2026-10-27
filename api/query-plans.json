@@ -5365,6 +5365,14 @@
 			],
 			"readers": 0
 		},
+		"idx_user_two_step_failures_user": {
+			"table": "user_two_step_failures",
+			"columns": [
+				"user_id",
+				"at"
+			],
+			"readers": 0
+		},
 		"idx_vendor_aliases_user_name": {
 			"table": "vendor_aliases",
 			"columns": [
