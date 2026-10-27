@@ -100,3 +100,13 @@ is removed in the change that settles it.
 - **Why:** the user chose to keep the earlier layout. A build from `design/` brings the five groups
   back, so Claude Design changes Settings in `design/` first.
 - **Found:** 2026-10-27.
+
+## A row's grip lets the screen scroll on a touch screen
+
+- **Where:** every list a row is moved in by its grip: Saved views, Statuses, budget accounts,
+  order lines. The fix is in `react/src/styles/app.css` (`.sp-list-item__handle { touch-action: none; }`).
+- **What the reader sees:** with the fix, a finger held on a grip moves the row. Without it, the
+  screen took the finger as a scroll and the row was let go at once.
+- **What is wanted:** Claude Design takes the rule into `design/` (Components, Ordering by hand).
+  With it, a swipe that starts on a grip no longer scrolls the page.
+- **Found:** 2026-10-27.
