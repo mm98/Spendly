@@ -31,6 +31,9 @@ services:
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
+      # Which Claude model answers on Ask. claude-haiku-5-5 is the cheapest and fastest. For better
+      # answers write claude-sonnet-5-5 (about 20 times the cost) or claude-opus-5-5 (about 40 times).
+      ANTHROPIC_API_MODEL: claude-haiku-5-5
       # Optional: how Scan sends a PDF to be read. "text" (the default) sends only the words in it
       # and costs the least. "pictures" sends a picture of each page, like a photo. "document" sends
       # the whole file and costs the most. Text and pictures read the first 5 pages only. A scanned
@@ -39,9 +42,6 @@ services:
       # Optional: how many questions each account can ask on Ask each day. Every question is paid
       # on the key above. 0 turns Ask off.
       # SPENDLY_ASK_QUESTIONS_PER_DAY: 25
-      # Which Claude model answers on Ask. claude-haiku-5-5 is the cheapest and fastest. For better
-      # answers write claude-sonnet-5-5 (about 20 times the cost) or claude-opus-5-5 (about 40 times).
-      SPENDLY_ASK_MODEL: claude-haiku-5-5
       # Optional: how many files (spreadsheets, documents, PDF and CSV) Ask can make for each account
       # each day. The owner has no limit. 0 makes none.
       # SPENDLY_ASK_FILES_PER_DAY: 10

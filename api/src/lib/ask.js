@@ -9,8 +9,8 @@ import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
    tools of the makers in format/, which make a file, a chart or a block of this week's offers. */
 
-// SPENDLY_ASK_MODEL, set in docker-compose.yml: the model that answers questions and reads a list's search
-export const ASK_MODEL = process.env.SPENDLY_ASK_MODEL?.trim() || 'claude-haiku-5-5'
+// ANTHROPIC_API_MODEL, set in docker-compose.yml: the model that answers questions and reads a list's search
+export const ASK_MODEL = process.env.ANTHROPIC_API_MODEL?.trim() || 'claude-haiku-5-5'
 // only these models can retry a declined question on another model; any other model must not be sent fallbacks
 const RETRIES_DECLINED = ['claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(ASK_MODEL)
 const RETRY_DECLINED = RETRIES_DECLINED ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}
