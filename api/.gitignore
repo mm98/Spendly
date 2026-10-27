@@ -3,3 +3,5 @@ spendly.sqlite3
 spendly.sqlite3-shm
 spendly.sqlite3-wal
 backup/
+secret.key
+storage/
