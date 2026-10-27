@@ -233,8 +233,6 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 /* a sheet is dragged down to close (c13): its grip takes the finger, and it slides back if let go */
 .sp-sheet__handle { position: relative; cursor: grab; touch-action: none; }
 .sp-sheet__handle::before { content: ""; position: absolute; inset: calc(var(--card-pad) * -1) -40px calc(var(--sp-12) * -1); }
-/* a row's grip takes the finger too, or the screen scrolls and the held row is let go (c1) */
-.sp-list-item__handle { touch-action: none; }
 
 /* the field's trailing button carries the same 44px press area on touch as the design's small controls (19b) */
 .sp-touch button.sp-field__trail::after {

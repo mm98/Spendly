@@ -5245,6 +5245,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-list-item--picked { background: var(--green-tint); }
 /* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
 .sp-list-item__handle { -webkit-touch-callout: none; user-select: none; }
+/* a finger on a handle drags the row: the page does not take it for a scroll */
+.sp-list-item__handle { touch-action: none; }
 .sp-touch .sp-list-item__handle { width: 24px; }
 .sp-touch .sp-list-item:has(> .sp-list-item__handle) { min-height: var(--control-h-touch); }
 @media (prefers-reduced-motion: reduce) {
