@@ -37,6 +37,7 @@ import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
 import { useStatuses } from '../app/statuses.js'
 import { useLeaveGuard } from './vendorsCategories.jsx'
+import { ConfirmBanner } from '../app/ConfirmBanner.jsx'
 
 // addresses the five-group Settings gave out, in emails and bookmarks, open the section that holds that card
 const GROUP_ADDRESSES = { security: 'account', 'status-email': 'account', preferences: 'appearance', notifications: 'alerts', data: 'statuses' }
@@ -243,6 +244,7 @@ export default function Settings() {
 		if (body) return body
 		return (
 			<>
+				<ConfirmBanner />
 				{current ? <Arrive section={current} visit={visit}>{cards[current]}</Arrive> : <PhoneIndex user={user.data} />}
 				{saveBar}
 				<Leaving>{guard.prompt}</Leaving>
@@ -254,6 +256,8 @@ export default function Settings() {
 		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
 			{narrow ? null : <SectionNav current={navCurrent(seen ?? current)} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
+				{/* in the pane column, so the section menu and its line still start at the top bar (11a) */}
+				<ConfirmBanner />
 				{narrow ? <SectionPicker current={navCurrent(seen ?? current)} /> : null}
 				{body ?? <Arrive section={current} visit={visit} room={row}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}

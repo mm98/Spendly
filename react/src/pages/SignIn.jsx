@@ -174,7 +174,7 @@ export default function SignIn() {
 				secondary={waiting ? null : <span className="sp-data sp-center"><ActionLink onClick={switchKind}>{words.other}</ActionLink></span>}
 				across={back} note={LOST_BOTH}>
 				<Field label={words.label} id="signin-code" message={codeProblem ?? undefined} messageType={codeProblem ? 'danger' : 'hint'}>
-					<TextField {...words.field} value={code} disabled={waiting || busy}
+					<TextField {...words.field} variant="code" value={code} disabled={waiting || busy}
 						onChange={v => { setCode(cleanCode(v)); setCodeProblem(null) }} />
 				</Field>
 			</AuthCard>

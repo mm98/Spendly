@@ -48,7 +48,7 @@ export function AppShell() {
 	// below 560 the bottom zone gives Settings and the theme to the account menu (9g)
 	const short = useMedia('(max-height: 559.98px)')
 	const handle = handleOf(useMatches())
-	const { navKey, layout = 'default', fab = false, title, remember = false } = handle
+	const { navKey, layout = 'default', fab = false, title, remember = false, placesConfirmBanner = false } = handle
 	const navigate = useNavigate()
 	const { pathname, search: params, key: visit, state } = useLocation()
 
@@ -119,7 +119,7 @@ export function AppShell() {
 	else if (layout === 'dock') body = touch ? 'default' : 'fill'
 	const content = (
 		<ShellContent layout={body}>
-			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : <ConfirmBanner />}
+			{later && !ended ? <SignedOutBanner onSignIn={() => setEnded(true)} /> : placesConfirmBanner ? null : <ConfirmBanner />}
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>
 	)

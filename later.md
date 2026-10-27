@@ -73,25 +73,6 @@ is removed in the change that settles it.
 - **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
 - **Found:** 2026-10-26.
 
-## A sign-in code field needs the even-width digits variant
-
-- **Where:** every code field: sign-in's code step (`react/src/pages/SignIn.jsx`,
-  `react/src/app/SessionDialog.jsx`) and Turn on, New recovery codes and Turn off
-  (`react/src/pages/SettingsTwoStep.jsx`).
-- **What the reader sees:** the digits of a code shift a little as they are typed, since each digit
-  takes its own width.
-- **What is wanted:** `design/` adds `.sp-input--code` (Auth and first run 20g, Settings 11f), but
-  the TextField component has no variant that sets it. The component change is Claude Design's.
-- **Found:** 2026-10-27.
-
-## Settings menu line under a notice
-
-- **Where:** the Settings menu beside the cards on a computer (`.st-subnav` in `react/src/styles/pages/settings.css`).
-- **What the reader sees:** the drawing (11a) has the menu's line reach up to the top bar. When the
-  notice to confirm the email sits above the page, the line now starts under the notice instead.
-- **What is wanted:** Claude Design draws the Settings page with a notice above it, so the rule is in `design/`.
-- **Found:** 2026-10-27.
-
 ## Settings is built in its earlier layout, not the one in `design/`
 
 - **Where:** Settings (`react/src/pages/Settings*.jsx`, `react/src/styles/pages/settings.css`).
