@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025d">
-<link rel="stylesheet" href="styles/components.css?v=v20261026e">
+<link rel="stylesheet" href="styles/components.css?v=v20261027a">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -714,6 +714,7 @@
     <div class="doc-note">Handle darkens to <b>#57564f</b>, row takes the standard <b>#f0efe9</b> hover, cursor is <b>grab</b>. The whole row is the drop target; only the handle starts a drag, so a click anywhere else still opens the line.</div>
     <div class="doc-note">The dragged row lifts out - white, carrying the menu shadow <code>--shadow-menu</code> <b>0 6px 16px rgba(27,26,23,0.08)</b> (not a shadow of its own), a <b>0.6°</b> tilt, following the pointer, above the rows it crosses. With reduced motion it lifts without the tilt. A <b>2px #1d4d33</b> line marks where it lands, and the rows below shift down by its height at <code>--motion-in</code> <b>180ms</b> on <code>--ease-enter</code>, the pace every moving part takes. The row it left behind is <b>removed, not greyed</b>: the list you see is the list you will get.</div>
     <div class="doc-note"><b>A row that opens and also moves</b> holds two controls side by side, never one inside the other. The row itself is a plain box; the handle is its own button; the rest of the row is the open target (<code>sp-list-item__open</code>), a button or link that holds the row's words and stretches over the whole row. A press anywhere but the handle or an action opens it, and its focus rings the row. The same holds for a sidebar row with a handle (<code>NavItem</code>). The row looks the same either way.</div>
+    <div class="doc-note"><b>On a touch screen a finger held on the handle moves the row</b>, and a swipe that starts on the handle does not scroll the page (<code>.sp-list-item__handle { touch-action: none; }</code>). A swipe anywhere else on the row scrolls as usual. The add row's empty handle column and the sheet line editor's hidden handle take no finger.</div>
     <div class="doc-note">Tab reaches the handle. <b>Space</b> or <b>Enter</b> picks the row up, and it takes the selected-row tint until it is dropped; <b>↑ ↓</b> move it one place per press, <b>Space</b> drops it, <b>Esc</b> returns it. Each move announces the new position in a live region - without it a screen-reader user has moved something and been told nothing.</div>
     <div class="doc-note"><b>Adding and removing.</b> A row added to a list that can be ordered drops in, and one removed fades where it stood while the rows below glide up, as on every other list. Carrying a row does not change this.</div>
     <div class="doc-note">Identical mechanics, different payload. Statuses save on drop because the card is its own save scope; item lines mark the order dirty and wait for the sticky bar.</div>
