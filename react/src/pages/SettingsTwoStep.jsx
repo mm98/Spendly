@@ -100,7 +100,7 @@ function CodeField({ id, label, value, onChange, problem, disabled = false, eith
 		: { inputMode: 'numeric', autoComplete: 'one-time-code', pattern: '[0-9]*', maxLength: 6 }
 	return (
 		<Field label={label} id={id} message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
-			<TextField {...kind} autoFocus value={value} disabled={disabled} onChange={v => onChange(cleanCode(v))} />
+			<TextField {...kind} variant="code" autoFocus value={value} disabled={disabled} onChange={v => onChange(cleanCode(v))} />
 		</Field>
 	)
 }
@@ -344,7 +344,7 @@ function TurnOff({ onDone }) {
 						onChange={v => { setPassword(v); setProblem(null) }} />
 				</Field>
 				<Field label="Code from the app or a recovery code" id="two-step-off-code" message={problem?.code} messageType={problem?.code ? 'danger' : 'hint'}>
-					<TextField autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={9} value={code} disabled={waiting}
+					<TextField variant="code" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={9} value={code} disabled={waiting}
 						onChange={v => { setCode(cleanCode(v)); setProblem(null) }} />
 				</Field>
 				<button type="submit" hidden />

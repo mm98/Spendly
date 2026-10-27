@@ -6,7 +6,9 @@ import { Mark } from '../../react/src/components/Mark.jsx'
 import { Menu, MenuItem, MenuSeparator } from '../../react/src/components/Overlays.jsx'
 import { Kbd } from '../../react/src/components/Utilities.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
-import { expect, fn, userEvent } from 'storybook/test'
+import { IconButton } from '../../react/src/components/Button.jsx'
+import { ReorderList } from '../../react/src/components/Reorder.jsx'
+import { expect, fn, userEvent, waitFor } from 'storybook/test'
 import { iconControl, useHeld } from './controls.js'
 
 export default {
@@ -83,6 +85,57 @@ export const OneNavItem = {
 	parameters: { variantsOf: NavItem, layout: 'padded' },
 	// drawn on the sidebar's own ground, where a NavItem always sits
 	render: args => <div className="sp-sidebar" style={{ width: 240 }}><NavItem {...args} /></div>
+}
+
+const VIEWS = [
+	{ id: 'a', name: 'Awaiting delivery' },
+	{ id: 'b', name: 'Missing receipt' },
+	{ id: 'c', name: 'This month' }
+]
+
+// a mouse that carries a row by its handle; Motion reads only real-shaped pointer events
+const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, {
+	bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'mouse', pointerId: 1, isPrimary: true,
+	button: 0, buttons: type === 'pointerup' ? 0 : 1
+}))
+
+// rows that move and open nothing, as the saved views in edit mode: a grip, a name and a row menu
+export const MovingNavItems = {
+	args: { items: VIEWS, onMove: fn(), onMenu: fn() },
+	argTypes: { items: { control: false } },
+	parameters: { layout: 'padded' },
+	render: ({ items, onMove, onMenu }) => {
+		const [shown, setShown] = useState(items)
+		return (
+			<div className="sp-card" style={{ width: 280 }}>
+				<div className="sp-nav-list">
+					<ReorderList items={shown} keyOf={view => view.id} nameOf={view => view.name}
+						onMove={(next, view, to) => { setShown(next); onMove(next, view, to) }}>
+						{view => (
+							<NavItem variant="light" handle={<Icon name="grip-vertical" size={12} />} handleLabel={`Reorder ${view.name}`}
+								trail={<IconButton icon="dots-vertical" size="small" aria-label={`${view.name} actions`} onClick={() => onMenu(view)} />}>
+								{view.name}
+							</NavItem>
+						)}
+					</ReorderList>
+				</div>
+			</div>
+		)
+	},
+	play: async ({ args, canvas }) => {
+		const handle = canvas.getByRole('button', { name: 'Reorder Awaiting delivery' })
+		const box = handle.getBoundingClientRect()
+		const x = box.x + box.width / 2, y = box.y + box.height / 2
+		pointer(handle, 'pointerdown', x, y)
+		// in steps, as a hand moves: the rows make room only for a pointer that is moving
+		for (let dy = 8; dy <= 48; dy += 8) {
+			pointer(handle, 'pointermove', x, y + dy)
+			await new Promise(done => requestAnimationFrame(done))
+		}
+		pointer(window, 'pointerup', x, y + 48)
+		await waitFor(() => expect(args.onMove).toHaveBeenCalledTimes(1))
+		await expect(args.onMove.mock.calls[0][0].map(view => view.name)).toEqual(['Missing receipt', 'Awaiting delivery', 'This month'])
+	}
 }
 
 export const SearchPalette = {

@@ -67,7 +67,8 @@ const More = page(() => import('./pages/More.jsx'))
 const SavedViews = page(() => import('./pages/OrderViews.jsx'))
 
 /* handle: `title` names the tab and is never drawn, `navKey` the sidebar row, `layout` the body
-   (default, split, rail, fill), `fab` the phone's New order button, `remember` a return as it was left. */
+   (default, split, rail, fill), `fab` the phone's New order button, `remember` a return as it was left, `placesConfirmBanner` that the page
+   draws the confirm-email banner itself, so the shell leaves it out. */
 export const routes = [
 	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
 	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
@@ -126,7 +127,7 @@ export const routes = [
 				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'Files', navKey: 'ask', layout: 'dock' } },
 				{ path: 'ask/chats', element: <AskChats />, handle: { title: 'Chats', navKey: 'ask', layout: 'dock' } },
 				{ path: 'ask/:chatId', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
-				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
+				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings', placesConfirmBanner: true } },
 				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
 				{ path: 'more/views', element: <SavedViews />, handle: { title: 'Saved views', navKey: 'more' } },
 

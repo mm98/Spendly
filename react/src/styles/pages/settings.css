@@ -18,7 +18,7 @@
 		overflow-y: auto;
 		border-right: 1px solid var(--line-3);
 	}
-	/* under a notice (confirm your email), the divider starts below it, not inside it */
+	/* under the shell's signed-out notice, the divider starts below it, not inside it */
 	.sp-shell__body > :not(:first-child) > .st-subnav { margin-top: 0; }
 
 	/* a passkey row turns into its name field on Rename: at rest it is already the field's height, so the card does not move */

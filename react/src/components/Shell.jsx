@@ -296,9 +296,15 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 			</>
 		)
 	}
-	if (control) return <label className={classes} {...state}>{here}{body}</label>
+	// any other moving row is a Reorder.Item too, as ListItem's box() is: without one the grip starts
+	// drag controls nothing listens to (a saved view in edit mode: grip, name and menu, no link)
+	if (control) return moving
+		? <Reorder.Item as="label" {...itemOf(moving, moves)} className={classes} {...state}>{here}{body}</Reorder.Item>
+		: <label className={classes} {...state}>{here}{body}</label>
 	if (to) return <Link className={classes} to={to} data-go={to} onClick={onClick} {...state}>{here}{body}</Link>
-	if (!onClick) return <span className={classes} {...state}>{here}{body}</span>
+	if (!onClick) return moving
+		? <Reorder.Item as="span" {...itemOf(moving, moves)} className={classes} {...state}>{here}{body}</Reorder.Item>
+		: <span className={classes} {...state}>{here}{body}</span>
 	return <button type="button" className={classes} onClick={onClick} {...state}>{here}{body}</button>
 }
 
