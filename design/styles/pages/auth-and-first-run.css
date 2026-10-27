@@ -47,6 +47,8 @@
      Not a device frame - there is no bezel; it is the shell at a readable scale. */
   .au-frame { width: 420px; border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; background: var(--bg); }
   .au-frame--split { display: flex; }
+  /* 20g: the session dialog with the code field in it is taller than 20e's, so its frame is too */
+  .au-frame--tall { min-height: 160px; }
   .au-stage { height: 250px; display: grid; place-items: center; padding: var(--sp-16); }
   .au-rail { width: 78px; flex: none; background: var(--shell); padding: var(--sp-12) var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-6); }
   .au-topbar { height: 26px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 11px; }

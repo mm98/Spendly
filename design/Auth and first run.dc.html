@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261021b">
-<link rel="stylesheet" href="styles/components.css?v=v20261024a">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
-<link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261026d">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
+<link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20261027a">
 <script src="./icons.js?v=v20260917b"></script>
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
   a { color: #1d4d33; }
@@ -44,6 +44,7 @@
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Enter submits from any field. Email is <b>type="email"</b> and autofocused, with <b>autocomplete="username webauthn"</b> on sign in, so the browser can offer a saved passkey from the field, and <b>email</b> on register; password carries <b>autocomplete="current-password"</b> on sign in and <b>new-password</b> on register, or the browser offers the wrong thing. Email format is checked on blur and on submit, never on keystroke - a half-typed address is not an error.</div>
     <div class="doc-note"><b class="sp-ink">Passkeys sit beside the password, never instead of it.</b> Two ways in: the browser offers a saved passkey from the email field as the page loads (WebAuthn conditional mediation), and <b>Sign in with a passkey</b> opens the device's own prompt for browsers that do not offer it in the field. iPhone, Android and 1Password answer the same request; the passkey is discoverable, so no email is needed first.</div>
     <div class="doc-note"><b class="sp-ink">A cancelled prompt says nothing</b> - the form is still there. A passkey the account does not know shows the vague sign-in error above, worded "That passkey didn't work. Try again, or use your password." Lockout pauses passwords only; a passkey still signs in.</div>
+    <div class="doc-note"><b class="sp-ink">Two-step sign-in.</b> For an account with it on, a right email and password go on to the code step in the same card (<a href="#20g">20g</a>). A passkey signs in without it.</div>
   </div>
 
   <div class="doc-specimens">
@@ -265,6 +266,262 @@
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The Password label and Forgot it? share <code>.sp-field__head</code></b>, a row as tall as the label's own line, so the 22px button overhangs it and the field sits 24px under the label, as under Email.</div>
     <div class="doc-note"><b>Forgot it?</b> opens the forgotten password flow (<a href="#20c">20c</a>) with the email already in its field.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="20g">20g</span>
+    <span class="doc-section__title">The code step at sign-in</span>
+  </div>
+  <div class="doc-lede">For an account with two-step sign-in on (<a href="Settings and import.dc.html#11f">11f</a>), a right email and password on <a href="#20a">20a</a> go on to this step in the same card, instead of into the app. A sign-in with a passkey does not ask for a code.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
+    <div class="doc-note"><b class="sp-ink">One field, not six boxes.</b> The code field is <b>type="text"</b> with <b>inputmode="numeric"</b>, <b>autocomplete="one-time-code"</b> and <b>pattern="[0-9]*"</b>, so a phone opens the number keyboard and offers the code from its own app or from a message. Pasting works as in any field; spaces are dropped. It takes focus when the step opens, and Enter submits. A 6th digit typed does not submit by itself.</div>
+    <div class="doc-note"><b class="sp-ink">Use a recovery code instead</b> swaps the field in place: the label becomes Recovery code, the line "Type one of your recovery codes.", the keyboard the ordinary one, and the link "Use a code from the app instead" swaps it back. It takes 8 letters and digits, with or without the hyphen, any case. The step remembers neither choice.</div>
+    <div class="doc-note"><b class="sp-ink">Back</b> returns to the email and password step with the email kept and the password empty, and ends this step on the server.</div>
+    <div class="doc-note"><b class="sp-ink">Wrong code</b> keeps the digits, selects them and shows the line under the field; a wrong recovery code reads "That recovery code is not right, or it was used already." <b class="sp-ink">Too many tries</b> is the amber row, as the password lock-out is: the field is disabled and the only action is Back to sign in. <b class="sp-ink">Timed out</b>: the step lasts 5 minutes from the right password; after that a submit shows the amber row with the clock, and Start again returns to 20a with the email kept.</div>
+    <div class="doc-note"><b class="sp-ink">A recovery code used to sign in</b> is spent, and the recovery-code-used email is sent (<a href="#20f">20f</a>).</div>
+    <div class="doc-note"><b class="sp-ink">Signing in again over the page (20e, level 3) asks for the code too</b>, and looks the same in its own dialog: after a right password the dialog keeps its title, its line becomes the code step's, and the password field gives way to the code field with Use a recovery code instead under it. Back returns to the password, Later works as before, and the wrong-code, too-many-tries and timed-out messages are the same, as the dialog's alert row. The lost-phone line is left out of the dialog: a person who has lost both cannot finish there either way, and Later keeps the page.</div>
+    <div class="doc-note"><b class="sp-ink">On a phone</b> the card spans the phone's inset as 20a does, with 48px fields and buttons.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">1 - THE CODE</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type the 6-digit code from your authenticator app.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-1">Code</label>
+            <input class="sp-input sp-number" id="au-2s-1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">1 - THE CODE, ON A PHONE</div>
+      <div class="sp-phone sp-touch">
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type the 6-digit code from your authenticator app.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-2">Code</label>
+            <input class="sp-input sp-number" id="au-2s-2" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">2 - A RECOVERY CODE INSTEAD</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type one of your recovery codes.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-3">Recovery code</label>
+            <input class="sp-input sp-number" id="au-2s-3" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="K7QM-3XRA">
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a code from the app instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">3 - WRONG CODE</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type the 6-digit code from your authenticator app.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-4">Code</label>
+            <input class="sp-input sp-number" id="au-2s-4" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" aria-invalid="true" aria-describedby="au-2s-4-help" data-focus="true">
+            <span class="sp-field__help" data-color="danger" id="au-2s-4-help">That code is not right. Check the time on your phone, and try the newest code.</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">3 - WRONG RECOVERY CODE</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type one of your recovery codes.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-5">Recovery code</label>
+            <input class="sp-input sp-number" id="au-2s-5" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="K7QM-3XRB" aria-invalid="true" aria-describedby="au-2s-5-help" data-focus="true">
+            <span class="sp-field__help" data-color="danger" id="au-2s-5-help">That recovery code is not right, or it was used already.</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a code from the app instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">4 - TOO MANY TRIES</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+          </div>
+        </div>
+        <div class="sp-list-item sp-list-item--top" data-color="warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title sp-ink-warning">Too many tries</div>
+            <div class="sp-meta sp-ink-warning">Sign in is paused for <b>4 minutes</b>. Then sign in again from the start.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-6">Code</label>
+            <input class="sp-input sp-number" id="au-2s-6" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" disabled="{{ true }}">
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Back to sign in</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">Back to sign in opens 20a, which shows its own lock-out until the wait ends.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">5 - TIMED OUT</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+          </div>
+        </div>
+        <div class="sp-list-item sp-list-item--top" data-color="warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-title sp-ink-warning">This step timed out</div>
+            <div class="sp-meta sp-ink-warning">The code has to be typed within 5 minutes of the password. Sign in again from the start.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small">Start again</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">6 - SIGNING IN</div>
+      <div class="sp-card au-panel">
+        <div class="sp-stack sp-gap-12 sp-center au-centred">
+          <span class="sp-mark sp-mark--large sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-heading">Two-step sign-in</div>
+            <div class="sp-data">Type the 6-digit code from your authenticator app.</div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-8">Code</label>
+            <input class="sp-input sp-number" id="au-2s-8" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="482193" disabled="{{ true }}">
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-14">
+          <button type="button" class="sp-btn sp-btn--block sp-btn--small" disabled="{{ true }}"><span class="sp-spinner"></span>Signing in…</button>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
+          <div class="sp-data sp-center"><a class="sp-strong" href="#20a">Back</a></div>
+          <div class="sp-meta sp-center">Lost your phone and your recovery codes? Ask the person who runs this Spendly server.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">7 - SIGNING IN AGAIN OVER THE PAGE</div>
+      <div class="au-frame au-frame--split au-frame--tall sp-anchor">
+        <div class="au-rail sp-muted">
+          <div class="au-skel au-skel--head"></div>
+          <div class="au-skel au-skel--on"></div>
+          <div class="au-skel"></div>
+          <div class="sp-grow"></div>
+        </div>
+        <div class="sp-stack sp-gap-6 sp-grow sp-muted">
+          <div class="au-topbar"></div>
+          <div class="au-body"><div class="au-pane"></div></div>
+        </div>
+        <div class="sp-scrim sp-scrim--dialog">
+          <div class="sp-dialog au-dialog">
+            <div class="sp-title">You've been signed out</div>
+            <div class="sp-meta">Type the 6-digit code from your authenticator app.</div>
+            <div class="sp-field">
+            <label class="sp-field__label" for="au-2s-s1">Code</label>
+            <input class="sp-input sp-number" id="au-2s-s1" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength="6" defaultValue="" data-focus="true">
+          </div>
+            <div class="sp-meta"><a class="sp-strong" href="#20g">Use a recovery code instead</a></div>
+            <div class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Back</button>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Later</button>
+              <button type="button" class="sp-btn sp-btn--small">Sign in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sp-meta au-w400">The 20e level 3 dialog after a right password. Same states as the card.</div>
+    </div>
   </div>
 </section>
 
@@ -538,6 +795,7 @@
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
     <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
     <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
+    <div class="doc-note"><b class="sp-ink">The two-step emails, emails/two-step-on, two-step-off and recovery-code-used</b>, are the passkey-added card: the mark, a heading, one line with the account and when, one button to Settings, Account, and the line "If this was not you, reset your password and ask the person who runs this Spendly server." Turned off is the same email whether the person or the server's owner turned it off. Recovery code used says how many codes are left, and its button reads Make new codes.</div>
     <div class="doc-note"><b class="sp-ink">The status email is one template, emails/status</b>, for both Weekly and Monthly, and <b>emails/status-quiet</b> for a period with no orders. Weekly is sent Monday at 08:00 for Monday to Sunday just ended; Monthly on the 1st at 08:00 for the month just ended, both in the account's time zone. Nothing is sent while the setting is None, which is the default for every account. The sections are Mustache blocks; fields and rules are in <b>emails/README.md</b>, and the specimens merge <b>emails/status-sample.json</b>.</div>
     <div class="doc-note"><b class="sp-ink">Order in the card:</b> the period, three tiles (Spent with the comparison, Saved, Orders), limits exceeded, Budget (monthly only), top 5 categories, the latest 5 orders, bookmarks added in the period, Needs a look, then Open Spendly. A section with nothing in it is left out, rule and all; the limits box is absent when no limit was passed.</div>
     <div class="doc-note"><b class="sp-ink">Budget shows costs only.</b> Last month's real costs against the expected costs, and the costs expected in the new month. Income and Left over never appear in the email, whatever Show income was last set to in Budget (<a href="Budget.dc.html#21a">21a</a>).</div>
@@ -639,6 +897,21 @@
       <div class="doc-note au-w600"><b class="sp-ink">A file in the emailed chat</b> is its title, type and size in the answer's frame, never a link, and the file itself is attached to the email, up to 15 MB in all: its line ends "Attached". A file that would take the email past 15 MB is not attached; its line reads "Too big to attach. Download it from Files in Ask until 2026-11-21.", with Files in Ask linked to <b>/ask/files</b> (<a href="Ask Spendly.dc.html#24e">24e</a>). A file that could not be made reads "Could not be made:" and its reason.</div>
       <div class="doc-note au-w600"><b class="sp-ink">Open this chat</b>, the button at the end, opens this chat on Ask at <b>/ask/:chatId</b>, to read on or ask a follow-up (<a href="Ask Spendly.dc.html#24f">24f</a>). Signed out, it opens sign-in first. A chat that was deleted or is past its 30 days opens Ask's empty page with the toast "That chat is no longer kept."</div>
       <div class="doc-note au-w600"><b class="sp-ink">A chart in the emailed chat</b> is an image of it, under its name and period, attached to the message inline so it shows without a sign-in. Its alt text is the name and every value, for a client that blocks images, and the text version lists the values. Outlook for Windows takes the image at its width attribute. Fields in <b>emails/README.md</b>.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">12 - TWO-STEP SIGN-IN TURNED ON</div>
+      <iframe class="au-email" title="Two-step sign-in turned on" srcDoc="{{ twoOnDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Two-step sign-in is on for your Spendly account. Sent when it is turned on in Settings (11f).</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">13 - TWO-STEP SIGN-IN TURNED OFF</div>
+      <iframe class="au-email" title="Two-step sign-in turned off" srcDoc="{{ twoOffDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Two-step sign-in is off for your Spendly account. Sent when it is turned off in Settings (11f), and when the server's owner turns it off for the account.</div>
+    </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">14 - A RECOVERY CODE WAS USED</div>
+      <iframe class="au-email" title="A recovery code was used" srcDoc="{{ codeUsedDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: A recovery code was used for your Spendly account. Sent when a recovery code signs in (20g); not when one confirms New recovery codes or Turn off.</div>
     </div>
   </div>
 </section>
@@ -929,9 +1202,9 @@ class Component extends DCLogic {
   state = {};
   componentDidMount() {
     this.applyView();
-    const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone' };
-    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added']].forEach(([k, f]) => {
+    const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone', codes_left: '6' };
+    const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account', twoOn: 'https://app.example.net/settings/account', twoOff: 'https://app.example.net/settings/account', codeUsed: 'https://app.example.net/settings/account' };
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['twoOn', 'two-step-on'], ['twoOff', 'two-step-off'], ['codeUsed', 'recovery-code-used']].forEach(([k, f]) => {
       fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
         const v = { ...sample, action_url: urls[k] };
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
@@ -967,7 +1240,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added,
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added, twoOnDoc: this.state.twoOn, twoOffDoc: this.state.twoOff, codeUsedDoc: this.state.codeUsed,
       monthlyDoc: this.state.monthly, weeklyDoc: this.state.weekly, quietDoc: this.state.quiet, chatDoc: this.state.chat
     };
   }
