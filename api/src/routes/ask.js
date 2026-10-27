@@ -34,6 +34,8 @@ const idOf = value => (typeof value === 'string' && /^[\w-]{1,64}$/.test(value) 
 /* One question answered, in the chat `chatId` or a new one, or a failed question asked again in its
    place (`retry`, its turn's id). The first line names the chat and the turn. */
 router.post('/', async (req, res) => {
+	// the answer's time runs from the question arriving to the answer sent
+	const received = performance.now()
 	const state = stateOf(req)
 	if (!state.ready) return res.status(404).json({ error: 'Ask is not set up on this server.' })
 	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
@@ -77,10 +79,11 @@ router.post('/', async (req, res) => {
 			endTurn(turn.turnId, 'failed')
 			return res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
 		}
-		endTurn(turn.turnId, 'answered', out.answer)
+		const answerMs = Math.round(performance.now() - received)
+		endTurn(turn.turnId, 'answered', out.answer, { answerMs, answerTokens: out.tokens })
 		noteAnswered(req.user.id, req.today)
 		if (turn.first) writeChatHeading(turn.chatId, turn.turns.at(-1).text, out.answer)
-		res.end(JSON.stringify({ ...out, left: state.left === null ? null : state.left - 1 }) + '\n')
+		res.end(JSON.stringify({ answer: out.answer, made: out.made, answerMs, answerTokens: out.tokens, left: state.left === null ? null : state.left - 1 }) + '\n')
 	} catch (error) {
 		endTurn(turn.turnId, stop.signal.aborted ? 'stopped' : 'failed')
 		if (stop.signal.aborted) return

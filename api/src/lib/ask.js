@@ -67,6 +67,8 @@ export function askState(userId, day, { unlimited = false } = {}) {
 /** Counts one answered question; a failed or stopped one is never counted. */
 export const noteAnswered = (userId, day) => { countAnswered.run(userId, day) }
 
+const tokensOf = usage => (usage?.input_tokens ?? 0) + (usage?.cache_creation_input_tokens ?? 0) + (usage?.cache_read_input_tokens ?? 0) + (usage?.output_tokens ?? 0)
+
 const textOf = content => content.filter(b => b.type === 'text').map(b => b.text).join('').trim()
 
 // the place marks the model left out of its answer go at its end, so nothing made is lost
@@ -82,8 +84,8 @@ export function scheduleAskSweep() {
 	setInterval(sweep, 60 * 1000).unref()
 }
 
-/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made }, or null; `made` holds
-    what each maker made, by id. Tools read with the session `token`; what is being made is told to `onWorking`. */
+/** The answer to the last of `turns` ({ role, text }, oldest first) as { answer, made, tokens }, or null; `made` holds what
+    each maker made, by id, `tokens` all Claude read and wrote. Tools read with the session `token`; what is being made is told to `onWorking`. */
 export async function answerQuestion({ turns, token, self, today, signal, userId, chatId = null, unlimited = false, zone, locale, onWorking }) {
 	const anthropic = getClient()
 	const messages = turns.map(t => ({ role: t.role, content: t.text }))
@@ -94,6 +96,7 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 		token, self, signal, userId, chatId, today, unlimited, made: nothingMade(),
 		question: turns.at(-1).text, askedAt: askedAtIn(zone), write: fileWriter(userId, locale)
 	}
+	let tokens = 0
 	for (let round = 0; round < ROUNDS_MOST; round++) {
 		const response = await anthropic.beta.messages.create({
 			model: ASK_MODEL,
@@ -105,10 +108,11 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 			tools,
 			messages
 		}, { signal, timeout: REQUEST_TIMEOUT_MS })
+		tokens += tokensOf(response.usage)
 		if (response.stop_reason === 'refusal') return null
 		if (response.stop_reason !== 'tool_use' && response.stop_reason !== 'pause_turn') {
 			const answer = textOf(response.content)
-			return answer ? { answer: withPlaces(answer, making.made), made: making.made } : null
+			return answer ? { answer: withPlaces(answer, making.made), made: making.made, tokens } : null
 		}
 		messages.push({ role: 'assistant', content: response.content })
 		if (response.stop_reason === 'pause_turn') continue
