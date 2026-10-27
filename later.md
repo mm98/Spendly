@@ -56,9 +56,13 @@ is removed in the change that settles it.
   but needs partial unique indexes, adjusted stored counts and its own handling of linked rows in
   every table. A Deleted status type, which every read of `orders` would have to skip. Cancelled,
   which is a real order the reader keeps.
-- **Settled in `design/`:** Recently deleted is a card in Settings, Data (Settings structure options
-  25e). Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included. The user
-  chose to build it in its own pull request, after the five Settings groups.
+- **Agreed with Claude Design, not in `design/` now:** Recently deleted is a card in Settings with
+  one row per record: its kind and name, when it was deleted and when it is removed for good, and a
+  Restore button. Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included.
+  Restore brings back the record and what went with it. A restore that conflicts still restores, and
+  the toast says what changed: "Order restored. Its vendor Proshop is gone, so it has no vendor." or
+  "Category restored as Garden (2), since Garden is taken." The user chose to build it in its own
+  pull request. Before it is built, `design/` draws the card in Settings 11a.
 - **Found:** 2026-10-20.
 
 ## The status guard does not run in project threads
