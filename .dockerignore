@@ -11,7 +11,12 @@
 react/dist
 storybook/dist
 api/.models
-api/*.sqlite3
+
+# A database run from api/ keeps its key, saved files and backups beside it.
+api/*.sqlite3*
+api/secret.key
+api/storage
+api/backup
 
 # Checks and tests. api/scripts stays: fetch-model.mjs is run by the build, the rest inside a
 # running container. react/scripts/precompress.mjs runs after the app build.
