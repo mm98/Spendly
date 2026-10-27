@@ -9,7 +9,8 @@ const TEXT = {
 	default: null,
 	empty: 'sp-input--empty',
 	readonly: 'sp-input--readonly',
-	stretch: 'sp-input--stretch'
+	stretch: 'sp-input--stretch',
+	code: 'sp-input--code'
 }
 
 /** The box every field is. Internal: the fields below are its arguments. */
@@ -62,7 +63,7 @@ const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
     @param {typeof TYPES[number]} [props.type] The kind of text, for the phone keyboard and the check that comes with it: text, email, url and so on.
     @param {boolean} [props.multiline] A box of several lines instead of one.
     @param {number} [props.rows] How many lines a multiline field shows.
-    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in.
+    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in; `code` is a sign-in or recovery code, every digit the same width so it does not shift as it is typed.
     @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action] A button at the end of the field: its icon, its name, and what it does.
     @param {string} [props.value] The text in the field.
     @param {(value: string) => void} [props.onChange]

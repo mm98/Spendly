@@ -1,39 +1,49 @@
-# Two-step sign-in: the later.md questions for Claude Design
+# A menu row with a grip cannot be dragged unless it also opens something
 
-The brief: settle the later.md entry "Two-step sign-in: questions for Claude Design", which asks three things: whether Copy all is drawn beside Download, whether the code field gets an even-width digits variant, and what the wait after too many wrong codes looks like in New recovery codes and Turn off. Remove the entry from later.md in the change that builds this.
+Answers `Brief-nav-row-reorder.md`, and settles three later.md entries.
 
-## 1. Copy all beside Download
+## 1. NavItem draws every moving row as Reorder.Item
 
-- **The problem:** the recovery codes could only be downloaded in the app. The design notes named Copy all, but the app was built from a drawing that showed only Download.
-- **What changed:** nothing in the design; Copy all is already drawn beside Download, an outline small button with the copy icon, then Download. It sits under the codes in step 4 of Turn on and in New recovery codes. Copy all copies the 10 codes one per line; Download saves `spendly-recovery-codes.txt` as before.
-- **Where:** Settings and import 11f (step 4, New recovery codes). App: react/src/pages/SettingsTwoStep.jsx.
+- **The problem:** in Orders, Views card, Edit, a saved view's grip shows the hand but dragging does nothing, on desktop and on a phone. `NavItem` drew a row inside a `ReorderList` as `Reorder.Item` only in its opens-and-moves branch (`handle && !control && (to || onClick)`). A row with a `handle` and no `to` or `onClick` fell through to a plain `<span>`, so the grip started drag controls no `Reorder.Item` listened to.
+- **What changed:** a moving row (one inside a `ReorderList`, `useMovingRow()` not null) is drawn as `Reorder.Item` with `itemOf(moving, moves)` in the plain branch (`as="span"`) and in the switch branch (`as="label"`), as `ListItem`'s `box()` already does for every branch. A row outside a `ReorderList` is drawn as before. The current row's `NavGround` stays inside the row, so it keeps sliding. Nothing changes in how the row looks.
+- **Where:** `react_handoff/Shell.jsx`, `NavItem`, the last lines. App: `react/src/components/Shell.jsx`; used by `react/src/pages/OrderViews.jsx` (the Views card in edit mode).
+- **Story:** add to `storybook/stories/Shell.stories.jsx` a story of two or three `NavItem` rows with a `handle` and a `trail` menu, no `to` and no `onClick`, inside a `ReorderList`, so dragging a grip reorders them. The existing NavItem story keeps `onClick` and covers the other branch.
+- **Not changed:** a row with `to` or `onClick` and no `handle` still draws its `Link` or `button` without a `Reorder.Item`; without a grip it has nothing to drag by.
 - **What is still open:** nothing.
 
-## 2. Even-width digits in the code field
+## later.md: A sign-in code field needs the even-width digits variant
 
-- **The problem:** the 6-digit code field shows its digits in the normal text style, so the code shifts sideways as it is typed. The field could not take a style of its own.
-- **What changed:** a new variant of the field, `.sp-input--code` (`font-variant-numeric: tabular-nums`), so every digit is the same width. Nothing else about the field changes: same height, padding, border and type size. It is on every field that takes a sign-in code or a recovery code.
-- **Where:** styles/components.css (`.sp-input--code`, beside `.sp-input--readonly`); Settings and import 11f (Turn on step 3, New recovery codes, Turn off); Auth and first run 20g (the code step and the recovery code at sign-in). App: the Input component needs a way to take the variant (a `variant="code"` or equivalent), then react/src/pages/SettingsTwoStep.jsx, react/src/pages/SignIn.jsx and react/src/app/SessionDialog.jsx use it.
-- **What is still open:** nothing.
+- **The problem:** the digits of a code shift as they are typed. `design/` has `.sp-input--code` (Auth and first run 20g, Settings and import 11f), but `TextField` had no variant that sets it.
+- **What changed:** `TextField` takes `variant="code"`, which adds `.sp-input--code` (`font-variant-numeric: tabular-nums`, already in `styles/components.css`). JSDoc updated. Use it on every code field.
+- **Where:** `react_handoff/Inputs.jsx` (`TEXT.code`). App: `react/src/components/Inputs.jsx`; `react/src/pages/SignIn.jsx`, `react/src/app/SessionDialog.jsx`, `react/src/pages/SettingsTwoStep.jsx` (Turn on, New recovery codes, Turn off).
+- **What is still open:** nothing. Remove this entry from later.md.
 
-## 3. The wait after too many wrong codes, in New recovery codes and Turn off
+## later.md: Settings menu line under a notice
 
-- **The problem:** the wait was drawn only for Turn on and for the code step at sign-in; the app built New recovery codes and Turn off with the warning row from the code step without a drawing.
-- **What changed:** that is the design: too many wrong codes in New recovery codes, and in Turn off, shows the code step's warning row ("Too many tries", "Wait 4 minutes, then type the newest code.") above the field, with the field and the dialog's main button disabled, counting down, as Turn on's T3 does. No new state is drawn, since it is the same row.
-- **Where:** Settings and import 11f (implementation note on New recovery codes; T3 - TOO MANY TRIES is the drawn state). App: react/src/pages/SettingsTwoStep.jsx.
-- **What is still open:** nothing.
+- **The problem:** 11a draws the Settings menu's line reaching up to the top bar; in the app, with the confirm-email banner above the page, the line starts under the banner.
+- **What changed:** the banner sits in the pane column, above the first card, at the pane's width and padding. The section nav and its divider beside it still start at the top bar. The banner scrolls with the pane. 11a now draws an unconfirmed account with the banner; a confirmed account has none and the first card moves up. The banner is the warning row of Auth and first run 20e. Decided by Claude Design at the user's request.
+- **Where:** Settings and import 11a (drawing, and a note in its notes for implementation). App: `react/src/pages/Settings*.jsx`, `react/src/styles/pages/settings.css` (`.st-subnav`), and wherever the shell places the banner on Settings.
+- **What is still open:** nothing. Remove this entry from later.md.
+
+## later.md: Settings is built in its earlier layout, not the one in `design/`
+
+- **The problem:** `design/` on main draws Settings in five groups (Settings structure options 25), while the app keeps the menu beside the cards (11a), as the user chose.
+- **What changed:** this project has already gone back to the earlier layout: 11a is Settings, and Settings structure options is no longer a page here. The `Settings and import.dc.html` in this package is that layout.
+- **Where:** Settings and import 11a. Copy this package's page and `styles/pages/settings.css` into `design/`, and remove `design/Settings structure options.dc.html`.
+- **What is still open:** nothing. Remove this entry from later.md once `design/` is updated.
 
 ## Files
 
-- README.md: the design's overview, unchanged.
-- CHANGES.md: this note.
-- Settings and import.dc.html: 11f with the code field variant and the note on the wait.
-- Auth and first run.dc.html: 20g with the code field variant.
-- support.js, components.js, icons.js: what the pages load to open.
-- styles/tokens.css, styles/components.css, styles/doc.css: shared styles; components.css has `.sp-input--code`. It also carries the xsmall radius change already in the app.
-- styles/pages/settings.css, styles/pages/auth-and-first-run.css: the two pages' own styles.
-- assets/two-step-qr.svg: the QR code in 11f.
+- `README.md` - the design's overview, unchanged.
+- `CHANGES.md` - this note.
+- `react_handoff/Shell.jsx` - `NavItem` draws every moving row as `Reorder.Item`.
+- `react_handoff/Inputs.jsx` - `TextField` `variant="code"`.
+- `Settings and import.dc.html` - 11a with the confirm-email banner and its note.
+- `support.js`, `components.js` - what the page loads to open.
+- `assets/two-step-qr.svg` - the QR image in 11f.
+- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - shared styles, unchanged.
+- `styles/pages/settings.css` - the Settings page styles, unchanged.
 
 ## styles/check.js
 
-0 finding(s) across 27 pages
+0 finding(s) across 27 pages.
