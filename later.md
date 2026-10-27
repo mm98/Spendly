@@ -4,22 +4,9 @@ Things to deal with later: small faults that are known but not urgent, and thing
 look at again. Each one says where it is, what the reader sees, what was found and when. An entry
 is removed in the change that settles it.
 
-## Large accounts still make everyone wait on a few pages
-
-- **Where:** the Home, Orders and Statistics pages, and the server, which answers one request at a time.
-- **What the reader sees:** with 30 accounts opening a page at once, every account waits about
-  0.7 to 2 seconds, the smallest ones too.
-- **What was found:** read helpers were built and measured on branch `feat/read-helpers`: a few
-  threads beside the server, each with its own read-only connection. With 30 accounts opening
-  Statistics at once, the reads took 450 ms on the server alone and 150 ms on 4 helpers, but the page
-  as a whole did not get faster: the reads are about half of its time, and the rest is receiving the
-  requests and sending the answers. The gain also depends on how many processors the server has.
-- **Proposed shape:** pick the branch up when real use shows many accounts waiting at once; move the
-  order list to the helpers too, and measure on the real server's processor count.
-- **Found:** 2026-10-23.
-
 ## A deleted record should not be removed for good at once
 
+- **Status:** an idea for later, not a planned task. Nothing is built for it until the user asks.
 - **Where:** Delete order (`react/src/pages/DeleteOrder.jsx`, `DELETE /api/orders/:id`), bulk
   delete (`react/src/pages/OrderBulk.jsx`, `POST /api/orders/bulk`), and the delete of every other
   kind of record a reader may want back (vendors, categories, bookmarks).
@@ -61,18 +48,6 @@ is removed in the change that settles it.
   Restore button. Orders, vendors, categories and bookmarks are kept 30 days, bulk delete included.
   Restore brings back the record and what went with it. A restore that conflicts still restores, and
   the toast says what changed: "Order restored. Its vendor Proshop is gone, so it has no vendor." or
-  "Category restored as Garden (2), since Garden is taken." The user chose to build it in its own
-  pull request. Before it is built, `design/` draws the card in Settings 11a.
+  "Category restored as Garden (2), since Garden is taken." If it is ever built, it is its own pull
+  request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
-
-## The status guard does not run in project threads
-
-- **Where:** `.claude/hooks/status-guard.mjs`, set up as a `PreToolUse` hook in `.claude/settings.json`.
-- **What the reader sees:** nothing changes. A thread can still go more than 30 seconds without a
-  status, and its next step is not stopped.
-- **What was found:** in a project thread the guard never wrote its time file, and a step taken 37
-  seconds after the last status went through. Run by hand, the script works. The thread's own built-in
-  hooks do run, among them a status reminder that waits 300 seconds. Gaps over 30 seconds between status
-  lines were as common after the guard was added as before. The repo cannot switch the hook on.
-- **Kept:** the user chose to keep the guard, in case a later setup loads the repo's hooks.
-- **Found:** 2026-10-26.
