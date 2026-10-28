@@ -14,7 +14,7 @@ import { Icon } from '../components/Icon.jsx'
 
 import { Empty, Hold, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { CategoryIcon, CategoryMark } from '../app/categoryMark.jsx'
+import { CategoryIcon, CategoryMark, swatchOf } from '../app/categoryMark.jsx'
 import { OrderAmount, OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import {
@@ -375,7 +375,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
 	const lines = [
 		...over.map(c => ({
-			c, color: 'danger', mark: <CategoryMark category={c} size="medium" />,
+			c, color: 'danger', mark: <Mark size="medium" fill="solid" swatch={swatchOf(c.colour)} aria-hidden="true" aria-label={c.name}><CategoryIcon name={c.icon} size={18} /></Mark>,
 			said: `went ${currency(c.spend - c.budget, 0)} over`,
 			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
 				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
