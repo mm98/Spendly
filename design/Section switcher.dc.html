@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">25</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261027c">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
+<link rel="stylesheet" href="styles/pages/settings.css?v=v20261027b">
+<link rel="stylesheet" href="styles/pages/section-switcher.css?v=v20261028p">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first" data-screen-label="25 Section switcher">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="25">25</span>
+    <span class="doc-section__title">Section switcher - exploration, not approved</span>
+  </div>
+  <div class="doc-lede">Settings with a nav beside the content: general information at the top, then the one section picked in the nav. Each section is its own content, so the page never scrolls through the others.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Decided (please confirm)</span>
+    <div class="doc-note"><b>General information sits above the sections.</b> It is the page's head: who the page is about, read-only. Editing it happens in Account and profile. It stays above whichever section is open.</div>
+    <div class="doc-note"><b>Unsaved changes are kept when you open another section.</b> Each card keeps its own save as now. Leaving the page with changes asks first.</div>
+    <div class="doc-note"><b>Save with errors</b> opens the first section that has an error and moves focus to its first invalid field.</div>
+    <div class="doc-note"><b>The section in view is in the URL</b> (<code>#statuses</code>), so reload, Back and a shared link land on it.</div>
+    <div class="doc-note"><b>The nav is Settings' own</b> (11a), unchanged. The rest of this page waits for approval.</div>
+  </div>
+
+  <div class="ss-row">
+    <div class="ss-option" id="25c">
+      <div class="ss-option__head"><span class="doc-badge">25c</span><span class="doc-section__title">Nav beside the content - one section at a time</span></div>
+      <div class="sp-shell st-screen">
+    <nav class="sp-sidebar" aria-label="Sections">
+      <div class="sp-sidebar__brand"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><span>Spendly</span></div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a" ><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Home</span></a>
+      <a class="sp-nav-item sp-nav-item--action" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Scan receipt</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
+      <div class="sp-sidebar__group">Orders</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count">12</span></a>
+      <div class="sp-sidebar__group">Library</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Vendors</span><span class="sp-nav-item__count">42</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span><span>Categories</span><span class="sp-nav-item__count">9</span></a>
+      <a class="sp-nav-item" href="Bookmarks.dc.html#22a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span><span>Bookmarks</span><span class="sp-nav-item__count">23</span></a>
+      <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>Budget</span><span class="sp-nav-item__count">14</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg></span><span>Statistics</span></a>
+      <span class="sp-grow"></span>
+      <hr class="sp-sidebar__divider">
+      <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
+      <a class="sp-nav-item" aria-current="page" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a">
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-stack sp-grow">
+          <span class="sp-truncate">Mikkel M.</span>
+          <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
+        </span>
+        <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+      </a>
+      </nav>
+    <div class="sp-stack sp-grow st-main">
+      <div class="sp-topbar">
+        <div class="sp-picker__search st-search">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-row-flex sp-grow sp-top">
+          <nav class="sp-section-nav" aria-label="Settings">
+            <span class="sp-section-label sp-section-nav__head">SETTINGS</span>
+            <div class="sp-nav-list">
+              <sc-for list="{{ spyNav }}" as="t" hint-placeholder-count="12">
+                <sc-if value="{{ t.sepBefore }}" hint-placeholder-val="{{ false }}"><div class="sp-menu__sep sp-menu__sep--divider" role="presentation"></div></sc-if>
+                <a class="sp-nav-item sp-nav-item--light" href="{{ t.href }}" aria-current="{{ t.currentAttr }}" onClick="{{ t.onClick }}">
+                  <span class="sp-grow">{{ t.label }}</span>
+                </a>
+              </sc-for>
+            </div>
+          </nav>
+          <div class="sp-stack sp-gap-12 sp-grow st-pane ss-pane--full">
+              <div class="sp-card" id="ssc-info" aria-label="Your account">
+              <div class="sp-row-flex sp-gap-16">
+              <span class="sp-mark sp-mark--large sp-mark--solid sp-mark--round" data-swatch="green-3" aria-hidden="true">MM</span>
+              <div class="sp-stacked"><span class="sp-title">Mikkel M.</span><span class="sp-subtitle sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span></div>
+              </div>
+              </div>
+            <sc-for list="{{ spySections }}" as="s" hint-placeholder-count="1">
+              <section class="sp-card" id="{{ s.anchorId }}" aria-labelledby="{{ s.headId }}">
+                <div class="sp-card__head"><span class="sp-section-label" role="heading" aria-level="3" id="{{ s.headId }}" tabIndex="-1">{{ s.heading }}</span></div>
+                <sc-for list="{{ s.fields }}" as="f" hint-placeholder-count="2">
+                  <div class="sp-field">
+                    <label class="sp-field__label" for="{{ f.id }}">{{ f.label }}</label>
+                    <input class="sp-input" id="{{ f.id }}" type="text" defaultValue="{{ f.value }}" placeholder="{{ f.placeholder }}" aria-invalid="{{ f.ariaInvalid }}" aria-describedby="{{ f.helpId }}">
+                    <sc-if value="{{ f.invalid }}" hint-placeholder-val="{{ false }}"><span class="sp-field__help" data-color="danger" id="{{ f.helpId }}">{{ f.help }}</span></sc-if>
+                  </div>
+                </sc-for>
+                <sc-for list="{{ s.rows }}" as="r" hint-placeholder-count="0">
+                  <div class="sp-list-item">
+                    <div class="sp-stacked"><span class="sp-title sp-truncate">{{ r.title }}</span><span class="sp-subtitle">{{ r.sub }}</span></div>
+                  </div>
+                </sc-for>
+              </section>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div class="doc-notes">
+        <span class="doc-notes__label">Notes for implementation</span>
+        <div class="doc-note"><b>Links, not tabs</b>: the Section nav (<a href="Components.dc.html#c35">c35</a>), as in <a href="Settings and import.dc.html#11a">Settings and import 11a</a>, the open section <code>aria-current="page"</code>. Each section is its own view at its own URL (<code>#statuses</code>); only the open section is in the page, as a <code>section</code> labelled by its heading.</div>
+        <div class="doc-note"><b>The shell is 11a's</b> (<a href="Settings and import.dc.html#11a">Settings and import 11a</a>): the sidebar with Settings current, the top bar, and the section nav in 11a's place beside the pane. The pane fills the width beside the nav, without 11a's 640 cap.</div>
+        <div class="doc-note"><b>Picking a row replaces the content and moves focus to the section's heading.</b> Nothing scrolls: the content starts at the top of the view, under general information. A section taller than the view grows the page, as any page does.</div>
+        <div class="doc-note"><b>Find in the page reaches only the open section.</b> Settings in other sections are reached through the nav.</div>
+        <div class="doc-note"><b>On a phone</b> the nav becomes a row of chips under the top bar that scrolls sideways; picking one opens that section the same way.</div>
+      </div>
+    </div>
+    <div class="ss-option ss-option--wide" id="25e">
+      <div class="ss-option__head"><span class="doc-badge">25e</span><span class="doc-section__title">With a right panel - the picked row, edited - at 1440, sidebar open</span></div>
+      <div class="sp-shell ss-screen--wide">
+    <nav class="sp-sidebar" aria-label="Sections">
+      <div class="sp-sidebar__brand"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><span>Spendly</span></div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a" ><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Home</span></a>
+      <a class="sp-nav-item sp-nav-item--action" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Scan receipt</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
+      <div class="sp-sidebar__group">Orders</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count">12</span></a>
+      <div class="sp-sidebar__group">Library</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Vendors</span><span class="sp-nav-item__count">42</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span><span>Categories</span><span class="sp-nav-item__count">9</span></a>
+      <a class="sp-nav-item" href="Bookmarks.dc.html#22a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span><span>Bookmarks</span><span class="sp-nav-item__count">23</span></a>
+      <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>Budget</span><span class="sp-nav-item__count">14</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg></span><span>Statistics</span></a>
+      <span class="sp-grow"></span>
+      <hr class="sp-sidebar__divider">
+      <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
+      <a class="sp-nav-item" aria-current="page" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a">
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-stack sp-grow">
+          <span class="sp-truncate">Mikkel M.</span>
+          <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
+        </span>
+        <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+      </a>
+      </nav>
+    <div class="sp-stack sp-grow st-main">
+      <div class="sp-topbar">
+        <div class="sp-picker__search st-search">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-row-flex sp-grow sp-top">
+          <nav class="sp-section-nav" aria-label="Settings">
+            <span class="sp-section-label sp-section-nav__head">SETTINGS</span>
+            <div class="sp-nav-list">
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Account and profile</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Appearance</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Money, dates and times</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Defaults</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Lists</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Limit alerts</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Needs a look</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e" aria-current="page"><span class="sp-grow">Statuses</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">AI assistants</span></a>
+              <div class="sp-menu__sep sp-menu__sep--divider" role="presentation"></div>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Import</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Demo data</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">This build</span></a>
+            </div>
+          </nav>
+          <div class="sp-row-flex sp-grow sp-top sp-gap-12 st-pane ss-pane--full">
+            <div class="sp-stack sp-gap-12 sp-grow">
+              <div class="sp-card" aria-label="Your account">
+              <div class="sp-row-flex sp-gap-16">
+              <span class="sp-mark sp-mark--large sp-mark--solid sp-mark--round" data-swatch="green-3" aria-hidden="true">MM</span>
+              <div class="sp-stacked"><span class="sp-title">Mikkel M.</span><span class="sp-subtitle sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span></div>
+              </div>
+              </div>
+              <section class="sp-card" aria-labelledby="sse-w-h">
+                <div class="sp-card__head"><span class="sp-section-label" role="heading" aria-level="3" id="sse-w-h">STATUSES</span></div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Draft</span><span class="sp-subtitle">built in</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Ordered</span><span class="sp-subtitle">built in · 31 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Delivered</span><span class="sp-subtitle">built in · 198 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Returned</span><span class="sp-subtitle">built in · 6 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Cancelled</span><span class="sp-subtitle">built in · 4 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item sp-list-item--picked">
+                    <button type="button" class="sp-list-item__open" aria-pressed="true"><div class="sp-stacked"><span class="sp-title sp-truncate">On hold</span><span class="sp-subtitle">added · 2 orders</span></div></button>
+                  </div>
+              </section>
+            </div>
+            <div class="sp-panel">
+              <div class="sp-card">
+                <div class="sp-card__head"><span class="sp-section-label">ON HOLD</span></div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="sse-w-name">Name</label>
+                  <input class="sp-input" id="sse-w-name" type="text" defaultValue="On hold">
+                </div>
+                <div class="sp-card__footer sp-card__footer--stack">
+                  <div class="sp-sum"><span>Orders with this status</span><span class="sp-grow"></span><span class="sp-strong">2</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+      <div class="ss-option__head"><span class="doc-section__title">The same at 1180, sidebar collapsed to the rail</span></div>
+      <div class="sp-shell sp-shell--collapsed st-screen">
+    <nav class="sp-sidebar" aria-label="Sections">
+      <div class="sp-sidebar__brand"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><span>Spendly</span></div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a" ><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Home</span></a>
+      <a class="sp-nav-item sp-nav-item--action" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Scan receipt</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
+      <div class="sp-sidebar__group">Orders</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count">12</span></a>
+      <div class="sp-sidebar__group">Library</div>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Vendors</span><span class="sp-nav-item__count">42</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span><span>Categories</span><span class="sp-nav-item__count">9</span></a>
+      <a class="sp-nav-item" href="Bookmarks.dc.html#22a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span><span>Bookmarks</span><span class="sp-nav-item__count">23</span></a>
+      <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>Budget</span><span class="sp-nav-item__count">14</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg></span><span>Statistics</span></a>
+      <span class="sp-grow"></span>
+      <hr class="sp-sidebar__divider">
+      <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
+      <a class="sp-nav-item" aria-current="page" href="Settings and import.dc.html#11a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
+      <a class="sp-nav-item" href="Settings and import.dc.html#11a">
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-stack sp-grow">
+          <span class="sp-truncate">Mikkel M.</span>
+          <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
+        </span>
+        <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+      </a>
+      </nav>
+    <div class="sp-stack sp-grow st-main">
+      <div class="sp-topbar">
+        <div class="sp-picker__search st-search">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-row-flex sp-grow sp-top">
+          <nav class="sp-section-nav" aria-label="Settings">
+            <span class="sp-section-label sp-section-nav__head">SETTINGS</span>
+            <div class="sp-nav-list">
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Account and profile</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Appearance</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Money, dates and times</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Defaults</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Lists</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Limit alerts</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Needs a look</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e" aria-current="page"><span class="sp-grow">Statuses</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">AI assistants</span></a>
+              <div class="sp-menu__sep sp-menu__sep--divider" role="presentation"></div>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Import</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">Demo data</span></a>
+              <a class="sp-nav-item sp-nav-item--light" href="#25e"><span class="sp-grow">This build</span></a>
+            </div>
+          </nav>
+          <div class="sp-row-flex sp-grow sp-top sp-gap-12 st-pane ss-pane--full">
+            <div class="sp-stack sp-gap-12 sp-grow">
+              <div class="sp-card" aria-label="Your account">
+              <div class="sp-row-flex sp-gap-16">
+              <span class="sp-mark sp-mark--large sp-mark--solid sp-mark--round" data-swatch="green-3" aria-hidden="true">MM</span>
+              <div class="sp-stacked"><span class="sp-title">Mikkel M.</span><span class="sp-subtitle sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span></div>
+              </div>
+              </div>
+              <section class="sp-card" aria-labelledby="sse-n-h">
+                <div class="sp-card__head"><span class="sp-section-label" role="heading" aria-level="3" id="sse-n-h">STATUSES</span></div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Draft</span><span class="sp-subtitle">built in</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Ordered</span><span class="sp-subtitle">built in · 31 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Delivered</span><span class="sp-subtitle">built in · 198 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Returned</span><span class="sp-subtitle">built in · 6 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item">
+                    <button type="button" class="sp-list-item__open"><div class="sp-stacked"><span class="sp-title sp-truncate">Cancelled</span><span class="sp-subtitle">built in · 4 orders</span></div></button>
+                  </div>
+                  <div class="sp-list-item sp-list-item--picked">
+                    <button type="button" class="sp-list-item__open" aria-pressed="true"><div class="sp-stacked"><span class="sp-title sp-truncate">On hold</span><span class="sp-subtitle">added · 2 orders</span></div></button>
+                  </div>
+              </section>
+            </div>
+            <div class="sp-panel">
+              <div class="sp-card">
+                <div class="sp-card__head"><span class="sp-section-label">ON HOLD</span></div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="sse-n-name">Name</label>
+                  <input class="sp-input" id="sse-n-name" type="text" defaultValue="On hold">
+                </div>
+                <div class="sp-card__footer sp-card__footer--stack">
+                  <div class="sp-sum"><span>Orders with this status</span><span class="sp-grow"></span><span class="sp-strong">2</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+      <div class="doc-notes">
+        <span class="doc-notes__label">Notes for implementation</span>
+        <div class="doc-note"><b>Picking a row in a section opens it in the panel</b> (<code>sp-panel</code>, 360, as <a href="Vendors and categories.dc.html#5a">5a</a>/<a href="Vendors and categories.dc.html#5b">5b</a>); the row takes <code>sp-list-item--picked</code>. Sections without rows (Appearance, Money, dates and times) show no panel and the pane fills the width, as <a href="#25c">25c</a>.</div>
+        <div class="doc-note"><b>Room for it:</b> at 1440 with the sidebar open the section column is about 560; at 1180 the sidebar has to collapse to the rail to leave about 480. Below a 900 content area the panel goes and the row opens on its own, with Back to the section, as 5a/5b do on a narrow screen.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SECTIONS = [
+  { id: 'account', label: 'Account and profile', heading: 'ACCOUNT AND PROFILE',
+    fields: [{ k: 'name', label: 'Name', value: 'Mikkel M.' }, { k: 'email', label: 'Email', value: 'mikkel@example.net' }] },
+  { id: 'appearance', label: 'Appearance', heading: 'APPEARANCE',
+    fields: [{ k: 'theme', label: 'Theme', value: 'Light' }, { k: 'compare', label: 'Compare this month with', value: 'Last month' }] },
+  { id: 'money', label: 'Money, dates and times', heading: 'MONEY, DATES AND TIMES',
+    fields: [{ k: 'currency', label: 'Currency', value: 'Danish krone (kr.)' }, { k: 'format', label: 'Date and time format', value: 'Danish (18.08.2026, 14.26)' }] },
+  { id: 'defaults', label: 'Defaults', heading: 'DEFAULTS FOR A NEW ORDER',
+    fields: [{ k: 'status', label: 'Status', value: 'Ordered' }, { k: 'category', label: 'Category', value: 'None' }] },
+  { id: 'lists', label: 'Lists', heading: 'LISTS',
+    fields: [{ k: 'views', label: 'Order views in the menu', value: '4 views' }, { k: 'rows', label: 'Rows per page', value: '25 rows' }] },
+  { id: 'alerts', label: 'Limit alerts', heading: 'LIMIT ALERTS',
+    fields: [{ k: 'early', label: 'Tell me early, at', value: '90%' }] },
+  { id: 'look', label: 'Needs a look', heading: 'NEEDS A LOOK',
+    rows: [{ title: 'Awaiting delivery', sub: 'On' }, { title: 'Over a limit', sub: 'On' }, { title: 'Possible duplicates', sub: 'On' }, { title: 'Orders without a receipt', sub: 'Off' }] },
+  { id: 'statuses', label: 'Statuses', heading: 'STATUSES',
+    rows: [{ title: 'Draft', sub: 'built in' }, { title: 'Ordered', sub: 'built in · 31 orders' }, { title: 'Delivered', sub: 'built in · 198 orders' }, { title: 'Returned', sub: 'built in · 6 orders' }, { title: 'Cancelled', sub: 'built in · 4 orders' }],
+    fields: [{ k: 'rename', label: 'Name of the added status', value: '', placeholder: 'For example On hold', invalid: true, help: 'A status needs a name.' }] },
+  { id: 'ai', label: 'AI assistants', heading: 'AI ASSISTANTS',
+    rows: [{ title: 'Claude on my laptop', sub: 'Made 12.10.2026 · last used today' }, { title: 'Claude on my phone', sub: 'Made 02.09.2026 · last used 3 days ago' }] },
+  { id: 'import', label: 'Import', heading: 'IMPORT', sepBefore: true,
+    rows: [{ title: 'webshop-orders.csv', sub: '3 Oct · 41 orders · 3 skipped' }, { title: 'orders_2025.csv', sub: '14 Jun · 82 orders · 3 skipped' }] },
+  { id: 'demo', label: 'Demo data', heading: 'DEMO DATA',
+    rows: [{ title: 'Fill with demo data', sub: 'Made-up orders so the lists and charts have something to show' }] },
+  { id: 'build', label: 'This build', heading: 'THIS BUILD',
+    rows: [{ title: 'Version 1.4.2', sub: 'Installed 18.08.2026, 09.14' }] },
+];
+
+
+class Component extends DCLogic {
+  state = { c: 'account' };
+
+  fieldsFor(sec, prefix) {
+    return (sec.fields || []).map(f => ({
+      ...f, placeholder: f.placeholder || '', ariaInvalid: f.invalid ? 'true' : 'false',
+      id: `${prefix}-${sec.id}-${f.k}`, helpId: f.invalid ? `${prefix}-${sec.id}-${f.k}-help` : undefined,
+    }));
+  }
+  nav(key, prefix) {
+    return SECTIONS.map(s => ({
+      label: s.label, sepBefore: !!s.sepBefore,
+      href: `#${prefix}-${s.id}`, currentAttr: this.state[key] === s.id ? 'page' : undefined,
+      onClick: e => {
+        e.preventDefault();
+        this.setState({ [key]: s.id }, () => { const h = document.getElementById(`${prefix}-h-${s.id}`); h && h.focus({ preventScroll: true }); });
+      },
+    }));
+  }
+  sections(key, prefix) {
+    return SECTIONS.filter(s => s.id === this.state[key]).map(s => ({ heading: s.heading, anchorId: `${prefix}-${s.id}`, headId: `${prefix}-h-${s.id}`, fields: this.fieldsFor(s, prefix), rows: s.rows || [] }));
+  }
+  renderVals() {
+    return {
+      spyNav: this.nav('c', 'ssc'), spySections: this.sections('c', 'ssc'),
+    };
+  }
+}
+</script>
+</body>
+</html>

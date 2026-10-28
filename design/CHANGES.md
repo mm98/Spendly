@@ -1,31 +1,66 @@
-# The size of the "What changed" dialog
+# The section nav: one component, as the Section switcher draws it
 
-## Fixed from handoff_what_changed_dialog_size
+## Fixed from handoff_section_nav
 
-**The problem.** In the earlier package, 11d state 6 sat in one column of its grid, so the dialog was drawn about 400 wide, not 640, and at 640 its list was too short to reach the 560 cap.
+**The problem.** The heading sat 2px right of the row labels: `.sp-section-nav__head` was inset 10, and the rows are inset 8 (`--shell-item-pad`). CHANGES.md and the c35 note stated 10 as the rows' inset.
 
-**What changed.** State 6 now spans both columns (`.st-span { grid-column: 1 / -1; }` in `styles/pages/settings.css`, a drawing class, not for the app), so the dialog is drawn at 640. Versions 1.3.1, 1.2.1 and 1.2.0 have more lines, so the list overflows at 640 and the dialog stops at its cap and scrolls. The app's rule is unchanged from the earlier package.
+**What changed.** `.sp-section-nav__head { padding: 0 var(--sp-8) var(--sp-10); }`, so the heading starts where the labels do. The c35 note and this file state 8.
 
+**Where.** `styles/components.css`, `.sp-section-nav__head`. `Components c35`, the Fixed note.
 
-## 1. Width
+## 1. The section nav is a component, Section nav (c35)
 
-**The problem.** The "What changed" dialog on Settings > This build is 420px wide, the width of every dialog (`.sp-dialog { width: 420px; }`), so the release notes are cramped on a wide screen.
+**The problem.** Settings' section nav was a page class, `.st-subnav` in `styles/pages/settings.css`, drawn in 11a with menu items (`sp-menu__item`) at 208 wide, so its heading did not line up with the row labels. The Section switcher exploration drew a second version with light nav rows (c22) at 224, through a page override (`.st-subnav.ss-vnav`). Two drawings of one nav, and in the app `Settings.jsx` keeps its own local `SectionNav`.
 
-**What changed.** On desktop (640px and up), a dialog that holds a scrolling list is 640 wide, the width Settings caps its column at (`.sp-column--form`, `.st-pane`). It keeps `max-width: 100%`, so a narrower window gives it what room there is. Every other dialog stays 420. On a phone nothing changes.
+**What changed.** One component, `.sp-section-nav`, as the switcher drew it:
+- a column 224 wide, so Money, dates and times does not wrap;
+- the heading (`sp-section-label sp-section-nav__head`) at the rows' 8px start inset (`--shell-item-pad`), so it lines up with their labels;
+- `sp-nav-list` of `sp-nav-item--light` rows, label only, with `sp-menu__sep--divider` before Import;
+- the `--line-3` divider on its right, and the column stays in place while the pane scrolls.
 
-**Where.** `Settings and import 11d`, state 6, and its note "The dialog scrolls, not the page". `Components c13`, the Fixed note. `styles/components.css`, a new `@media (min-width: 640px)` rule on `.sp-dialog:has(> .sp-dialog__scroll)`, after the existing rule. App: `react/src/pages/SettingsBuild.jsx` uses it as it is; only the stylesheet changes.
+The element is a `nav` labelled by its heading, "Settings", as the app has it. The behaviour is unchanged: below 900 the nav is a select above the cards, and on a phone the sections are a list.
+
+**Where.**
+- `Components c35` (new), and `c22`'s lede, which now links to it.
+- `Settings and import 11a` and `Section switcher 25c-25e` use the same markup.
+- `styles/components.css`: `.sp-section-nav` and `.sp-section-nav__head`, unlayered, after `.sp-nav-list`. `styles/pages/settings.css`: `.st-subnav` and `.st-subnav__head` are removed. `styles/pages/section-switcher.css`: `.st-subnav.ss-vnav` is removed.
+- `react_handoff/Shell.jsx`: `SectionNav({ label, children })` renders the nav, its heading and the list. `react_handoff/Overlays.jsx`: `MenuSeparator` takes `variant`, `menu` (the `li`, as now) or `divider` (a `span` with `sp-menu__sep--divider`), so one component renders `.sp-menu__sep`.
+- App: `react/src/pages/Settings.jsx`, the local `SectionNav`, which becomes:
+
+      <SectionNav label="Settings">
+        {SECTIONS.map(s => (
+          <Fragment key={s.key}>
+            {s.key === TOOLS ? <MenuSeparator variant="divider" /> : null}
+            <NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+          </Fragment>
+        ))}
+      </SectionNav>
+
+  `react/src/styles/pages/settings.css`: `.st-subnav` moves to `.sp-section-nav` in `react/src/styles/components.css`, unlayered. The width becomes 224. The app's placement rules stay with it: the sticky `top` under the top bar, the window `height`, the negative margins, `overflow-y: auto`, and `.sp-shell__body > :not(:first-child) > .sp-section-nav { margin-top: 0; }`. The drawing has no window, so it shows the column without them. The heading's `sp-stack sp-gap-8` wrapper goes: the heading takes `sp-section-nav__head` (`padding: 0 var(--sp-8) var(--sp-10)`), whose 8px start inset lines it up with the rows' labels.
 
 **What is still open.** Nothing.
 
-## 2. Height
+## 2. Section switcher: no unsaved dot and no error count on the nav rows
 
-**The problem.** With many versions the list is long, and the dialog is as tall as the window less the scrim's padding (`calc(100dvh - var(--sp-16) * 2)`), so on desktop it always reaches the top and bottom of the window.
+**The problem.** The Section switcher exploration drew two marks on the nav rows that nobody asked for: a green dot for unsaved changes (`.ss-dot`) and a red error count (`.ss-flag`).
 
-**What changed.** On desktop the dialog is at most 560 tall, the cap the Budget year's scrolling region already uses (`.bg-scroll`), or the window less the padding when that is shorter: `max-height: min(560px, calc(100dvh - var(--sp-16) * 2))`. A short list is still as tall as its content. The list scrolls inside it, and the heading and Close stay in view, as before. The phone keeps the current cap.
+**What changed.** Both are removed, with their rules and notes. Unsaved changes are still kept when another section opens, and Save with errors still opens the first section that has one.
 
-State 6 is now drawn at the desktop size: a 680px window, all seven versions (the running 1.4.2 and the four earlier ones that "Show 4 earlier versions" counts, plus the two above them), so the dialog stops at 560 and scrolls. Its label reads "6 - EARLIER VERSIONS, OPEN, DESKTOP".
+**Where.** `Section switcher 25a` notes and `25c`. `styles/pages/section-switcher.css`. Nothing in the app.
 
-**Where.** `Settings and import 11d`, state 6. `styles/components.css`, the same media rule as in 1. `styles/pages/settings.css`, `.st-window` (a drawing stand-in, 360 to 680px tall; not for the app).
+**What is still open.** Nothing.
+
+## 3. check.js asserts the section nav
+
+**The problem.** Nothing stopped a second section nav.
+
+**What changed.** A new rule, "the section nav is .sp-section-nav", fails when:
+- `components.css` lacks the component;
+- a page uses `.st-subnav`;
+- a `nav` of light rows sits on any other class;
+- `doc.css` or a page stylesheet styles `.sp-section-nav` or `.st-subnav`.
+
+**Where.** `styles/check.js`.
 
 **What is still open.** Nothing.
 
@@ -33,11 +68,17 @@ State 6 is now drawn at the desktop size: a 680px window, all seven versions (th
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Settings and import.dc.html` - 11d state 6 at the new size, and its note.
-- `Components.dc.html` - c13's Fixed note names the wider, capped list dialog.
-- `styles/components.css` - the new desktop rule for the list dialog.
-- `styles/pages/settings.css` - the taller drawing window for 11d, and `.st-span` so state 6 is drawn at full width.
-- `styles/tokens.css`, `styles/doc.css`, `support.js`, `components.js`, `icons.js` - what the two pages load to open from this folder.
+- `Components.dc.html` - c35 Section nav, and c22's lede.
+- `Settings and import.dc.html` - 11a on the component.
+- `Section switcher.dc.html` - on the component, without the dot and the count.
+- `styles/components.css` - `.sp-section-nav`.
+- `styles/pages/settings.css` - `.st-subnav` removed.
+- `styles/pages/section-switcher.css` - `.ss-dot`, `.ss-flag` and `.ss-vnav` removed.
+- `styles/check.js` - the new assertion.
+- `react_handoff/Shell.jsx` - `SectionNav`.
+- `react_handoff/Overlays.jsx` - `MenuSeparator`'s `variant`.
+- `react_handoff/README.md` - lists `SectionNav`.
+- `styles/tokens.css`, `styles/doc.css`, `support.js`, `components.js`, `icons.js` - what the pages load to open from this folder.
 
 ## styles/check.js
 

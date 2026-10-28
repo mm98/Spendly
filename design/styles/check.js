@@ -1431,6 +1431,30 @@
   }
   if (!/\.sp-list-item--setting:has\(input:checked\)/.test(comp)) fail('a list row holding a control is .sp-list-item--setting', 'styles/components.css', 'the variant is missing');
 
+  /* The section nav is one component, .sp-section-nav (c35). Caught: Settings 11a drew it
+     as page class .st-subnav with menu items, and the Section switcher drew a second one with
+     light nav rows at another width, so the header lined up with the labels on one page and
+     not the other. A nav of light rows is the section nav, the old name is gone, and no page
+     or doc stylesheet restyles it. */
+  {
+    if (!/\.sp-section-nav \{/.test(comp)) fail('the section nav is .sp-section-nav', 'styles/components.css', 'the component is missing');
+    for (const f of pages) {
+      const t = src[f].replace(/<script[\s\S]*?<\/script>/g, '');
+      if (/\bst-subnav\b/.test(t)) fail('the section nav is .sp-section-nav', f, 'uses the retired .st-subnav');
+      for (const m of t.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/g)) {
+        if (!/sp-nav-item--light/.test(m[2])) continue;
+        const cls = (m[1].match(/class="([^"]*)"/) || [, ''])[1];
+        if (cls.trim() !== 'sp-section-nav') fail('the section nav is .sp-section-nav', f, 'a nav of light rows on class "' + cls + '"');
+      }
+    }
+    const others = { 'styles/doc.css': doc };
+    for (const [k, v] of Object.entries(pageCss)) others['styles/pages/' + k] = v;
+    for (const [k, v] of Object.entries(others)) {
+      if (/\bst-subnav\b/.test(v)) fail('the section nav is .sp-section-nav', k, 'styles the retired .st-subnav');
+      if (/\.sp-section-nav\b/.test(v.replace(/\/\*[\s\S]*?\*\//g, ''))) fail('the section nav is .sp-section-nav', k, 'restyles .sp-section-nav outside components.css');
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

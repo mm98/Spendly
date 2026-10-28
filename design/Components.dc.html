@@ -4423,7 +4423,7 @@
     <span class="sp-grow"></span>
     <span class="sp-meta">.sp-nav-item--light</span>
   </div>
-  <div class="doc-lede">The sidebar's row (<a href="#c11">c11</a>) on a light surface: saved views in Order list 2b, and the section nav in Settings 11a. One implementation, one current item, the count where the destination has one.</div>
+  <div class="doc-lede">The sidebar's row (<a href="#c11">c11</a>) on a light surface: saved views in Order list 2b, and the Section nav (<a href="#c35">c35</a>) in Settings 11a. One implementation, one current item, the count where the destination has one.</div>
 
   <div class="doc-specimens">
     <div class="doc-specimen">
@@ -5101,6 +5101,55 @@
     <div class="doc-note"><b>Enter</b> sends, <b>Shift Enter</b> makes a new line. <b>Stop</b> ends an answer coming. A saved question sends at once, from the empty page or the Saved questions select; its remove button removes it at once. The bookmark saves or unsaves its question. The thread is a <code>role="log"</code> with <code>aria-live="polite"</code>, so an answer is read out when it arrives.</div>
   </div>
 </section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="c35">c35</span>
+    <span class="doc-section__title">Section nav</span>
+    <span class="sp-grow"></span>
+    <span class="sp-meta">.sp-section-nav</span>
+  </div>
+  <div class="doc-lede">The nav beside a page's pane: a heading over light nav rows (<a href="#c22">c22</a>), one per section. Settings 11a, and the Section switcher exploration.</div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Settings · Account and profile open</span>
+      <div class="sp-row-flex sp-top">
+        <nav class="sp-section-nav" aria-label="Settings">
+          <span class="sp-section-label sp-section-nav__head">SETTINGS</span>
+          <div class="sp-nav-list">
+          <a class="sp-nav-item sp-nav-item--light" href="#c35" aria-current="page"><span class="sp-grow">Account and profile</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Appearance</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Money, dates and times</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Defaults</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Lists</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Limit alerts</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Needs a look</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Statuses</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">AI assistants</span></a>
+          <div class="sp-menu__sep sp-menu__sep--divider" role="presentation"></div>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Import</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">Demo data</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#c35"><span class="sp-grow">This build</span></a>
+          </div>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <div class="doc-notes__label">Slots</div>
+    <div class="doc-note">A heading, a section label (<code>.sp-section-label.sp-section-nav__head</code>), then an <code>sp-nav-list</code> of <code>sp-nav-item--light</code> rows, label only, no icon and no count. A divider (<code>sp-menu__sep--divider</code>) separates groups: here the settings from the tools (Import, Demo data, This build).</div>
+    <div class="doc-notes__label">Fixed</div>
+    <div class="doc-note">224 wide, so the longest label, Money, dates and times, does not wrap. Padding <code>--card-pad</code>. The heading takes the rows' start inset, <code>--sp-8</code> (from <code>--shell-item-pad</code>), so it lines up with their labels; 10 below it. A <code>--line-3</code> rule on its right runs the pane's whole height. The column stays in place while the pane scrolls.</div>
+    <div class="doc-notes__label">States</div>
+    <div class="doc-note">The rows' own (<a href="#c22">c22</a>): rest, hover, focus, and one current row, <code>aria-current="page"</code>.</div>
+    <div class="doc-notes__label">Actions</div>
+    <div class="doc-note">The element is a <code>nav</code> named for what it lists ("Settings"), and each row is a link to its section. Selecting a row opens that section; the nav does not move. Below a 900 content area the nav is a select above the cards, and on a phone the sections are a list (<a href="Settings and import.dc.html#11a">Settings 11a</a>).</div>
+    <div class="doc-note"><b>One implementation.</b> Every section nav is this markup and this class. A page never sets its width or restyles it; a need it cannot meet is a variant here.</div>
+  </div>
+</section>
+
 
 
 

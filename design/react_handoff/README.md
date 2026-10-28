@@ -40,7 +40,8 @@ and `tabler.js` stay in the app: the harness draws icons from the project's `ico
     Reorder.jsx       ReorderList
     Segmented.jsx     Segmented
     Shell.jsx         Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup,
-                      SidebarGrip, SidebarDivider, NavItem, SidebarAccount, Scrim,
+                      SidebarGrip, SidebarDivider, NavItem, SectionNav,
+                      SidebarAccount, Scrim,
                       Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll
     Stepper.jsx       Stepper
     Touch.jsx         TabBar, TabBarItem, Sheet, SaveBar, Fab

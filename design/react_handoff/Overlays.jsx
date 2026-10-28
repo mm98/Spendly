@@ -245,10 +245,20 @@ export function MenuLabel({ children, ...rest }) {
 	return <li className="sp-menu__label" role="presentation" {...rest}>{children}</li>
 }
 
-/** A rule between groups. */
-export function MenuSeparator(props) {
-	reject(props, 'MenuSeparator')
-	return <li className="sp-menu__sep" role="separator" {...props} />
+const SEPARATOR = { menu: null, divider: 'sp-menu__sep--divider' }
+
+/**
+ * A rule between groups: in a menu, or between groups of rows in a SectionNav.
+ *
+ * @param {object} props
+ * @param {keyof typeof SEPARATOR} [props.variant] `menu`, an item of a Menu; `divider`, the darker rule between groups of nav rows (c35).
+ */
+export function MenuSeparator({ variant = 'menu', ...rest }) {
+	reject(rest, 'MenuSeparator')
+	const cls = join('sp-menu__sep', pick(SEPARATOR, variant, 'variant', 'MenuSeparator'))
+	return variant === 'divider'
+		? <span className={cls} role="separator" {...rest} />
+		: <li className={cls} role="separator" {...rest} />
 }
 
 const POPOVER = { default: null, start: 'sp-popover--start', end: 'sp-popover--end', static: 'sp-popover--static' }

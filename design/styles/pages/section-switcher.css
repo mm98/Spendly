@@ -1,0 +1,16 @@
+/* Page composition for Section switcher.dc.html, an exploration that is not approved.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  .ss-row { display: flex; flex-wrap: wrap; gap: var(--sp-16); align-items: flex-start; }
+  .ss-option { display: flex; flex-direction: column; gap: var(--sp-16); width: 1180px; max-width: 100%; }
+  .ss-option--wide { width: 1440px; }
+  .ss-screen--wide { width: 1440px; min-width: 1440px; }
+  .ss-option__head { display: flex; align-items: center; gap: var(--sp-8); }
+
+  .ss-option [tabindex="-1"]:focus { outline: none; }
+
+  /* the open section fills the width beside the nav, without 11a's 640 cap */
+  .st-pane.ss-pane--full { max-width: none; }
+}
