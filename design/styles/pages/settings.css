@@ -138,7 +138,10 @@
   }
   /* 11f: ten recovery codes in two columns inside their well */
   .st-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-8) var(--sp-16); }
-  /* 11d: a stand-in for a short window, so the earlier-versions dialog is drawn scrolling */
-  .st-window { display: flex; flex-direction: column; height: 360px; }
+  /* 11d: a stand-in for a desktop window, taller than the dialog's 560 cap, so the
+     earlier-versions dialog is drawn stopping short of it and scrolling */
+  .st-window { display: flex; flex-direction: column; height: 680px; }
+  /* 11d state 6 takes both columns of its grid, so the dialog is drawn at its desktop 640 */
+  .st-span { grid-column: 1 / -1; }
 
 }
