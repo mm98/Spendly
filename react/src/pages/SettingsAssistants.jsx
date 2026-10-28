@@ -90,7 +90,6 @@ export function AssistantsCard({ state, touch }) {
 							<span className="sp-title sp-truncate">{t.name}</span>
 							<span className="sp-meta">Made {dayShortMonthYear(t.createdAt)}{dot}{used(t.lastUsedAt)}</span>
 						</Stacked>
-						<span className="sp-grow" />
 						<Button variant="outline" size="small" onClick={() => setRemoving(t)}>Remove</Button>
 					</div>
 				</Fragment>
