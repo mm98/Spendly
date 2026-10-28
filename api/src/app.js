@@ -13,6 +13,8 @@ import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
+import { router as accountDeletionRouter } from './routes/accountDeletion.js'
+import { router as accountExportRouter } from './routes/accountExport.js'
 import { router as passkeysRouter, signInRouter as passkeySignInRouter } from './routes/passkeys.js'
 import { securityLog } from './lib/securityLog.js'
 import { router as twoStepRouter, signInRouter as twoStepSignInRouter } from './routes/twoStep.js'
@@ -297,6 +299,8 @@ app.use('/api/account/passkeys', passkeysRouter)
 app.use('/api/account/mcp-tokens', mcpTokensRouter)
 app.use('/api/account/two-step', twoStepRouter)
 app.use('/api/account', profileRouter)
+app.use('/api/account', accountDeletionRouter)
+app.use('/api/export', accountExportRouter)
 app.use('/api/imports', importsRouter)
 app.use('/api/statuses', statusesRouter)
 app.use('/api/views', viewsRouter)

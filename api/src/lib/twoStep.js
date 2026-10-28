@@ -213,3 +213,8 @@ export function readTicket(ticket) {
 }
 
 export const closeTicket = ticket => tickets.delete(ticket)
+
+/** Ends every open code step of the account. */
+export function closeTicketsOf(userId) {
+	for (const [ticket, kept] of tickets) if (kept.userId === userId) tickets.delete(ticket)
+}

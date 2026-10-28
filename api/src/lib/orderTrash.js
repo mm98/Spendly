@@ -79,3 +79,8 @@ export const restoreOrder = db.transaction((userId, trashId) => {
 	forget(trashId)
 	return rows.order.id
 })
+
+/** Drops every copy the account's deleted orders left to undo from. */
+export function forgetTrashOf(userId) {
+	for (const [id, copy] of kept) if (copy.userId === userId) forget(id)
+}

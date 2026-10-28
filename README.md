@@ -179,8 +179,8 @@ Everything that needs you, on one page.
 
 ![Settings](docs/settings.png)
 
-- **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN), and
-  **two-step sign-in** (a code from an app on your phone).
+- **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN),
+  **two-step sign-in** (a code from an app on your phone), and **Delete account**.
 - **Status email** - a weekly or monthly summary of spending, saving, limits, your latest orders and bookmarks.
 - **Appearance** - light, dark or follow the system; comfortable or compact rows.
 - **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
@@ -220,6 +220,9 @@ Everything that needs you, on one page.
 - **Changing the password** in Settings signs out every other device. A **password reset** signs
   out every device and removes every passkey.
 - **Adding a passkey** asks for the password first.
+- **Delete account** in Settings asks for the password, and a code when two-step sign-in is on.
+  The account and everything in it are removed for good, and every device is signed out. A copy
+  of your orders and their receipts can be downloaded first, as a .zip that Import reads.
 - **Two-step sign-in** is turned on in Settings, Account and profile: give your password, scan the
   QR code with an authenticator app (or type its key), then type the first code. Signing in with a
   password then asks for the 6-digit code from the app. A passkey sign-in does not.

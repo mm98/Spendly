@@ -29,6 +29,7 @@ import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { TwoStepCard, useTwoStepWord } from './SettingsTwoStep.jsx'
+import { DeleteAccountCard } from './SettingsDeleteAccount.jsx'
 import { AssistantsCard, useAssistantTokenCount, useAssistantsState } from './SettingsAssistants.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
 import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
@@ -193,8 +194,8 @@ export default function Settings() {
 	const fields = { value, change, touch }
 	const cards = {
 		account: touch
-			? <AccountCard key="account" user={user.data} {...fields} />
-			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />, <TwoStepCard key="two-step" />],
+			? [<AccountCard key="account" user={user.data} {...fields} />, <DeleteAccountCard key="delete-account" />]
+			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />, <TwoStepCard key="two-step" />, <DeleteAccountCard key="delete-account" />],
 		passkeys: <PasskeysCard key="passkeys" />,
 		'two-step': <TwoStepCard key="two-step" />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
