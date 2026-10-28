@@ -1393,6 +1393,23 @@ for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages]) {
 		fail('hover only where a pointer hovers', relative(root, p), `${m[1].trim().slice(0, 80)} is outside @media (hover: hover)`)
 }
 
+/* ---- the section nav is .sp-section-nav (c35) ----
+   A nav beside a page's pane is SectionNav: no page draws its own nav element, and no page
+   stylesheet restyles the component. app.css places it in the real window. */
+
+if (!/\.sp-section-nav \{/.test(components)) fail('the section nav is .sp-section-nav', 'src/styles/components.css', 'the component is missing')
+for (const p of checked) {
+	if (p.includes(`${sep}components${sep}`)) continue
+	const text = read(p)
+	if (/\bst-subnav\b/.test(text)) fail('the section nav is .sp-section-nav', rel(p), 'uses the retired .st-subnav')
+	if (/<nav\b/.test(text)) fail('the section nav is .sp-section-nav', rel(p), 'draws its own nav: use SectionNav')
+}
+for (const [p, css] of pages) {
+	const rules = css.replace(/\/\*[\s\S]*?\*\//g, '')
+	if (/\bst-subnav\b/.test(rules)) fail('the section nav is .sp-section-nav', rel(p), 'styles the retired .st-subnav')
+	if (/\.sp-section-nav\b/.test(rules)) fail('the section nav is .sp-section-nav', rel(p), 'restyles .sp-section-nav outside components.css and app.css')
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -1543,7 +1560,8 @@ const DESIGN_RULES = {
 	'a stepper shows its digit': COPY,
 	'every component prop has JSDoc': 'every component prop has JSDoc',
 	'top bar rules reach the screen slot': COPY,
-	'one name for full width': 'one name for full width'
+	'one name for full width': 'one name for full width',
+	'the section nav is .sp-section-nav': 'the section nav is .sp-section-nav'
 }
 {
 	const designCheck = read(join(root, '../design/styles/check.js'))
