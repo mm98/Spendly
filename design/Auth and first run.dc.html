@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20261027a">
@@ -792,6 +794,7 @@
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
     <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
+    <div class="doc-note"><b class="sp-ink">The emails follow the account's colour scheme</b> (<a href="Settings and import.dc.html#11a">11a</a>): the button, the links and positive figures take the scheme's <code>--green</code> and <code>--green-2</code>, the mark tile its <code>--shell-action</code>, and the dark block the scheme's dark values, written in as literals from <code>styles/schemes.css</code> when the email is rendered. An account with no scheme gets Green. The specimens below are drawn in Green.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
     <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
     <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
@@ -802,7 +805,7 @@
     <div class="doc-note"><b class="sp-ink">A weekly email states limits for the calendar month so far</b>, since limits are monthly: "11.260,00 kr. of 10.000,00 kr. in October so far". A saving is an amount, green, under the order amount; a zero saving is grey.</div>
     <div class="doc-note"><b class="sp-ink">Dates follow the account's language</b>, as everywhere in the app: in a Danish account the email reads "in Oktober so far" and "12. - 18. okt. 2026" while the sentences around them stay English. Only month and weekday names change; the numbers already follow the account's number format.</div>
     <div class="doc-note"><b class="sp-ink">Stop these emails opens 8 to 10</b>, the answer card from 20b: Status emails stopped, Already stopped, or That link has expired after 60 days. A newer email's link works while an older one has expired.</div>
-    <div class="doc-note"><b class="sp-ink">The tiles stack below 480px</b>, and the card keeps one column at every width. Stop these emails sets the setting to None without signing in, from a single-use link.</div>
+    <div class="doc-note"><b class="sp-ink">The tiles stack below 480px</b>, and the card keeps one column at every width. Stop these emails turns off both Weekly and Monthly without signing in, from a single-use link.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
   </div>
 
@@ -1203,10 +1206,12 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
   state = {};
-  componentDidMount() {
+  componentDidMount() { this.applySchemeView();
     this.applyView();
     const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone', codes_left: '6' };
     const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account', twoOn: 'https://app.example.net/settings/account', twoOff: 'https://app.example.net/settings/account', codeUsed: 'https://app.example.net/settings/account' };
@@ -1237,7 +1242,7 @@ class Component extends DCLogic {
     const go = () => { const d = el.contentDocument; const h = d && d.documentElement ? d.documentElement.scrollHeight : 0; if (h > 0) el.style.height = h + 'px'; };
     go(); requestAnimationFrame(go); setTimeout(go, 300);
   }
-  componentDidUpdate() {
+  componentDidUpdate() { this.applySchemeView(arguments[0]);
     this.applyView();
     document.querySelectorAll('iframe.au-email').forEach(el => {
       if (!el.dataset.sized) { el.dataset.sized = 'on'; el.addEventListener('load', () => this.size(el)); }
@@ -1253,7 +1258,6 @@ class Component extends DCLogic {
   applyView() {
     const el = document.querySelector('.sp');
     if (!el) return;
-    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
     el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
   }
 }

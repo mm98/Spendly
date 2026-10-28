@@ -13,11 +13,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
-<link rel="stylesheet" href="styles/components.css?v=v20260917b">
-<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261027c">
+<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/input-types.css?v=v20260917b">
-<script src="./components.js?v=v20260917b"></script>
+<script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
   a { color: #1d4d33; }
@@ -216,13 +218,15 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Annotation&quot;,&quot;label&quot;:&quot;Implementation notes&quot;},&quot;showErrorStates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Annotation&quot;,&quot;label&quot;:&quot;Error states&quot;},&quot;comboVariant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Both modes&quot;,&quot;Pick only&quot;,&quot;Searchable only&quot;],&quot;default&quot;:&quot;Both modes&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Combobox&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showErrorStates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Annotation&quot;,&quot;label&quot;:&quot;Error states&quot;},&quot;comboVariant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Both modes&quot;,&quot;Pick only&quot;,&quot;Searchable only&quot;],&quot;default&quot;:&quot;Both modes&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Combobox&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  componentDidMount() { this.applyTheme(); }
-  componentDidUpdate() { this.applyTheme(); }
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
+  componentDidMount() { this.applySchemeView(); this.applyTheme(); }
+  componentDidUpdate() { this.applySchemeView(arguments[0]); this.applyTheme(); }
   applyTheme() {
     const el = document.querySelector('.sp');
-    if (el) el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    
   }
   renderVals() {
     const variant = this.props.comboVariant ?? "Both modes";

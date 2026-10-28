@@ -14,9 +14,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
-<link rel="stylesheet" href="styles/pages/settings.css?v=v20261027b">
+<link rel="stylesheet" href="styles/pages/settings.css?v=v20261028u">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
@@ -46,6 +48,7 @@
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>AI assistants</b> is its own pane, after Statuses: the tokens an assistant program reads this account with. Its card is drawn here at rest with two tokens; every other state is in <a href="#11e">11e</a>.</div>
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
+    <div class="doc-note"><b>Colour scheme</b> sits in Appearance under Theme: 17 schemes, Green the default, four tiles to a row. Each tile shows the scheme as its tones: the sidebar, then the primary scale from darkest to lightest, in the theme in use. A scheme replaces the primary scale, the neutrals and the sidebar (<code>styles/schemes.css</code>, set as <code>data-scheme</code> on the root beside <code>data-theme</code>) and holds for Light, Dark and Follow system. Ink, amber and red are the same in every scheme. Savings and positive figures take the scheme's primary. It saves with the card's own save and is stored on the account, so the emails use it too (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--green-3</code>, round, as in the sidebar.</div>
     <div class="doc-note"><b>Draft, Ordered, Delivered, Returned and Cancelled are built in</b> and are never deleted, whatever their order count; Delivered is drawn mid-rename as Received. The app knows Returned and Cancelled by what they mean, not by their name: they are left out of spending, a scanned return receipt is filed under Returned, demo data and imports use them, and a cancelled order is struck out. A new status with the same name would not bring that back, so the row has no delete control. Each built-in row carries the "built in" pill; all but Draft keep the pencil, since a rename changes only the name.</div>
@@ -269,6 +272,217 @@
               </label>
             </div>
             <span class="sp-field__help">You can also switch this from the sidebar.</span>
+          </div>
+          <span class="sp-rule"></span>
+          <div class="sp-field">
+              <span   class="sp-field__label" id="st-scheme-l">Colour scheme</span>
+            <div class="st-trio st-trio--schemes" role="radiogroup" aria-labelledby="st-scheme-l">
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme" defaultChecked="{{ true }}">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="green" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Green</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="navy" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Deep navy</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="cobalt" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Cobalt</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="indigo" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Indigo</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="ocean" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Ocean</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="slate" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Slate</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="teal" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Petrol teal</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="emerald" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Emerald</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="olive" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Olive</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="ochre" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Ochre</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="rust" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Terracotta</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="mocha" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Mocha</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="oxblood" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Oxblood</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="raspberry" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Raspberry</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="plum" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Plum</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="violet" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Violet</span>
+              </label>
+              <label class="sp-well st-theme">
+                <input class="sp-radio" type="radio" name="st-scheme">
+                <span class="st-theme__preview st-theme__preview--tones" data-scheme="charcoal" aria-hidden="true">
+                  <span class="st-theme__tone st-theme__tone--shell"></span>
+                  <span class="st-theme__tone st-theme__tone--1"></span>
+                  <span class="st-theme__tone st-theme__tone--2"></span>
+                  <span class="st-theme__tone st-theme__tone--3"></span>
+                  <span class="st-theme__tone st-theme__tone--4"></span>
+                  <span class="st-theme__tone st-theme__tone--5"></span>
+                </span>
+                <span class="sp-subtitle sp-center">Charcoal</span>
+              </label>
+            </div>
+            <span class="sp-field__help">Sets the colour of buttons, links, the sidebar and savings, in light and dark.</span>
           </div>
           <span class="sp-rule"></span>
             <div class="sp-stack sp-gap-8">
@@ -2218,16 +2432,15 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  componentDidMount() { this.applyView(); }
-  componentDidUpdate() { this.applyView(); }
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
+  componentDidMount() { this.applySchemeView(); this.applyView(); }
+  componentDidUpdate() { this.applySchemeView(arguments[0]); this.applyView(); }
   applyView() {
     const el = document.querySelector('.sp');
     if (!el) return;
-    // the page's ground follows the switch; any specimen whose subject is a theme
-    // declares its own data-theme and is unaffected
-    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
     el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
   }
 }

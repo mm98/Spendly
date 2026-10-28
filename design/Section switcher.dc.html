@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/settings.css?v=v20261027b">
@@ -349,7 +351,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 const SECTIONS = [
   { id: 'account', label: 'Account and profile', heading: 'ACCOUNT AND PROFILE',
     fields: [{ k: 'name', label: 'Name', value: 'Mikkel M.' }, { k: 'email', label: 'Email', value: 'mikkel@example.net' }] },
@@ -380,6 +382,10 @@ const SECTIONS = [
 
 
 class Component extends DCLogic {
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
+  componentDidUpdate() { this.applySchemeView(arguments[0]); }
+  componentDidMount() { this.applySchemeView(); }
   state = { c: 'account' };
 
   fieldsFor(sec, prefix) {

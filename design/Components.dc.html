@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025d">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261028a">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
@@ -5159,16 +5161,18 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;},&quot;touchOnly&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;touchOnly&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  componentDidMount() {
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
+  componentDidMount() { this.applySchemeView();
     const stored = (() => { try { return localStorage.getItem('sp-theme'); } catch (e) { return null; } })();
     const root = document.querySelector('.sp');
     if (root && stored === 'dark') root.setAttribute('data-theme', 'dark');
     this.applyView = () => {
       const el = document.querySelector('.sp');
       if (!el) return;
-      const dark = (this.props.theme ?? 'light') === 'dark';
+      const dark = (window.SpView ? SpView.current(this.props).theme : (this.props.theme ?? 'light')) === 'dark';
       if (dark) el.setAttribute('data-theme', 'dark');
       else el.removeAttribute('data-theme');
       el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
@@ -5187,7 +5191,7 @@ class Component extends DCLogic {
     };
     document.addEventListener('click', this.onTheme);
   }
-  componentDidUpdate() { if (this.applyView) this.applyView(); }
+  componentDidUpdate() { this.applySchemeView(arguments[0]); if (this.applyView) this.applyView(); }
   componentWillUnmount() { document.removeEventListener('click', this.onTheme); }
 }
 </script>

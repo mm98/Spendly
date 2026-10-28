@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/budget.css?v=v20260917b">
@@ -50,6 +52,7 @@
     <div class="doc-note">On a device with a home bar band, the tab bar's height takes the band in, and its items sit 12 lower than centred, so they do not float over the empty band. <code>.sp-tabbar--band</code>, drawn in Components.</div>
     <div class="doc-note"><b class="sp-ink">Tapping search opens the palette over the whole screen</b> - the same palette as <b>9d</b>, full bleed, its search row standing at the top bar's own height and gutter so the field does not move. The field keeps what was typed and carries a clear control at its right edge, where the keyboard hint sits on desktop. Rows keep the name and one line of detail and drop the amount and the key hints: 375px has room for what the row is, not for everything the row could say. It is drawn in <b>7b</b>.</div>
     <div class="doc-note"><b class="sp-ink">More is a list of the areas the tab bar has no room for</b> - the account, Budget, Vendors, Categories, Bookmarks, saved views and Settings, in the sidebar's order. It is the fourth tab, so it keeps the tab bar and shows More as current; everything it opens keeps More current too, which is why the Vendors, Categories and Settings frames below show it that way. The theme is under Settings, in Appearance.</div>
+    <div class="doc-note"><b class="sp-ink">Appearance on a phone holds Colour scheme under Theme</b>: the tiles from <a href="Settings and import.dc.html#11a">11a</a>, three to a row, a tap choosing one. The Appearance row in Settings shows no value.</div>
     <div class="doc-note"><b class="sp-ink">A create or edit screen is the order edit frame with a different form.</b> Back control and title in the bar, cards of fields in the scroll, the save bar at the bottom - <b>5b</b> is drawn here to show it; 5c, 5e and 5f are the same frame.</div>
     <div class="doc-note"><b class="sp-ink">Rows become cards, and cards drop fields rather than shrinking them.</b> An order card is the card from <a href="Order list.dc.html#2i">2i</a>: vendor and amount on line one, then the date and items with the saving under the amount. The reference, the status and the category are not on the card; the order page shows them. Everything else lives one level deeper.</div>
     <div class="doc-note"><b class="sp-ink">Filters and sort become two controls above the list</b>, not a facet rail. Filters opens the bottom sheet in <b>7b</b> and carries a count when any are applied.</div>
@@ -1683,14 +1686,15 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
-  componentDidMount() { this.applyView(); }
-  componentDidUpdate() { this.applyView(); }
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
+  componentDidMount() { this.applySchemeView(); this.applyView(); }
+  componentDidUpdate() { this.applySchemeView(arguments[0]); this.applyView(); }
   applyView() {
     const el = document.querySelector('.sp');
     if (!el) return;
-    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
     el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
     // a sheet that opens on the month it is now: scroll so that month's column sits right of the held row names
     document.querySelectorAll('.bg-scroll[data-open-at]').forEach(s => {

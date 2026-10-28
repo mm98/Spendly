@@ -14,7 +14,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261026e">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
+<script src="./view.js?v=v20261028b"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261027a">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
@@ -456,7 +458,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;top&quot;, &quot;r1 Button&quot;, &quot;r2 Mark&quot;, &quot;r3 Chip, Pill&quot;, &quot;r4 Inputs&quot;, &quot;r5 Card, Well&quot;, &quot;r6 ListItem&quot;, &quot;r7 Menu, Popover, Dialog&quot;, &quot;r8 Toast, Alert&quot;, &quot;r9 List&quot;, &quot;r10 Gauge, Bars, Plot&quot;, &quot;r11 Skeleton, Spinner&quot;, &quot;r12 Shell, Sidebar&quot;, &quot;r13 Touch&quot;, &quot;r14 LineEditor&quot;, &quot;r15 Called wrongly&quot;], &quot;default&quot;: &quot;top&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Go to&quot;}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;'light' | 'dark'&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;menu&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;expanded&quot;, &quot;rail&quot;, &quot;peek&quot;], &quot;default&quot;: &quot;expanded&quot;, &quot;tsType&quot;: &quot;'expanded' | 'rail' | 'peek'&quot;, &quot;section&quot;: &quot;Shell&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
@@ -479,6 +481,8 @@ const FILES = ['variants.js', 'format.js', 'colour.js', 'motion.js', 'EmailLine.
    app's Icon, and React's own hooks - and the shared helpers from variants.js are
    passed in the same way, since a stripped module has no imports left. */
 class Component extends DCLogic {
+  // theme and scheme come from the view every page shares (view.js)
+  applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
 	state = {
 		mods: null,
 		byFile: null, error: null, facet: true, qty: 1, picked: [], plain: '', focusDemo: '', chipStatus: 'done', demo: {}, shellSearch: '', railed: null,
@@ -507,9 +511,9 @@ class Component extends DCLogic {
 		hire: ['2026-08-10', '2026-08-12']
 	};
 
-	componentDidMount() { this.load() }
+	componentDidMount() { this.applySchemeView(); this.load() }
 
-	componentDidUpdate() { this.jump() }
+	componentDidUpdate() { this.applySchemeView(arguments[0]); this.jump() }
 
 	/* The tweak names a section and the page goes there. It is a jump, not a state, so
 	   it fires once per change: the section id is remembered and a repeat of the same
@@ -538,7 +542,7 @@ class Component extends DCLogic {
 	   not see. A theme that depends on componentDidUpdate having fired is a theme that
 	   silently stops when something else changes how the page re-renders. */
 	applyTheme() {
-		const theme = this.props.theme ?? 'light'
+		const theme = window.SpView ? SpView.current(this.props).theme : (this.props.theme ?? 'light')
 		/* On the page's own wrapper as well as the document element. The token blocks are
 		   plain [data-theme] selectors, so they apply wherever the attribute lands and
 		   cascade to everything inside - and the wrapper is the one element this page
