@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/components.css?v=v20261027c">
+<link rel="stylesheet" href="styles/components.css?v=v20261028a">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <link rel="stylesheet" href="styles/pages/navigation-shell.css?v=v20260917b">
 <script src="./components.js?v=v20261024s"></script>
@@ -897,7 +897,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Experiment, not settled: collapsed, pointing at it opens it over the page.</b> The sidebar slides out to its full width on top of the content rather than pushing it, and closes again when the pointer leaves, so reaching a destination from the rail costs no click and no reflow. Both edges are delayed - a moment before it opens, so crossing the rail on the way somewhere else does nothing, and longer before it closes, so a pointer that dips outside does not shut it. A sidebar the user expanded with the grip is not peeking and stays open. The peek is not built: the grip is the committed control, and the rail loses nothing without the hover.</div>
-    <div class="doc-note"><b>The grip is what collapses it.</b> A 3&times;26 bar on the sidebar's right edge, vertically centred, in a 14&times;44 target. Clicking it slides the column: opening runs the labels in as it widens, closing runs them out first and gives the width back after. It toggles between <code>--sidebar-w</code> and <code>--sidebar-w-rail</code> rather than resizing freely - there are two widths, not a range - and the choice is stored per user, so the sidebar opens in the state it was left in. Below 1280px the rail is the layout whatever that choice was, and the grip expands it back over the page for as long as it is open.</div>
+    <div class="doc-note"><b>The grip is what collapses it.</b> A 3&times;26 bar on the sidebar's right edge, vertically centred, in a 24&times;44 target (WCAG 2.5.8 asks for 24 at least). The bar stays where it was, centred in the right 14px of the target; the other 10px reach into the sidebar, over the right end of the row at that height, and the grip takes a press there. Clicking it slides the column: opening runs the labels in as it widens, closing runs them out first and gives the width back after. It toggles between <code>--sidebar-w</code> and <code>--sidebar-w-rail</code> rather than resizing freely - there are two widths, not a range - and the choice is stored per user, so the sidebar opens in the state it was left in. Below 1280px the rail is the layout whatever that choice was, and the grip expands it back over the page for as long as it is open.</div>
   </div>
 </section>
 </div>

@@ -1329,6 +1329,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table--compact th:last-child,
 .sp-table--compact td:last-child { padding-right: var(--sp-12); }
 .sp-table--compact thead th { background: var(--surface-2); border-bottom: 0; }
+/* a list drawn with no head row (Home 10a, Drafts and Recent orders) keeps its head in
+   the markup, so a screen reader still names every column: each head cell holds its
+   label in .sp-announce, and the row takes no height and draws no rule */
+.sp-table--headless thead th { height: 0; padding-top: 0; padding-bottom: 0; border-bottom: 0; }
 
 .sp-cell-flex { display: flex; align-items: center; gap: var(--sp-12); min-width: 0; }
 /* A modifier on .sp-stacked: an amount over its saving is the same stacked pair,
@@ -2371,15 +2375,18 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
 /* The grip: the one control that collapses the sidebar to the rail and expands it
    again. It sits just inside the sidebar's right edge, vertically centred, so it is
    in the same place whatever the column holds and at whatever scroll position -
-   inside rather than straddling the seam, because the shell clips its overflow. */
+   inside rather than straddling the seam, because the shell clips its overflow.
+   The target is 24 wide (WCAG 2.5.8) and the bar keeps its place in the right 14 of
+   it, so the extra width reaches into the sidebar and the bar does not move. */
 .sp-sidebar__grip {
   position: absolute;
   top: 50%;
   right: 0;
   transform: translateY(-50%);
   display: grid;
+  grid-template-columns: 1fr 14px;
   place-items: center;
-  width: 14px;
+  width: 24px;
   height: 44px;
   padding: 0;
   border: 0;
@@ -2390,6 +2397,7 @@ label.sp-option:focus-within { box-shadow: var(--ring); }
 }
 .sp-sidebar__grip::before {
   content: "";
+  grid-column: 2;
   width: 3px;
   height: 26px;
   border-radius: var(--r-pill);
