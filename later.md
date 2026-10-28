@@ -52,16 +52,14 @@ is removed in the change that settles it.
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
 
-## The design shows no key for Budget, Bookmarks or Home
+## Load more stops short of the first new card
 
-- **Status:** waiting for a note to Claude Design. The note is ready to send.
-- **Where:** Navigation shell 9d in `design/` lists the go-to keys as G then O, T, V, C, A, S. The
-  app (`react/src/app/Shortcuts.jsx`) also has G then B for Budget.
-- **What the reader sees:** G then B opens Budget, and the shortcuts list shows "Go to Budget". The
-  design does not show that key. Bookmarks and Home have no key.
-- **What to ask Claude Design:**
-  - Add G then B for Budget to 9d and to the shortcuts sheet.
-  - Bookmarks also starts with B: choose its letter, or say it gets none.
-  - Home: a key (for example G then H), or none.
-  - The order of the go-to rows. The note says it follows the sidebar, but it does not today.
-- **Found:** 2026-10-27.
+- **Status:** waiting for a note to Claude Design.
+- **Where:** `ListMore` in `react/src/components/List.jsx`, and every list with Load more. Seen in
+  Storybook, Lists/List > Cards; not yet checked in the app.
+- **What the reader sees:** after Load more, the page slides towards the first new card but stops
+  before it reaches the top. On a large screen it may not move at all.
+- **What was found:** the slide starts at once, while the new cards still grow in, so it aims at
+  where the card is before they have their full height. The story's test passes under `npm test`
+  only because animations are off there.
+- **Found:** 2026-10-28.

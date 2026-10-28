@@ -9,10 +9,10 @@ const MOD = MAC ? '⌘' : 'Ctrl'
 // "G then a letter" opens a section, in the sidebar's order (9d); Ask only while it is set up
 const GO_KEYS = [
 	['o', 'orders', '/orders', 'Orders'],
-	['t', 'statistics', '/statistics', 'Statistics'],
 	['v', 'vendors', '/vendors', 'Vendors'],
 	['c', 'categories', '/categories', 'Categories'],
 	['b', 'budget', '/budget', 'Budget'],
+	['t', 'statistics', '/statistics', 'Statistics'],
 	['a', 'ask', '/ask', 'Ask'],
 	['s', 'settings', '/settings', 'Settings']
 ]

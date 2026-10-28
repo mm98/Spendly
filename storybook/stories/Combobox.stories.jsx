@@ -15,6 +15,8 @@ const VENDORS = [
 	{ name: 'Bilka', orders: '12 orders' },
 	{ name: 'Normann Copenhagen', orders: '2 orders' }
 ]
+// on a phone a list is a sheet from the bottom edge: these stories are about the desktop panel
+const DESKTOP = { viewport: { value: 'desktop', isRotated: false } }
 const STATUSES = { Draft: 'draft', 'In progress': 'progress', Delivered: 'done', Returned: 'returned', Cancelled: 'cancelled' }
 const SORTS = ['Newest first', 'Oldest first', 'Amount, high to low']
 
@@ -61,6 +63,7 @@ export const Vendor = {
 }
 
 export const Searchable = {
+	globals: DESKTOP,
 	args: { searchable: true, placeholder: 'Start typing a vendor', noun: 'vendors', label: 'Vendor', onPick: fn(), onSearch: fn() },
 	argTypes: { label: { control: 'text', description: 'The Field\'s label' } },
 	render: ({ label, onPick, onSearch, onOpenChange, ...args }) => {
@@ -190,8 +193,6 @@ export const Disabled = {
 
 const KINDS = ['Expense', 'Income', 'Refund']
 const CATEGORIES = ['Decor', 'Office', 'Garden furniture, outdoor storage and greenhouse supplies']
-// on a phone a list is a sheet from the bottom edge: these stories are about the desktop panel
-const DESKTOP = { viewport: { value: 'desktop', isRotated: false } }
 const MANY = ['Bathroom', 'Bedroom', 'Books', 'Children', 'Cleaning', 'Clothes', 'Decor', 'Electronics', 'Garden', 'Gifts', 'Groceries', 'Health', 'Hobby', 'Kitchen', 'Lighting', 'Living room', 'Office', 'Pets', 'Sports', 'Storage', 'Tools', 'Travel']
 
 // one select whose choice the story holds, opened or shut by its args

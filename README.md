@@ -113,8 +113,8 @@ Everything that needs you, on one page.
 - **One search for everything** - press Ctrl K (⌘ K on a Mac) or just start typing. It finds
   orders, vendors and items, offers "New order for ..." and "See ... in Statistics", lists what you
   opened last, and runs actions like scan, import or dark mode.
-- **Keyboard shortcuts** - S scans, N starts a new order, G then O, T, V, C, B, A or S goes to Orders,
-  Statistics, Vendors, Categories, Budget, Ask or Settings, and ? shows them all.
+- **Keyboard shortcuts** - S scans, N starts a new order, G then O, V, C, B, T, A or S goes to Orders,
+  Vendors, Categories, Budget, Statistics, Ask or Settings, and ? shows them all.
 - **Paste a picture anywhere** and it goes where the page takes one.
 
 ### Statistics

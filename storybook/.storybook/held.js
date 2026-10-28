@@ -88,8 +88,19 @@ function holdLocale(locale, timeZone) {
 	}
 }
 
-/** Holds the clock, the random values and the language still. Returns the function that undoes it. */
+/* What the app kept on this device from an earlier story or visit (a folded group, a chosen theme),
+   forgotten. Only the app's own keys: Storybook keeps its own settings in the same storage. */
+const APP_KEYS = 'spendly:'
+function forgetKept() {
+	try {
+		for (const key of Object.keys(localStorage)) if (key.startsWith(APP_KEYS)) localStorage.removeItem(key)
+	} catch { /* storage denied: nothing was kept */ }
+	return () => {}
+}
+
+/** Holds the clock, the random values and the language still, and starts with nothing kept from an
+    earlier story. Returns the function that undoes it. */
 export function holdEverythingStill({ at = HELD_NOW, seed = 20260814, locale = HELD_LOCALE, zone = HELD_ZONE } = {}) {
-	const undo = [holdClock(at), holdRandom(seed), holdLocale(locale, zone)]
+	const undo = [forgetKept(), holdClock(at), holdRandom(seed), holdLocale(locale, zone)]
 	return () => undo.reverse().forEach(fn => fn())
 }
