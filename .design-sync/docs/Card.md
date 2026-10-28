@@ -11,6 +11,7 @@ The surface a section of a page sits on: a ground, an edge and padding, with an 
 - `footerLayout`: `'fill'` (default) | `'split'` (two equal halves) | `'stack'`
 - `footerCommits`: the footer holds the commit, at the committing size
 - `after`: content under the footer, apart from the commits
+- `onLongPress`: on touch, a row held still opens its record menu: this opens it
 - `to`: makes the whole card a link; pair with `chevron={<Icon name="chevron-right" />}`
 - `spread`: stretched beside a taller card, it shares the free height between its groups
 

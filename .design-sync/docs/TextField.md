@@ -8,7 +8,8 @@ A one-line or multi-line text input. Always placed inside a `Field`, which gives
 - `value`, `onChange(text)`: `onChange` receives the text, not the event
 - `type`: `'text'` (default) | `'email'` | `'tel'` | `'url'`
 - `multiline` with `rows` (default 3): a textarea
-- `variant`: `'default'` | `'empty'` (dashed, nothing entered yet) | `'readonly'` | `'stretch'`
+- `variant`: `'default'` | `'empty'` (dashed, nothing entered yet) | `'readonly'` | `'stretch'` (the height of its row) | `'code'` (a sign-in or recovery code: every digit the same width, so it does not shift as it is typed)
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row. Inside a `Field`, set it on the `Field`
 - `action`: one icon button at the field's end, `{ icon, label, expanded, onClick }`
 - `placeholder`, `disabled`, `readOnly`, `name`, `autoComplete` and other native input attributes
 

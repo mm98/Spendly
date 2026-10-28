@@ -8,7 +8,9 @@ A row of two to four choices where exactly one is picked: a view, a period, a fi
 - `name` (required): the radio group's name
 - `options`: `{ value, label, disabled? }[]`; a value is a string or a number, such as a month's number
 - `value` with `onChange(value)` (controlled), or `defaultValue` (uncontrolled); `onChange` receives the option's value
-- `variant`: `'default'` | `'facet'` (fills the width, as a filter) | `'narrow'` (no wider than a field) | `'fill'` (segments share the full width equally)
+- `variant`: `'default'` | `'facet'` (fills the width, as a filter) | `'narrow'` (no wider than a field)
+- `fullWidth`: takes all the room it is given, the segments sharing it equally
+- `size`: `'default'` (the field's height) | `'small'` (the small button's height, for a card head or beside small buttons)
 - `fixed`: an ordered set that never grows, like the months; it may pass four options
 - `aria-label`, `role`, `aria-labelledby`
 

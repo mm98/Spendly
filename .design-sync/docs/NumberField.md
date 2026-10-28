@@ -13,6 +13,7 @@ An amount input that shows the number formatted for the locale ("24.310,00") and
 - `expected`: the figure is drawn in the lighter ink, as a value taken from elsewhere
 - `cell`: the amount in a sheet's cell. It reads as a figure until clicked or focused
 - `danger`: marks the input invalid without a `Field` message
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row. Inside a `Field`, set it on the `Field`
 - `onBlur`, `disabled`, `placeholder`, `aria-label` and other native input attributes
 
 ## Rules

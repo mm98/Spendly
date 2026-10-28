@@ -17,6 +17,7 @@ The label, help or error message, and slots around one control. It binds the lab
 - `labelAction`: a small button at the label's right end ("Forgot it?")
 - `note`, `noteType`: a word beside the label about where the value came from; `'hint'` (default) | `'success'` | `'warning'`
 - `after`: content under the message, e.g. a button that acts on it
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row
 - `id`: the control's id; generated when left out
 
 ## Rules

@@ -9,6 +9,7 @@ The one search field: a search mark at its start, the text, and a clear button o
 - `placeholder`, `aria-label`: name what is searched ("Search orders")
 - `kbd`: a key hint at the end, e.g. `<Kbd>⌘K</Kbd>`; shown only while the field is empty and has no `ends`
 - `icon`: the lead mark's icon name (default `'search'`)
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row
 - `clear`: `false` hides the clear button (default `true`)
 - `ends`: controls after the clear button at the field's end, e.g. `AskTrail`
 - `name` (default `'search'`), `inputRef`, and other native input attributes

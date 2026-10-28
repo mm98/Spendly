@@ -9,6 +9,7 @@ The square (or round) box that stands for a record: a vendor's initials, a categ
 - `fill`: `'default'` | `'solid'` (painted) | `'plain'` (no ground) | `'photo'` | `'empty'` (no photo yet) | `'none'` (a document, or nothing chosen yet) | `'add'` (the box that adds one)
 - `swatch`: paints a solid mark: `'green'` | `'green-2'` | `'green-3'` | `'green-4'` | `'green-5'` | `'amber-ink'` | `'amber-2'` | `'red-ink'` | `'ink-6'`, or a colour value the user picked. The ink on it is chosen to read.
 - `round`: a circle, for a person
+- `logo`: the shop's place on an offer, two medium marks wide. A logo image as the child sits whole on white; a name as the child fills the box as a vendor mark does
 - `goods`: a photo of goods (an item, an order, a bookmark) rather than paper
 - `faded`: a vendor's image standing in for a missing item photo
 - `count`: a number in the corner, e.g. how many photos
