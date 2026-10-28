@@ -1,0 +1,6 @@
+<style>
+	/* Storybook hides a story while it is drawn, and a part placed then (an open list) is measured at
+	   no size and stays there. Laid out but unseen instead, it is measured as it will be shown. */
+	.sb-show-preparing-story:not(.sb-show-main) > #storybook-root,
+	.sb-show-preparing-docs:not(.sb-show-main) > #storybook-docs { display: block; visibility: hidden; }
+</style>
