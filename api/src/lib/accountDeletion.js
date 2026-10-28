@@ -9,7 +9,7 @@ import { closeTicketsOf } from './twoStep.js'
 
 const ORDERS_PER_BATCH = 200
 
-const selectAccount = db.prepare('SELECT u.email, s.locale FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ? AND u.deleted_at IS NULL')
+const selectAccount = db.prepare('SELECT u.email, s.locale, s.colour_scheme FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ? AND u.deleted_at IS NULL')
 // the address is replaced by one no person can type, so it is free for a new account at once and no sign-in finds it
 const markDeleted = db.prepare(`UPDATE users SET deleted_at = unixepoch(), email = 'deleted:' || id WHERE id = ?`)
 // sessions, passkeys, assistant tokens and email links; settings too, so no status email goes out meanwhile
@@ -50,7 +50,7 @@ const queueRemoval = userId => {
 }
 
 /** Deletes the account and everything it owns: at once for the person, its rows in the background.
-    Answers { email, locale }, read before it went, for the last email; null when there is no such account. */
+    Answers { email, locale, colour_scheme }, read before it went, for the last email; null when there is no such account. */
 export function deleteAccount(userId) {
 	const account = selectAccount.get(userId)
 	if (!account) return null

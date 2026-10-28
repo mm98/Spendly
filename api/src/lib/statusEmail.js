@@ -123,7 +123,7 @@ const plural = (n, one, many, write) => `${write(n)} ${n === 1 ? one : many}`
 
 /* ---- what the email says ---- */
 
-const selectAccount = db.prepare(`SELECT u.email, s.locale, s.currency, s.status_email_weekly, s.status_email_monthly, s.status_email_zone, s.status_email_locale
+const selectAccount = db.prepare(`SELECT u.email, s.locale, s.currency, s.colour_scheme, s.status_email_weekly, s.status_email_monthly, s.status_email_zone, s.status_email_locale
 	FROM users u JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?`)
 const selectBookmarksAdded = db.prepare(`SELECT name, url, price FROM bookmarks
 	WHERE user_id = @userId AND archived = 0 AND created_at >= @from AND created_at < @to
@@ -224,8 +224,8 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 		}))),
 		...(weekly ? { budget: false } : budgetOf(userId, period, write)),
 		needs: firstFlagged(needsOf(userId, period.to, write, link)),
-		frequency_line: weekly ? 'You get this every Monday because Status email is set to Weekly.'
-			: 'You get this on the 1st of every month because Status email is set to Monthly.'
+		frequency_line: weekly ? 'You get this every Monday because Weekly is on in Status email.'
+			: 'You get this on the 1st of every month because Monthly is on in Status email.'
 	}
 	common.needs_any = common.needs.length > 0
 
@@ -299,10 +299,10 @@ const STOP_KIND = 'status-stop'
 
 /** Sends one account its email about `period`; a test's subject starts "Test:". */
 export async function sendStatusEmail(userId, period, { test = false, locale } = {}) {
-	const { email } = selectAccount.get(userId)
+	const { email, colour_scheme: scheme } = selectAccount.get(userId)
 	const token = issueToken(userId, STOP_KIND, email)
 	const { template, values } = statusEmailFor(userId, period, publicLink(`/email/stop/${token}`), { locale })
-	const message = emailMessage(template, email, values)
+	const message = emailMessage(template, email, values, { scheme })
 	await sendMail({
 		...message,
 		subject: test ? `Test: ${message.subject}` : message.subject,

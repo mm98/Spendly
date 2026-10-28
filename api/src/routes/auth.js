@@ -73,6 +73,7 @@ export async function checkPassword(req, email, password) {
 }
 
 const LINK_EMAILS = { confirm: 'confirm-email', reset: 'reset-password' }
+const selectScheme = db.prepare('SELECT colour_scheme FROM user_settings WHERE user_id = ?')
 
 /** Emails a new link of `kind` ('confirm' or 'reset') to `email`. The earlier link keeps working until this one is sent. */
 async function sendLink(req, user, kind, email) {
@@ -80,7 +81,7 @@ async function sendLink(req, user, kind, email) {
 	// a name is optional; the part before the @ stands in for it, as everywhere else in the app
 	const values = { name: user.name || email.split('@')[0], email, action_url: linkTo(req, `/${kind}/${token}`) }
 	try {
-		await sendMail(emailMessage(LINK_EMAILS[kind], email, values))
+		await sendMail(emailMessage(LINK_EMAILS[kind], email, values, { scheme: selectScheme.get(user.id)?.colour_scheme }))
 	} catch (e) {
 		settleToken(user.id, kind, token, false)
 		throw e

@@ -17,7 +17,7 @@ import { MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
-import { chosenTheme, followSystem, setDensity, setTheme, useTheme } from '../app/theme.js'
+import { chosenTheme, followSystem, setDensity, setScheme, setTheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
@@ -32,7 +32,7 @@ import { TwoStepCard, useTwoStepWord } from './SettingsTwoStep.jsx'
 import { DeleteAccountCard } from './SettingsDeleteAccount.jsx'
 import { AssistantsCard, useAssistantTokenCount, useAssistantsState } from './SettingsAssistants.jsx'
 import { BuildCard } from './SettingsBuild.jsx'
-import { Choose, ThemeTiles, landing } from './SettingsParts.jsx'
+import { Choose, SchemeTiles, ThemeTiles, landing } from './SettingsParts.jsx'
 import { LOOKS } from './needsLook.jsx'
 import { StatusesCard, saveStatuses } from './SettingsStatuses.jsx'
 import { useViews } from '../app/views.jsx'
@@ -48,7 +48,7 @@ const OWN_PAGES = ['passkeys', 'two-step', 'status-email']
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
 	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
-	{ key: 'appearance', label: 'Appearance', keys: ['density', 'compareMonth'] },
+	{ key: 'appearance', label: 'Appearance', keys: ['colourScheme', 'density', 'compareMonth'] },
 	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
@@ -74,6 +74,27 @@ const THEMES = [
 	{ value: 'light', label: 'Light' },
 	{ value: 'dark', label: 'Dark' },
 	{ value: 'system', label: 'Follow system' }
+]
+
+// in the order 11a draws them; each value is a data-scheme in styles/schemes.css
+const SCHEMES = [
+	{ value: 'green', label: 'Green' },
+	{ value: 'navy', label: 'Deep navy' },
+	{ value: 'cobalt', label: 'Cobalt' },
+	{ value: 'indigo', label: 'Indigo' },
+	{ value: 'ocean', label: 'Ocean' },
+	{ value: 'slate', label: 'Slate' },
+	{ value: 'teal', label: 'Petrol teal' },
+	{ value: 'emerald', label: 'Emerald' },
+	{ value: 'olive', label: 'Olive' },
+	{ value: 'ochre', label: 'Ochre' },
+	{ value: 'rust', label: 'Terracotta' },
+	{ value: 'mocha', label: 'Mocha' },
+	{ value: 'oxblood', label: 'Oxblood' },
+	{ value: 'raspberry', label: 'Raspberry' },
+	{ value: 'plum', label: 'Plum' },
+	{ value: 'violet', label: 'Violet' },
+	{ value: 'charcoal', label: 'Charcoal' }
 ]
 
 const DENSITIES = [
@@ -178,6 +199,7 @@ export default function Settings() {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
 				setDensity(next?.density ?? value('density'))
+				setScheme(next?.colourScheme ?? value('colourScheme'))
 				dropStale()
 				settings.refresh()
 				setLanded(draft)
@@ -369,7 +391,8 @@ function Arrive({ section, visit, room, children }) {
 	return <div className="sp-stack sp-gap-12" ref={column}>{children}</div>
 }
 
-/* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does. */
+/* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does.
+   The colour scheme is the account's, and applies when the card is saved. */
 function AppearanceCard({ value, change, touch }) {
 	useTheme()
 	const [, redraw] = useReducer(n => n + 1, 0)
@@ -383,6 +406,10 @@ function AppearanceCard({ value, change, touch }) {
 			<CardHeader name="Appearance" {...landing('appearance')} />
 			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
 				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
+			</Field>
+			<span className="sp-rule" />
+			<Field label="Colour scheme" message="Sets the colour of buttons, links, the sidebar and savings, in light and dark.">
+				<SchemeTiles name="colourScheme" options={SCHEMES} value={value('colourScheme') ?? 'green'} onChange={v => change('colourScheme', v)} />
 			</Field>
 			<span className="sp-rule" />
 			<Field label="Row density" message="Compact fits more rows on screen.">

@@ -123,7 +123,7 @@ const currencyName = code => {
 // the most the attachments of one emailed conversation hold, so it stays under a mail server's 25 MB once encoded
 const ATTACHED_BYTES_MOST = 15 * 1024 * 1024
 
-const selectAccount = db.prepare('SELECT u.email, u.name, s.locale, s.currency FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
+const selectAccount = db.prepare('SELECT u.email, u.name, s.locale, s.currency, s.colour_scheme FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 
 /** Sends the chat `chatId`, its answered `turns` ({ role, text }, a question then its answer), to the
     reader's own address on `day`, written in `locale` when the account leaves it to the browser. Answers the address. */
@@ -157,7 +157,7 @@ export async function emailConversation(userId, { chatId, turns, day, locale }) 
 		initials: initialsOf(account.name || account.email.split('@')[0]),
 		chat_url: publicLink(`/ask/${chatId}`),
 		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
-	})
+	}, { scheme: account.colour_scheme })
 	await sendMail({ ...message, attachments: attachments.map(({ id, inline, ...a }) => a) })
 	return account.email
 }
