@@ -37,9 +37,8 @@ function merge(template, values, write) {
 		})
 }
 
-/* The emails follow the account's colour scheme (20f). The templates are drawn in Green, so each
-   Green literal is swapped for the scheme's value of the token it is: the primary scale outside the
-   dark block, and every token inside it. A square fill is the mark tile, which takes --shell-action. */
+/* The templates are drawn in Green (20f): each Green literal takes the scheme's value of its token,
+   the primary scale outside the dark block and every token in it; a square fill is the mark tile. */
 const LIGHT_TOKENS = ['--green', '--green-2', '--green-3', '--green-tint', '--green-tint-2']
 // the templates' saving and link green is --shell-action-hover in Green, --green-2 in every other scheme
 const LIGHT_ALIASES = { '#2f7a51': '--green-2' }
