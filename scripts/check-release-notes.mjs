@@ -28,7 +28,8 @@ const fail = message => { failures++; console.error(message) };
 
 if (reaches && !added.length) {
 	fail(`This change reaches the app but adds no file to ${NOTES_FOLDER}/. Add one, named like the branch, `
-		+ `with up to three lines starting "- " that say what the reader can now do or see, or the line "${NOTHING_TO_SEE}"`);
+		+ `with up to three changes: a line starting "- " that says what the reader can now do or see, and under it `
+		+ `a line that says why it was made. Or the line "${NOTHING_TO_SEE}"`);
 }
 if (added.length > 1) fail(`This change adds ${added.length} files to ${NOTES_FOLDER}/; one change is one version, so write one file.`);
 for (const file of added) {

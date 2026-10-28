@@ -1139,7 +1139,7 @@ export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
-/** What changed in the running version and the ones before it, newest first: { versions: [{ version, notes }] },
+/** What changed in the running version and the ones before it, newest first: { versions: [{ version, notes, reasons }] },
     empty outside the Docker image. A version with no change you can see has the one line "No change you can see." */
 export async function getReleaseNotes(signal) {
 	return request('/api/version/notes', { signal })
