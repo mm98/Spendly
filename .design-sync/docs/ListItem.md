@@ -18,6 +18,7 @@ One row for every list in the product. What varies is what the row carries: a ha
 - `setting`: a row that holds a setting keeps its ground when an option in it is checked
 - `onClick`: the row renders a button
 - `to`: the row renders a link
+- `onLongPress`: on touch, a row held still opens its record menu: this opens it
 
 ## Parts
 

@@ -17,7 +17,7 @@ A list of records drawn as a table: a summary line, a head row, one row per reco
 - `bulkNote`: a line under the bulk bar while records are picked
 - `compact`: tighter rows
 - `total` with `onLoadMore`: the server pages. `data` is what is loaded, `total` is how many there are, and Load more calls `onLoadMore`
-- `headless`: no head row; each cell then carries its column's width itself
+- `headless`: no head row drawn; each cell then carries its column's width itself. The column names stay for a screen reader
 - `locale`: whose way of grouping thousands the counts use; the browser's when absent
 - `body`: `'table'` (default) or `'cards'`
 

@@ -13,7 +13,7 @@ The place a file is dropped or chosen: a label around a real file input, so clic
 - `maxMb`: the largest file, in MB (default 25)
 - `onFiles`: receives `(files, problems)`; each problem is `'Not a supported type'`, `'Too large'` or `null`
 - `row`: the zone on its side, the mark left and its lines beside it
-- `grow`: takes the room left in its row
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row
 - `disabled`: muted, with no file input; the children say why
 - `id`: goes on the file input (a `Field` passes it)
 

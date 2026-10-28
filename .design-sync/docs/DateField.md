@@ -13,6 +13,7 @@ One date: typed in the reader's own format or picked from a drawn calendar on de
 - `danger`: marks the field as wrong (a `Field` with `messageType="danger"` does the same)
 - `showWeeks`: ISO week numbers beside the month (default `true`)
 - `shortcuts`: the Today and Yesterday chips in the calendar (default `true`)
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row. Inside a `Field`, set it on the `Field`
 - `locale`: a language tag (`'da-DK'`); sets the date order, separator and first weekday
 - `placeholder`: what the empty field says; defaults to the locale's pattern (`dd.mm.yyyy`). An open end can say `'Today'`
 - `id`: the input's id (a `Field` passes it)

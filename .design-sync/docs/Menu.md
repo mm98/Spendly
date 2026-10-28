@@ -14,7 +14,7 @@ A list of actions: each item acts when pressed, and the menu closes. Floating, i
 
 - `MenuItem`: one action. `icon` (an icon name), `onClick`, `to` (an in-app page; the item is a link), `disabled`, `danger` (a destructive action, in red), `dot` (a status dot: `'draft'` | `'progress'` | `'done'` | `'returned'` | `'cancelled'`), `selected` (`true` shows a check; pass `false` on the others of a choice). A `Menu position="sub"` as a child makes a submenu that opens on hover, focus or the right arrow.
 - `MenuLabel`: the heading over a group of items.
-- `MenuSeparator`: a rule between groups.
+- `MenuSeparator`: a rule between groups. `variant`: `'menu'` (default, an item of a Menu) | `'divider'` (the darker rule between groups of rows in a `SectionNav`).
 - `Anchor`: the element a floating menu hangs from. `open` shows the menu and lets it out of a card that clips; it places the menu above when the room below is short. Holds the menu's button and the `Menu`.
 
 ## Rules

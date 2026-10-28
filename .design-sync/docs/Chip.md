@@ -5,7 +5,7 @@ A small labelled tag: a category on an order, a filter that is on, a suggestion 
 
 ## Props
 
-- `variant`: `'outline'` (default) | `'solid'` | `'dashed'` (missing or to add, e.g. "No category", "+ New: Garden") | `'pill'` | `'facet'` (a value to pick in a filter)
+- `variant`: `'outline'` (default) | `'solid'` | `'dashed'` (missing or to add, e.g. "No category", "+ New: Garden") | `'suggestion'` (the dashed chip a reader taps to add a value under a field; larger on touch) | `'pill'` | `'facet'` (a value to pick in a filter)
 - `color`: `'default'` | `'danger'` | `'success'`
 - `onClick`: makes the chip a button. Without it, and outside `facet`, the chip is static text and does not look clickable.
 - `trail`: an element after the text, e.g. an `IconButton` that clears the filter, or a dot

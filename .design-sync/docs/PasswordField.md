@@ -7,6 +7,7 @@ A password input with a button at its end that shows or hides what was typed. Pl
 
 - `value`, `onChange(text)`: `onChange` receives the text, not the event
 - `autoComplete`: `'current-password'` on sign in, `'new-password'` when one is chosen
+- `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row. Inside a `Field`, set it on the `Field`
 - `placeholder`, `disabled`, `name` and other native input attributes
 
 ## Rules

@@ -20,6 +20,7 @@ A record as a card: a strip of photos on top, then the title, chips, a meta line
 - `amount`: the figure at the foot
 - `onClick`: opens the record
 - `void`: draws the card faded (a record that does not count)
+- `onLongPress`: on touch, a record held still opens its menu: this opens it
 
 ## Rules
 
