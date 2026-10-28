@@ -40,8 +40,8 @@
     <div class="doc-note"><b>Two-step sign-in</b> is its own card right under Passkeys, drawn here on. Every state and its three dialogs are in <a href="#11f">11f</a>.</div>
     <div class="doc-note"><b>Delete account</b> is the last card in Account and profile, after Two-step sign-in. The card and every state of its dialog are in <a href="#11g">11g</a>.</div>
     <div class="doc-note"><b>Passkeys: Rename does not move the card.</b> A passkey row is one height at rest and while renaming: the name field's 42px (<code>--control-h</code>). At rest the row holds that height with the name and its date line centred in it; on Rename the field, Cancel and Save fill it exactly, so the rows and rules below stay where they are. Lock the row's height, not its content: a row sized by its text grows by 3px when the field appears.</div>
-    <div class="doc-note"><b>Status email</b> is its own card in Account and profile, right under the account card: None (the default for every account), Weekly or Monthly, on the Segmented in its fill variant (<code>.sp-segmented--fill</code>, <a href="Components.dc.html#c5">c5</a>), so the three options share the card's width. It saves on change, with no Save button. Weekly is drawn selected here to show the test button in use; a new account starts on None. Stop these emails in the email sets it back to None.</div>
-    <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in the frequency selected; on None it sends the weekly one. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
+    <div class="doc-note"><b>Status email</b> is its own card in Account and profile, right under the account card: two Toggles with a description, Weekly and Monthly (<a href="Components.dc.html#c5">c5</a>, <code>.sp-choice--described</code>), the control Needs a look uses, either, both or neither. Both off means no status email, the default for every account. Each saves on change, with no Save button. Both are drawn on here to show they can be picked together. When the 1st is a Monday and both are on, only the monthly email is sent that day. Stop these emails in the email turns both off.</div>
+    <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in one frequency: the weekly one when Weekly is on or when both are off, the monthly one when only Monthly is on. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
     <div class="doc-note"><b>Limit alerts</b> is its own pane, between Lists and Statuses: the in-app switches and "Tell me early, at" (<a href="Duplicate and alerts.dc.html#8b">8b</a>).</div>
     <div class="doc-note"><b>Needs a look</b> is its own pane, after Limit alerts: one switch per row Home's Needs a look card can show (<a href="Home.dc.html#10a">10a</a>), in the order Home ranks them. Off removes that row from Home and from the phone's Home; the cap of three applies to what is left, and with every switch off the card is absent. Orders without a receipt is off by default, since most orders have none. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>AI assistants</b> is its own pane, after Statuses: the tokens an assistant program reads this account with. Its card is drawn here at rest with two tokens; every other state is in <a href="#11e">11e</a>.</div>
@@ -162,12 +162,11 @@
 
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label" id="st-status-label">STATUS EMAIL</span></div>
-          <span class="sp-data">What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b class="sp-ink sp-break">mikkel@example.net</b>. Weekly arrives on Monday, Monthly on the 1st.</span>
-          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-labelledby="st-status-label">
-            <label class="sp-segmented__item" data-label="None"><input type="radio" name="st-status"><span class="sp-label">None</span></label>
-            <label class="sp-segmented__item" data-label="Weekly"><input type="radio" name="st-status" defaultChecked="{{ true }}"><span class="sp-label">Weekly</span></label>
-            <label class="sp-segmented__item" data-label="Monthly"><input type="radio" name="st-status"><span class="sp-label">Monthly</span></label>
-          </div>
+          <span class="sp-data">What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b class="sp-ink sp-break">mikkel@example.net</b>.</span>
+          <fieldset class="sp-field-group" aria-labelledby="st-status-label">
+            <label class="sp-choice sp-choice--described"><input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}"><span class="sp-choice__text"><strong>Weekly</strong><span class="sp-meta">Every Monday, for the week just ended.</span></span></label>
+            <label class="sp-choice sp-choice--described"><input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}"><span class="sp-choice__text"><strong>Monthly</strong><span class="sp-meta">On the 1st, for the month just ended. On a Monday it comes instead of the weekly one.</span></span></label>
+          </fieldset>
           <div class="sp-card__footer sp-card__footer--commits">
             <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Send a test email</button>
           </div>
@@ -355,7 +354,7 @@
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Let a scan override these</strong>
-                <span class="sp-field__help">When a scan shows what the paper is, such as an order confirmation or a return, it sets the status or the kind to match. Off means your defaults always apply.</span>
+                <span class="sp-meta">When a scan shows what the paper is, such as an order confirmation or a return, it sets the status or the kind to match. Off means your defaults always apply.</span>
               </span>
             </label>
           </div>
@@ -420,35 +419,35 @@
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Categories over their limit</strong>
-                <span class="sp-field__help">A category that has gone past its limit this month.</span>
+                <span class="sp-meta">A category that has gone past its limit this month.</span>
               </span>
             </label>
             <label class="sp-choice sp-choice--described">
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Categories near their limit</strong>
-                <span class="sp-field__help">A category past the "Tell me early" point set in Limit alerts.</span>
+                <span class="sp-meta">A category past the "Tell me early" point set in Limit alerts.</span>
               </span>
             </label>
             <label class="sp-choice sp-choice--described">
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Orders not delivered after 2 weeks</strong>
-                <span class="sp-field__help">Orders still marked Ordered 14 days after their date.</span>
+                <span class="sp-meta">Orders still marked Ordered 14 days after their date.</span>
               </span>
             </label>
             <label class="sp-choice sp-choice--described">
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Vendors that look like duplicates</strong>
-                <span class="sp-field__help">Two vendors with names close enough to be the same shop.</span>
+                <span class="sp-meta">Two vendors with names close enough to be the same shop.</span>
               </span>
             </label>
             <label class="sp-choice sp-choice--described">
               <input class="sp-switch" type="checkbox" role="switch" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Orders without a receipt</strong>
-                <span class="sp-field__help">Orders that have no receipt attached.</span>
+                <span class="sp-meta">Orders that have no receipt attached.</span>
               </span>
             </label>
           </fieldset>
@@ -1181,7 +1180,7 @@
               <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}" aria-label="On">
               <span class="sp-choice__text">
                 <strong>Bring them in as drafts</strong>
-                <span class="sp-field__help">Drafts don't count in Statistics until you set a status on them.</span>
+                <span class="sp-meta">Drafts don't count in Statistics until you set a status on them.</span>
               </span>
             </label>
 
