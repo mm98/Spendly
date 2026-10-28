@@ -173,6 +173,31 @@ export async function turnOffTwoStep(password, code, signal) {
 	return out
 }
 
+/** Deletes the signed-in account for good (11g): the password, and `code` when two-step sign-in is on.
+    Every session ends with it, so nothing on screen asks the server again. */
+export async function deleteAccount(password, code, signal) {
+	signedOut = true
+	try {
+		await request('/api/account', { method: 'DELETE', body: { password, code }, signal })
+	} catch (error) {
+		signedOut = false
+		throw error
+	}
+	forgetAll()
+}
+
+/** A copy of the account's data as one .zip (11g): `{ name, blob }`, named as the server names it. */
+export async function getAccountExport(signal) {
+	const res = await fetch('/api/export', { credentials: 'include', signal, headers: { [TODAY]: today() } })
+	if (!res.ok) {
+		let data = null
+		try { data = await res.json() } catch { /* empty body */ }
+		throw refusal('/api/export', 'GET', res.status, data)
+	}
+	const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? 'spendly-export.zip'
+	return { name, blob: await res.blob() }
+}
+
 /** What the signed-out pages may offer: `mail` (this server can send a link), `terms` and
     `privacy` (the operator's own pages, or null), `receiptReading` (receipts are sent out to be read). */
 export async function getAuthOptions(signal) {

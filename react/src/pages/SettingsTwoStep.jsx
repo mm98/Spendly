@@ -24,8 +24,8 @@ const RECOVERY_CODE_COUNT = 10
 const FEW_CODES = 3
 
 // spaces typed or pasted are dropped (11f)
-const cleanCode = value => value.replace(/\s+/g, '')
-const lockedOut = e => (e?.status === 429 && e.body?.retryAfter ? e.body.retryAfter : 0)
+export const cleanCode = value => value.replace(/\s+/g, '')
+export const lockedOut = e => (e?.status === 429 && e.body?.retryAfter ? e.body.retryAfter : 0)
 
 const codesLeftLine = left => `${left} of ${RECOVERY_CODE_COUNT} recovery codes left${left === 0 ? '. Make new ones now.'
 	: left <= FEW_CODES ? '. Make new ones before they run out.' : ''}`
@@ -81,7 +81,7 @@ export function useTwoStepWord() {
 }
 
 /** The warning row above a field that waits, counting down (11f). */
-function Waiting({ title, children }) {
+export function Waiting({ title, children }) {
 	return (
 		<ListItem variant="top" color="warning" role="alert">
 			<Icon name="lock" />

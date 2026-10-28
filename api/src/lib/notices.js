@@ -40,3 +40,9 @@ export const sendTwoStepOff = (req, userId) => notify(req, userId, 'two-step-off
 
 export const sendRecoveryCodeUsed = (req, userId, codesLeft) =>
 	notify(req, userId, 'recovery-code-used', () => ({ action_url: settingsLink(req), codes_left: String(codesLeft) }))
+
+/** Sent to the address the account had, in its locale, both read before the account was deleted. */
+export function sendAccountDeleted(req, { email, locale }) {
+	if (!mailAvailable()) return null
+	return inBackground(sendMail(emailMessage('account-deleted', email, { email, changed_at: changedAt(req, locale) })))
+}
