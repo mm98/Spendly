@@ -156,7 +156,7 @@ const LIGHTHOUSE = (() => {
 	}
 })()
 
-/* What changed in the newest versions up to this one, newest first: [{ version, notes }], as
+/* What changed in the newest versions up to this one, newest first: [{ version, notes, reasons }], as
    scripts/release-notes.mjs writes it at image build. Read once at boot, as LIGHTHOUSE is. */
 const releaseNotesOf = (text, where) => {
 	if (!text) return []

@@ -37,12 +37,13 @@ async function reloadOnNew(commit) {
 const VERSIONS_AT_FIRST = 3
 const VERSIONS_AT_MOST = 20
 
-/** One version's number and its lines, in the 6d notice's list; `ink` colours both, as inside the amber notice. */
-function VersionNotes({ version, notes, ink }) {
+/** One version's number and its lines, in the 6d notice's list, each line followed by why it was made
+    (`reasons[i]`, missing in a note older than reasons); `ink` colours both, as inside the amber notice. */
+function VersionNotes({ version, notes, reasons = [], ink }) {
 	return (
 		<div className="sp-stack sp-gap-6">
 			<span className={ink ? `sp-meta ${ink}` : 'sp-meta'}>{ink ? <b>{version}</b> : <b className="sp-ink">{version}</b>}</span>
-			<ul className={ink ? `sp-toast__changes ${ink}` : 'sp-toast__changes'}>{notes.map((note, i) => <li key={i}>{note}</li>)}</ul>
+			<ul className={ink ? `sp-toast__changes ${ink}` : 'sp-toast__changes'}>{notes.map((note, i) => <li key={i}>{reasons[i] ? `${note} ${reasons[i]}` : note}</li>)}</ul>
 		</div>
 	)
 }
