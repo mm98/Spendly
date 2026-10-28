@@ -466,10 +466,10 @@ function RecentList({ caption, orders, rows }) {
 			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
-				<ListCell width="title" />
-				<ListCell width="date" />
-				<ListCell width="status" />
-				<ListCell width="amount" />
+				<ListCell width="title">Vendor</ListCell>
+				<ListCell width="date">Date</ListCell>
+				<ListCell width="status">Status</ListCell>
+				<ListCell width="amount">Amount</ListCell>
 			</ListHead>
 			<ListRow>{o => (orders ? (
 				<>
@@ -544,9 +544,9 @@ function DraftsCard({ drafts }) {
 				<Button variant="outline" size="small" to={all}>All {amount(total, 0)}</Button>
 			</Caption>
 			<ListHead>
-				<ListCell width="title" />
-				<ListCell width="date" />
-				<ListCell width="amount" />
+				<ListCell width="title">Vendor</ListCell>
+				<ListCell width="date">Date</ListCell>
+				<ListCell width="amount">Amount</ListCell>
 			</ListHead>
 			<ListRow>{o => (
 				<>
