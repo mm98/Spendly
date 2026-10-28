@@ -141,6 +141,10 @@ have to. Putting screens together from its patterns is the build's job:
   still has to reach `design/`: ask the user, before the pull request opens, whether a brief goes to
   Claude Design now or the rule waits in `later.md`. The change that brings the rule into `design/`
   removes it from `app.css` and from `later.md`.
+- **A design change reaches only the places `design/` names.** A part shared with other places
+  (a helper, a size table, a string that repeats) is not changed for all of them because one place
+  changed. Before the pull request opens, diff every changed page against the base and account for
+  each changed line by a place the design names.
 - **A brief is deleted once it is read.** The one change the build makes in `design/`: a `Brief*.md`
   file found there is deleted in the same pull request that builds its answers.
 
