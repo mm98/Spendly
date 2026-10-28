@@ -1504,6 +1504,17 @@
           </ul>
         </div>
       </div>
+      <div class="sp-field">
+        <span class="sp-field__label" id="c5-pick-disabled-label">Disabled</span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="c5-pick-disabled-label" disabled="{{ true }}">
+            <span class="sp-combobox__dot" data-dot="done"></span>
+            <span>Value</span>
+            <span class="sp-grow"></span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+          </button>
+        </div>
+      </div>
     </div>
     </div>
 
@@ -1604,6 +1615,7 @@
     <div class="doc-note"><b>A closing list fades where it stood.</b> A panel moved to fit - hung from the field's right edge, lifted out of a clipping box, turned upwards or capped in height - keeps that placement until its fade-out has ended, and only then goes back to its own spot under the field. It never jumps during the fade, and never pushes the page into a scrollbar. The same holds for every menu opened from a button.</div>
     <div class="doc-note"><b>Favourites first, wherever a vendor or a category is picked.</b> Every mode 2 list of vendors or categories is grouped Favourites, Recent, then the rest, headed "Favourites", "Recent" and "Other vendors" or "Other categories". This covers the order form's vendor field, the category tokens on the order and vendor forms, Add category in an order's menu and the bulk bar, the category picker on Bookmarks and in the import mapping, and the merge target pickers. Favourites are alphabetical. Recent is the vendors or categories on the latest orders, newest first, up to 5, as the vendor field does today; one that is a favourite shows only under Favourites. The rest are alphabetical. A group with nothing in it is not drawn, and with one group left there is no header. Typing filters every group in place, keeping the order; the create row stays last. Overviews, tables, cards and the order list's filter rail are not pickers and stay as they are. The Vendors and Categories pages are not pickers either: every sort there ignores favourites, and sort by name is plain A to Z.</div>
     <div class="doc-notes__label">States</div>
+    <div class="doc-note"><b>A disabled combobox looks like a disabled input</b> (<a href="#c3">c3</a>): <code>.sp-combobox__trigger:disabled</code> shares the <code>.sp-input:disabled</code> rule, so the ground, border, ink, fade and cursor are the same, and the chevron fades with the trigger. Hover does not change its border, and it does not open.</div>
     <div class="doc-note"><code>:checked</code>, <code>:disabled</code> and <code>:focus-visible</code> - all the element's own. In the Combobox panel hover and keyboard focus are one state (<code>--hover</code>) and the current value is another (<code>--green-tint</code> with a check); they can sit on different rows at once, and conflating them is the usual bug in a hand-built dropdown. A disabled choice greys its whole label, because the label is the hit area.</div>
     <div class="doc-note"><b>In a list row</b>, the row is <code>.sp-list-item--setting</code>, which keeps the row's own ground: without it the checked-row tint paints the row green, since one option is always checked.</div>
     <div class="doc-note"><b>Fill</b> (<code>.sp-segmented--fill</code>, <code>fullWidth</code> in React): the switch spans its column and the options share the width equally, for a setting that is the whole of its card (Status email, <a href="Settings and import.dc.html#11a">11a</a>). Same height, padding and states as the default.</div>
@@ -2089,7 +2101,7 @@
     <div class="doc-note"><b>The Showing bar is a card with a head.</b> The head holds the name, Reset and Open in orders, both small outline buttons. The path is below the head and wraps there, so the head is one line at every width, on a phone too (<a href="Order statistics.dc.html#4b">4b</a>, <a href="Mobile screens.dc.html#7a">7a</a>).</div>
     <div class="doc-note"><b>A crumb is text only, never a mark.</b> A crumb can hold a period, a status or an amount range as well as a vendor or a category, and only some of those have a mark, so no crumb carries one. The same holds for the filter tags above a list.</div>
     <div class="doc-notes__label">Actions</div>
-    <div class="doc-note"><b>Change the sort</b> - refetches from the top. <b>Load more</b> - appends the next page and slides the page to the first record it brought, which takes focus; with less motion set, it moves there at once. <b>Remove a crumb</b> - drops that level and re-filters everything on the page; <b>Reset</b> - clears them all; <b>Open in list</b> - carries the drill state to the list screen. The counted total is the filtered total, never the account total. Keyboard: the sort control opens with Enter or Space, arrows move through its options and Escape closes it, leaving the sort untouched. The sort a user chooses persists per list, so returning to a list finds it as they left it, and paging keeps it. A crumb is removed with Enter or Backspace when focused. The sort states its field and direction in its accessible name, so "Sort, newest first" is read rather than an arrow. The footer says how many of how many, which is the count after filtering - never the total.</div>
+    <div class="doc-note"><b>Change the sort</b> - refetches from the top. <b>Load more</b> - appends the next page and slides the page to the first record it brought, which takes focus. The slide starts once that record has finished arriving, so it stops with the record at the top of the window, where it settles, not short of it; with less motion set, it moves there at once. When the page is not long enough for the record to reach the top, it scrolls as far as it can. <b>Remove a crumb</b> - drops that level and re-filters everything on the page; <b>Reset</b> - clears them all; <b>Open in list</b> - carries the drill state to the list screen. The counted total is the filtered total, never the account total. Keyboard: the sort control opens with Enter or Space, arrows move through its options and Escape closes it, leaving the sort untouched. The sort a user chooses persists per list, so returning to a list finds it as they left it, and paging keeps it. A crumb is removed with Enter or Backspace when focused. The sort states its field and direction in its accessible name, so "Sort, newest first" is read rather than an arrow. The footer says how many of how many, which is the count after filtering - never the total.</div>
   </div>
 </section>
 
