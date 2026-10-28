@@ -47,6 +47,12 @@ export function ViewMark({ query }) {
 
 /** The saved views under All orders in the sidebar (9e), each with its live count, then how many
     more the order list holds. Gone on the rail, where icons alone cannot tell views apart. */
+/** The sidebar rows below the views, held until the views are known: views landing after them would push them all down. */
+export function AfterSidebarViews({ rail, children }) {
+	const views = useViews()
+	return rail || views.data !== undefined || views.error ? children : null
+}
+
 export function SidebarViews({ rail, savedId }) {
 	const answer = useViews().data
 	if (rail || !answer) return null

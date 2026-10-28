@@ -17,7 +17,7 @@ import { SavedLater } from './SavedLater.jsx'
 import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
-import { ALL_ORDERS, SidebarViews } from './views.jsx'
+import { ALL_ORDERS, AfterSidebarViews, SidebarViews } from './views.jsx'
 import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
 import { pasteAnywhere } from '../components/FileDrop.jsx'
@@ -217,12 +217,14 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
 				<Counted to={ALL_ORDERS} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
-				{rail ? null : <SidebarGroup>Library</SidebarGroup>}
-				<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
-				<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
-				<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
-				<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>Budget</Counted>
-				<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
+				<AfterSidebarViews rail={rail}>
+					{rail ? null : <SidebarGroup>Library</SidebarGroup>}
+					<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
+					<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
+					<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
+					<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>Budget</Counted>
+					<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
+				</AfterSidebarViews>
 			</NavScroll>
 			{/* only while the server has Ask set up (24a); on a short window it moves to the account menu with Settings (9g) */}
 			<SidebarDivider />

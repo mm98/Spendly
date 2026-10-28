@@ -165,8 +165,8 @@ export default function Home() {
 	const topRead = useApi(getCategoryPage, [{ ids: topIds.join(','), pageSize: 4, shape: 'brief' }], { enabled: topIds.length > 0 })
 	const top = !topIds.length ? [] : topRead.data ? topIds.map(id => topRead.data.categories.find(c => c.id === id)).filter(Boolean) : topRead.error ? [] : null
 	const view = monthView(month.data?.window, categories.data, counts.data?.categories, loud.early, top)
-	// the summary waits for the settings, so one switched off never flashes up
-	const summary = useApi(getMonthlySummary, [], { enabled: known && loud.summary })
+	// asked beside the settings rather than after them, so it lands with the other cards; drawn only once the settings say it is on
+	const summary = useApi(getMonthlySummary)
 	const toast = useToast()
 	const [putAway, setPutAway] = useState(null)
 	const hide = async month => {
@@ -179,9 +179,12 @@ export default function Home() {
 		}
 	}
 	const due = summary.data
-	const notice = known && loud.summary && due?.orders && !due.seen && putAway !== due.month && categories.data
+	const owed = Boolean(due?.orders && !due.seen && putAway !== due.month)
+	const notice = known && loud.summary && owed && categories.data
 		? <MonthlySummary summary={due} categories={categories.data} early={loud.early} onHide={() => hide(due.month)} />
 		: null
+	// the summary sits above every desktop card, so the cards wait until it is known to be drawn or not: landing later, it pushes them all down
+	const noticeKnown = known && (!loud.summary || (summary.data === undefined ? !!summary.error : !owed || categories.data !== undefined || !!categories.error))
 	if (recent.data && !recent.data.total) return <DayOne name={name} touch={touch} />
 	// the card waits for the settings, so a row switched off never flashes up
 	const looks = known ? looksIn(settings.data) : null
@@ -191,7 +194,8 @@ export default function Home() {
 		&& Boolean(month.error || categories.error || counts.error || (view && looks))
 	const props = { month, compared, categories, counts, view, recent, rows, drafts, attention: attention.data, looks, name }
 	// the summary is a desktop card; a phone's Needs a look covers this month (Mobile screens 7a)
-	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} aboveDrawn={aboveDrawn} notice={notice} />
+	if (touch) return <PhoneHome {...props} />
+	return noticeKnown ? <DesktopHome {...props} aboveDrawn={aboveDrawn} notice={notice} /> : <div className="hm-page" />
 }
 
 /** Asks again only for what failed. */
@@ -462,10 +466,10 @@ function RecentList({ caption, orders, rows }) {
 			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
-				<ListCell width="title" />
-				<ListCell width="date" />
-				<ListCell width="status" />
-				<ListCell width="amount" />
+				<ListCell width="title">Vendor</ListCell>
+				<ListCell width="date">Date</ListCell>
+				<ListCell width="status">Status</ListCell>
+				<ListCell width="amount">Amount</ListCell>
 			</ListHead>
 			<ListRow>{o => (orders ? (
 				<>
@@ -540,9 +544,9 @@ function DraftsCard({ drafts }) {
 				<Button variant="outline" size="small" to={all}>All {amount(total, 0)}</Button>
 			</Caption>
 			<ListHead>
-				<ListCell width="title" />
-				<ListCell width="date" />
-				<ListCell width="amount" />
+				<ListCell width="title">Vendor</ListCell>
+				<ListCell width="date">Date</ListCell>
+				<ListCell width="amount">Amount</ListCell>
 			</ListHead>
 			<ListRow>{o => (
 				<>
