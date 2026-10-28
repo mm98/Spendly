@@ -11,9 +11,10 @@ import { forgetReads } from './readCache.js'
 import { issueToken, readToken, useToken } from './tokens.js'
 
 /* The status email (20f, emails/README.md): Weekly on Monday at 08:00 for the week just ended,
-   Monthly on the 1st at 08:00 for the month just ended, in the account's own time zone. */
+   Monthly on the 1st at 08:00 for the month just ended, in the account's own time zone. Either,
+   both or neither is on (11a); on a 1st that is a Monday only the monthly one is sent. */
 
-export const STATUS_EMAILS = ['none', 'weekly', 'monthly']
+export const STATUS_EMAILS = ['weekly', 'monthly']
 const SEND_HOUR = 8
 const DAY = 86400
 const LIST_ROWS = 5
@@ -122,7 +123,7 @@ const plural = (n, one, many, write) => `${write(n)} ${n === 1 ? one : many}`
 
 /* ---- what the email says ---- */
 
-const selectAccount = db.prepare(`SELECT u.email, s.locale, s.currency, s.status_email, s.status_email_zone, s.status_email_locale, s.status_email_sent
+const selectAccount = db.prepare(`SELECT u.email, s.locale, s.currency, s.status_email_weekly, s.status_email_monthly, s.status_email_zone, s.status_email_locale
 	FROM users u JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?`)
 const selectBookmarksAdded = db.prepare(`SELECT name, url, price FROM bookmarks
 	WHERE user_id = @userId AND archived = 0 AND created_at >= @from AND created_at < @to
@@ -283,11 +284,16 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 
 /* ---- sending ---- */
 
-const markSent = db.prepare('UPDATE user_settings SET status_email_sent = ? WHERE user_id = ?')
-const selectChosen = db.prepare("SELECT user_id, status_email, status_email_zone, status_email_sent FROM user_settings WHERE status_email <> 'none'")
-const setChoice = db.prepare(`UPDATE user_settings SET status_email = @frequency, status_email_zone = @zone, status_email_locale = @locale,
-	status_email_sent = @sent WHERE user_id = @userId`)
-const stopFor = db.prepare("UPDATE user_settings SET status_email = 'none' WHERE user_id = ?")
+const markSent = {
+	weekly: db.prepare('UPDATE user_settings SET status_email_weekly_sent = ? WHERE user_id = ?'),
+	monthly: db.prepare('UPDATE user_settings SET status_email_monthly_sent = ? WHERE user_id = ?')
+}
+const selectChosen = db.prepare(`SELECT user_id, status_email_weekly, status_email_monthly, status_email_zone, status_email_weekly_sent, status_email_monthly_sent
+	FROM user_settings WHERE status_email_weekly = 1 OR status_email_monthly = 1`)
+const setChoice = db.prepare(`UPDATE user_settings SET status_email_weekly = @weekly, status_email_monthly = @monthly,
+	status_email_zone = @zone, status_email_locale = @locale, status_email_weekly_sent = @weeklySent, status_email_monthly_sent = @monthlySent
+	WHERE user_id = @userId`)
+const stopFor = db.prepare('UPDATE user_settings SET status_email_weekly = 0, status_email_monthly = 0 WHERE user_id = ?')
 
 const STOP_KIND = 'status-stop'
 
@@ -304,34 +310,37 @@ export async function sendStatusEmail(userId, period, { test = false, locale } =
 	})
 }
 
-/** Stores the account's choice. The period already due when it is chosen counts as sent, so the
-    first email is the next one, never one about a period that ended before the choice. */
-export function chooseStatusEmail(userId, { frequency, zone, locale }) {
+/** Stores which of Weekly and Monthly are on. The period already due when one is turned on counts as
+    sent, so its first email is the next one, never one about a period that ended before the choice. */
+export function chooseStatusEmail(userId, { weekly, monthly, zone, locale }) {
 	const kept = zoneOrServer(zone)
+	const local = localNow(kept)
 	setChoice.run({
-		userId, frequency, zone: kept, locale: usableLocale(locale) === locale ? locale : null,
-		sent: frequency === 'none' ? null : latestDuePeriod(frequency, localNow(kept)).id
+		userId, weekly: weekly ? 1 : 0, monthly: monthly ? 1 : 0, zone: kept, locale: usableLocale(locale) === locale ? locale : null,
+		weeklySent: weekly ? latestDuePeriod('weekly', local).id : null,
+		monthlySent: monthly ? latestDuePeriod('monthly', local).id : null
 	})
 }
 
-/** Send a test email (11a): the email for the period just ended, now, in the frequency chosen, the
-    weekly one on None. `zone` and `locale` are the asking browser's, used until a choice stores them. */
+/** Send a test email (11a): the email for the period just ended, now; the monthly one only when Monthly
+    alone is on. `zone` and `locale` are the asking browser's, used until a choice stores them. */
 export async function sendTestStatusEmail(userId, { zone, locale }) {
 	const account = selectAccount.get(userId)
-	const frequency = account.status_email === 'none' ? 'weekly' : account.status_email
+	const frequency = account.status_email_monthly && !account.status_email_weekly ? 'monthly' : 'weekly'
 	const period = latestDuePeriod(frequency, localNow(zoneOrServer(account.status_email_zone ?? zone)))
 	await sendStatusEmail(userId, period, { test: true, locale })
 	return account.email
 }
 
 /** A stop link from a status email (20f, 8 to 10): `state` is 'stopped', 'used' when the link was opened
-    before or the setting is already None, or 'expired'; `email` is the address, while the link still works. */
+    before or both are already off, or 'expired'; `email` is the address, while the link still works. */
 export function stopStatusEmail(token) {
 	const { state, row } = readToken(token, STOP_KIND)
 	if (state === 'expired') return { state }
 	if (state === 'used') return { state, email: row.email }
 	useToken(token)
-	if (selectAccount.get(row.user_id).status_email === 'none') return { state: 'used', email: row.email }
+	const account = selectAccount.get(row.user_id)
+	if (!account.status_email_weekly && !account.status_email_monthly) return { state: 'used', email: row.email }
 	stopFor.run(row.user_id)
 	// signed out, so no write of the account's own clears what it last read
 	forgetReads(row.user_id)
@@ -343,12 +352,18 @@ export function stopStatusEmail(token) {
 export function sendDueStatusEmails(now = new Date()) {
 	for (const row of selectChosen.all()) {
 		const local = localNow(zoneOrServer(row.status_email_zone), now)
-		const period = latestDuePeriod(row.status_email, local)
-		const inTime = local.day === period.due || (local.day === addDays(period.due, 1) && local.hour < SEND_HOUR)
-		if (!inTime || row.status_email_sent === period.id) continue
-		// marked first: a send that keeps failing is tried once, not every minute
-		markSent.run(period.id, row.user_id)
-		inBackground(sendStatusEmail(row.user_id, period))
+		const monthly = row.status_email_monthly ? latestDuePeriod('monthly', local) : null
+		for (const frequency of STATUS_EMAILS) {
+			if (!row[`status_email_${frequency}`]) continue
+			const period = frequency === 'monthly' ? monthly : latestDuePeriod(frequency, local)
+			const inTime = local.day === period.due || (local.day === addDays(period.due, 1) && local.hour < SEND_HOUR)
+			if (!inTime || row[`status_email_${frequency}_sent`] === period.id) continue
+			// marked first: a send that keeps failing is tried once, not every minute
+			markSent[frequency].run(period.id, row.user_id)
+			// on a 1st that is a Monday the monthly email comes instead of the weekly one
+			if (frequency === 'weekly' && monthly?.due === period.due) continue
+			inBackground(sendStatusEmail(row.user_id, period))
+		}
 	}
 }
 

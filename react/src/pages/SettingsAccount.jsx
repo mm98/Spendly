@@ -6,8 +6,7 @@ import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } from '../components/Overlays.jsx'
-import { ListItem } from '../components/ListItem.jsx'
-import { Segmented } from '../components/Segmented.jsx'
+import { Choice, FieldGroup, Switch } from '../components/Choice.jsx'
 import { Halves } from '../components/Well.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { changePassword, failureMessage, getSettings, saveStatusEmail, sendTestStatusEmail } from '../api/client.js'
@@ -55,15 +54,20 @@ function usePreview(file) {
 	return url
 }
 
-const STATUS_EMAILS = [{ value: 'none', label: 'None' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }]
+// the status email's switches (11a), either, both or neither
+const STATUS_EMAILS = [
+	{ key: 'weekly', setting: 'statusEmailWeekly', label: 'Weekly', description: 'Every Monday, for the week just ended.' },
+	{ key: 'monthly', setting: 'statusEmailMonthly', label: 'Monthly', description: 'On the 1st, for the month just ended. On a Monday it comes instead of the weekly one.' }
+]
 
-/** The status email's setting, saved the moment it is chosen. */
+/** The status email's switches, each saved the moment it is switched. */
 function useStatusEmail() {
 	const settings = useApi(getSettings)
 	const toast = useToast()
 	const [chosen, setChosen] = useState(null)
-	const value = chosen ?? settings.data?.statusEmail ?? 'none'
-	const choose = next => {
+	const value = chosen ?? Object.fromEntries(STATUS_EMAILS.map(s => [s.key, !!settings.data?.[s.setting]]))
+	const choose = (key, on) => {
+		const next = { ...value, [key]: on }
 		setChosen(next)
 		saveStatusEmail(next)
 			.then(() => invalidate(getSettings))
@@ -90,8 +94,8 @@ function useStatusEmailTest() {
 	return { sending, send }
 }
 
-/** The Status email card (11a), under the account card on a desktop. Absent while this server cannot
-    send email, as nothing would arrive. */
+/** The Status email card (11a), under the account card on a desktop and on its own page on a phone.
+    Absent while this server cannot send email, as nothing would arrive. */
 export function StatusEmailCard({ user }) {
 	const { ready, value, choose } = useStatusEmail()
 	const { sending, send } = useStatusEmailTest()
@@ -103,31 +107,17 @@ export function StatusEmailCard({ user }) {
 		<Card footerCommits footer={button}>
 			<CardHeader name="Status email" id="status-email-label" />
 			<span className="sp-data">
-				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>. Weekly arrives on Monday, Monthly on the 1st.
+				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>.
 			</span>
-			<Segmented name="status-email" fullWidth options={STATUS_EMAILS} value={value} onChange={choose}
-				role="radiogroup" aria-labelledby="status-email-label" />
+			<FieldGroup aria-labelledby="status-email-label">
+				{STATUS_EMAILS.map(s => (
+					<Choice key={s.key} variant="described" description={s.description}
+						control={<Switch checked={value[s.key]} onChange={ev => choose(s.key, ev.target.checked)} />}>
+						{s.label}
+					</Choice>
+				))}
+			</FieldGroup>
 		</Card>
-	)
-}
-
-/** The status email in the phone's Settings list (7a): the switch in its row, then Send a test email. */
-export function StatusEmailRows({ user }) {
-	const { ready, value, choose } = useStatusEmail()
-	const { sending, send } = useStatusEmailTest()
-	if (!user?.mail || !ready) return null
-	return (
-		<>
-			<ListItem variant="card" setting>
-				<span className="sp-field__label sp-grow" id="status-email-row-label">Status email</span>
-				<Segmented name="status-email-row" options={STATUS_EMAILS} value={value} onChange={choose}
-					role="radiogroup" aria-labelledby="status-email-row-label" />
-			</ListItem>
-			<ListItem variant="card" onClick={send} disabled={sending}>
-				<span className="sp-data sp-grow">{sending ? 'Sending…' : 'Send a test email'}</span>
-				{sending ? <Spinner /> : null}
-			</ListItem>
-		</>
 	)
 }
 

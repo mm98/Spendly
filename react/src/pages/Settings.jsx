@@ -26,7 +26,7 @@ import {
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
-import { AccountCard, StatusEmailCard, StatusEmailRows } from './SettingsAccount.jsx'
+import { AccountCard, StatusEmailCard } from './SettingsAccount.jsx'
 import { PasskeysCard, usePasskeyCount } from './SettingsPasskeys.jsx'
 import { TwoStepCard, useTwoStepWord } from './SettingsTwoStep.jsx'
 import { DeleteAccountCard } from './SettingsDeleteAccount.jsx'
@@ -42,6 +42,8 @@ import { ConfirmBanner } from '../app/ConfirmBanner.jsx'
 
 // addresses the five-group Settings gave out, in emails and bookmarks, open the section that holds that card
 const GROUP_ADDRESSES = { security: 'account', 'status-email': 'account', preferences: 'appearance', notifications: 'alerts', data: 'statuses' }
+// cards under Account and profile that a phone opens as pages of their own (7a)
+const OWN_PAGES = ['passkeys', 'two-step', 'status-email']
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
@@ -111,11 +113,12 @@ const dropStale = () => {
 
 export default function Settings() {
 	const { section: asked } = useParams()
-	const section = GROUP_ADDRESSES[asked] ?? asked
+	const shape = useShellShape()
+	const touch = shape === 'touch'
+	const section = touch && OWN_PAGES.includes(asked) ? asked : GROUP_ADDRESSES[asked] ?? asked
 	// each opening of a section is its own visit, so opening the one already open goes back to it
 	const visit = useLocation().key
 	const row = useRef(null)
-	const shape = useShellShape()
 	const narrow = useMedia('(max-width: 899.98px)')
 	const settings = useApi(getSettings)
 	const user = useApi(getCurrentUser)
@@ -130,10 +133,8 @@ export default function Settings() {
 	const saved = settings.data && user.data
 		? { ...ALERT_DEFAULTS, ...settings.data, ...lookValues(settings.data), name: user.data.name ?? '', picture: user.data.picture ?? null, orderViews: shown ?? 4, statuses: statuses.data }
 		: null
-	// Passkeys and two-step sign-in are cards under Account and profile, and on a phone pages of their own (7a)
-	const ownPages = ['passkeys', 'two-step']
-	const current = SECTIONS.some(s => s.key === section) || ownPages.includes(section) ? section : null
-	const navCurrent = key => (ownPages.includes(key) ? 'account' : key)
+	const current = SECTIONS.some(s => s.key === section) || OWN_PAGES.includes(section) ? section : null
+	const navCurrent = key => (OWN_PAGES.includes(key) ? 'account' : key)
 
 	useEffect(() => setLanded({}), [settings.data, user.data, shown, statuses.data])
 	const stored = key => (key in landed ? landed[key] : saved?.[key])
@@ -190,7 +191,6 @@ export default function Settings() {
 			.finally(() => setSaving(false))
 	}
 
-	const touch = shape === 'touch'
 	const fields = { value, change, touch }
 	const cards = {
 		account: touch
@@ -198,6 +198,7 @@ export default function Settings() {
 			: [<AccountCard key="account" user={user.data} {...fields} />, <StatusEmailCard key="status-email" user={user.data} />, <PasskeysCard key="passkeys" />, <TwoStepCard key="two-step" />, <DeleteAccountCard key="delete-account" />],
 		passkeys: <PasskeysCard key="passkeys" />,
 		'two-step': <TwoStepCard key="two-step" />,
+		'status-email': <StatusEmailCard key="status-email" user={user.data} />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
@@ -536,7 +537,7 @@ function ListsCard({ value, change, touch }) {
 	)
 }
 
-/* Below 640 the panes are a list (7a): the account first, then its passkeys and two-step sign-in, then one row per pane. */
+/* Below 640 the panes are a list (7a): the account first, then its passkeys, two-step sign-in and status email, then one row per pane. */
 function PhoneIndex({ user }) {
 	const chevron = <Icon name="chevron-right" />
 	const passkeys = usePasskeyCount()
@@ -572,7 +573,13 @@ function PhoneIndex({ user }) {
 				<span className="sp-data sp-grow">Two-step sign-in</span>
 				{twoStep ? <span className="sp-meta">{twoStep}</span> : null}
 			</ListItem>
-			<StatusEmailRows user={user} />
+			{user?.mail
+				? (
+					<ListItem variant="card" chevron={chevron} to="/settings/status-email">
+						<span className="sp-data sp-grow">Status email</span>
+					</ListItem>
+				)
+				: null}
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
 					<span className="sp-data sp-grow">{s.label}</span>

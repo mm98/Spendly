@@ -19,7 +19,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -133,7 +133,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -226,7 +226,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -291,7 +291,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -356,7 +356,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -456,7 +456,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -556,7 +556,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -600,7 +600,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -658,7 +658,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -723,7 +723,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -809,7 +809,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -860,7 +860,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -960,7 +960,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -1011,7 +1011,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -1083,7 +1083,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [
@@ -1148,7 +1148,7 @@
 				{
 					"status": 200,
 					"type": "application/json; charset=utf-8",
-					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmail\":\"none\",\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
+					"text": "{\"defaultKind\":\"Expense\",\"defaultStatus\":\"Delivered\",\"pageSize\":10,\"sort\":\"date-desc\",\"listSort\":\"name-asc\",\"currency\":\"DKK\",\"locale\":\"auto\",\"density\":\"comfortable\",\"notifyWhileSaving\":true,\"notifyMonthlySummary\":true,\"notifyEarly\":90,\"scanOverrides\":true,\"sidebar\":\"open\",\"compareMonth\":\"last\",\"recentRows\":5,\"statusEmailWeekly\":false,\"statusEmailMonthly\":false,\"looks\":{\"over\":true,\"near\":true,\"late\":true,\"vendors\":true,\"receipt\":false}}"
 				}
 			],
 			"GET /api/counts": [

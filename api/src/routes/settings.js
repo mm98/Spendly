@@ -10,7 +10,7 @@ export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
-		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, status_email
+		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, status_email_weekly, status_email_monthly
 	FROM user_settings WHERE user_id = ?
 `)
 const upsertSettings = db.prepare(`
@@ -33,7 +33,8 @@ const toApi = row => ({
 	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
 	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
 	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month,
-	recentRows: row.recent_rows, statusEmail: row.status_email
+	recentRows: row.recent_rows,
+	statusEmailWeekly: Boolean(row.status_email_weekly), statusEmailMonthly: Boolean(row.status_email_monthly)
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -63,12 +64,12 @@ router.get('/', (req, res) => {
 	res.json(row ? { ...toApi(row), looks: looksOf(req.user.id) } : null)
 })
 
-/** The status email (20f), saved on its own the moment it is chosen. The browser's time zone and
-    locale come with it, since the email is written and sent with no browser to ask. */
+/** The status email (20f): which of Weekly and Monthly are on, saved the moment one is switched.
+    The browser's time zone and locale come with it, since the email is written and sent with no browser to ask. */
 router.put('/status-email', (req, res) => {
-	const frequency = String(req.body?.frequency ?? '')
-	if (!STATUS_EMAILS.includes(frequency)) return res.status(400).json({ error: 'Choose None, Weekly or Monthly.' })
-	chooseStatusEmail(req.user.id, { frequency, zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') })
+	const chosen = Object.fromEntries(STATUS_EMAILS.map(f => [f, req.body?.[f]]))
+	if (!Object.values(chosen).every(v => typeof v === 'boolean')) return res.status(400).json({ error: 'Turn Weekly and Monthly on or off.' })
+	chooseStatusEmail(req.user.id, { ...chosen, zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') })
 	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })
 })
 

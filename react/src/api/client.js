@@ -1167,10 +1167,10 @@ const browserPlace = () => ({
 	locale: new Intl.NumberFormat().resolvedOptions().locale
 })
 
-/** Chooses the status email, 'none', 'weekly' or 'monthly' (11a), saved at once. This browser's time zone
+/** Turns the status email's Weekly and Monthly on or off (11a), saved at once. This browser's time zone
     and locale go with it: the email is sent at 08:00 in that zone and written in that locale. */
-export async function saveStatusEmail(frequency, signal) {
-	return request('/api/settings/status-email', { method: 'PUT', body: { frequency, ...browserPlace() }, signal })
+export async function saveStatusEmail({ weekly, monthly }, signal) {
+	return request('/api/settings/status-email', { method: 'PUT', body: { weekly, monthly, ...browserPlace() }, signal })
 }
 
 /** Send a test email (11a): the email for the period just ended, sent now. Answers { email }, the address. */
