@@ -1,24 +1,31 @@
-# Load more stops short of the first new card, and a disabled combobox
+# The size of the "What changed" dialog
 
-## 1. later.md: Load more stops short of the first new card
+## Fixed from handoff_what_changed_dialog_size
 
-**The problem.** After Load more, the page slides towards the first new record but stops before it reaches the top, and on a large screen it may not move at all. `ListMore` starts the slide in the same pass that adds the records, while they are still on their way in (`PRESENCE.row` in `motion.js`), so it aims at where the record is drawn mid-arrival rather than where it settles. The story's test passes only because animations are off under `npm test`.
+**The problem.** In the earlier package, 11d state 6 sat in one column of its grid, so the dialog was drawn about 400 wide, not 640, and at 640 its list was too short to reach the 560 cap.
 
-**What changed.** The slide starts once the first new record has finished arriving, and stops with that record at the top of the window, or just below a pinned bulk bar. The record takes focus at once, as before. With less motion set, the page moves there at once, as before. When the page is not long enough for the record to reach the top, it scrolls as far as it can: that is expected, not the fault.
+**What changed.** State 6 now spans both columns (`.st-span { grid-column: 1 / -1; }` in `styles/pages/settings.css`, a drawing class, not for the app), so the dialog is drawn at 640. Versions 1.3.1, 1.2.1 and 1.2.0 have more lines, so the list overflows at 640 and the dialog stops at its cap and scrolls. The app's rule is unchanged from the earlier package.
 
-How: `Rows` takes `onArrived`, called when a row that arrived finishes its way in (Motion's `onAnimationComplete`, set by `useRow` only while the row is present). `List` (table and cards) keeps one pending slide in a context, `Arrival`; `ListMore` leaves its slide there and the first arrival runs it. No timer is used. A `ListMore` outside a `List` has no `Arrival` and slides at once, as now.
 
-**Where.** `Components.dc.html` c8, the Load more note. `react_handoff/motion.js` (`Rows`, `useRow`) and `react_handoff/List.jsx` (`Arrival`, `useArrival`, `ListCards`, `ListTable`, `ListMore`), against `react/src/components/motion.js` and `react/src/components/List.jsx` on main. This settles the later.md entry "Load more stops short of the first new card"; remove it.
+## 1. Width
 
-**What is still open.** The fix is written against main's files and not run here. Please confirm in Storybook, Lists/List > Cards, with animations on, that the first new card ends at the top of the window; the story's test needs animations on to catch it.
+**The problem.** The "What changed" dialog on Settings > This build is 420px wide, the width of every dialog (`.sp-dialog { width: 420px; }`), so the release notes are cramped on a wide screen.
 
-## 2. A disabled combobox looks like a disabled input
+**What changed.** On desktop (640px and up), a dialog that holds a scrolling list is 640 wide, the width Settings caps its column at (`.sp-column--form`, `.st-pane`). It keeps `max-width: 100%`, so a narrower window gives it what room there is. Every other dialog stays 420. On a phone nothing changes.
 
-**The problem.** `Combobox` passes `disabled` to its trigger, but no rule styled a disabled `.sp-combobox__trigger`, so a disabled combobox looked enabled and still took the hover border.
+**Where.** `Settings and import 11d`, state 6, and its note "The dialog scrolls, not the page". `Components c13`, the Fixed note. `styles/components.css`, a new `@media (min-width: 640px)` rule on `.sp-dialog:has(> .sp-dialog__scroll)`, after the existing rule. App: `react/src/pages/SettingsBuild.jsx` uses it as it is; only the stylesheet changes.
 
-**What changed.** A disabled combobox has the disabled input's ground, border, ink, fade and not-allowed cursor; the chevron fades with it, and hover leaves its border alone.
+**What is still open.** Nothing.
 
-**Where.** `Components.dc.html` c5, Combobox mode 1, the Disabled field and its note. `styles/components.css`: `.sp-combobox__trigger:disabled` joins the `.sp-input:disabled, .sp-textarea:disabled` rule, and `.sp-combobox__trigger:disabled:hover` keeps `--line` inside the `hover: hover` block. App: `react/src/styles/app.css`, the same two selectors; `Combobox.jsx` is unchanged.
+## 2. Height
+
+**The problem.** With many versions the list is long, and the dialog is as tall as the window less the scrim's padding (`calc(100dvh - var(--sp-16) * 2)`), so on desktop it always reaches the top and bottom of the window.
+
+**What changed.** On desktop the dialog is at most 560 tall, the cap the Budget year's scrolling region already uses (`.bg-scroll`), or the window less the padding when that is shorter: `max-height: min(560px, calc(100dvh - var(--sp-16) * 2))`. A short list is still as tall as its content. The list scrolls inside it, and the heading and Close stay in view, as before. The phone keeps the current cap.
+
+State 6 is now drawn at the desktop size: a 680px window, all seven versions (the running 1.4.2 and the four earlier ones that "Show 4 earlier versions" counts, plus the two above them), so the dialog stops at 560 and scrolls. Its label reads "6 - EARLIER VERSIONS, OPEN, DESKTOP".
+
+**Where.** `Settings and import 11d`, state 6. `styles/components.css`, the same media rule as in 1. `styles/pages/settings.css`, `.st-window` (a drawing stand-in, 360 to 680px tall; not for the app).
 
 **What is still open.** Nothing.
 
@@ -26,10 +33,11 @@ How: `Rows` takes `onArrived`, called when a row that arrived finishes its way i
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Components.dc.html` - c5 with the disabled combobox, c8 with the Load more note.
-- `react_handoff/motion.js` - `Rows` with `onArrived`.
-- `react_handoff/List.jsx` - `ListMore` slides once the first new record has arrived.
-- `support.js`, `components.js`, `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - what the page loads to open from the folder; `styles/components.css` also carries the disabled combobox rules.
+- `Settings and import.dc.html` - 11d state 6 at the new size, and its note.
+- `Components.dc.html` - c13's Fixed note names the wider, capped list dialog.
+- `styles/components.css` - the new desktop rule for the list dialog.
+- `styles/pages/settings.css` - the taller drawing window for 11d, and `.st-span` so state 6 is drawn at full width.
+- `styles/tokens.css`, `styles/doc.css`, `support.js`, `components.js`, `icons.js` - what the two pages load to open from this folder.
 
 ## styles/check.js
 

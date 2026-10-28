@@ -2932,6 +2932,11 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
    and the actions scrolls, so both stay in view (This build 11d, earlier versions) */
 .sp-dialog__scroll { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 0; overflow-y: auto; }
 .sp-dialog:has(> .sp-dialog__scroll) { max-height: calc(100dvh - var(--sp-16) * 2); min-height: 0; }
+/* on desktop it takes the Settings column's 640 and stops at 560 tall, so a long list never
+   reaches the window's edges; the phone keeps the dialog above (11d state 6) */
+@media (min-width: 640px) {
+  .sp-dialog:has(> .sp-dialog__scroll) { width: 640px; max-height: min(560px, calc(100dvh - var(--sp-16) * 2)); }
+}
 
 /* a decorative chevron inside a field sits on the field's own padding, not in the button slot.
    Centred on the field's real height, as the unit and the trail are, so it does not sit
