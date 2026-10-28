@@ -38,6 +38,7 @@
     <div class="doc-note"><b>A very long status name ends in an ellipsis in this list</b> (<code>.sp-pill--truncate</code>), so its row keeps its height; the full name is in the edit field. This is the one place a pill truncates.</div>
     <div class="doc-note"><b>Passkeys</b> is a card under Account and profile. Add a passkey opens the device's prompt (iPhone, Android, 1Password); the new row takes the name the device reports, which Rename changes. Rename turns the row into its name field with Cancel and Save, drawn on the 1Password row, the same as renaming a status; Enter saves and Escape cancels. Remove asks first with the confirm dialog, and the password always keeps working, so removing the last one locks nobody out. With none, the card holds only its line and Add a passkey. Adding one sends the passkey-added email (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
     <div class="doc-note"><b>Two-step sign-in</b> is its own card right under Passkeys, drawn here on. Every state and its three dialogs are in <a href="#11f">11f</a>.</div>
+    <div class="doc-note"><b>Delete account</b> is the last card in Account and profile, after Two-step sign-in. The card and every state of its dialog are in <a href="#11g">11g</a>.</div>
     <div class="doc-note"><b>Passkeys: Rename does not move the card.</b> A passkey row is one height at rest and while renaming: the name field's 42px (<code>--control-h</code>). At rest the row holds that height with the name and its date line centred in it; on Rename the field, Cancel and Save fill it exactly, so the rows and rules below stay where they are. Lock the row's height, not its content: a row sized by its text grows by 3px when the field appears.</div>
     <div class="doc-note"><b>Status email</b> is its own card in Account and profile, right under the account card: None (the default for every account), Weekly or Monthly, on the Segmented in its fill variant (<code>.sp-segmented--fill</code>, <a href="Components.dc.html#c5">c5</a>), so the three options share the card's width. It saves on change, with no Save button. Weekly is drawn selected here to show the test button in use; a new account starts on None. Stop these emails in the email sets it back to None.</div>
     <div class="doc-note"><b>Send a test email</b> sends the email for the period just ended to the account's address, now, with the account's real figures, in the frequency selected; on None it sends the weekly one. The subject starts "Test:". While it sends the button reads Sending... with the spinner and is disabled, as Check for updates does (<a href="#11d">11d</a>); then a toast says "Test sent to mikkel@example.net". On failure the toast is the danger toast: "The test could not be sent. Try again." The button is not rate-limited in the drawing; the server allows one test a minute.</div>
@@ -207,6 +208,15 @@
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">New recovery codes</button>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Turn off</button>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">DELETE ACCOUNT</span></div>
+          <span class="sp-data">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good. This can't be undone.</span>
+          <div class="sp-card__footer sp-row-flex sp-gap-8">
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" data-color="danger">Delete account</button>
           </div>
         </div>
 
@@ -1417,14 +1427,12 @@
           </div>
         </div>
         <div class="sp-stack sp-gap-8">
-          <span class="sp-section-label">6 - ALL VERSIONS SHOWN</span>
-          <div class="sp-card">
-            <div class="sp-card__head"><span class="sp-section-label">THIS BUILD</span></div>
-            <span class="sp-data">You're running version <b class="sp-ink">1.4.2</b>, installed on <b class="sp-ink">18.08.2026, 09.14</b> <span class="sp-ink-5">(a3f91c2)</span>.</span>
-            <span class="sp-meta">Press the button below to check online for a newer version.</span>
-            <div class="sp-stack sp-gap-12" aria-label="What changed"><span class="sp-section-label">WHAT CHANGED</span><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.2</b></span><ul class="sp-toast__changes"><li>You can sort your vendors by how much you spent.</li><li>Photos of receipts upload faster on a slow connection.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.1</b></span><ul class="sp-toast__changes"><li>Load more remembers how far you got.</li><li>Phone order cards show what you saved.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.0</b></span><ul class="sp-toast__changes"><li>Budgets show how much is left this month.</li><li>You can sign in with a passkey.</li><li>Dark mode follows your device.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.3.1</b></span><ul class="sp-toast__changes"><li>Dates in exports follow your language.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.3.0</b></span><ul class="sp-toast__changes"><li>You can attach a PDF to an order.</li><li>Search finds an order by its note.</li></ul></div></div>
-            <div class="sp-card__footer sp-card__footer--commits">
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Check for updates</button>
+          <span class="sp-section-label">6 - EARLIER VERSIONS, OPEN</span>
+          <div class="st-window">
+            <div class="sp-dialog" role="dialog" aria-modal="true" aria-labelledby="st-bd-versions">
+              <span class="sp-heading" id="st-bd-versions">What changed</span>
+              <div class="sp-dialog__scroll" aria-label="What changed"><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.2</b></span><ul class="sp-toast__changes"><li>You can sort your vendors by how much you spent.</li><li>Photos of receipts upload faster on a slow connection.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.1</b></span><ul class="sp-toast__changes"><li>Load more remembers how far you got.</li><li>Phone order cards show what you saved.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.4.0</b></span><ul class="sp-toast__changes"><li>Budgets show how much is left this month.</li><li>You can sign in with a passkey.</li><li>Dark mode follows your device.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.3.1</b></span><ul class="sp-toast__changes"><li>Dates in exports follow your language.</li></ul></div><div class="sp-stack sp-gap-6"><span class="sp-meta"><b class="sp-ink">1.3.0</b></span><ul class="sp-toast__changes"><li>You can attach a PDF to an order.</li><li>Search finds an order by its note.</li></ul></div></div>
+              <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Close</button></div>
             </div>
           </div>
         </div>
@@ -1450,7 +1458,8 @@
             <div class="doc-note"><b>The version number.</b> Three numbers, such as <code>1.4.2</code>: major, minor and build. A big feature raises major, a merged change raises minor, and every build raises build; each raise sets the parts after it to 0. It sits in the version line in bold ink, the same as the date, in every state; the short commit stays last in faded ink. A build with no version number (an older image) shows the line without it: "You're running the version installed on <b>18.08.2026, 09.14</b> (a3f91c2)."</div>
             <div class="doc-note"><b>State 4 names the newer version.</b> The title reads "Version 1.5.0 is available.", the number the server reports for its build. The update check has to return that number beside the build's date and commit.</div>
             <div class="doc-note"><b>What changed.</b> The release notes of the running version and the earlier ones, newest first, under one label, WHAT CHANGED. Each version is its number in bold ink, then its lines, at most three, one change each. The part sits under the hint (or the result that takes its place) and above the button, in every state. It is the list of the newer-version notice (<a href="States and confirmations.dc.html#6d">6d</a>), <code>.sp-toast__changes</code>, in plain ink: one list, not a second one for the card.</div>
-            <div class="doc-note"><b>Three versions at first.</b> The running version and the two before it. When there are more, a small outline button under them reads "Show N earlier versions", N counting the earlier versions the list will hold once it is pressed (here 4: 1.4.1 to 1.3.0). The list holds at most 20 versions, the running one included, so N is at most 19 and the button never says "all": a version older than those 20 is not listed. Pressed, it lists those versions in place and is gone (state 6), as Load more is gone once everything is shown. It does not come back until the card leaves the screen.</div>
+            <div class="doc-note"><b>Three versions at first.</b> The running version and the two before it. When there are more, a small outline button under them reads "Show N earlier versions", N counting the earlier versions there are (here 4: 1.4.1 to 1.3.0). Pressed, it opens a dialog, "What changed" (state 6), holding every listed version, the running one first, newest first, in the same markup as the card. The list holds at most 20 versions, the running one included, so N is at most 19 and the button never says "all": a version older than those 20 is not listed. The card itself never grows: the button stays, and the card keeps its three versions.</div>
+            <div class="doc-note"><b>The dialog scrolls, not the page.</b> It is the Dialog (<a href="Components.dc.html#c13">c13</a>) with its list in <code>.sp-dialog__scroll</code>: the dialog is at most the window's height less the scrim's padding (<code>100dvh - 2 x --sp-16</code>), the list scrolls inside it with the shared thin scrollbar, which the class carries, and the heading and Close stay in view. State 6 is drawn in a short window, 360px, to show it scrolled; in a tall window with few versions it is as tall as its list. Close, Escape and the scrim close it, and focus returns to the button. On a phone it is the dialog at the phone's inset with a 48px Close, as in <a href="#11f">11f</a>.</div>
             <div class="doc-note"><b>Every version is listed, from 1.10.0 on.</b> A version whose change cannot be seen is drawn like any other: its number in bold, then one line, "No change you can see." (state 7, running 1.4.2). No new part and no new class: the line is an item of the same list. The count in the Show earlier versions button counts them too. Versions before 1.10.0 had no release notes, and some of them did change things you can see, so they are not listed at all rather than given a line that may be wrong. When no version is listed, the part is left out, label and all, and the card is the card drawn before this feature.</div>
             <div class="doc-note"><b>State 4 lists what is new.</b> Inside the amber notice, under its words, every version newer than the running one, newest first, each with its number and lines, in the notice's ink, as in 6d. The title names the newest. A newer version with no change you can see is listed with its one line, "No change you can see." (1.4.3 here), so the notice always says what the update brings. The running version's part stays below the notice.</div>
             <div class="doc-note"><b>Phone and dark.</b> The same markup and order. On a phone the lines wrap inside the card's width, and the Show earlier versions button keeps its small size at the left. Dark comes from the tokens; nothing is drawn differently.</div>
@@ -2048,6 +2057,172 @@
       <div class="doc-note"><b>Step 4, the recovery codes, is shown once</b>, right after it turns on: 10 codes of 8 letters and digits in two groups, two columns, in a well. Copy all copies them one per line; Download saves <code>spendly-recovery-codes.txt</code>, one code per line under the account's address and the date. The dialog has no Cancel, no Escape and no scrim close here: only I have saved them closes it. Then the card shows On and the toast says "Two-step sign-in is on."</div>
       <div class="doc-note"><b>New recovery codes</b> asks for a code from the app or a recovery code in one field, which takes either: 6 digits, or 8 letters and digits with or without the hyphen. Too many wrong codes here, and in Turn off, shows the code step's warning row with the field and the button disabled, counting down, as in T3. A right one replaces all 10 codes and shows them as step 4 does, with the line "Your old recovery codes no longer work." The card's count returns to 10 of 10.</div>
       <div class="doc-note"><b>Turn off</b> asks for the password and a code in one go, and answers a wrong pair vaguely, as sign-in does, so it does not say which half was wrong. Turn off is the danger button. After it the card shows Off, the toast says "Two-step sign-in is off." and the turned-off email is sent (<a href="Auth and first run.dc.html#20f">20f</a>). Turning it on sends the turned-on email.</div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="11g">11g</span>
+    <span class="doc-section__title">Delete account - every state</span>
+  </div>
+  <div class="doc-lede">The last card in Account and profile, after Two-step sign-in, and the one dialog it opens. The account goes at once and for good once the password, and the code when two-step sign-in is on, are right.</div>
+  <div class="sp-stack sp-gap-12">
+    <span class="sp-section-label">THE CARD</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">1 - AT REST</span>
+          <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">DELETE ACCOUNT</span></div>
+          <span class="sp-data">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good. This can't be undone.</span>
+          <div class="sp-card__footer sp-row-flex sp-gap-8">
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" data-color="danger">Delete account</button>
+          </div>
+        </div>
+        </div>
+    </div>
+    <span class="sp-section-label">THE DIALOG</span>
+    <div class="sp-halves">
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D1 - TWO-STEP SIGN-IN OFF</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p1">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p1" type="password" autoComplete="current-password" defaultValue="">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D2 - TWO-STEP SIGN-IN ON</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p2">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p2" type="password" autoComplete="current-password" defaultValue="">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-c2">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-del-c2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D3 - PREPARING THE COPY</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap" disabled="{{ true }}"><span class="sp-spinner"></span>Preparing…</button>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p3">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p3" type="password" autoComplete="current-password" defaultValue="">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D4 - WRONG PASSWORD</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p4">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p4" type="password" autoComplete="current-password" defaultValue="correct-hors" aria-invalid="true" aria-describedby="st-del-p4-help">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+              <span class="sp-field__help" data-color="danger" id="st-del-p4-help">That password isn't right.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D5 - WRONG PASSWORD OR CODE</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p5">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p5" type="password" autoComplete="current-password" defaultValue="correct-horse">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-c5">Code from the app or a recovery code</label>
+              <input class="sp-input sp-number" id="st-del-c5" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-del-c5-help">
+              <span class="sp-field__help" data-color="danger" id="st-del-c5-help">That password and code do not match. Check both and try again.</span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-section-label">D6 - TOO MANY ATTEMPTS</span>
+          <div class="sp-dialog">
+            <span class="sp-heading">Delete your account?</span>
+            <span class="sp-dialog__body">Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</span>
+            <div class="sp-list-item">
+              <div class="sp-stacked sp-grow"><span class="sp-title">A copy of your data</span><span class="sp-meta">Orders, receipts and lists, in one .zip file.</span></div>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button>
+            </div>
+            <div class="sp-list-item sp-list-item--top" data-color="warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-title sp-ink-warning">Too many attempts</div>
+                <div class="sp-meta sp-ink-warning">Try again in <b>4 minutes</b>.</div>
+              </div>
+            </div>
+            <div class="sp-field">
+              <label class="sp-field__label" for="st-del-p6">Password</label>
+              <span class="sp-field__wrap">
+                <input class="sp-input" id="st-del-p6" type="password" autoComplete="current-password" defaultValue="" disabled="{{ true }}">
+                <button type="button" class="sp-field__trail" aria-label="Show the password"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
+              </span>
+            </div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger" disabled="{{ true }}">Delete account</button></div>
+          </div>
+        </div>
+    </div>
+    <div class="doc-notes">
+      <span class="doc-notes__label">Notes for implementation</span>
+      <div class="doc-note"><b>The card</b> is the last one in Account and profile (<a href="#11a">11a</a>), after Two-step sign-in: the head, one line, and Delete account in the footer as the outline danger button (<code>.sp-btn--outline</code> with <code>data-color="danger"</code>), where Turn off sits on the card above. On a phone it is the same card at the end of the Settings account page, and the dialog sits at the phone's inset with 48px buttons, as in <a href="#11f">11f</a>.</div>
+      <div class="doc-note"><b>Removed at once, for good.</b> The account and everything it owns are deleted when Delete account succeeds: orders and their receipts and photos, vendors, categories, statuses, budget, bookmarks, saved views, Ask chats and files, passkeys, two-step keys and recovery codes, and AI assistant tokens. Every session on every device ends. Nothing is kept to restore; Recently deleted in later.md is about records, not the account, and does not apply.</div>
+      <div class="doc-note"><b>What confirms it</b> is the password; with two-step sign-in on, also a code from the app or a recovery code, in the one field Turn off uses. A wrong pair is answered vaguely, as Turn off does; with two-step off, a wrong password says "That password isn't right." Too many tries shows the warning row with the fields and Delete account disabled, counting down, as in 11f. Delete account is the danger button; Cancel, Escape and the scrim close the dialog.</div>
+      <div class="doc-note"><b>A copy of your data</b> is offered in the dialog, above the password, and is optional. Download makes one file, <code>spendly-export-2026-10-28.zip</code> (the day it was made): <code>orders.json</code> in the JSON export shape Import reads (<a href="#11b">11b</a>), so the copy can be imported into another account, plus every receipt and photo as its own file. While it is made the button reads Preparing… with the spinner and is disabled (D3); the password field and Delete account stay usable. When it is ready the browser downloads it and the button returns to Download. On failure the danger toast says "The copy could not be made. Try again." The app has no export today, so this needs a new read on the server.</div>
+      <div class="doc-note"><b>After it is deleted</b> the account-deleted email (<a href="Auth and first run.dc.html#20f">20f</a>) goes to the account's address, the app opens sign-in (<a href="Auth and first run.dc.html#20a">20a</a>) and the toast says "Your account was deleted." The address can be used to create a new account straight away.</div>
     </div>
   </div>
 </section>

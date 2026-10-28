@@ -913,6 +913,12 @@
       <iframe class="au-email" title="A recovery code was used" srcDoc="{{ codeUsedDoc }}"></iframe>
       <div class="sp-meta au-w600">Subject: A recovery code was used for your Spendly account. Sent when a recovery code signs in (20g); not when one confirms New recovery codes or Turn off.</div>
     </div>
+    <div class="sp-stack sp-gap-10">
+      <div class="sp-section-label">15 - ACCOUNT DELETED</div>
+      <iframe class="au-email" title="Your account was deleted" srcDoc="{{ deletedDoc }}"></iframe>
+      <div class="sp-meta au-w600">Subject: Your Spendly account was deleted. Sent once, when Delete account succeeds in Settings (11g), to the address the account had.</div>
+      <div class="doc-note au-w600"><b class="sp-ink">No button and no link.</b> The account is gone, so there is nothing to open; the card is the two-step card without its button and link line.</div>
+    </div>
   </div>
 </section>
 
@@ -1204,7 +1210,7 @@ class Component extends DCLogic {
     this.applyView();
     const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone', codes_left: '6' };
     const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account', twoOn: 'https://app.example.net/settings/account', twoOff: 'https://app.example.net/settings/account', codeUsed: 'https://app.example.net/settings/account' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['twoOn', 'two-step-on'], ['twoOff', 'two-step-off'], ['codeUsed', 'recovery-code-used']].forEach(([k, f]) => {
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['twoOn', 'two-step-on'], ['twoOff', 'two-step-off'], ['codeUsed', 'recovery-code-used'], ['deleted', 'account-deleted']].forEach(([k, f]) => {
       fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
         const v = { ...sample, action_url: urls[k] };
         this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
@@ -1240,7 +1246,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     return {
-      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added, twoOnDoc: this.state.twoOn, twoOffDoc: this.state.twoOff, codeUsedDoc: this.state.codeUsed,
+      confirmDoc: this.state.confirm, resetDoc: this.state.reset, changedDoc: this.state.changed, addedDoc: this.state.added, twoOnDoc: this.state.twoOn, twoOffDoc: this.state.twoOff, codeUsedDoc: this.state.codeUsed, deletedDoc: this.state.deleted,
       monthlyDoc: this.state.monthly, weeklyDoc: this.state.weekly, quietDoc: this.state.quiet, chatDoc: this.state.chat
     };
   }

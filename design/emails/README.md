@@ -13,12 +13,13 @@ From: Spendly <offtopic74@gmail.com>
 | two-step-on | Two-step sign-in is on for your Spendly account | Two-step sign-in is turned on in Settings (11f) |
 | two-step-off | Two-step sign-in is off for your Spendly account | Two-step sign-in is turned off in Settings (11f), or by the server's owner for the account |
 | recovery-code-used | A recovery code was used for your Spendly account | A recovery code signs in on the code step (20g) |
+| account-deleted | Your Spendly account was deleted | Delete account succeeds in Settings (11g), sent to the address the account had |
 
 ## Merge fields
 
 - {{name}} - the account's name (confirm-email only)
 - {{email}} - the account's address
-- {{changed_at}} - password-changed, passkey-added, two-step-on, two-step-off and recovery-code-used: date and time of the change, in the account's own format, e.g. 9 Oct 2026, 14.26
+- {{changed_at}} - password-changed, passkey-added, two-step-on, two-step-off, recovery-code-used and account-deleted: date and time of the change, in the account's own format, e.g. 9 Oct 2026, 14.26
 - {{passkey_name}} - passkey-added only: the name the device reported, e.g. iPhone, 1Password
 - {{codes_left}} - recovery-code-used only: the recovery codes left after this one, 0 to 9
 - {{action_url}} - confirm-email: /confirm/:token (24 hours, single use). reset-password: /reset/:token (1 hour, single use). password-changed: /reset?email={{email}}, the ask step with the address filled in, so it never expires. passkey-added, two-step-on, two-step-off and recovery-code-used: /settings/account.
