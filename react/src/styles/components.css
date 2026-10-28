@@ -5361,6 +5361,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* the row's own text column and its lines: they exist wherever a row carries more
    than one line, so they are the row's parts and not the card's */
 .sp-stacked--fill { flex: 1; overflow: visible; }
+/* a spacer after the filling column would take half the free space beside it and cut the
+   name while the row has room; the column already pushes what follows to the end */
+.sp-stacked--fill + .sp-grow { display: none; }
 .sp-list-item__line { display: flex; align-items: flex-start; gap: var(--sp-8); }
 .sp-list-item__line + .sp-list-item__line { align-items: center; }
 .sp-list-item--top > .sp-mark { align-self: flex-start; }
