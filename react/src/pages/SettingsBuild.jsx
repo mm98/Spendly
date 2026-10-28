@@ -47,6 +47,32 @@ function VersionNotes({ version, notes, ink }) {
 	)
 }
 
+// marks which edges of the list have more past them, for the fade in app.css
+function markEdges(box) {
+	const edge = (name, more) => (more ? box.setAttribute(name, 'true') : box.removeAttribute(name))
+	edge('data-above', box.scrollTop > 1)
+	edge('data-below', box.scrollTop + box.clientHeight < box.scrollHeight - 1)
+}
+
+/** Every listed version, in the What changed dialog's list that scrolls (11d state 6). */
+function AllVersions({ versions }) {
+	const box = useRef(null)
+	useEffect(() => {
+		const list = box.current
+		if (!list) return
+		const mark = () => markEdges(list)
+		mark()
+		const watch = new ResizeObserver(mark)
+		watch.observe(list)
+		return () => watch.disconnect()
+	}, [])
+	return (
+		<div className="sp-dialog__scroll" aria-label="What changed" ref={box} onScroll={ev => markEdges(ev.currentTarget)}>
+			{versions.map(v => <VersionNotes key={v.version} {...v} />)}
+		</div>
+	)
+}
+
 const stampOf = iso => {
 	const at = new Date(iso)
 	if (Number.isNaN(at.getTime())) return null
@@ -135,9 +161,7 @@ export function BuildCard() {
 					? (
 						<Dialog onCancel={() => setAllOpen(false)}>
 							<DialogTitle>What changed</DialogTitle>
-							<div className="sp-dialog__scroll" aria-label="What changed">
-								{versions.map(v => <VersionNotes key={v.version} {...v} />)}
-							</div>
+							<AllVersions versions={versions} />
 							<DialogActions>
 								<Button variant="outline" onClick={() => setAllOpen(false)}>Close</Button>
 							</DialogActions>
