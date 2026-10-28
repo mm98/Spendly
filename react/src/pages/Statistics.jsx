@@ -658,7 +658,7 @@ function arrange({ shape, stacked, period, crumbsBar = null, drilled, notice = n
 /* ---- the frames before the figures land (6b): the loaded layout's own cards, empty ---- */
 
 // two figure spaces and an en space are as wide as a label like "60k", so the axis keeps its width
-const AXIS_HOLD = Array.from({ length: 5 }, () => '   ')
+const AXIS_HOLD = Array.from({ length: 5 }, () => '\u2007\u2007\u2002')
 const WIDTHS = ['96', '76', '88', '64', '104', '70', '82', '58', '92']
 
 /** A skeleton bar on the line of text it stands in for, at that text's own height (6b). */
