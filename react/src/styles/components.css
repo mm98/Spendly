@@ -540,7 +540,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-input[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 .sp-input[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
 .sp-input:disabled,
-.sp-textarea:disabled {
+.sp-textarea:disabled,
+.sp-combobox__trigger:disabled {
   background: var(--surface-2);
   border-color: var(--line);
   color: var(--ink-3);
@@ -2054,6 +2055,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 
 @media (hover: hover) {
   .sp-combobox__trigger:hover { border-color: var(--line-5); }
+  /* a disabled trigger keeps the disabled input's border under the pointer */
+  .sp-combobox__trigger:disabled:hover { border-color: var(--line); }
 }
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
@@ -2929,6 +2932,11 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
    and the actions scrolls, so both stay in view (This build 11d, earlier versions) */
 .sp-dialog__scroll { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 0; overflow-y: auto; }
 .sp-dialog:has(> .sp-dialog__scroll) { max-height: calc(100dvh - var(--sp-16) * 2); min-height: 0; }
+/* on desktop it takes the Settings column's 640 and stops at 560 tall, so a long list never
+   reaches the window's edges; the phone keeps the dialog above (11d state 6) */
+@media (min-width: 640px) {
+  .sp-dialog:has(> .sp-dialog__scroll) { width: 640px; max-height: min(560px, calc(100dvh - var(--sp-16) * 2)); }
+}
 
 /* a decorative chevron inside a field sits on the field's own padding, not in the button slot.
    Centred on the field's real height, as the unit and the trail are, so it does not sit
