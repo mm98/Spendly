@@ -52,7 +52,7 @@ The status templates use Mustache sections: `{{#key}}...{{/key}}` repeats over a
 - bookmarks_any, bookmarks_label, bookmarks[] (added in the period): name, vendor, price
 - needs_any, needs[]: text, action, url - the rows Home's Needs a look shows, limits left out since they have their own box
 - quiet_heading, quiet_line (status-quiet only)
-- frequency_line, app_url, settings_url, unsubscribe_url (single use; sets the setting to None without signing in), categories_url, orders_url, bookmarks_url, budget_url
+- frequency_line, app_url, settings_url, unsubscribe_url (single use; turns off both Weekly and Monthly without signing in), categories_url, orders_url, bookmarks_url, budget_url
 
 Every value is HTML-escaped before it is merged. Amounts are written in the account's own number format, and month and weekday names in the account's language, as the app writes them ("in Oktober so far", "12. - 18. okt. 2026"); the sentences stay English.
 

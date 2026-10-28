@@ -175,7 +175,7 @@
     "first": false
    }
   ],
-  "frequency_line": "You get this on the 1st of every month because Status email is set to Monthly."
+  "frequency_line": "You get this on the 1st of every month because Monthly is on in Status email."
  },
  "weekly": {
   "app_url": "https://app.example.net/",
@@ -323,7 +323,7 @@
     "first": false
    }
   ],
-  "frequency_line": "You get this every Monday because Status email is set to Weekly."
+  "frequency_line": "You get this every Monday because Weekly is on in Status email."
  },
  "quiet": {
   "app_url": "https://app.example.net/",
@@ -350,6 +350,6 @@
     "first": true
    }
   ],
-  "frequency_line": "You get this every Monday because Status email is set to Weekly."
+  "frequency_line": "You get this every Monday because Weekly is on in Status email."
  }
 }
