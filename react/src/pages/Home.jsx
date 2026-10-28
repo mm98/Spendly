@@ -375,17 +375,17 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
 	const lines = [
 		...over.map(c => ({
-			c, color: 'danger', mark: <CategoryMark category={c} size="small" />,
+			c, color: 'danger', mark: <CategoryMark category={c} size="medium" />,
 			said: `went ${currency(c.spend - c.budget, 0)} over`,
 			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
 				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
 			adjust: true
 		})),
 		...close.map(c => ({
-			c, mark: <Mark size="small" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={13} /></Mark>,
+			c, mark: <Mark size="medium" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={18} /></Mark>,
 			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
 		})),
-		...(room ? [{ c: room, mark: <Mark size="small" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={13} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
+		...(room ? [{ c: room, mark: <Mark size="medium" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={18} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
 	].slice(0, SUMMARY_ROWS)
 	return (
 		<Card footer={[
@@ -408,7 +408,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 						{lines.map(line => (
 							<ListItem key={line.c.id} color={line.color} mark={line.mark}
 								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : undefined}>
-								<Link className="sp-stack sp-gap-6 sp-grow hm-link" to={link(line.c)}>
+								<Link className="sp-stacked sp-grow hm-link" to={link(line.c)}>
 									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span>{line.said}</span></span>
 									<span className="sp-meta">{line.meta}</span>
 								</Link>
@@ -671,7 +671,7 @@ function CategoryLine({ category: c, early }) {
 	return (
 		<Link className="sp-stack sp-gap-6 sp-row-opens" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
-				<CategoryMark category={c} size="small" />
+				<CategoryMark category={c} size="medium" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
 				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
 					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : amount(c.monthSpend, 0)}
@@ -927,7 +927,7 @@ function DayOne({ name, touch }) {
 						<span className="sp-section-label">Your categories</span>
 						{first.map(c => (
 							<span className="sp-row-flex sp-gap-10" key={c.id}>
-								<CategoryMark category={c} size="small" />
+								<CategoryMark category={c} size="medium" />
 								<span className="sp-title">{c.name}</span>
 							</span>
 						))}
