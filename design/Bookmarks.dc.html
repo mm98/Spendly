@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261024r">
-<link rel="stylesheet" href="styles/components.css?v=v20261024u">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
+<link rel="stylesheet" href="styles/components.css?v=v20261027c">
 <link rel="stylesheet" href="styles/doc.css?v=v20261024a">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -48,7 +48,7 @@
     <div class="doc-note"><b>No toolbar row above the cards.</b> A bookmark never reaches a total and has no bulk actions, so there is nothing to sum or act on; the footer states how many are shown. The price is what the shop asked when it was saved, and nothing adds it up.</div>
     <div class="doc-note"><b>Search</b> matches the name, the shop and the category names. <b>Sort</b> offers Newest first, Oldest first, Price high to low, Price low to high and Name A - Z; under a price sort, bookmarks with no price go last.</div>
     <div class="doc-note"><b>The grid is <code>.sp-cards--fluid</code></b>, the same as the order cards (<a href="Order list.dc.html#2c">2c</a>): as many as fit at <code>--card-min-w</code> or wider, one column below 572px.</div>
-    <div class="doc-note"><b>Categories sit in the card head, right of the name</b> (<code>sp-record__head--chips</code>), taking at most a third of the width. The first category is a chip and truncates when it must; more show as a static "+N" chip, and the bookmark page lists them all. A bookmark with no category has no chip column. The order card keeps its chip row.</div>
+    <div class="doc-note"><b>Categories sit in the card head, right of the name</b> (<code>sp-record__head--chips</code>), taking the space the name leaves free, so a short name shows the category in full. Only when the name and the categories together do not fit are the categories held to a third of the width, and the name keeps the other two thirds. The first category is a chip and truncates when it must; more show as a static "+N" chip, and the bookmark page lists them all. A bookmark with no category has no chip column. The order card keeps its chip row.</div>
     <div class="doc-note"><b>Open / Archived</b> is the vendor list's Active / Archived control. It composes with the search and the category filter.</div>
     <div class="doc-note"><b>In the sidebar</b> Bookmarks is a row in the Library group, after Categories. See <a href="Navigation shell.dc.html#10a">10a</a>.</div>
   </div>

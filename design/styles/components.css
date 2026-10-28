@@ -1454,9 +1454,14 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-record__head { display: flex; align-items: flex-start; gap: var(--sp-10); }
 .sp-record__chips { display: flex; gap: var(--sp-6); flex-wrap: wrap; }
-/* chips in the head, at the right of the name (bookmark card): one line, at most a third of
-   the width, the first category truncating before the +N beside it */
-.sp-record__head--chips > .sp-record__chips { flex: 0 1 auto; max-width: 33.333%; min-width: 0; flex-wrap: nowrap; justify-content: flex-end; }
+/* chips in the head, at the right of the name (bookmark card): one line, the first category
+   truncating before the +N beside it. The chips take the space the name leaves free and show in
+   full when it is there. Only when the name and the chips together do not fit are the chips
+   limited, and then to a third: both start at their own width, the chips give way first (the
+   shrink factor) and stop at the smaller of their own width and a third (the automatic minimum,
+   from width: 33.333%), and the name gives way after that. */
+.sp-record__head--chips > .sp-stacked { flex: 1 1 auto; }
+.sp-record__head--chips > .sp-record__chips { flex: 0 100000 max-content; width: 33.333%; min-width: auto; flex-wrap: nowrap; justify-content: flex-end; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip { flex: 0 1 auto; min-width: 0; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip--static { flex: none; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip > span { overflow: hidden; text-overflow: ellipsis; }
