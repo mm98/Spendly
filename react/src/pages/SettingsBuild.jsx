@@ -4,6 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Well } from '../components/Well.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { Dialog, DialogActions, DialogTitle, Leaving } from '../components/Overlays.jsx'
 import { Skeleton, Spinner } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import { checkVersion, failureMessage, getReleaseNotes, getVersion, startUpdate } from '../api/client.js'
@@ -31,8 +32,8 @@ async function reloadOnNew(commit) {
 	throw new Error('The update did not finish.')
 }
 
-// the running version and the two before it, until Show earlier versions is pressed; never more than
-// VERSIONS_AT_MOST, the running one included (11d)
+// the card holds the running version and the two before it; Show earlier versions opens all of them,
+// never more than VERSIONS_AT_MOST, the running one included (11d)
 const VERSIONS_AT_FIRST = 3
 const VERSIONS_AT_MOST = 20
 
@@ -62,16 +63,8 @@ export function BuildCard() {
 	const [newest, setNewest] = useState(null)
 	const [newestVersion, setNewestVersion] = useState(null)
 	const [newerNotes, setNewerNotes] = useState([])
-	const [allShown, setAllShown] = useState(false)
+	const [allOpen, setAllOpen] = useState(false)
 	const card = useRef(null)
-
-	useEffect(() => {
-		const box = card.current
-		if (!allShown || !box) return
-		const watch = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) setAllShown(false) })
-		watch.observe(box)
-		return () => watch.disconnect()
-	}, [allShown])
 
 	useEffect(() => {
 		const box = card.current
@@ -125,7 +118,7 @@ export function BuildCard() {
 	const versions = (releaseNotes.data?.versions ?? []).slice(0, VERSIONS_AT_MOST)
 	// the button counts the earlier versions the list will hold, whether or not the running one has notes
 	const earlier = versions.filter(v => v.version !== versionNumber).length
-	const shown = allShown ? versions : versions.slice(0, VERSIONS_AT_FIRST)
+	const shown = versions.slice(0, VERSIONS_AT_FIRST)
 	const whatChanged = versions.length > 0 && (
 		<div className="sp-stack sp-gap-12" aria-label="What changed">
 			<span className="sp-section-label">WHAT CHANGED</span>
@@ -133,10 +126,25 @@ export function BuildCard() {
 			{shown.length < versions.length
 				? (
 					<div className="sp-row-flex">
-						<Button variant="outline" size="small" onClick={() => setAllShown(true)}>{`Show ${earlier} earlier versions`}</Button>
+						<Button variant="outline" size="small" onClick={() => setAllOpen(true)}>{`Show ${earlier} earlier versions`}</Button>
 					</div>
 				)
 				: null}
+			<Leaving>
+				{allOpen
+					? (
+						<Dialog onCancel={() => setAllOpen(false)}>
+							<DialogTitle>What changed</DialogTitle>
+							<div className="sp-dialog__scroll" aria-label="What changed">
+								{versions.map(v => <VersionNotes key={v.version} {...v} />)}
+							</div>
+							<DialogActions>
+								<Button variant="outline" onClick={() => setAllOpen(false)}>Close</Button>
+							</DialogActions>
+						</Dialog>
+					)
+					: null}
+			</Leaving>
 		</div>
 	)
 	const running = (
