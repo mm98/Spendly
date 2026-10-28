@@ -79,3 +79,27 @@ export function ThemeTiles({ name, options = [], value, onChange, ...rest }) {
 
 // a set of radios, so Field names it with a legend rather than a label
 ThemeTiles.fieldRole = 'group'
+
+/** The colour scheme to pick (Settings 11a): one tile per scheme, its tones in the theme in use. */
+export function SchemeTiles({ name, options = [], value, onChange, ...rest }) {
+	reject(rest, 'SchemeTiles')
+	return (
+		<div className="st-trio st-trio--schemes" {...rest}>
+			{options.map(option => (
+				<label className="sp-well st-theme" key={option.value}>
+					<input type="radio" className="sp-radio" name={name} value={option.value}
+						checked={value === option.value} onChange={() => onChange?.(option.value)} />
+					<span className="st-theme__preview st-theme__preview--tones" data-scheme={option.value} aria-hidden="true">
+						{TONES.map(tone => <span key={tone} className={`st-theme__tone st-theme__tone--${tone}`} />)}
+					</span>
+					<span className="sp-subtitle sp-center st-theme__name">{option.label}</span>
+				</label>
+			))}
+		</div>
+	)
+}
+
+SchemeTiles.fieldRole = 'group'
+
+// the sidebar, then the primary scale from darkest to lightest
+const TONES = ['shell', '1', '2', '3', '4', '5']

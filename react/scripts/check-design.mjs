@@ -59,9 +59,13 @@ const stringsIn = node => {
 
 /* ---- the design's own stylesheets, copied byte for byte ---- */
 
-for (const name of ['tokens.css', 'components.css'])
+for (const name of ['tokens.css', 'components.css', 'schemes.css'])
 	if (read(join(root, '../design/styles', name)) !== read(join(src, 'styles', name)))
 		fail('copies of the design', `src/styles/${name}`, `differs from design/styles/${name}: copy it over, and put anything the app adds in app.css`)
+
+// the server colours its emails from the same schemes the app draws
+if (read(join(root, '../design/styles/schemes.css')) !== read(join(root, '../api/src/styles/schemes.css')))
+	fail('copies of the design', 'api/src/styles/schemes.css', 'differs from design/styles/schemes.css: copy it over')
 
 // the server sends the design's emails as they are, so its copies match file for file
 // except a fix the build made, each one written in later.md and removed here once design/ carries it

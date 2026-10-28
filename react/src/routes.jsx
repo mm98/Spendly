@@ -6,7 +6,7 @@ import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
-import { setDensity } from './app/theme.js'
+import { setDensity, setScheme } from './app/theme.js'
 
 /* Every route under the shell needs a signed-in session, checked once per navigation; the
    account's currency and date format are read on the same wait, before any figure is drawn. */
@@ -18,7 +18,7 @@ const requireAuth = async ({ request }) => {
 			const { pathname, search } = new URL(request.url)
 			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
 		}
-		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density) }).catch(() => {})
+		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density); setScheme(s?.colourScheme) }).catch(() => {})
 		return null
 	} catch (e) {
 		if (e instanceof Response) throw e

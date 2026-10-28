@@ -5,7 +5,7 @@ import { inBackground, linkTo, mailAvailable, publicLink, sendMail } from './mai
 /* The notices an account is sent when something about signing in changes (20f): its password, or
    a new passkey, two-step sign-in. Sent when this server can send email, without holding up the answer. */
 
-const selectAccount = db.prepare('SELECT u.email, s.locale FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
+const selectAccount = db.prepare('SELECT u.email, s.locale, s.colour_scheme FROM users u LEFT JOIN user_settings s ON s.user_id = u.id WHERE u.id = ?')
 
 /** "9 Oct 2026, 14.26" in the account's own locale; 'auto' takes the browser that asked, as the app does. */
 function changedAt(req, locale) {
@@ -20,8 +20,8 @@ function changedAt(req, locale) {
 /** The sending, for a caller with no request to answer that waits for it; null when mail is off. */
 function notify(req, userId, name, valuesFor) {
 	if (!mailAvailable()) return null
-	const { email, locale } = selectAccount.get(userId)
-	return inBackground(sendMail(emailMessage(name, email, { email, changed_at: changedAt(req, locale), ...valuesFor(email) })))
+	const { email, locale, colour_scheme: scheme } = selectAccount.get(userId)
+	return inBackground(sendMail(emailMessage(name, email, { email, changed_at: changedAt(req, locale), ...valuesFor(email) }, { scheme })))
 }
 
 // `req` is null when the server's owner runs a command, with no request behind it
@@ -42,7 +42,7 @@ export const sendRecoveryCodeUsed = (req, userId, codesLeft) =>
 	notify(req, userId, 'recovery-code-used', () => ({ action_url: settingsLink(req), codes_left: String(codesLeft) }))
 
 /** Sent to the address the account had, in its locale, both read before the account was deleted. */
-export function sendAccountDeleted(req, { email, locale }) {
+export function sendAccountDeleted(req, { email, locale, colour_scheme: scheme }) {
 	if (!mailAvailable()) return null
-	return inBackground(sendMail(emailMessage('account-deleted', email, { email, changed_at: changedAt(req, locale) })))
+	return inBackground(sendMail(emailMessage('account-deleted', email, { email, changed_at: changedAt(req, locale) }, { scheme })))
 }

@@ -40,6 +40,18 @@ export function useTheme() {
 	return useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn) }, currentTheme)
 }
 
+/* The colour scheme is stored on the account; this browser keeps the last one it was told, so
+   public/theme.js can set it before the first paint. The key is read there too. */
+const SCHEME_KEY = 'spendly:scheme'
+
+/** The account's colour scheme (styles/schemes.css), set on the root beside the theme. Green when none is stored. */
+export function setScheme(scheme) {
+	const id = scheme || 'green'
+	document.documentElement.dataset.scheme = id
+	try { localStorage.setItem(SCHEME_KEY, id) } catch { /* storage denied: this tab only */ }
+	paintBar()
+}
+
 /** The lists' row density, a stored setting: compact draws each table row closer to the next. */
 export const setDensity = density => {
 	document.documentElement.dataset.density = density === 'compact' ? 'compact' : 'comfortable'

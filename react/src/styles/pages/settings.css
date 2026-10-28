@@ -7,6 +7,9 @@
 
 	.st-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12); }
 	.st-trio > .st-theme { position: relative; }
+	/* the colour scheme row: four to a row so the longest name fits; three on a phone (7a) */
+	.st-trio--schemes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	.sp-touch .st-trio--schemes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 	.st-theme { cursor: pointer; }
 	.st-theme input { position: absolute; opacity: 0; pointer-events: none; }
@@ -36,6 +39,15 @@
 	.st-theme__line { height: 6px; border-radius: 2px; }
 	.st-theme__line--light { background: var(--surface); }
 	.st-theme__line--dark { background: var(--surface); }
+	/* the scheme tile: the sidebar, then the primary scale darkest to lightest, read from the tile's own data-scheme */
+	.st-theme__preview--tones { background: var(--surface); }
+	.st-theme__tone { flex: 1; }
+	.st-theme__tone--shell { background: var(--shell); }
+	.st-theme__tone--1 { background: var(--green); }
+	.st-theme__tone--2 { background: var(--green-2); }
+	.st-theme__tone--3 { background: var(--green-3); }
+	.st-theme__tone--4 { background: var(--green-4); }
+	.st-theme__tone--5 { background: var(--green-5); }
 	/* each half draws the same app as the other tiles, clipped down the middle */
 	.st-theme__half { width: 50%; display: flex; overflow: hidden; }
 	.st-theme__half--light { background: var(--bg); }
