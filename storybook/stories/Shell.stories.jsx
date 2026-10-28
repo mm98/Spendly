@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup, SidebarGrip, SidebarDivider, SidebarAccount, NavItem, Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll } from '../../react/src/components/Shell.jsx'
+import { Shell, TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup, SidebarGrip, SidebarDivider, SidebarAccount, NavItem, SectionNav, Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll } from '../../react/src/components/Shell.jsx'
 import { SearchInput } from '../../react/src/components/Inputs.jsx'
 import { Card, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
@@ -14,7 +14,7 @@ import { iconControl, useHeld } from './controls.js'
 export default {
 	title: 'Shell/Desktop',
 	component: Shell,
-	subcomponents: { TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup, SidebarGrip, SidebarDivider, SidebarAccount, NavItem, Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll },
+	subcomponents: { TopBar, ShellContent, Sidebar, SidebarBrand, SidebarGroup, SidebarGrip, SidebarDivider, SidebarAccount, NavItem, SectionNav, Palette, PaletteGroup, PaletteRule, PaletteRow, PaletteAll },
 	parameters: { layout: 'fullscreen' },
 	globals: { viewport: { value: 'desktop', isRotated: false } }
 }
@@ -85,6 +85,39 @@ export const OneNavItem = {
 	parameters: { variantsOf: NavItem, layout: 'padded' },
 	// drawn on the sidebar's own ground, where a NavItem always sits
 	render: args => <div className="sp-sidebar" style={{ width: 240 }}><NavItem {...args} /></div>
+}
+
+const SECTIONS = ['Account', 'Passkeys', 'Appearance', 'Money, dates and times', 'Status emails']
+const TOOLS = ['Import', 'Demo data']
+
+// the nav beside a page's pane, as Settings has it: light rows, and a divider before the tools
+export const SectionNavBesideAPane = {
+	args: { label: 'Settings', current: 'Account', divider: true, onOpen: fn() },
+	argTypes: {
+		label: { control: 'text', description: 'SectionNav\'s `label`: its heading, and the name of the nav' },
+		current: { control: 'select', options: [...SECTIONS, ...TOOLS], description: 'The row that is open' },
+		divider: { description: 'A `<MenuSeparator variant="divider" />` before Import' }
+	},
+	parameters: { layout: 'padded' },
+	render: ({ label, current, divider, onOpen }) => {
+		const [open, setOpen] = useHeld({ current }, 'current')
+		const row = name => <NavItem key={name} variant="light" current={name === open} onClick={() => { setOpen(name); onOpen(name) }}>{name}</NavItem>
+		return (
+			<div className="sp-row-flex sp-top" style={{ height: 420 }}>
+				<SectionNav label={label}>
+					{SECTIONS.map(row)}
+					{divider ? <MenuSeparator variant="divider" /> : null}
+					{TOOLS.map(row)}
+				</SectionNav>
+			</div>
+		)
+	},
+	play: async ({ args, canvas }) => {
+		await userEvent.click(canvas.getByRole('button', { name: 'Appearance' }))
+		await expect(args.onOpen).toHaveBeenCalledWith('Appearance')
+		await waitFor(() => expect(canvas.getByRole('button', { name: 'Appearance' })).toHaveAttribute('aria-current', 'page'))
+		await expect(canvas.getByRole('navigation', { name: args.label })).toBeVisible()
+	}
 }
 
 const VIEWS = [

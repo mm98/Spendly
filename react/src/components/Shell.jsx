@@ -201,6 +201,24 @@ export function SidebarDivider(props) {
 	return <span className="sp-sidebar__divider" {...props} />
 }
 
+/**
+ * The nav beside a page's pane (c35, Settings 11a): a heading over light NavItem rows, one per
+ * section, in a 224 column that stays in place while the pane scrolls.
+ *
+ * @param {object} props
+ * @param {string} props.label The heading, such as Settings. Also names the nav.
+ * @param {import('react').ReactNode} [props.children] NavItem rows with `variant="light"`, and `<MenuSeparator variant="divider" />` between groups.
+ */
+export function SectionNav({ label, children, ...rest }) {
+	reject(rest, 'SectionNav')
+	return (
+		<nav className="sp-section-nav" aria-label={label} {...rest}>
+			<span className="sp-section-label sp-section-nav__head">{label.toUpperCase()}</span>
+			<div className="sp-nav-list">{children}</div>
+		</nav>
+	)
+}
+
 // edited is a light row whose saved view differs from the list (2g), so it carries both classes;
 // carried and picked are a light row being moved, wearing the list rows' own moving states (c1)
 const NAV = {

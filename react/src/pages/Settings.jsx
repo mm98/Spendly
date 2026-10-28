@@ -11,9 +11,9 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Mark, initialsOf } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Segmented } from '../components/Segmented.jsx'
-import { NavItem } from '../components/Shell.jsx'
+import { NavItem, SectionNav } from '../components/Shell.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
-import { useToast, Leaving } from '../components/Overlays.jsx'
+import { MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
@@ -255,7 +255,7 @@ export default function Settings() {
 
 	return (
 		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
-			{narrow ? null : <SectionNav current={navCurrent(seen ?? current)} />}
+			{narrow ? null : <SettingsNav current={navCurrent(seen ?? current)} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{/* in the pane column, so the section menu and its line still start at the top bar (11a) */}
 				<ConfirmBanner />
@@ -296,21 +296,16 @@ function useSeenSection(active) {
 	return seen
 }
 
-function SectionNav({ current }) {
+function SettingsNav({ current }) {
 	return (
-		<nav className="st-subnav" aria-label="Settings">
-			<div className="sp-stack sp-gap-8">
-				<span className="sp-section-label">Settings</span>
-				<div className="sp-nav-list">
-					{SECTIONS.map(s => (
-						<Fragment key={s.key}>
-							{s.key === TOOLS ? <span className="sp-menu__sep sp-menu__sep--divider" role="separator" /> : null}
-							<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
-						</Fragment>
-					))}
-				</div>
-			</div>
-		</nav>
+		<SectionNav label="Settings">
+			{SECTIONS.map(s => (
+				<Fragment key={s.key}>
+					{s.key === TOOLS ? <MenuSeparator variant="divider" /> : null}
+					<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+				</Fragment>
+			))}
+		</SectionNav>
 	)
 }
 

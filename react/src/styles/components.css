@@ -4329,6 +4329,27 @@ a.sp-chat__file-name { text-decoration: none; }
 .sp-nav-list > .sp-field__wrap { margin-block: calc((40px - var(--control-h)) / 2); z-index: 1; }
 .sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((var(--row-h-touch) - var(--control-h-touch)) / 2); }
 
+/* ---------- section nav - c35 ---------- */
+/* the nav beside a page's pane (Settings 11a): a heading over c22's light rows. 224 wide, so
+   the longest label, Money, dates and times, does not wrap. The divider is the boundary
+   between the two columns, so it runs the pane's whole height rather than stopping at the
+   last row, and the column does not scroll with the pane: in the app it is the window's
+   height below the top bar, so the divider never moves. */
+.sp-section-nav {
+  width: 224px;
+  flex: none;
+  align-self: stretch;
+  padding: var(--card-pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border-right: 1px solid var(--line-3);
+  position: sticky;
+  top: 0;
+}
+/* the heading takes the rows' own start inset (--shell-item-pad's 8), so it lines up with their labels */
+.sp-section-nav__head { padding: 0 var(--sp-8) var(--sp-10); }
+
 /* ---------- token field - DRAFT c3 ----------
    Not its own component: the field (c3) holding several values at once. */
 
