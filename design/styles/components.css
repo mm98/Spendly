@@ -1454,15 +1454,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-record__head { display: flex; align-items: flex-start; gap: var(--sp-10); }
 .sp-record__chips { display: flex; gap: var(--sp-6); flex-wrap: wrap; }
-/* chips in the head, at the right of the name (bookmark card): one line, the first category
-   truncating before the +N beside it. The name comes before the category. Both start at their own
-   width; when they do not fit together the chips give way first (the shrink factor), down to the
-   smaller of their own width and the smallest chip: three letters and the ellipsis (4ch at the
-   chip's type size, with the chip's padding and border), plus the +N when there is one. The
-   automatic minimum takes that floor from width. Only then does the name give way. */
-.sp-record__head--chips > .sp-stacked { flex: 1 1 auto; }
-.sp-record__head--chips > .sp-record__chips { flex: 0 100000 max-content; width: calc(4ch + 2 * var(--sp-8) + 2px); min-width: auto; font-size: var(--t-11); flex-wrap: nowrap; justify-content: flex-end; }
-.sp-record__head--chips > .sp-record__chips:has(> .sp-chip--static) { width: calc(6ch + 4 * var(--sp-8) + 4px + var(--sp-6)); }
+/* chips in the head, at the right of the name (bookmark card): one line, at most a third of
+   the width, the first category truncating before the +N beside it */
+.sp-record__head--chips > .sp-record__chips { flex: 0 1 auto; max-width: 33.333%; min-width: 0; flex-wrap: nowrap; justify-content: flex-end; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip { flex: 0 1 auto; min-width: 0; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip--static { flex: none; }
 .sp-record__head--chips > .sp-record__chips > .sp-chip > span { overflow: hidden; text-overflow: ellipsis; }
@@ -5367,6 +5361,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* the row's own text column and its lines: they exist wherever a row carries more
    than one line, so they are the row's parts and not the card's */
 .sp-stacked--fill { flex: 1; overflow: visible; }
+/* a spacer after the filling column would take half the free space beside it and cut the
+   name while the row has room; the column already pushes what follows to the end */
+.sp-stacked--fill + .sp-grow { display: none; }
 .sp-list-item__line { display: flex; align-items: flex-start; gap: var(--sp-8); }
 .sp-list-item__line + .sp-list-item__line { align-items: center; }
 .sp-list-item--top > .sp-mark { align-self: flex-start; }

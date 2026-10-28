@@ -1,18 +1,17 @@
-# On a bookmark card, the name comes before the category tag
+# A name uses the row's free space before it is cut
 
-The brief: a name always comes before a tag. With the last change (`handoff_bookmark_tag_width`) a short name shows its category in full, but a long name is still cut beside a category that keeps a third of the head: on a phone "A bookmark name so long t..." (208px) beside "Favourite with l..." (109px).
+The brief: on a phone, the AI assistants token row cut its name to "Claude on m..." while the row had empty room left of Remove. A text is never shortened while there is space for it. Only the name is concerned; nothing else in the row gives up room.
 
-## 1. The category gives way to the name, down to three letters
+## 1. The token name takes the free space before Remove
 
-- **The problem:** `.sp-record__head--chips > .sp-record__chips` had `width: 33.333%` as the floor of its automatic minimum, so while the chips were wider than a third, the name was cut first.
-- **What changed:** when the name and the category do not fit together, the category gives way first, down to its smallest chip, and the name takes the rest. The name is cut only when the category is already at that size. A short name still shows the category in full, and a category narrower than the smallest chip ("Tøj") is never widened or cut. The "+N" chip and the touch height are unchanged.
-- **The smallest chip (chosen here):** three letters and the ellipsis, "Fav..." from "Favourite". That is `4ch` at the chip's type size (`--t-11`) plus the chip's padding and border: `calc(4ch + 2 * var(--sp-8) + 2px)`, 46px in the drawn font. With a "+N" beside it the floor adds the gap and a "+N" chip: `calc(6ch + 4 * var(--sp-8) + 4px + var(--sp-6))`. No new spacing value; the floor is made of the chip's own padding, border and gap.
-- **Measured on a 332px head:** short name and "Clothing and shoes": chips 124px, untruncated. Long name and "Favourite with long name": chips 46px, the category cut to three letters, the name takes 276px. Long name and "Hobby": "Hob..." at the floor. "Short" and "Tøj": "Tøj" in full. "Palissade Lounge Chair" with "Decor" and "+1": both in full.
+- **The problem:** `react/src/pages/SettingsAssistants.jsx` puts `<span className="sp-grow" />` after `<Stacked>`. `Stacked` renders `sp-stacked sp-stacked--fill`, which is `flex: 1`, and the spacer is `flex: 1` too, so the two split the free space in half. The name was cut at half the room, with the other half empty before Remove. The design drew the row with a plain `sp-stacked` and the spacer, which does not split, so the design did not show the fault.
+- **What changed:** the name and its date line are the filling text column with Remove after it and no spacer. "Claude on my laptop" shows in full on a phone; only a name longer than the room left of Remove ends in an ellipsis. Remove keeps its size, and the row keeps its 12px gap. No other element changes size.
 - **Where:**
-  - `styles/components.css`: `.sp-record__head--chips > .sp-record__chips` is now `flex: 0 100000 max-content; width: calc(4ch + 2 * var(--sp-8) + 2px); min-width: auto; font-size: var(--t-11);` (`font-size` sets the `ch`; the chips already set their own type size, so nothing renders differently). New: `.sp-record__head--chips > .sp-record__chips:has(> .sp-chip--static) { width: calc(6ch + 4 * var(--sp-8) + 4px + var(--sp-6)); }`. `.sp-record__head--chips > .sp-stacked { flex: 1 1 auto; }` and the chip rules inside are unchanged.
-  - Bookmarks 22a, the note on categories, and Components, the Bookmark card head note, state the rule.
-  - `styles/COMPONENT-STATUS.md` logs the change (2026-10-28).
-  - App: `react/src/pages/Bookmarks.jsx`, every `Record` with `headChips` (the cards on desktop and phone, and the loading placeholder card) takes the rule from the stylesheet; no markup change. Copy the rules into the app's stylesheet if it holds its own copy. The order card does not use this head. Storybook: the `Record` story with `headChips` (`storybook/stories/List.stories.jsx`) needs no change; a story with a long name and a long category would show the floor.
+  - App: `react/src/pages/SettingsAssistants.jsx`, `AssistantsCard`, the token row: remove `<span className="sp-grow" />` after `</Stacked>`. `SettingsPasskeys.jsx` already has no spacer there.
+  - `styles/components.css`: new `.sp-stacked--fill + .sp-grow { display: none; }`, beside `.sp-stacked--fill`. A spacer left after a filling column anywhere in the app no longer takes half the room. Copy it into `react/src/styles/components.css`.
+  - Settings and import 11a and 11e (every token row, and the iPhone passkey row) and Mobile screens 7a (AI assistants page): the rows are drawn as `sp-stacked sp-stacked--fill`, as `Stacked` renders, with no spacer. 11e has a new note, "The name uses the row's free space before it is cut".
+  - `styles/check.js`: new assertion, "a filling text column has no spacer after it".
+- **Measured:** 316px row on a phone, "Made 21. okt. 2026 · last used today": the name column is 213px, the name shows in full, and Remove stays 92px.
 - **What is still open:** nothing.
 
 ## later.md entries left as they are
@@ -23,12 +22,13 @@ The brief: a name always comes before a tag. With the last change (`handoff_book
 
 - README.md: the design's overview, unchanged.
 - CHANGES.md: this note.
-- Bookmarks.dc.html: 22a with the updated categories note.
-- Components.dc.html: the Bookmark card head note.
-- support.js, components.js: what the pages load to open.
+- Settings and import.dc.html: the token and passkey rows, and the 11e note.
+- Mobile screens.dc.html: the AI assistants page rows (7a).
+- support.js, components.js, icons.js: what the pages load to open.
+- styles/components.css: the `.sp-stacked--fill + .sp-grow` rule.
 - styles/tokens.css, styles/doc.css: shared styles, unchanged.
-- styles/components.css: the `.sp-record__head--chips` chips floor.
-- assets/shop-logo.svg: the logo mark drawn in Components.
+- styles/pages/settings.css, styles/pages/budget.css, styles/pages/mobile-screens.css: the page styles the two pages link, unchanged.
+- assets/two-step-qr.svg, assets/shop-logo.svg: images the pages draw.
 
 ## styles/check.js
 
