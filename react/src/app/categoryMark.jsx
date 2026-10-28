@@ -87,7 +87,7 @@ export function CategoryIconPicker({ value, onChange }) {
 }
 CategoryIconPicker.fieldRole = 'group'
 
-const GLYPH = { small: 13, medium: 18, large: 32 }
+const GLYPH = { small: 13, medium: 19, large: 32 }
 
 /** A category as the design draws it: its icon on its colour, the same on every page. */
 export function CategoryMark({ category, size = 'medium' }) {
