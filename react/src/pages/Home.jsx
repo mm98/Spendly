@@ -671,7 +671,7 @@ function CategoryLine({ category: c, early }) {
 	return (
 		<Link className="sp-stack sp-gap-6 sp-row-opens" to={`/statistics?range=month&crumbs=category:${c.id}`}>
 			<div className="sp-row-flex sp-gap-8">
-				<CategoryMark category={c} size="medium" />
+				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
 				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
 					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : amount(c.monthSpend, 0)}
@@ -927,7 +927,7 @@ function DayOne({ name, touch }) {
 						<span className="sp-section-label">Your categories</span>
 						{first.map(c => (
 							<span className="sp-row-flex sp-gap-10" key={c.id}>
-								<CategoryMark category={c} size="medium" />
+								<CategoryMark category={c} size="small" />
 								<span className="sp-title">{c.name}</span>
 							</span>
 						))}
