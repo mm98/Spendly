@@ -181,7 +181,7 @@ Everything that needs you, on one page.
 
 - **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN),
   **two-step sign-in** (a code from an app on your phone), and **Delete account**.
-- **Status email** - a weekly or monthly summary of spending, saving, limits, your latest orders and bookmarks.
+- **Status email** - a weekly summary, a monthly one or both, of spending, saving, limits, your latest orders and bookmarks.
 - **Appearance** - light, dark or follow the system; comfortable or compact rows.
 - **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
 - **Defaults** for a new order, **lists** (page size, sort, how many saved views and recent

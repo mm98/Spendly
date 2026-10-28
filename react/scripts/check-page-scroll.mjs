@@ -25,14 +25,21 @@ const SIZES = [
 ]
 
 // every path in src/routes.jsx, so a new page is either checked here or named as skipped
+/** Every Settings section, then the cards a phone opens as pages of their own. */
+function settingsPages() {
+	const source = readFileSync(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
+	const sections = [...source.matchAll(/^\t\{ key: '(\w+)', label:/gm)].map(m => m[1])
+	const own = [...source.match(/^const OWN_PAGES = \[(.*)\]$/m)[1].matchAll(/'([\w-]+)'/g)].map(m => m[1])
+	return [...sections, ...own].map(key => `/settings/${key}`)
+}
+
 const PAGES = {
 	'': '/', 'orders': '/orders', 'new': ['/orders/new', '/vendors/new', '/categories/new', '/bookmarks/new'],
 	':id': '/orders/:order', ':id/edit': ['/orders/:order/edit', '/vendors/:vendor/edit', '/categories/:category/edit', '/bookmarks/:bookmark/edit'],
 	':id/compare': '/orders/:order/compare', 'statistics': '/statistics', 'vendors': '/vendors', 'categories': '/categories',
 	'bookmarks': '/bookmarks', 'budget/check': '/budget/check', 'budget/:year?': '/budget', 'ask': '/ask', 'ask/files': '/ask/files', 'ask/chats': '/ask/chats',
 	'ask/:chatId': '/ask/no-such-chat',
-	'settings/:section?': ['/settings', ...[...readFileSync(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
-		.matchAll(/^\t\{ key: '(\w+)', label:/gm)].map(m => `/settings/${m[1]}`)],
+	'settings/:section?': ['/settings', ...settingsPages()],
 	'more': '/more', 'more/views': '/more/views', '*': '/no-such-page'
 }
 // outside the shell, and only for a reader who is signed out or holds a link from an email

@@ -463,7 +463,7 @@ for (const [method, path, body] of [
 	['PUT', '/views/shown', { shown: 6 }],
 	// Home counts a rule only while it is on, and the receipt rule starts off
 	['PATCH', '/settings', { looks: { receipt: true } }],
-	['PUT', '/settings/status-email', { frequency: 'monthly', zone: 'Europe/Copenhagen', locale: 'da-DK' }],
+	['PUT', '/settings/status-email', { weekly: true, monthly: true, zone: 'Europe/Copenhagen', locale: 'da-DK' }],
 	['GET', '/stats/home'],
 	['GET', '/stats/months?count=8'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
