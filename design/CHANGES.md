@@ -1,34 +1,38 @@
-# A name uses the row's free space before it is cut
+# Two findings from Lighthouse's accessibility check
 
-The brief: on a phone, the AI assistants token row cut its name to "Claude on m..." while the row had empty room left of Remove. A text is never shortened while there is space for it. Only the name is concerned; nothing else in the row gives up room.
+The brief: Lighthouse (13.6, desktop, signed in on Home) scores accessibility 95 and reports two faults, both in components: the sidebar grip is a small target, and the headless lists on Home have data cells no header names. The user left both questions to Claude Design; the decisions below are its answers.
 
-## 1. The token name takes the free space before Remove
+## 1. The sidebar grip is a 24 px wide target
 
-- **The problem:** `react/src/pages/SettingsAssistants.jsx` puts `<span className="sp-grow" />` after `<Stacked>`. `Stacked` renders `sp-stacked sp-stacked--fill`, which is `flex: 1`, and the spacer is `flex: 1` too, so the two split the free space in half. The name was cut at half the room, with the other half empty before Remove. The design drew the row with a plain `sp-stacked` and the spacer, which does not split, so the design did not show the fault.
-- **What changed:** the name and its date line are the filling text column with Remove after it and no spacer. "Claude on my laptop" shows in full on a phone; only a name longer than the room left of Remove ends in an ellipsis. Remove keeps its size, and the row keeps its 12px gap. No other element changes size.
-- **Where:**
-  - App: `react/src/pages/SettingsAssistants.jsx`, `AssistantsCard`, the token row: remove `<span className="sp-grow" />` after `</Stacked>`. `SettingsPasskeys.jsx` already has no spacer there.
-  - `styles/components.css`: new `.sp-stacked--fill + .sp-grow { display: none; }`, beside `.sp-stacked--fill`. A spacer left after a filling column anywhere in the app no longer takes half the room. Copy it into `react/src/styles/components.css`.
-  - Settings and import 11a and 11e (every token row, and the iPhone passkey row) and Mobile screens 7a (AI assistants page): the rows are drawn as `sp-stacked sp-stacked--fill`, as `Stacked` renders, with no spacer. 11e has a new note, "The name uses the row's free space before it is cut".
-  - `styles/check.js`: new assertion, "a filling text column has no spacer after it".
-- **Measured:** 316px row on a phone, "Made 21. okt. 2026 · last used today": the name column is 213px, the name shows in full, and Remove stays 92px.
+- **The problem:** `.sp-sidebar__grip` ("Collapse the menu") is 14x44 px, 0 px from the Categories row. WCAG 2.2, 2.5.8 Target size (minimum) asks for 24x24, or 24 px of clear space around a smaller target, so it fails both.
+- **What changed:** the target is 24x44. The 3x26 bar is drawn as before and stays in the same place, centred in the right 14 px of the target; the extra 10 px reach into the sidebar, not over the page edge, since the shell clips its overflow. Those 10 px sit over the right end of the row at that height, and a press there is the grip's. Hover and colours are unchanged; the focus ring is drawn round the wider target. The same in the folded rail.
+- **Where:** Navigation shell 9i, the grip note. `styles/components.css`, `.sp-sidebar__grip` (`grid-template-columns: 1fr 14px`, `width: 24px`) and `.sp-sidebar__grip::before` (`grid-column: 2`). `styles/COMPONENT-STATUS.md`, the 9i entry and a dated line. App: `react/src/app/AppShell.jsx`, `SidebarGrip`, takes the stylesheet change with no markup change; copy the two rules into the app's stylesheet if it carries its own. Storybook: `storybook/stories/Shell.stories.jsx`, open and folded.
+- **What is still open:** nothing.
+
+## 2. A headless list still names its columns
+
+- **The problem:** on Home, Recent orders and Drafts are `table.sp-table` with no head row, so axe (`td-has-header`) reports `<td>` cells no `<th>` names, and a screen reader reads "Bilka, 10/28, Returned, 2,733.86 kr." with no column names.
+- **What changed:** a headless list keeps its `<thead>` with `<th scope="col">` cells. Each label sits in `.sp-announce` (the existing read-not-drawn class), and the new variant `.sp-table--headless` gives the head row no height, no padding top or bottom and no rule. Nothing changes on screen. The labels are the order list's: Recent orders reads Vendor, Date, Status, Amount; Drafts reads Vendor, Date, Amount.
+- **Where:** Home 10a, Drafts and Recent orders, and state 5 (Drafts made by hand). Components c1, a note in States. `styles/components.css`, `.sp-table--headless thead th`, beside `.sp-table--compact`. `react_handoff/List.jsx`: `headless` now always renders `<thead>`, adds `sp-table--headless` to the table and wraps each head label in `sp-announce`; its JSDoc line is updated. App: `react/src/components/List.jsx` takes the same change; `react/src/pages/Home.jsx` needs none, its two `List ... headless` already pass the head cells. Storybook: `storybook/stories/List.stories.jsx` with `headless` on.
 - **What is still open:** nothing.
 
 ## later.md entries left as they are
 
-- **A deleted record should not be removed for good at once:** an idea on hold until the user asks; not a design fix for this pass.
+- **A deleted record should not be removed for good at once:** on hold until the user decides to build it. Untouched.
 
 ## Files
 
 - README.md: the design's overview, unchanged.
 - CHANGES.md: this note.
-- Settings and import.dc.html: the token and passkey rows, and the 11e note.
-- Mobile screens.dc.html: the AI assistants page rows (7a).
-- support.js, components.js, icons.js: what the pages load to open.
-- styles/components.css: the `.sp-stacked--fill + .sp-grow` rule.
-- styles/tokens.css, styles/doc.css: shared styles, unchanged.
-- styles/pages/settings.css, styles/pages/budget.css, styles/pages/mobile-screens.css: the page styles the two pages link, unchanged.
-- assets/two-step-qr.svg, assets/shop-logo.svg: images the pages draw.
+- Home.dc.html: 10a, the hidden head rows on Drafts and Recent orders.
+- Navigation shell.dc.html: 9i, the grip note.
+- Components.dc.html: c1, the headless list note.
+- react_handoff/List.jsx: `headless` keeps the head for a screen reader.
+- styles/components.css: `.sp-sidebar__grip` at 24x44, `.sp-table--headless` added.
+- styles/COMPONENT-STATUS.md: the 9i entry and a dated line.
+- styles/tokens.css, styles/doc.css, styles/pages/home.css, styles/pages/navigation-shell.css: what the pages load, unchanged.
+- support.js, components.js: what the pages load to open.
+- assets/shop-logo.svg: drawn on the pages.
 
 ## styles/check.js
 

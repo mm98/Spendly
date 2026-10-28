@@ -164,7 +164,7 @@ export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
     @param {boolean} [props.compact] Denser rows, for a narrow column.
     @param {number} [props.total] How many records the server has, when the server sends them a page at a time.
     @param {() => void} [props.onLoadMore]
-    @param {boolean} [props.headless] Draw no head row.
+    @param {boolean} [props.headless] Draw no head row. The head stays in the markup, its labels read by a screen reader only (sp-table--headless).
     @param {string} [props.locale] How the counts are written, such as da-DK. The browser's when left out.
     @param {'table' | 'cards'} [props.body] How the records are drawn: `table`, rows under a head; `cards`, record cards in a grid (c1, 2c, 22a).
     @param {import('react').ReactNode} [props.head] Cards only. The line above the cards: the summary or the bulk bar.
@@ -342,7 +342,7 @@ function ListTable({
 			{picked.length && selecting && bulkNote ? <div className="sp-bulkbar sp-bulkbar--note">{bulkNote}</div> : null}
 
 			<table
-				className={join('sp-table', compact && 'sp-table--compact')}
+				className={join('sp-table', compact && 'sp-table--compact', headless && 'sp-table--headless')}
 				onKeyDown={ev => {
 					if (ev.key === 'Escape' && picked.length) { ev.stopPropagation(); setPicked([]) }
 					// up and down walk the rows' links (c1)
@@ -353,17 +353,20 @@ function ListTable({
 					}
 				}}
 			>
-				{headless ? null : <thead>
+				{/* headless: the row is still there, 0 tall, so every cell is named for a screen reader (10a) */}
+				<thead>
 					<tr>
 						{selecting ? <ListCell cell="checkbox" head selectedCount={onPage.length} total={order.length} noun={noun} onToggleAll={toggleAll} /> : null}
 						{head.map((c, n) => (
 							<th scope={c.children || c.width === 'menu' ? 'col' : undefined} className={pick(WIDTH, c.width, 'width', 'ListCell')} key={n}>
 								{/* the menu column draws no words, but its head is still named for a screen reader */}
-								{c.children ?? (c.width === 'menu' ? <span className="sp-announce">Actions</span> : null)}
+								{headless
+									? <span className="sp-announce">{c.children ?? (c.width === 'menu' ? 'Actions' : null)}</span>
+									: c.children ?? (c.width === 'menu' ? <span className="sp-announce">Actions</span> : null)}
 							</th>
 						))}
 					</tr>
-				</thead>}
+				</thead>
 				<tbody>
 					<Rows count={page.length} onArrived={arrived}>{page.map(record => {
 						const key = recordKey(record)
