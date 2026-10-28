@@ -5495,6 +5495,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
    and a heavier line than the labels beside it reads as a heading for the card. */
 .sp-choice__text { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
 .sp-choice__text > strong { font-size: var(--t-12); font-weight: 600; color: var(--ink-2); }
+/* a group of described choices: each is a two-line block, and at the field's 6 the
+   blocks run together, so they part at 12, the gap between a card's parts. A group of
+   plain choices and a filter rail keep 6. */
+.sp-field-group:has(> .sp-choice--described) { gap: var(--sp-12); }
 
 /* ---------- swatch - DRAFT c31 ----------
    A colour shown as itself: the square that stands for a palette value in a

@@ -446,7 +446,7 @@ function DefaultsCard({ value, change, touch, reads }) {
 					<>
 						<span className="sp-rule" />
 						<div className="sp-stack">
-							<Choice variant="described" descriptionTone="help"
+							<Choice variant="described"
 								control={<Switch checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
 								description="When a scan shows what the paper is, such as an order confirmation or a return, the scan sets the status or the kind to match. Off means your defaults always apply.">
 								Let a scan override these
@@ -485,7 +485,7 @@ function LooksCard({ value, change }) {
 			<span className="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
 			<FieldGroup aria-label="Rows Home can show">
 				{LOOKS.map(l => (
-					<Choice key={l.id} variant="described" descriptionTone="help" description={l.help}
+					<Choice key={l.id} variant="described" description={l.help}
 						control={<Switch aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
 						{l.label}
 					</Choice>
