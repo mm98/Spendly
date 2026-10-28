@@ -199,6 +199,10 @@
 		"Chat": {
 			"cardMode": "column"
 		},
+		"Combobox": {
+			"cardMode": "single",
+			"primaryStory": "Open"
+		},
 		"Controls": {
 			"cardMode": "column"
 		},
@@ -206,6 +210,9 @@
 			"cardMode": "column"
 		},
 		"Line": {
+			"cardMode": "column"
+		},
+		"LinkOut": {
 			"cardMode": "column"
 		},
 		"List": {
@@ -230,6 +237,9 @@
 			"cardMode": "column"
 		},
 		"SearchInput": {
+			"cardMode": "column"
+		},
+		"SectionNav": {
 			"cardMode": "column"
 		},
 		"Segmented": {
@@ -257,10 +267,6 @@
 			"cardMode": "single",
 			"primaryStory": "Photo",
 			"viewport": "900x700"
-		},
-		"Combobox": {
-			"cardMode": "single",
-			"primaryStory": "Open"
 		}
 	},
 	"readmeHeader": ".design-sync/conventions.md"
