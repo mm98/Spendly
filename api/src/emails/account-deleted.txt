@@ -1,0 +1,10 @@
+Subject: Your Spendly account was deleted
+
+Your account was deleted
+
+The Spendly account for {{email}} was deleted on {{changed_at}}, with its orders, receipts and everything else in it.
+
+If this was not you, ask the person who runs this Spendly server.
+
+--
+This is the last email this account gets from Spendly.

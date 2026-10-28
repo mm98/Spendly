@@ -2925,6 +2925,10 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
    placed before them, and a spacer is only needed to separate that something */
 .sp-dialog__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-8); }
 .sp-dialog::backdrop { background: rgba(27, 26, 23, 0.32); }
+/* a dialog whose content can be longer than the window: the region between the heading
+   and the actions scrolls, so both stay in view (This build 11d, earlier versions) */
+.sp-dialog__scroll { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 0; overflow-y: auto; }
+.sp-dialog:has(> .sp-dialog__scroll) { max-height: calc(100dvh - var(--sp-16) * 2); min-height: 0; }
 
 /* a decorative chevron inside a field sits on the field's own padding, not in the button slot.
    Centred on the field's real height, as the unit and the trail are, so it does not sit
@@ -5180,6 +5184,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-field-group__values,
 .sp-chat__start,
 .sp-chat__help,
+.sp-dialog__scroll,
 .sp-chat__field,
 .sp-chat__figures,
 .sp-calendar--sheet { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
@@ -5191,6 +5196,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-field-group__values::-webkit-scrollbar,
 .sp-chat__start::-webkit-scrollbar,
 .sp-chat__help::-webkit-scrollbar,
+.sp-dialog__scroll::-webkit-scrollbar,
 .sp-chat__field::-webkit-scrollbar,
 .sp-chat__figures::-webkit-scrollbar,
 .sp-calendar--sheet::-webkit-scrollbar { width: 8px; }
@@ -5204,6 +5210,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-field-group__values::-webkit-scrollbar-thumb,
 .sp-chat__start::-webkit-scrollbar-thumb,
 .sp-chat__help::-webkit-scrollbar-thumb,
+.sp-dialog__scroll::-webkit-scrollbar-thumb,
 .sp-chat__field::-webkit-scrollbar-thumb,
 .sp-chat__figures::-webkit-scrollbar-thumb,
 .sp-calendar--sheet::-webkit-scrollbar-thumb {
