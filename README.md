@@ -285,10 +285,10 @@ Each published image is tagged with its version too, so `ghcr.io/mm98/spendly:1.
 exact build.
 
 **Each version carries its release notes.** Every change that reaches the app adds one short file to
-`.releases/`: up to three plain lines on what the user can now do or see, each with a sentence or two
-on why it was made, or "No change you can see." The image build gives each file the version of the change that added it, and carries the notes
-of the newest 20 versions that have any. A check in CI stops a change without a note, or a note in
-technical words. `.releases/README.md` says how to write one.
+`.releases/`: up to three plain lines on what the user can now do or see, each with one short sentence
+on why it was made, or "No change you can see." The image build gives each file the version of the
+change that added it, and carries the notes of the newest 20 versions that have any. A check in CI
+stops a change without a note, or a note in technical words. `.releases/README.md` says how to write one.
 
 The app's building blocks, one by one, are at the same address plus `/storybook`. Sign in first.
 

@@ -24,7 +24,7 @@ export const NOTE_NAME = /^\d{8}\.\d{4} - [^\s\\/:*?"<>|][^\\/:*?"<>|]*\.md$/;
 const VERSIONS_KEPT = 20;
 const MAX_NOTES = 3;
 const MAX_NOTE_LENGTH = 100;
-const MAX_REASON_LENGTH = 200;
+const MAX_REASON_LENGTH = 120;
 export const NOTHING_TO_SEE = "No change you can see.";
 
 // words that describe how the app is built, not what the reader sees or can do

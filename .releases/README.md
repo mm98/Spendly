@@ -10,11 +10,11 @@ gets when it is merged, so no version number is written in it.
 ## What a file holds
 
 Up to three changes. Each is a line starting `- ` that says what changed, and under it, indented two
-spaces, one or two sentences that say why it was made:
+spaces, one short sentence that says why it was made:
 
 ```
 - You can sort your vendors by how much you spent.
-  You wanted to see where most of the money goes, without adding it up yourself.
+  You wanted to see where most of the money goes.
 - Photos of receipts upload faster on a slow connection.
   On a phone outside, a photo could take so long that it looked stuck.
 ```
@@ -44,7 +44,7 @@ No change you can see.
   before, or what they asked for. "You asked for it" alone is not a reason.
 - Only what is true and known. Do not promise what the change will do for every reader.
 - The same plain words as the change: no code words, no file names, plain hyphens only.
-- At most 200 characters. It may run over several lines in the file; they are joined into one.
+- One sentence, at most 120 characters.
 
 `node scripts/check-release-notes.mjs` checks the file against these rules, and CI runs it when a
 change lands on main. `node scripts/release-notes.mjs` prints what the image will carry.
