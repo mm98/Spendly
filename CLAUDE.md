@@ -552,6 +552,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   them, not only while a command runs. Before each next step, check when the last status went out;
   if it was 30 seconds or more ago, the status goes first. A user who has to ask for a status means
   the rule was already broken.
+- **A question the user has to answer is a choice they can tap, never a line in a message.** A
+  question in plain text is overlooked. Give each answer as its own option.
 - **A correction the user has to give twice is written into this file in the same turn,** without
   being asked. A promise in chat does not reach the next thread; this file does.
 - Never claim what was not run. "Tests pass" means executed; "fixed in Firefox" means Firefox
