@@ -51,15 +51,3 @@ is removed in the change that settles it.
   "Category restored as Garden (2), since Garden is taken." If it is ever built, it is its own pull
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
-
-## Load more stops short of the first new card
-
-- **Status:** waiting for a note to Claude Design.
-- **Where:** `ListMore` in `react/src/components/List.jsx`, and every list with Load more. Seen in
-  Storybook, Lists/List > Cards; not yet checked in the app.
-- **What the reader sees:** after Load more, the page slides towards the first new card but stops
-  before it reaches the top. On a large screen it may not move at all.
-- **What was found:** the slide starts at once, while the new cards still grow in, so it aims at
-  where the card is before they have their full height. The story's test passes under `npm test`
-  only because animations are off there.
-- **Found:** 2026-10-28.

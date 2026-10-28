@@ -197,11 +197,13 @@ const RowsOf = createContext(null)
     @param {object} props
     @param {number} props.count How many rows the list shows.
     @param {'row' | 'chip'} [props.kind] `row` for ListItem, ListRow and Record; `chip` for a field's Chip values.
+    @param {() => void} [props.onArrived] Called each time a row that arrived has finished its way in, so a page can act on where it finally sits.
     @param {import('react').ReactNode} [props.children] The rows, each with its key. */
-export function Rows({ count, kind = 'row', children }) {
+export function Rows({ count, kind = 'row', onArrived, children }) {
 	const [value] = useState(() => ({}))
 	value.glide = count <= GLIDE_MAX
 	value.kind = kind
+	value.arrived = onArrived
 	return <RowsOf.Provider value={value}><AnimatePresence initial={false}>{children}</AnimatePresence></RowsOf.Provider>
 }
 
@@ -216,6 +218,7 @@ export function useRow() {
 		...PRESENCE[rows.kind](),
 		layout: rows.glide ? 'position' : false,
 		transition: glide(),
+		...(here && rows.arrived ? { onAnimationComplete: () => rows.arrived?.() } : {}),
 		...(here ? {} : { inert: true, 'aria-hidden': 'true' })
 	}
 }

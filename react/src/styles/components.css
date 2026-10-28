@@ -540,7 +540,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-input[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 .sp-input[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
 .sp-input:disabled,
-.sp-textarea:disabled {
+.sp-textarea:disabled,
+.sp-combobox__trigger:disabled {
   background: var(--surface-2);
   border-color: var(--line);
   color: var(--ink-3);
@@ -2054,6 +2055,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 
 @media (hover: hover) {
   .sp-combobox__trigger:hover { border-color: var(--line-5); }
+  /* a disabled trigger keeps the disabled input's border under the pointer */
+  .sp-combobox__trigger:disabled:hover { border-color: var(--line); }
 }
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }

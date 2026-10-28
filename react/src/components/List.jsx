@@ -1,4 +1,4 @@
-import { Children, cloneElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Children, cloneElement, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
@@ -98,6 +98,19 @@ export function ListCell({ width, column, cell = 'default', truncate = false, ch
 	)
 }
 
+/* A list's records and its Load more meet here: Load more leaves the slide it wants, and the records
+   run it once the first new one has finished arriving, so the slide aims at where it settles. */
+const Arrival = createContext(null)
+
+const useArrival = () => {
+	const pending = useRef(null)
+	const arrived = () => {
+		const go = pending.current
+		if (go) { pending.current = null; go() }
+	}
+	return [pending, arrived]
+}
+
 const flat = kids => [].concat(kids ?? []).flat().filter(k => k && typeof k === 'object')
 
 const partsOf = children => {
@@ -166,12 +179,15 @@ export function List({ body = 'table', ...props }) {
 /* Record cards as a grid: `head` above it and `footer` under it (a `<ListMore loose>`), each at the grid's width. */
 function ListCards({ head, footer, children, ...rest }) {
 	reject(rest, 'List')
+	const [pending, arrived] = useArrival()
 	return (
-		<div className="sp-list sp-list--cards" {...rest}>
-			{head}
-			<Cards fluid><Rows count={Children.count(children)}>{children}</Rows></Cards>
-			{footer}
-		</div>
+		<Arrival.Provider value={pending}>
+			<div className="sp-list sp-list--cards" {...rest}>
+				{head}
+				<Cards fluid><Rows count={Children.count(children)} onArrived={arrived}>{children}</Rows></Cards>
+				{footer}
+			</div>
+		</Arrival.Provider>
 	)
 }
 
@@ -233,6 +249,7 @@ function ListTable({
 		else setPickedOwn(value)
 	}
 	const [shown, setShown] = useState(pageSize)
+	const [pending, arrived] = useArrival()
 	const anchor = useRef(null)
 	const warned = useRef(false)
 
@@ -308,6 +325,7 @@ function ListTable({
 		<span className="sp-bulkbar__count">{chosen.length === 1 ? `1 ${one} picked` : `${chosen.length} ${noun} picked`}</span>)
 
 	return (
+		<Arrival.Provider value={pending}>
 		<div className="sp-list" {...rest}>
 			{picked.length && selecting
 				? (
@@ -347,7 +365,7 @@ function ListTable({
 					</tr>
 				</thead>}
 				<tbody>
-					<Rows count={page.length}>{page.map(record => {
+					<Rows count={page.length} onArrived={arrived}>{page.map(record => {
 						const key = recordKey(record)
 						const isPicked = picked.includes(key)
 						return (
@@ -368,6 +386,7 @@ function ListTable({
 			<ListMore shown={page.length} total={count} pageSize={foot ? 0 : pageSize} locale={locale}
 				onMore={served ? onLoadMore : () => setShown(s => s + pageSize)}>{foot}</ListMore>
 		</div>
+		</Arrival.Provider>
 	)
 }
 
@@ -386,9 +405,12 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 	const line = useRef(null)
 	const asked = useRef(null)
 	const still = useStill()
+	const arrival = useContext(Arrival)
 	// Load more slides the reader to the first record it brought: at the top of the window, or just
-	// below a pinned bulk bar, and focused, else focus goes to this line. With less motion set it moves
-	// at once. A reader who has moved focus elsewhere since the press is left there.
+	// below a pinned bulk bar, and focused, else focus goes to this line. The slide waits until that
+	// record has finished arriving, so it aims at where the record settles, not where it is drawn on
+	// the way in. With less motion set it moves at once. A reader who has moved focus elsewhere since
+	// the press is left there.
 	useEffect(() => {
 		const from = asked.current
 		if (from == null || shown <= from || !line.current) return
@@ -400,15 +422,20 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 		const kin = [...foot.parentElement.children].filter(c => c !== foot)
 		const rows = [[...foot.parentElement.querySelectorAll('tbody > tr')], kin, ...kin.map(k => [...k.children])].find(g => g.length >= shown)
 		const row = rows ? rows[rows.length - shown + from] : null
-		if (row) {
+		const slide = () => {
+			if (!row.isConnected) return
 			// a pinned bulk bar (phone, records selected) would cover the row: stop below it
 			const bar = document.querySelector('.sp-bulkbar--head')
 			row.style.scrollMarginTop = bar ? `${bar.offsetHeight}px` : ''
 			row.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' })
 		}
+		if (row) {
+			if (still || !arrival) slide()
+			else arrival.current = slide
+		}
 		const target = row?.matches('a[href], button') ? row : row?.querySelector('a[href], button')
 		;(target ?? line.current).focus({ preventScroll: Boolean(row) })
-	}, [shown, still])
+	}, [shown, still, arrival])
 	if (!(total > pageSize)) return null
 	const counted = n => formatNumber(n, { locale, decimals: 0 })
 	const more = () => { asked.current = shown; onMore?.() }
