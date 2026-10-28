@@ -19,6 +19,8 @@
 
   .st-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12); }
   .st-trio > .sp-well { position: relative; }
+  /* the colour scheme row: the theme tile, four to a row, so the longest name fits */
+  .st-trio--schemes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
   /* Import step 2: a column in the file, an arrow, and the field it maps to. The
      two sides start at the top rather than being centred: a row whose right side
@@ -92,6 +94,16 @@
   .st-theme__line { height: 6px; border-radius: 2px; }
   .st-theme__line--light { background: var(--surface); }
   .st-theme__line--dark { background: var(--surface); }
+  /* the scheme tile: the scheme's tones side by side, the sidebar first, then the
+     primary scale from darkest to lightest, each read from the tile's own data-scheme */
+  .st-theme__preview--tones { background: var(--surface); }
+  .st-theme__tone { flex: 1; }
+  .st-theme__tone--shell { background: var(--shell); }
+  .st-theme__tone--1 { background: var(--green); }
+  .st-theme__tone--2 { background: var(--green-2); }
+  .st-theme__tone--3 { background: var(--green-3); }
+  .st-theme__tone--4 { background: var(--green-4); }
+  .st-theme__tone--5 { background: var(--green-5); }
   /* each half draws the same app the other two tiles draw, clipped down the middle,
      so the tile reads as one window changing theme rather than two colour blocks */
   .st-theme__half { width: 50%; display: flex; overflow: hidden; }
