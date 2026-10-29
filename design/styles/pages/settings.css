@@ -56,8 +56,8 @@
      theme tiles are marked, since both are a picked swatch. */
   .st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
   .st-tone input { position: absolute; opacity: 0; pointer-events: none; }
-  .st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
-  .st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
+  .st-tone:has(input:checked) { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .st-tone:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
 
   /* a theme is chosen by clicking its preview, so each is a label over a radio.
      The well is the component; being selectable is what this page adds to it. */
@@ -65,11 +65,11 @@
   .st-theme .sp-radio { position: absolute; opacity: 0; pointer-events: none; }
   /* the ring, not the border: .sp-well sets border-color unlayered, so a page rule
      can never win there - box-shadow is a property the component leaves alone */
-  .st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
+  .st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--primary); }
   @media (hover: hover) {
     .st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
   }
-  .st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+  .st-theme:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
   .st-theme:has(input:checked) .sp-subtitle { font-weight: 600; }
 
   /* The theme preview: a drawing of the app at thumbnail size, not a component. The
@@ -99,11 +99,11 @@
   .st-theme__preview--tones { background: var(--surface); }
   .st-theme__tone { flex: 1; }
   .st-theme__tone--shell { background: var(--shell); }
-  .st-theme__tone--1 { background: var(--green); }
-  .st-theme__tone--2 { background: var(--green-2); }
-  .st-theme__tone--3 { background: var(--green-3); }
-  .st-theme__tone--4 { background: var(--green-4); }
-  .st-theme__tone--5 { background: var(--green-5); }
+  .st-theme__tone--1 { background: var(--primary); }
+  .st-theme__tone--2 { background: var(--primary-2); }
+  .st-theme__tone--3 { background: var(--primary-3); }
+  .st-theme__tone--4 { background: var(--primary-4); }
+  .st-theme__tone--5 { background: var(--primary-5); }
   /* each half draws the same app the other two tiles draw, clipped down the middle,
      so the tile reads as one window changing theme rather than two colour blocks */
   .st-theme__half { width: 50%; display: flex; overflow: hidden; }

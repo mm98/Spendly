@@ -47,7 +47,7 @@
   }
 
   /* the bar beside a sample, marking its cap height */
-  .ty-bar { width: 5px; border-radius: 3px; background: var(--green); flex: none; }
+  .ty-bar { width: 5px; border-radius: 3px; background: var(--primary); flex: none; }
   .ty-bar--ink { background: var(--ink-2); }
 
   /* the label on the dark ground, where a sample is shown inverted */
@@ -82,7 +82,7 @@
 
   /* a well whose content is deliberately cut off, to show what overflow does */
   .ty-well--clipped { overflow: hidden; }
-  .ty-well--success { background: var(--green-tint-2); border-color: var(--green-5); }
+  .ty-well--success { background: var(--primary-tint-2); border-color: var(--primary-5); }
 
   .ty-w440 { width: 440px; }
   .ty-w620 { width: 620px; }

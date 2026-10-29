@@ -32,6 +32,6 @@
   }
 
   /* the toolbar of a list whose work is finished */
-  .da-toolbar--done { background: var(--green-tint); border-bottom-color: var(--green-5); }
+  .da-toolbar--done { background: var(--primary-tint); border-bottom-color: var(--primary-5); }
 
 }

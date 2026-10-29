@@ -386,7 +386,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 			adjust: true
 		})),
 		...close.map(c => ({
-			c, mark: <Mark size="medium" fill="solid" swatch="green-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={18} /></Mark>,
+			c, mark: <Mark size="medium" fill="solid" swatch="primary-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={18} /></Mark>,
 			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
 		})),
 		...(room ? [{ c: room, mark: <Mark size="medium" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={18} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])

@@ -156,11 +156,11 @@ export function FieldGroupPanel({ children, ...rest }) {
 
 // what a reader calls each colour of the set (c7): its tooltip and its name
 const SWATCH_NAMES = {
-	green: 'Green',
-	'green-2': 'Deep green',
-	'green-3': 'Mid green',
-	'green-4': 'Light green',
-	'green-5': 'Pale green',
+	primary: 'Primary',
+	'primary-2': 'Deep',
+	'primary-3': 'Mid',
+	'primary-4': 'Light',
+	'primary-5': 'Pale',
 	'amber-ink': 'Brown',
 	'amber-2': 'Sand',
 	'red-ink': 'Rust',

@@ -246,7 +246,7 @@ const timeOf = (at, turn) => {
 /* The reader's own mark, the one the sidebar's account row shows: the photo, or initials on its swatch. */
 function AccountMark({ name, email, picture }) {
 	if (picture) return <Mark size="small" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
-	return <Mark size="small" fill="solid" swatch="green-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>
+	return <Mark size="small" fill="solid" swatch="primary-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || email.split('@')[0])}</></Mark>
 }
 
 /* The conversation menu's items (24c): Chats and Files, Email this chat in the state of its send, and New chat. */

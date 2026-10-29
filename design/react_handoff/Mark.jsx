@@ -19,7 +19,8 @@ const FILL = {
 	add: 'sp-mark--add'
 }
 
-const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
+// primary to primary-5 are the scheme's own tones, so a category drawn in them follows the scheme
+const SWATCHES = ['primary', 'primary-2', 'primary-3', 'primary-4', 'primary-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 
 /** @typedef {keyof typeof SIZE} MarkSize */
 

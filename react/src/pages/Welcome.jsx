@@ -23,9 +23,9 @@ import { useAfterDraw } from '../app/afterDraw.js'
 const CURRENCY_OF = { 'da-DK': 'DKK', 'sv-SE': 'SEK', 'nb-NO': 'NOK', 'de-DE': 'EUR', 'en-GB': 'GBP', 'en-US': 'USD' }
 
 const SUGGESTED = [
-	{ name: 'Home and decor', icon: 'flower', colour: SWATCHES.green },
-	{ name: 'Furniture', icon: 'armchair', colour: SWATCHES['green-2'] },
-	{ name: 'Electronics', icon: 'device-desktop', colour: SWATCHES['green-3'] }
+	{ name: 'Home and decor', icon: 'flower', colour: SWATCHES.primary },
+	{ name: 'Furniture', icon: 'armchair', colour: SWATCHES['primary-2'] },
+	{ name: 'Electronics', icon: 'device-desktop', colour: SWATCHES['primary-3'] }
 ]
 const OTHER = 'other'
 
@@ -103,7 +103,7 @@ export default function Welcome() {
 			setProblem(null)
 			return document.getElementById('welcome-name')?.focus()
 		}
-		done(pick === OTHER ? { name: own.name.trim(), icon: own.icon, colour: SWATCHES['green-4'] } : SUGGESTED.find(s => s.name === pick))
+		done(pick === OTHER ? { name: own.name.trim(), icon: own.icon, colour: SWATCHES['primary-4'] } : SUGGESTED.find(s => s.name === pick))
 	}
 
 	if (!ready) return null

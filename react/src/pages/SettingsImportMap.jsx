@@ -131,7 +131,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
 				</Well>
 				<Icon name="chevron-right" size={16} />
-				<Combobox aria-label={`Field for ${name || `column ${i + 1}`}`}
+				<Combobox variant="stretch" aria-label={`Field for ${name || `column ${i + 1}`}`}
 					value={idle ? <span className="sp-ink-5">Don't import</span>
 						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}{shape === 'order' && id === 'total' ? <Pill color="success">New</Pill> : null}</span>}>
 					{fields.map(f => (

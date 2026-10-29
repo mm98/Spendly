@@ -41,11 +41,11 @@
   [data-token="ink-4"] .dm-swatch { background: var(--ink-4); }
   [data-token="ink-5"] .dm-swatch { background: var(--ink-5); }
   [data-token="ink-6"] .dm-swatch { background: var(--ink-6); }
-  [data-token="green"] .dm-swatch { background: var(--green); }
-  [data-token="green-2"] .dm-swatch { background: var(--green-2); }
-  [data-token="green-press"] .dm-swatch { background: var(--green-press); }
-  [data-token="green-tint"] .dm-swatch { background: var(--green-tint); }
-  [data-token="green-tint-2"] .dm-swatch { background: var(--green-tint-2); }
+  [data-token="primary"] .dm-swatch { background: var(--primary); }
+  [data-token="primary-2"] .dm-swatch { background: var(--primary-2); }
+  [data-token="green-press"] .dm-swatch { background: var(--primary-press); }
+  [data-token="primary-tint"] .dm-swatch { background: var(--primary-tint); }
+  [data-token="primary-tint-2"] .dm-swatch { background: var(--primary-tint-2); }
   [data-token="range-in"] .dm-swatch { background: var(--range-in); }
   [data-token="range-line"] .dm-swatch { background: var(--range-line); }
   [data-token="amber"] .dm-swatch { background: var(--amber); }

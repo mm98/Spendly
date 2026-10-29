@@ -20,7 +20,7 @@ const worked = new Map()
 /** Which of the theme's two inks, --surface or --ink, reads better on a fill: one of the design's
     swatch names, or a colour the reader picked (#rrggbb). A tie keeps --surface. */
 export function inkFor(fill) {
-	const key = `${root().dataset.theme}|${fill}`
+	const key = `${root().dataset.theme}|${root().dataset.scheme}|${fill}`
 	if (!worked.has(key)) {
 		const ground = fill.startsWith('#') ? fill : read(`--${fill}`)
 		worked.set(key, lightnessContrast(read('--surface'), ground) >= lightnessContrast(read('--ink'), ground) ? 'surface' : 'ink')
@@ -28,13 +28,13 @@ export function inkFor(fill) {
 	return worked.get(key)
 }
 
-// the theme each ink was worked out in, so a mark works it out again when the theme changes
-export const themeNow = () => root().dataset.theme ?? ''
+// the theme and scheme each ink was worked out in, so a mark works it out again when either changes
+export const themeNow = () => `${root().dataset.theme ?? ''}|${root().dataset.scheme ?? ''}`
 let watcher = null
 const told = new Set()
 export function onThemeChange(fn) {
 	told.add(fn)
 	watcher ??= new MutationObserver(() => told.forEach(f => f()))
-	watcher.observe(root(), { attributes: true, attributeFilter: ['data-theme'] })
+	watcher.observe(root(), { attributes: true, attributeFilter: ['data-theme', 'data-scheme'] })
 	return () => { told.delete(fn); if (!told.size) { watcher.disconnect(); watcher = null } }
 }

@@ -14,11 +14,11 @@
 	.st-theme { cursor: pointer; }
 	.st-theme input { position: absolute; opacity: 0; pointer-events: none; }
 	/* the ring is a box-shadow: .sp-well sets border-color unlayered, which a page rule cannot beat */
-	.st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
+	.st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--primary); }
 	@media (hover: hover) {
 		.st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
 	}
-	.st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+	.st-theme:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
 	.st-theme:has(input:checked) .st-theme__name { font-weight: 600; }
 
 	/* a drawing of the app, not a component; a dark half carries data-theme="dark" so its colours are the dark tokens */
@@ -43,11 +43,11 @@
 	.st-theme__preview--tones { background: var(--surface); }
 	.st-theme__tone { flex: 1; }
 	.st-theme__tone--shell { background: var(--shell); }
-	.st-theme__tone--1 { background: var(--green); }
-	.st-theme__tone--2 { background: var(--green-2); }
-	.st-theme__tone--3 { background: var(--green-3); }
-	.st-theme__tone--4 { background: var(--green-4); }
-	.st-theme__tone--5 { background: var(--green-5); }
+	.st-theme__tone--1 { background: var(--primary); }
+	.st-theme__tone--2 { background: var(--primary-2); }
+	.st-theme__tone--3 { background: var(--primary-3); }
+	.st-theme__tone--4 { background: var(--primary-4); }
+	.st-theme__tone--5 { background: var(--primary-5); }
 	/* each half draws the same app as the other tiles, clipped down the middle */
 	.st-theme__half { width: 50%; display: flex; overflow: hidden; }
 	.st-theme__half--light { background: var(--bg); }
@@ -57,8 +57,8 @@
 	/* a status's tone is picked by clicking the pill that shows it; the ring marks the chosen one */
 	.st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
 	.st-tone input { position: absolute; opacity: 0; pointer-events: none; }
-	.st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
-	.st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
+	.st-tone:has(input:checked) { outline: 2px solid var(--primary); outline-offset: 1px; }
+	.st-tone:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
 
 	/* import step 2 (11b): a column in the file, an arrow on the field's line, the field it maps to */
 	.st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }

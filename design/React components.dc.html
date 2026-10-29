@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
-<script src="./view.js?v=v20261028b"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261027a">
-<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
+<script src="./view.js?v=v20261029a"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 <script src="https://unpkg.com/framer-motion@11.18.2/dist/framer-motion.js"></script>
@@ -26,8 +26,8 @@
 	/* the wrapper carries the theme too, so the ground under the sections is the
 	   theme's own rather than whatever the document element was left on */
 	.sp { min-height: 100vh; background: var(--bg); color: var(--ink); }
-	a { color: var(--green); }
-	a:hover { color: var(--green-2); }
+	a { color: var(--primary); }
+	a:hover { color: var(--primary-2); }
 	code { font-size: 11px; background: var(--hover); padding: 1px 4px; border-radius: 4px; }
 	/* the call behind a specimen: read off the element, so it cannot drift from it */
 	code.doc-usage { display: block; width: fit-content; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.5; color: var(--ink-4); background: var(--surface-2); border: 1px solid var(--line); padding: 2px 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -144,7 +144,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">every control the reader types, picks or drops into</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> The combobox panel, a menu let out of its anchor, the date field's calendar and the range under a PeriodPicker's Custom open from their trigger, a fade and a drop of <code>--motion-rise</code> at <code>--motion-in</code>, rising when placed above, and close back the same way at <code>--motion-out</code> in every browser: <code>usePanelMotion</code> keeps the host <code>data-closing="true"</code> until the fade is done, and the panel's show rule keeps it drawn. The selection in a segmented control and in a PeriodPicker's window sizes is one marker (<code>.sp-marker</code>) that Motion moves to the option picked (<code>layoutId</code>); a control the page does not hold the value of keeps each option's own green.</div>
+	<div class="doc-note"><b>Motion.</b> The combobox panel, a menu let out of its anchor, the date field's calendar and the range under a PeriodPicker's Custom open from their trigger, a fade and a drop of <code>--motion-rise</code> at <code>--motion-in</code>, rising when placed above, and close back the same way at <code>--motion-out</code> in every browser: <code>usePanelMotion</code> keeps the host <code>data-closing="true"</code> until the fade is done, and the panel's show rule keeps it drawn. The selection in a segmented control and in a PeriodPicker's window sizes is one marker (<code>.sp-marker</code>) that Motion moves to the option picked (<code>layoutId</code>); a control the page does not hold the value of keeps each option's own primary.</div>
 	<div class="doc-lede">One segment for all of them, because a reader choosing a control is choosing between these and not between three pages. Every one is controlled - <code>value</code> and <code>onChange</code>, no internal copy - and none takes a colour: an error is a boolean and a message, never a variant.</div>
 
 	<span class="doc-specimen__label">Field owns the label, the message and the spacing; each control renders only its own box</span>
@@ -303,7 +303,7 @@
 		<span class="sp-grow"></span>
 		<span class="sp-meta">three promises, not three sizes</span>
 	</div>
-	<div class="doc-note"><b>Motion.</b> In a set of radio rows the green tint is one marker that moves from the old row to the new. A submenu slides out from its item, its items following 20ms apart, in CSS. A dialog grows the last 2% into place over a fading scrim, and a popover drops in from its trigger; both leave the same way under <code>Leaving</code>.</div>
+	<div class="doc-note"><b>Motion.</b> In a set of radio rows the primary tint is one marker that moves from the old row to the new. A submenu slides out from its item, its items following 20ms apart, in CSS. A dialog grows the last 2% into place over a fading scrim, and a popover drops in from its trigger; both leave the same way under <code>Leaving</code>.</div>
 	<div class="doc-note"><b>Closing with the fade.</b> The page keeps its condition and wraps it: <code>&lt;Leaving onClosed={...}&gt;{open ? &lt;Dialog ...&gt; : null}&lt;/Leaving&gt;</code>. <code>Leaving</code> is Motion's <code>AnimatePresence</code> under the same name and props, so its 63 uses do not change: when the child goes, its way out runs, it takes no more presses meanwhile, and <code>onClosed</code> is called once it has gone.</div>
 	<div class="doc-note">A Menu acts on click: every item does its thing and closes. A Popover waits - it holds a decision and a Cancel / Apply pair, so nothing happens until the reader applies it. A Dialog interrupts, and cannot be answered by ignoring it. That is why they are three components.</div>
 	<span class="doc-specimen__label">the menu, and the panel that waits</span>
@@ -458,7 +458,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
@@ -504,7 +504,7 @@ class Component extends DCLogic {
 		toasts: ['removed', 'unreadable', 'count', 'asks'],
 		// the inputs are controlled, so the page owns every value they show
 		text: 'Nordal vase, small', note: 'Delivered to the shop, not the client.',
-		email: 'mm@example.net', tokens: ['HAY', 'Muuto'], swatch: 'green-3', own: '#3f5d6b',
+		email: 'mm@example.net', tokens: ['HAY', 'Muuto'], swatch: 'primary-3', own: '#3f5d6b',
 		glyph: 'armchair', page: 1, listSearch: '',
 		secret: 'tulipan', amount: 1320, quantity: 0.25, day: '2026-08-08', delivery: '2026-08-10',
 		search: '', bounds: [200, 4800], range: ['2026-08-03', '2026-08-12'], period: 'month', compare: true,
@@ -1040,7 +1040,7 @@ class Component extends DCLogic {
 				labelled('category, picked', e(Mark, { size: 'medium', fill: 'solid', swatch: 'amber-ink', 'aria-label': 'Belysning' }, e(Icon, { name: 'lamp' })))
 			]),
 
-			markSwatches: ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
+			markSwatches: ['primary', 'primary-2', 'primary-3', 'primary-4', 'primary-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 				.map((swatch, i) => e(Mark, { key: i, size: 'small', fill: 'solid', swatch, 'aria-label': swatch })),
 
 			markSlots: row([
@@ -1421,7 +1421,7 @@ class Component extends DCLogic {
 				e(Field, { label: 'Colour' },
 					e(Picker, {
 						'aria-label': 'Colour',
-						swatches: ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6'],
+						swatches: ['primary', 'primary-2', 'primary-3', 'primary-4', 'primary-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6'],
 						value: this.state.swatch,
 						onChange: swatch => this.setState({ swatch }),
 						custom: true,
@@ -1980,7 +1980,7 @@ class Component extends DCLogic {
 			misuse: row([
 				e(Button, { variant: 'ghost' }, 'Unknown variant'),
 				e(Button, { className: 'my-own-class' }, 'className'),
-				e(Mark, { size: 'medium', fill: 'plain', swatch: 'green' }, 'Swatch on a plain mark'),
+				e(Mark, { size: 'medium', fill: 'plain', swatch: 'primary' }, 'Swatch on a plain mark'),
 				e(IconButton, { icon: 'dots-vertical' })
 			])
 		};

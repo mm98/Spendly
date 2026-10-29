@@ -6,7 +6,7 @@ const LOOK = {
 	help: { on: { className: 'sp-field__help', 'data-color': 'success' }, off: { className: 'sp-field__help' } }
 }
 
-/** What was saved, always as an amount: green when it reads above zero, else a grey 0,00. `variant`
+/** What was saved, always as an amount: the positive colour when it reads above zero, else a grey 0,00. `variant`
     is the line it sits on: under an amount, a card's figure, or a caption. */
 export function Saving({ value, variant = 'amount' }) {
 	const on = isSaving(value)

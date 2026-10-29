@@ -69,7 +69,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const start = useMemo(() => ({
 		name: vendor?.name ?? '',
 		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
-		colour: vendor ? pickedColour(vendor.colour) : 'green-2',
+		colour: vendor ? pickedColour(vendor.colour) : 'primary-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? [],
 		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats)

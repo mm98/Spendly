@@ -25,9 +25,9 @@
 
   .sp[data-theme="dark"] { background: var(--bg); color: var(--ink); }
 
-  .sp a { color: var(--green); }
+  .sp a { color: var(--primary); }
   @media (hover: hover) {
-    .sp a:hover { color: var(--green-2); }
+    .sp a:hover { color: var(--primary-2); }
   }
   .sp code {
     font-size: var(--t-11);
@@ -108,7 +108,7 @@
   padding-bottom: var(--sp-8);
 }
 .sp-amount-secondary { font-size: var(--t-11); color: var(--ink-4); white-space: nowrap; }
-.sp-amount-secondary[data-color="success"] { color: var(--green-2); font-weight: 600; }
+.sp-amount-secondary[data-color="success"] { color: var(--primary-2); font-weight: 600; }
 .sp-void { text-decoration: line-through; color: var(--ink-5); }
 
 /* ---------- card - LOCKED c10 ---------- */
@@ -246,8 +246,8 @@ a.sp-card { text-decoration: none; color: inherit; }
   /* stated on the base so a mark drawn as a button and a mark drawn as a span are
      the same mark: the variants that want an edge set their own */
   border: 0;
-  background: var(--green-tint);
-  color: var(--green);
+  background: var(--primary-tint);
+  color: var(--primary);
   font-weight: 700;
   position: relative;
 }
@@ -267,7 +267,7 @@ a.sp-card { text-decoration: none; color: inherit; }
 button.sp-mark { cursor: pointer; outline: none; }
 button.sp-mark:focus-visible { box-shadow: var(--ring); }
 
-.sp-mark--solid { background: var(--green); color: var(--surface); }
+.sp-mark--solid { background: var(--primary); color: var(--surface); }
 /* the mark's box without its paint: a bare glyph that still occupies a mark's
    width, so a list mixing coloured marks with plain icons keeps one text edge */
 .sp-mark--plain { background: none; color: var(--ink-2); }
@@ -459,11 +459,11 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-field__trails > span[data-tip] { position: relative; display: flex; }
 .sp-field__trails > span[data-tip] > .sp-field__trail { position: relative; top: auto; right: auto; transform: none; }
 /* Ask: a ghost mark when off, a filled green mark when on */
-.sp-field__trail--ask[aria-pressed="true"] { background: var(--green); color: #fff; }
+.sp-field__trail--ask[aria-pressed="true"] { background: var(--primary); color: #fff; }
 @media (hover: hover) {
-  .sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--green-2); color: #fff; }
+  .sp-field__trail--ask[aria-pressed="true"]:hover { background: var(--primary-2); color: #fff; }
 }
-.sp-field__trail--ask[aria-pressed="true"]:active { background: var(--green-press); }
+.sp-field__trail--ask[aria-pressed="true"]:active { background: var(--primary-press); }
 .sp-field__trail--ask:disabled { background: none; opacity: var(--fade-disabled); cursor: not-allowed; }
 /* while Ask works the button is Stop: the spinner, giving way to x on hover and focus */
 .sp-field__trail--ask[aria-busy="true"] { background: none; color: var(--ink-4); }
@@ -520,7 +520,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   .sp-textarea:hover { border-color: var(--line-5); }
 }
 .sp-input:focus-visible,
-.sp-textarea:focus-visible { border-color: var(--green); box-shadow: var(--ring); }
+.sp-textarea:focus-visible { border-color: var(--primary); box-shadow: var(--ring); }
 /* A placeholder is not a value: one step down from the text that will replace it,
    and the same step in every field. On touch it takes the field's own size instead -
    a 16px field is what stops a phone zooming when it is focused, and a smaller
@@ -588,7 +588,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   cursor: pointer;
 }
 @media (hover: hover) {
-  .sp-input[type="file"]:hover { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-input[type="file"]:hover { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 /* A native control brings its own glyphs, and they are the only ones in the design
    that are not from the register: a black calendar on a date field, a grey clear on
@@ -674,7 +674,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   margin: 0;
   min-height: 0;
   height: 20px;
-  accent-color: var(--green);
+  accent-color: var(--primary);
   cursor: pointer;
 }
 
@@ -698,7 +698,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-radio { border-radius: var(--r-pill); }
 @media (hover: hover) {
   .sp-check:hover,
-  .sp-radio:hover { border-color: var(--green); }
+  .sp-radio:hover { border-color: var(--primary); }
 }
 .sp-check:focus-visible,
 .sp-radio:focus-visible { box-shadow: var(--ring); }
@@ -713,18 +713,18 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   opacity: 0;
 }
 .sp-check:checked {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 .sp-check:checked::after { opacity: 1; }
 .sp-check:indeterminate {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 /* The runtime sets .indeterminate, which is a property and cannot be written in
    markup - so a drawn state needs an attribute to stand in for it. Only ever for
    documentation; the shipped control sets the property. */
-.sp-check[data-indeterminate="true"] { background: var(--green); border-color: var(--green); }
+.sp-check[data-indeterminate="true"] { background: var(--primary); border-color: var(--primary); }
 .sp-check[data-indeterminate="true"]::after,
 .sp-check:indeterminate::after {
   width: 8px;
@@ -735,7 +735,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   opacity: 1;
 }
 
-.sp-radio:checked { border: 5px solid var(--green); }
+.sp-radio:checked { border: 5px solid var(--primary); }
 
 .sp-check:disabled,
 .sp-radio:disabled {
@@ -805,7 +805,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   background: var(--surface);
   transition: transform 120ms ease;
 }
-.sp-switch:checked { background: var(--green); }
+.sp-switch:checked { background: var(--primary); }
 .sp-switch:checked::after { transform: translateX(14px); }
 .sp-switch:focus-visible { box-shadow: var(--ring); }
 .sp-switch:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
@@ -832,7 +832,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   padding: 0;
   border: 0;
   background: none;
-  color: var(--green);
+  color: var(--primary);
   font-family: inherit;
   font-size: var(--t-16);
   cursor: pointer;
@@ -843,8 +843,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 @media (hover: hover) {
   .sp-stepper__btn:hover { background: var(--surface-2); }
 }
-.sp-stepper:focus-within { border-color: var(--green); box-shadow: var(--ring); }
-.sp-stepper__btn:focus-visible { background: var(--green-tint); }
+.sp-stepper:focus-within { border-color: var(--primary); box-shadow: var(--ring); }
+.sp-stepper__btn:focus-visible { background: var(--primary-tint); }
 .sp-stepper__btn:disabled { color: var(--ink-6); cursor: not-allowed; }
 @media (hover: hover) {
   .sp-stepper__btn:disabled:hover { background: none; }
@@ -899,7 +899,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   left: calc(var(--a, 0) * 1% - var(--a, 0) * var(--hs) / 100 + var(--hs) / 2);
   right: calc(100% - (var(--b, 100) * 1% - var(--b, 100) * var(--hs) / 100 + var(--hs) / 2));
   border-radius: var(--r-marker);
-  background: var(--green);
+  background: var(--primary);
 }.sp-track__handle {
   position: absolute;
   top: calc((4px - var(--hs)) / 2);
@@ -907,7 +907,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   width: var(--hs);
   height: var(--hs);
   padding: 0;
-  border: 2px solid var(--green);
+  border: 2px solid var(--primary);
   border-radius: 50%;
   background: var(--surface);
   cursor: grab;
@@ -950,16 +950,16 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
    its limit; destructive is the red of removing a record. `disabled` is not a
    colour - it is the attribute, and it composes with every style and colour. */
 .sp-btn {
-  --btn-fill: var(--green);
-  --btn-fill-hover: var(--green-2);
-  --btn-fill-press: var(--green-press);
+  --btn-fill: var(--primary);
+  --btn-fill-hover: var(--primary-2);
+  --btn-fill-press: var(--primary-press);
   --btn-on-fill: var(--surface);
-  --btn-ink: var(--green);
+  --btn-ink: var(--primary);
   --btn-border: var(--line-3);
-  --btn-border-hover: var(--green-3);
-  --btn-border-inherit: var(--green-3);
-  --btn-tint: var(--green-tint-2);
-  --btn-tint-press: var(--green-tint);
+  --btn-border-hover: var(--primary-3);
+  --btn-border-inherit: var(--primary-3);
+  --btn-tint: var(--primary-tint-2);
+  --btn-tint-press: var(--primary-tint);
 }
 .sp-btn[data-color="warning"] {
   --btn-fill: var(--amber-ink);
@@ -1032,7 +1032,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 
 /* The edge inherits the button's colour instead of the grey line. For a button on a
-   tinted ground, where --line-3 is 1.17:1 against --green-tint and the white ground
+   tinted ground, where --line-3 is 1.17:1 against --primary-tint and the white ground
    is no better, so only the label reads. No colour is nameable: the edge comes from
    whatever colour the button already is, which is why a red or amber ground needs no
    case of its own. */
@@ -1118,7 +1118,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-cell-flex .sp-pill,
 .sp-stack .sp-pill { margin-top: -4px; margin-bottom: -4px; }
 
-.sp-pill[data-color="success"] { background: var(--green-tint); color: var(--green); }
+.sp-pill[data-color="success"] { background: var(--primary-tint); color: var(--primary); }
 .sp-pill[data-state="progress"] { background: var(--amber-tint); color: var(--amber-ink); }
 .sp-pill[data-color="danger"] { background: var(--red-tint); color: var(--red-ink); }
 
@@ -1279,15 +1279,15 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   .sp-table--static tbody tr:hover { background: none; cursor: default; }
 }
 /* a checked row marks itself, so the tick and the row never disagree */
-.sp-list-item:has(input:checked) { background: var(--green-tint); }
+.sp-list-item:has(input:checked) { background: var(--primary-tint); }
 @media (hover: hover) {
-  .sp-list-item:has(input:checked):hover { background: var(--green-tint-2); }
+  .sp-list-item:has(input:checked):hover { background: var(--primary-tint-2); }
 }
 .sp-table tbody tr[aria-selected="true"],
-.sp-table tbody tr:has(input:checked) { background: var(--green-tint); }
+.sp-table tbody tr:has(input:checked) { background: var(--primary-tint); }
 @media (hover: hover) {
   .sp-table tbody tr[aria-selected="true"]:hover,
-  .sp-table tbody tr:has(input:checked):hover { background: var(--green-tint-2); }
+  .sp-table tbody tr:has(input:checked):hover { background: var(--primary-tint-2); }
 }
 /* a cancelled row dims every cell but its status, so the label that tells it from a draft keeps full contrast (2b) */
 .sp-table tbody tr[data-void="true"] > td:not(.sp-col-status) { opacity: var(--fade-inactive); }
@@ -1443,7 +1443,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   border: 0;
   border-radius: var(--r-tile);
   background: var(--surface);
-  color: var(--green);
+  color: var(--primary);
   cursor: pointer;
   outline: none;
   box-shadow: 0 1px 4px rgba(27, 26, 23, 0.28);
@@ -1491,7 +1491,7 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
   .sp-record:hover { border-color: var(--line-4); cursor: pointer; }
 }
 /* a picked card: its own border turns green, and nothing else - no second pixel, no fill (2c) */
-.sp-record:has(input:checked) { border-color: var(--green); }
+.sp-record:has(input:checked) { border-color: var(--primary); }
 .sp-record[data-void="true"] { opacity: var(--fade-inactive); }
 /* full strength while its menu is open (brief 37) */
 .sp-record[data-void="true"]:has([data-open="true"]) { opacity: 1; }
@@ -1602,9 +1602,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-option:focus-visible { box-shadow: var(--ring); }
 .sp-option[aria-pressed="true"] {
-  background: var(--green-tint-2);
-  color: var(--green);
-  outline: 2px solid var(--green);
+  background: var(--primary-tint-2);
+  color: var(--primary);
+  outline: 2px solid var(--primary);
   outline-offset: 1px;
 }
 /* a label carries the same chosen ring as a button: the custom cell is a label,
@@ -1613,8 +1613,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
    chosen exactly as much as one inside it */
 label.sp-option--swatch[data-chosen="true"] {
   outline: none;
-  background: var(--swatch, var(--green));
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
+  background: var(--swatch, var(--primary));
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary);
 }
 /* The ring is drawn rather than outlined, so it cannot widen the grid. The cell
    keeps its own colour while it is the chosen one: a chosen option otherwise takes
@@ -1623,13 +1623,13 @@ label.sp-option--swatch[data-chosen="true"] {
    as a value did not. */
 .sp-option--swatch[aria-pressed="true"] {
   outline: none;
-  background: var(--swatch, var(--green));
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green);
+  background: var(--swatch, var(--primary));
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary);
 }
 /* focus on the chosen colour: a third ring outside the chosen one */
 .sp-option--swatch[aria-pressed="true"]:focus-visible,
 label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--green), 0 0 0 7px var(--green-tint);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary), 0 0 0 7px var(--primary-tint);
 }
 .sp-option--custom { background: var(--surface); border: 1px solid var(--line-3); color: var(--ink-3); }
 @media (hover: hover) {
@@ -1647,7 +1647,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   display: block;
   height: var(--meter-h);
   border-radius: var(--r-marker);
-  background: var(--green-tint-2);
+  background: var(--primary-tint-2);
 }
 .sp-gauge--untargeted { background: var(--surface-2); }
 /* an amount withheld from view (Budget, income hidden): a bar of one fixed length in
@@ -1680,7 +1680,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   /* the fill starts at the track's rounded end and stops partway along it, so only its
      start is rounded: a rounded tip reads as a second, shorter bar laid on the track */
   border-radius: var(--r-marker) 0 0 var(--r-marker);
-  background: var(--green);
+  background: var(--primary);
 }
 .sp-gauge__fill[data-fill="100"] { border-radius: var(--r-marker); }
 .sp-gauge__fill--over { background: var(--amber-2); border-radius: var(--r-marker) 0 0 var(--r-marker); }
@@ -1751,7 +1751,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   .sp-segmented__item:hover { background: var(--surface-2); }
 }
 .sp-segmented__item:has(:checked) {
-  background: var(--green);
+  background: var(--primary);
   color: var(--surface);
   font-weight: 600;
 }
@@ -1854,8 +1854,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   padding: var(--sp-6) var(--sp-12);
   border: 0;
   border-radius: var(--r-pill);
-  background: var(--green-tint);
-  color: var(--green);
+  background: var(--primary-tint);
+  color: var(--primary);
   font-family: inherit;
   font-size: var(--t-12);
   font-weight: 600;
@@ -1872,7 +1872,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   border: 0;
   border-radius: var(--r-pill);
   background: none;
-  color: var(--green-3);
+  color: var(--primary-3);
   font-family: inherit;
   font-size: var(--t-12);
   line-height: 1;
@@ -1880,7 +1880,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   outline: none;
 }
 @media (hover: hover) {
-  .sp-crumb__remove:hover { background: var(--green-5); color: var(--green); }
+  .sp-crumb__remove:hover { background: var(--primary-5); color: var(--primary); }
 }
 /* the x keeps its 14px when a long crumb wraps */
 .sp-crumb__remove { flex: none; }
@@ -1902,9 +1902,9 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   text-align: center;
   cursor: pointer;
 }
-.sp-filedrop:focus-within { border-color: var(--green); background: var(--green-tint-2); }
+.sp-filedrop:focus-within { border-color: var(--primary); background: var(--primary-tint-2); }
 @media (hover: hover) {
-  .sp-filedrop:hover { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-filedrop:hover { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 /* the same drop laid on its side: the mark at the left, the two lines beside it, for a
    card where the stacked drop is taller than its content needs */
@@ -2008,12 +2008,12 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 .sp-gauge__over[data-over="12"] { width: 12%; }
 .sp-gauge__marker[data-at="65"] { left: 65%; }
 
-.sp-option--swatch { background: var(--swatch, var(--green)); }
-.sp-option--swatch[data-swatch="green"] { background: var(--green); }
-.sp-option--swatch[data-swatch="green-2"] { background: var(--green-2); }
-.sp-option--swatch[data-swatch="green-3"] { background: var(--green-3); }
-.sp-option--swatch[data-swatch="green-4"] { background: var(--green-4); }
-.sp-option--swatch[data-swatch="green-5"] { background: var(--green-5); }
+.sp-option--swatch { background: var(--swatch, var(--primary)); }
+.sp-option--swatch[data-swatch="primary"] { background: var(--primary); }
+.sp-option--swatch[data-swatch="primary-2"] { background: var(--primary-2); }
+.sp-option--swatch[data-swatch="primary-3"] { background: var(--primary-3); }
+.sp-option--swatch[data-swatch="primary-4"] { background: var(--primary-4); }
+.sp-option--swatch[data-swatch="primary-5"] { background: var(--primary-5); }
 .sp-option--swatch[data-swatch="amber-ink"] { background: var(--amber-ink); }
 .sp-option--swatch[data-swatch="amber-2"] { background: var(--amber-2); }
 .sp-option--swatch[data-swatch="red-ink"] { background: var(--red-ink); }
@@ -2063,7 +2063,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   .sp-combobox__trigger:disabled:hover { border-color: var(--line); }
 }
 .sp-combobox__trigger:focus-visible,
-.sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
+.sp-combobox__trigger[aria-expanded="true"] { border-color: var(--primary); box-shadow: var(--ring); }
 .sp-combobox__trigger > .sp-grow { pointer-events: none; }
 /* a long chosen value stays on the field's one line and ends in an ellipsis */
 .sp-combobox__trigger > .sp-grow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2166,7 +2166,7 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
    lines too, so a selected row read heavier throughout while its neighbours kept the
    title-only weight */
 .sp-combobox__option[aria-selected="true"] {
-  background: var(--green-tint);
+  background: var(--primary-tint);
 }
 /* The option the keyboard is on. It takes the ring rather than a ground, because a
    chosen option already has one and both have to read at once - and the ring is what
@@ -2181,13 +2181,13 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   background: var(--ink-6);
 }
 .sp-combobox__dot[data-dot="draft"] { background: var(--ink-6); }
-.sp-combobox__dot[data-dot="progress"] { background: var(--green-4); }
-.sp-combobox__dot[data-dot="done"] { background: var(--green); }
+.sp-combobox__dot[data-dot="progress"] { background: var(--primary-4); }
+.sp-combobox__dot[data-dot="done"] { background: var(--primary); }
 .sp-combobox__dot[data-dot="returned"] { background: var(--amber-2); }
 .sp-combobox__dot[data-dot="cancelled"] { background: var(--red); }
 /* over the limit (8b) */
 .sp-combobox__dot[data-dot="problem"] { background: var(--red-ink); }
-.sp-combobox__check { display: flex; align-items: center; color: var(--green); flex: none; }
+.sp-combobox__check { display: flex; align-items: center; color: var(--primary); flex: none; }
 /* an option's name stays on its line and ends in an ellipsis past the panel's 288 */
 .sp-combobox__option > span:not(.sp-combobox__dot, .sp-combobox__meta, .sp-combobox__check, .sp-mark) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-combobox__meta { font-size: var(--t-11); color: var(--ink-5); flex: none; }
@@ -2207,13 +2207,13 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   height: var(--fab);
   border: 0;
   border-radius: 50%;
-  background: var(--green);
+  background: var(--primary);
   color: var(--surface);
   box-shadow: 0 8px 22px rgba(27, 26, 23, 0.18);
   cursor: pointer;
 }
 @media (hover: hover) {
-  .sp-fab:hover { background: var(--green-2); }
+  .sp-fab:hover { background: var(--primary-2); }
 }
 .sp-fab:focus-visible { box-shadow: var(--ring), 0 8px 22px rgba(27, 26, 23, 0.18); }
 /* docked: over a phone screen's content, right-aligned above the tab bar */
@@ -2697,7 +2697,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   cursor: pointer;
   outline: none;
 }
-.sp-tabbar__item[aria-current="page"] { color: var(--green); font-weight: 600; }
+.sp-tabbar__item[aria-current="page"] { color: var(--primary); font-weight: 600; }
 .sp-tabbar__item:focus-visible { box-shadow: var(--ring); }
 /* home bar band: the bar takes the band in, and its items sit 12 lower than centred.
    With no band (desktop, most Android) both paddings resolve to 0 and nothing changes.
@@ -2718,10 +2718,10 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   height: var(--card-header-h);
   box-sizing: border-box;
   padding: 0 var(--sp-16);
-  background: var(--green-tint);
+  background: var(--primary-tint);
   border-bottom: 1px solid var(--line);
 }
-.sp-bulkbar__count { font-size: var(--t-13); font-weight: 600; color: var(--green); }
+.sp-bulkbar__count { font-size: var(--t-13); font-weight: 600; color: var(--primary); }
 /* the second line of the bar: what the page selection does not cover, and the
    action that widens it. Same ground as the bar it hangs from, so the two read
    as one strip rather than a banner dropped into the list */
@@ -3002,7 +3002,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   font-family: inherit;
   font-size: var(--t-12);
   font-weight: 600;
-  color: var(--green);
+  color: var(--primary);
   cursor: pointer;
   outline: none;
 }
@@ -3045,8 +3045,8 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 }
 .sp-chip--facet:has(input:focus-visible) { box-shadow: var(--ring); }
 .sp-chip input[type="checkbox"] { border-radius: var(--r-marker); }
-.sp-chip input[type="radio"]:checked { border: 5px solid var(--green); }
-.sp-chip input[type="checkbox"]:checked { border-color: var(--green); background: var(--green); }
+.sp-chip input[type="radio"]:checked { border: 5px solid var(--primary); }
+.sp-chip input[type="checkbox"]:checked { border-color: var(--primary); background: var(--primary); }
 /* inside a chip that is itself green, the marker reads in white */
 
 .sp-chip--facet:has(input:checked) input[type="checkbox"] {
@@ -3057,7 +3057,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 .sp-chip--facet:has(input:checked) input[type="radio"] {
   border: 1px solid var(--surface);
   background: var(--surface);
-  box-shadow: inset 0 0 0 3px var(--green);
+  box-shadow: inset 0 0 0 3px var(--primary);
 }
 
 /* each label is measured at its selected weight, so selecting one shifts nothing */
@@ -3078,8 +3078,8 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   gap: var(--sp-6);
 }
 .sp-chip--facet:has(input:checked) {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--primary);
+  border-color: var(--primary);
   color: var(--surface);
   font-weight: 600;
 }
@@ -3094,7 +3094,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   width: 100%;
   border: 0;
   border-radius: var(--r-card);
-  background: var(--green-tint-2);
+  background: var(--primary-tint-2);
   text-align: center;
 }
 .sp-segmented--facet .sp-segmented__item { padding: 0 var(--sp-8); font-size: var(--t-12); }
@@ -3109,12 +3109,12 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 .sp-slot { margin-top: 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-6); }
 label.sp-mark { cursor: pointer; }
 @media (hover: hover) {
-  label.sp-mark:hover { outline: 2px solid var(--green); outline-offset: 1px; }
+  label.sp-mark:hover { outline: 2px solid var(--primary); outline-offset: 1px; }
 }
-label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1px; }
+label.sp-mark:focus-within { outline: 2px solid var(--primary); outline-offset: 1px; }
 /* the add tile answers as every add control does: green dashed edge and tint, no outline */
 @media (hover: hover) {
-  label.sp-mark--add:hover { outline: none; border-color: var(--green); background: var(--green-tint-2); }
+  label.sp-mark--add:hover { outline: none; border-color: var(--primary); background: var(--primary-tint-2); }
 }
 .sp-slot__remove {
   padding: 0;
@@ -3150,7 +3150,7 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   /* the row centres its photo in a two-line content box, which puts it 1px lower than
      the padding alone; the editor matches that so the photos line up */
   padding-top: calc(var(--sp-12) + 1px);
-  border: 1px solid var(--green);
+  border: 1px solid var(--primary);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: var(--shadow-menu);
@@ -3269,7 +3269,7 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
   line-height: 1.1;
 }
 .sp-stat__figure--large { font-size: var(--t-34); }
-.sp-stat__delta { font-size: var(--t-12); font-weight: 600; color: var(--green-2); }
+.sp-stat__delta { font-size: var(--t-12); font-weight: 600; color: var(--primary-2); }
 
 /* ---------- chart - LOCKED c14 ---------- */
 
@@ -3298,7 +3298,7 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
    have - the spark inside a stat being the case that showed it. */
 button.sp-bars__col { cursor: pointer; }
 @media (hover: hover) {
-  button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
+  button.sp-bars__col:hover .sp-bars__bar { background: var(--primary-2); }
 }
 .sp-bars__col:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-bars__bar {
@@ -3306,13 +3306,13 @@ button.sp-bars__col { cursor: pointer; }
   width: 100%;
   height: 0;
   border-radius: var(--r-marker) var(--r-marker) 0 0;
-  background: var(--green);
+  background: var(--primary);
 }
-.sp-bars__bar--muted { background: var(--green-5); }
+.sp-bars__bar--muted { background: var(--primary-5); }
 /* a component's bar carries its height as --h (Data.jsx), so the starting height below can apply */
 .sp-bars__bar[style*="--h"],
 .sp-bars__stack[style*="--h"] { height: var(--h); }
-.sp-bars__col[aria-pressed="true"] .sp-bars__bar { background: var(--green); }
+.sp-bars__col[aria-pressed="true"] .sp-bars__bar { background: var(--primary); }
 /* A tick is one line, centred under its bar's middle even when it is wider than the
    column: a stretched tick wider than its column started at the bar's left edge and ran
    right, up to 11.6px off. Centred in the column, an overflow spills evenly both ways.
@@ -3343,12 +3343,12 @@ button.sp-bars__col { cursor: pointer; }
   height: 10px;
   border-radius: 3px;
   flex: none;
-  background: var(--green);
+  background: var(--primary);
 }
-.sp-legend__key[data-key="1"] { background: var(--green); }
-.sp-legend__key[data-key="2"] { background: var(--green-3); }
-.sp-legend__key[data-key="3"] { background: var(--green-4); }
-.sp-legend__key[data-key="4"] { background: var(--green-5); }
+.sp-legend__key[data-key="1"] { background: var(--primary); }
+.sp-legend__key[data-key="2"] { background: var(--primary-3); }
+.sp-legend__key[data-key="3"] { background: var(--primary-4); }
+.sp-legend__key[data-key="4"] { background: var(--primary-5); }
 
 /* the share list a donut is read from */
 .sp-shares { display: flex; flex-direction: column; gap: var(--sp-8); }
@@ -3368,7 +3368,7 @@ button.sp-bars__col { cursor: pointer; }
   outline: none;
 }
 @media (hover: hover) {
-  .sp-shares__row:hover { color: var(--green); }
+  .sp-shares__row:hover { color: var(--primary); }
 }
 .sp-shares__row:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-shares__value { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -3408,7 +3408,7 @@ button.sp-bars__col { cursor: pointer; }
   box-sizing: border-box;
   padding: var(--sp-6);
   border-radius: var(--r-field);
-  background: var(--green-tint-2);
+  background: var(--primary-tint-2);
   font-size: var(--t-12);
 }
 .sp-window {
@@ -3478,7 +3478,7 @@ button.sp-bars__col { cursor: pointer; }
 @media (hover: hover) {
   .sp-period__preset:hover { color: var(--ink); }
 }
-.sp-period__preset:has(:checked) { background: var(--green); color: var(--surface); font-weight: 600; }
+.sp-period__preset:has(:checked) { background: var(--primary); color: var(--surface); font-weight: 600; }
 .sp-period__preset:has(:focus-visible) { box-shadow: var(--ring); }
 .sp-period__preset { min-width: 0; }
 
@@ -3514,7 +3514,7 @@ button.sp-bars__col { cursor: pointer; }
 @media (hover: hover) {
   .sp-window__btn:hover { background: var(--surface-2); }
 }
-.sp-window__btn:focus-visible { background: var(--green-tint); }
+.sp-window__btn:focus-visible { background: var(--primary-tint); }
 .sp-window__btn:disabled { color: var(--line-5); cursor: not-allowed; }
 @media (hover: hover) {
   .sp-window__btn:disabled:hover { background: none; }
@@ -3538,7 +3538,7 @@ button.sp-bars__col { cursor: pointer; }
   border-style: dashed;
   border-color: var(--line-4);
   background: none;
-  color: var(--green);
+  color: var(--primary);
   font-family: inherit;
   cursor: pointer;
 }
@@ -3547,13 +3547,13 @@ button.sp-bars__col { cursor: pointer; }
 .sp-mark--add {
   border: 1px dashed var(--line-4);
   background: var(--surface);
-  color: var(--green);
+  color: var(--primary);
 }
 @media (hover: hover) {
-  .sp-list-item--add:hover .sp-mark--add { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-list-item--add:hover .sp-mark--add { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 @media (hover: hover) {
-  .sp-list-item--add:hover { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-list-item--add:hover { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 .sp-list-item--add:focus-within { box-shadow: var(--ring); }
 .sp-list-item--add > .sp-title { font-weight: 600; }
@@ -3668,7 +3668,7 @@ button.sp-bars__col { cursor: pointer; }
   background: var(--surface);
 }
 @media (hover: hover) {
-  .sp-strip-nav:hover > svg { border-color: var(--green); color: var(--green); background: var(--green-tint-2); }
+  .sp-strip-nav:hover > svg { border-color: var(--primary); color: var(--primary); background: var(--primary-tint-2); }
 }
 .sp-strip-nav:focus-visible { outline: none; }
 .sp-strip-nav:focus-visible > svg { box-shadow: var(--ring); }
@@ -3747,7 +3747,7 @@ button.sp-bars__col { cursor: pointer; }
 /* an empty photo mark inside an editable line is the file control itself */
 label.sp-mark--empty { cursor: pointer; }
 @media (hover: hover) {
-  label.sp-mark--empty:hover { border-color: var(--green); background: var(--green-tint-2); color: var(--green); }
+  label.sp-mark--empty:hover { border-color: var(--primary); background: var(--primary-tint-2); color: var(--primary); }
 }
 label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 
@@ -3808,7 +3808,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   outline: none;
 }
 .sp-range__input:focus-visible,
-.sp-range__input[data-editing="true"] { border-color: var(--green); }
+.sp-range__input[data-editing="true"] { border-color: var(--primary); }
 /* The arrow sits level with the two inputs, not with the fields that contain them:
    a top padding tuned to one glyph's metrics left an icon ten pixels high. Aligned
    to the fields' bottom edge instead, which is the inputs' bottom edge, and lifted
@@ -3916,12 +3916,12 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
    with nothing in it selected, and a range's two ends looked like the days between
    them. Stated after the hover so the pointer cannot take the choice off it. */
 .sp-range__day[aria-selected="true"] {
-  background: var(--green);
+  background: var(--primary);
   color: var(--surface);
   font-weight: 600;
 }
 @media (hover: hover) {
-  .sp-range__day[aria-selected="true"]:not(:disabled):hover { background: var(--green-2); }
+  .sp-range__day[aria-selected="true"]:not(:disabled):hover { background: var(--primary-2); }
 }
 .sp-range__day:focus-visible { box-shadow: var(--ring); }
 .sp-range__foot {
@@ -3991,9 +3991,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   text-align: left;
   cursor: pointer;
 }
-.sp-doc:focus-within { border-color: var(--green); background: var(--green-tint-2); }
+.sp-doc:focus-within { border-color: var(--primary); background: var(--primary-tint-2); }
 @media (hover: hover) {
-  .sp-doc:hover { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-doc:hover { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 .sp-doc--filled {
   border-style: solid;
@@ -4051,7 +4051,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   color: #fff;
   font-size: var(--t-13);
 }
-.sp-toast__icon { display: grid; place-items: center; flex: none; color: var(--green-4); }
+.sp-toast__icon { display: grid; place-items: center; flex: none; color: var(--primary-4); }
 .sp-toast__icon[data-color="danger"] { color: var(--red); }
 /* the icon centres on the first line of the words, never on the middle of a message that
    wraps: the row sits at the top and the icon's box is one line tall (1lh at the toast's size) */
@@ -4162,16 +4162,16 @@ a.sp-link-out { display: inline-flex; align-items: center; gap: var(--sp-4); min
 .sp-link-out > svg { flex: none; color: var(--ink-5); }
 .sp-link-out:focus-visible { box-shadow: var(--ring); }
 .sp-link-out:focus-visible > span,
-.sp-link-out:focus-visible > svg { color: var(--green); }
+.sp-link-out:focus-visible > svg { color: var(--primary); }
 .sp-link-out:focus-visible > span { text-decoration: underline; }
 @media (hover: hover) {
   .sp-link-out:hover > span,
-  .sp-link-out:hover > svg { color: var(--green); }
+  .sp-link-out:hover > svg { color: var(--primary); }
   .sp-link-out:hover > span { text-decoration: underline; }
 }
 a.sp-chat__file-name { text-decoration: none; }
 @media (hover: hover) {
-  a.sp-chat__file-name:hover { color: var(--green); text-decoration: underline; }
+  a.sp-chat__file-name:hover { color: var(--primary); text-decoration: underline; }
 }
 
 .sp-tip {
@@ -4254,7 +4254,7 @@ a.sp-chat__file-name { text-decoration: none; }
   border: 1px solid var(--line);
   color: var(--ink);
 }
-[data-theme="dark"] .sp-toast__undo { color: var(--green-2); }
+[data-theme="dark"] .sp-toast__undo { color: var(--primary-2); }
 
 /* ---------- summary rows - DRAFT c21 ----------
    The right-hand panel's contents: a fact per row, then the total. */
@@ -4305,15 +4305,15 @@ a.sp-chat__file-name { text-decoration: none; }
   label.sp-nav-item--light:hover { background: var(--hover); color: var(--ink-2); }
 }
 .sp-nav-item--light[aria-current="page"] {
-  background: var(--green-tint-2);
-  color: var(--green);
+  background: var(--primary-tint-2);
+  color: var(--primary);
   font-weight: 600;
 }
 @media (hover: hover) {
   a.sp-nav-item--light[aria-current="page"]:hover,
   button.sp-nav-item--light[aria-current="page"]:hover {
-    background: var(--green-tint-2);
-    color: var(--green);
+    background: var(--primary-tint-2);
+    color: var(--primary);
     font-weight: 600;
   }
 }
@@ -4327,7 +4327,7 @@ a.sp-chat__file-name { text-decoration: none; }
   button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-tint); color: var(--amber-ink-2); }
 }
 .sp-nav-item--light.sp-nav-item--edited .sp-nav-item__count { color: var(--amber-ink); }
-.sp-nav-item--light[aria-current="page"] .sp-nav-item__count { color: var(--green); }
+.sp-nav-item--light[aria-current="page"] .sp-nav-item__count { color: var(--primary); }
 .sp-nav-list { display: flex; flex-direction: column; gap: var(--sp-6); }
 /* on touch the row is drawn 44 tall, the gap stays 6 */
 .sp-touch .sp-nav-item--light { min-height: var(--row-h-touch); }
@@ -4377,7 +4377,7 @@ a.sp-chat__file-name { text-decoration: none; }
   background: var(--surface);
   font-size: var(--t-13);
 }
-.sp-tokens:focus-within { border-color: var(--green); box-shadow: var(--ring); }
+.sp-tokens:focus-within { border-color: var(--primary); box-shadow: var(--ring); }
 /* with a trail button (the bulb in Order create 3a) the values stop short of it */
 .sp-field__wrap > .sp-tokens:has(+ .sp-field__trail) { padding-right: calc(var(--field-trail) + 2 * var(--sp-6)); }
 .sp-tokens__add {
@@ -4523,9 +4523,9 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-palette__row[aria-selected="true"] { background: var(--green-tint); }
+.sp-palette__row[aria-selected="true"] { background: var(--primary-tint); }
 @media (hover: hover) {
-  .sp-palette__row:hover { background: var(--green-tint); }
+  .sp-palette__row:hover { background: var(--primary-tint); }
 }
 .sp-palette__row:focus-visible { background: var(--hover); }
 .sp-palette__name { font-weight: 600; white-space: nowrap; }
@@ -4547,7 +4547,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
   font-family: inherit;
   font-size: var(--t-12);
   font-weight: 600;
-  color: var(--green);
+  color: var(--primary);
   text-align: left;
   cursor: pointer;
   outline: none;
@@ -4608,7 +4608,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 @media (hover: hover) {
   .sp-choice--row:hover { background: var(--hover); }
 }
-.sp-choice--row:has(:checked) { background: var(--green-tint); }
+.sp-choice--row:has(:checked) { background: var(--primary-tint); }
 
 /* ---------- popover panel - DRAFT c25 ----------
    A panel opened from a bar or a button that asks for a decision before it applies:
@@ -4668,14 +4668,14 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
    with it. The set is the swatch list the picker offers in c7 - no other value,
    and the colour is data, so it arrives as the same data-swatch attribute. */
 
-.sp-mark--solid[data-swatch="green"] { background: var(--green); }
+.sp-mark--solid[data-swatch="primary"] { background: var(--primary); }
 /* green-2 completes the set: the swatch picker offers it, so a mark must carry it
    too - without this rule a mark reading green-2 falls back to base green and the
    two categories become indistinguishable */
-.sp-mark--solid[data-swatch="green-2"] { background: var(--green-2); }
-.sp-mark--solid[data-swatch="green-3"] { background: var(--green-3); }
-.sp-mark--solid[data-swatch="green-4"] { background: var(--green-4); color: var(--ink); }
-.sp-mark--solid[data-swatch="green-5"] { background: var(--green-5); color: var(--ink); }
+.sp-mark--solid[data-swatch="primary-2"] { background: var(--primary-2); }
+.sp-mark--solid[data-swatch="primary-3"] { background: var(--primary-3); }
+.sp-mark--solid[data-swatch="primary-4"] { background: var(--primary-4); color: var(--ink); }
+.sp-mark--solid[data-swatch="primary-5"] { background: var(--primary-5); color: var(--ink); }
 .sp-mark--solid[data-swatch="amber-ink"] { background: var(--amber-ink); }
 .sp-mark--solid[data-swatch="amber-2"] { background: var(--amber-2); color: var(--ink); }
 .sp-mark--solid[data-swatch="red-ink"] { background: var(--red-ink); }
@@ -4685,15 +4685,15 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
    are that result for each swatch in each theme; a colour the reader picks arrives
    with data-ink, worked out the same way by the component. */
 :where([data-theme="dark"]) .sp-mark--solid:not([data-swatch]),
-:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green"],
-:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-3"],
-:where([data-theme="dark"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary-3"],
+:where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary-4"],
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
 /* a light island inside a dark page takes the light results back */
 :where([data-theme="light"]) .sp-mark--solid:not([data-swatch]),
-:where([data-theme="light"]) .sp-mark--solid[data-swatch="green"],
-:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-3"] { color: var(--surface); }
-:where([data-theme="light"]) .sp-mark--solid[data-swatch="green-4"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="primary"],
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="primary-3"] { color: var(--surface); }
+:where([data-theme="light"]) .sp-mark--solid[data-swatch="primary-4"],
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
 /* the ink is worked out from the fill: whichever of the two reads better on it */
 .sp-mark--solid[data-ink="surface"] { color: var(--surface); }
@@ -4736,7 +4736,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   flex: none;
   box-sizing: border-box;
   border: 2px solid var(--line-3);
-  border-top-color: var(--green);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: sp-spin 700ms linear infinite;
 }
@@ -4759,17 +4759,17 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 /* ---------- alert, positive - c19 variant ----------
    The same row stating something that went right: a record created, a file kept. */
 
-.sp-alert[data-color="success"] { border-color: var(--green); background: var(--green-tint); }
-.sp-alert[data-color="success"] .sp-alert__mark { background: var(--green); color: var(--surface); }
+.sp-alert[data-color="success"] { border-color: var(--primary); background: var(--primary-tint); }
+.sp-alert[data-color="success"] .sp-alert__mark { background: var(--primary); color: var(--surface); }
 .sp-alert[data-color="success"] .sp-alert__title,
-.sp-alert[data-color="success"] .sp-alert__note { color: var(--green); }
+.sp-alert[data-color="success"] .sp-alert__note { color: var(--primary); }
 
 /* ---------- field help, two tones - c3 variants ----------
    A word about one field's value, beside its label: matched cleanly, or needs a look.
    The tones are the system's own - positive green and in-progress amber. */
 
 .sp-field__help[data-color="warning"] { font-weight: 600; color: var(--amber-ink); }
-.sp-field__help[data-color="success"] { font-weight: 600; color: var(--green-2); }
+.sp-field__help[data-color="success"] { font-weight: 600; color: var(--primary-2); }
 .sp-field__help[data-color="danger"] { font-weight: 600; color: var(--red-ink); }
 
 /* ---------- input, needs a look - c3 variant ----------
@@ -4787,13 +4787,13 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 /* ---------- attention row, the recommended path - c23 variant ----------
    One row of a set carries the action the design expects to be taken. */
 
-.sp-list-item--primary { background: var(--green-tint-2); border: 1px solid var(--green); color: var(--ink); }
+.sp-list-item--primary { background: var(--primary-tint-2); border: 1px solid var(--primary); color: var(--ink); }
 /* The row's own text is one step down from a card's ink, since a note is secondary to
    what it sits under. A row carrying a record - a reference and an amount - is not
    secondary, so it takes the card's ink back. */
 @media (hover: hover) {
   a.sp-list-item--primary:hover,
-  button.sp-list-item--primary:hover { background: var(--green-tint); }
+  button.sp-list-item--primary:hover { background: var(--primary-tint); }
 }
 
 .sp-gauge__fill[data-fill="68"] { width: 68%; }
@@ -4822,9 +4822,9 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 }
 .sp-source__region {
   position: absolute;
-  border: 2px solid var(--green);
+  border: 2px solid var(--primary);
   border-radius: var(--r-marker);
-  background: var(--green-tint-2);
+  background: var(--primary-tint-2);
 }
 .sp-source__label {
   position: absolute;
@@ -4834,7 +4834,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   font-size: var(--t-10);
   letter-spacing: var(--ls-eyebrow);
   font-weight: 600;
-  color: var(--green);
+  color: var(--primary);
   text-transform: uppercase;
 }
 /* read cleanly */
@@ -4860,7 +4860,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-card--shell .sp-meta { color: var(--shell-item); }
 .sp-card--shell .sp-meta--over { color: var(--amber-3); }
 .sp-card--shell .sp-gauge { background: var(--shell-current); }
-.sp-card--shell .sp-gauge__fill { background: var(--green-4); }
+.sp-card--shell .sp-gauge__fill { background: var(--primary-4); }
 .sp-card--shell .sp-card__footer { border-top-color: rgba(255, 255, 255, 0.09); }
 /* an overlay opened over the dark panel is still a light surface that belongs to
    the page - it takes the page's ink back, not the panel's */
@@ -4872,10 +4872,10 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-card--shell .sp-dialog .sp-meta { color: var(--ink-5); }
 
 /* the figure that is money kept rather than money spent - c14 variant */
-.sp-card--shell .sp-ink-success { color: var(--green-4); }
+.sp-card--shell .sp-ink-success { color: var(--primary-4); }
 
 /* the chosen column's label reads as chosen too, not just its bar - c14 */
-.sp-bars__col[aria-pressed="true"] .sp-bars__tick { color: var(--green); font-weight: 600; }
+.sp-bars__col[aria-pressed="true"] .sp-bars__tick { color: var(--primary); font-weight: 600; }
 
 /* measurements as data */
 .sp-gauge__fill[data-fill="40"] { width: 40%; }
@@ -5001,12 +5001,12 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   border-radius: var(--r-marker) var(--r-marker) 0 0;
   overflow: hidden;
 }
-.sp-bars__seg { display: block; width: 100%; background: var(--green); }
-.sp-bars__seg[data-key="1"] { background: var(--green); }
-.sp-bars__seg[data-key="2"] { background: var(--green-3); }
-.sp-bars__seg[data-key="3"] { background: var(--green-4); }
-.sp-bars__seg[data-key="4"] { background: var(--green-5); }
-.sp-bars__col[aria-pressed="true"] .sp-bars__stack { outline: 2px solid var(--green); outline-offset: 3px; }
+.sp-bars__seg { display: block; width: 100%; background: var(--primary); }
+.sp-bars__seg[data-key="1"] { background: var(--primary); }
+.sp-bars__seg[data-key="2"] { background: var(--primary-3); }
+.sp-bars__seg[data-key="3"] { background: var(--primary-4); }
+.sp-bars__seg[data-key="4"] { background: var(--primary-5); }
+.sp-bars__col[aria-pressed="true"] .sp-bars__stack { outline: 2px solid var(--primary); outline-offset: 3px; }
 
 /* two bars per step, read against each other rather than stacked */
 .sp-bars__pair { display: flex; align-items: flex-end; gap: 3px; width: 100%; height: 100%; }
@@ -5051,13 +5051,13 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: conic-gradient(var(--green) 0 100%, var(--green) 0);
+  background: conic-gradient(var(--primary) 0 100%, var(--primary) 0);
 }
 .sp-donut[data-stops="39-67-88"] {
-  background: conic-gradient(var(--green) 0 39%, var(--green-3) 39% 67%, var(--green-4) 67% 88%, var(--green-5) 88% 100%);
+  background: conic-gradient(var(--primary) 0 39%, var(--primary-3) 39% 67%, var(--primary-4) 67% 88%, var(--primary-5) 88% 100%);
 }
 .sp-donut[data-stops="29-49-62"] {
-  background: conic-gradient(var(--green) 0 29%, var(--green-3) 29% 49%, var(--green-4) 49% 62%, var(--green-5) 62% 100%);
+  background: conic-gradient(var(--primary) 0 29%, var(--primary-3) 29% 49%, var(--primary-4) 49% 62%, var(--primary-5) 62% 100%);
 }
 .sp-donut__hole {
   width: 78px;
@@ -5286,7 +5286,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   .sp-list-item:not(.sp-list-item--carried):has(> .sp-list-item__handle:hover) { background: var(--hover); }
 }
 /* a row the keyboard picked up wears the selected-row tint until it is dropped */
-.sp-list-item--picked { background: var(--green-tint); }
+.sp-list-item--picked { background: var(--primary-tint); }
 /* on touch a handle is held before it drags, so holding it selects nothing and opens no callout */
 .sp-list-item__handle { -webkit-touch-callout: none; user-select: none; }
 /* a finger on a handle drags the row: the page does not take it for a scroll */
@@ -5301,7 +5301,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   display: block;
   height: 2px;
   border-radius: 1px;
-  background: var(--green);
+  background: var(--primary);
   margin: 1px 0;
 }
 .sp-list-item--top > .sp-mark,
@@ -5355,7 +5355,7 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
   box-shadow: var(--shadow-sheet);
 }
 button.sp-list-item--card:active { background: var(--surface-2); }
-.sp-list-item--card[aria-selected="true"] { background: var(--green-tint); border-color: var(--green); }
+.sp-list-item--card[aria-selected="true"] { background: var(--primary-tint); border-color: var(--primary); }
 /* a row that holds a setting (a Segmented, a switch) keeps its ground: the checked-row
    tint is for a row the tick selects, and a Segmented always has one option checked */
 .sp-list-item--setting:has(input:checked) { background: var(--surface-2); }
@@ -5403,8 +5403,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-ink { color: var(--ink); }
 .sp-ink-2 { color: var(--ink-2); }
 .sp-ink-5 { color: var(--ink-5); }
-.sp-ink-accent { color: var(--green); }
-.sp-ink-success { color: var(--green-2); }
+.sp-ink-accent { color: var(--primary); }
+.sp-ink-success { color: var(--primary-2); }
 .sp-ink-warning { color: var(--amber-ink); }
 .sp-ink-danger { color: var(--red-ink); }
 
@@ -5550,13 +5550,13 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-swatch[data-swatch="line-3"] { background: var(--line-3); }
 .sp-swatch[data-swatch="line-4"] { background: var(--line-4); }
 .sp-swatch[data-swatch="line-5"] { background: var(--line-5); }
-.sp-swatch[data-swatch="green"] { background: var(--green); }
-.sp-swatch[data-swatch="green-2"] { background: var(--green-2); }
-.sp-swatch[data-swatch="green-3"] { background: var(--green-3); }
-.sp-swatch[data-swatch="green-4"] { background: var(--green-4); }
-.sp-swatch[data-swatch="green-5"] { background: var(--green-5); }
-.sp-swatch[data-swatch="green-tint"] { background: var(--green-tint); }
-.sp-swatch[data-swatch="green-tint-2"] { background: var(--green-tint-2); }
+.sp-swatch[data-swatch="primary"] { background: var(--primary); }
+.sp-swatch[data-swatch="primary-2"] { background: var(--primary-2); }
+.sp-swatch[data-swatch="primary-3"] { background: var(--primary-3); }
+.sp-swatch[data-swatch="primary-4"] { background: var(--primary-4); }
+.sp-swatch[data-swatch="primary-5"] { background: var(--primary-5); }
+.sp-swatch[data-swatch="primary-tint"] { background: var(--primary-tint); }
+.sp-swatch[data-swatch="primary-tint-2"] { background: var(--primary-tint-2); }
 .sp-swatch[data-swatch="amber-ink"] { background: var(--amber-ink); }
 .sp-swatch[data-swatch="amber"] { background: var(--amber); }
 .sp-swatch[data-swatch="amber-2"] { background: var(--amber-2); }
@@ -5577,7 +5577,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   width: var(--step);
   height: var(--step);
   border-radius: 50%;
-  background: var(--green);
+  background: var(--primary);
   color: #fff;
   display: grid;
   place-items: center;
@@ -5691,7 +5691,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* the attention row's two siblings: one that states something went well, one that
    states a problem, and one that is bordered rather than filled because it is a
    choice rather than a notice - c24 variants */
-.sp-list-item[data-color="success"] { background: var(--green-tint); color: var(--green); }
+.sp-list-item[data-color="success"] { background: var(--primary-tint); color: var(--primary); }
 .sp-list-item[data-color="danger"] { background: var(--red-tint-2); border: 1px solid var(--red); }
 /* the row keeps ink-2 for what it holds, but its icon states the problem with the text
    beside it, so it takes the danger ink; the warning row's own ink already reaches it */
@@ -5705,10 +5705,10 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-input { flex: 1 1 0; min-width: 0; }
 .sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-row-flex { flex: 1 0 100%; }
 .sp-touch .sp-list-item--editable:has(> .sp-input) > .sp-row-flex:last-child { justify-content: flex-end; }
-.sp-list-item--outline[aria-selected="true"] { border-color: var(--green); }
+.sp-list-item--outline[aria-selected="true"] { border-color: var(--primary); }
 
 /* a key carrying a tone, where it marks a value rather than a keystroke - c6 */
-.sp-kbd--accent { background: var(--green-tint); border-color: var(--green-tint); color: var(--green); }
+.sp-kbd--accent { background: var(--primary-tint); border-color: var(--primary-tint); color: var(--primary); }
 .sp-kbd[data-color="warning"] { background: var(--amber-2); border-color: var(--amber-2); color: var(--amber-ink); font-weight: 600; }
 
 /* the mark as a circle: a person rather than a record - c2 variant */
@@ -5736,7 +5736,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   border: 1px dashed var(--line-4);
   border-radius: var(--r-tile);
   background: none;
-  color: var(--green);
+  color: var(--primary);
   font-family: inherit;
   font-size: var(--t-13);
   font-weight: 600;
@@ -5745,7 +5745,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   outline: none;
 }
 @media (hover: hover) {
-  .sp-add-row:hover { border-color: var(--green); background: var(--green-tint-2); }
+  .sp-add-row:hover { border-color: var(--primary); background: var(--primary-tint-2); }
 }
 .sp-add-row:focus-visible { box-shadow: var(--ring); }
 .sp-add-row > svg { flex: none; }
@@ -5787,7 +5787,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 }
 .sp-input.sp-input--cell[data-hover="true"] { background: var(--hover); }
 .sp-input.sp-input--cell:focus,
-.sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
+.sp-input.sp-input--cell[data-focus="true"] { border-color: var(--primary); background: var(--surface); box-shadow: var(--ring); }
 /* a figure that was not saved stays marked: the cell rule above would otherwise cancel the field's red (21) */
 .sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 
@@ -5909,7 +5909,7 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
 button.sp-crumb { cursor: pointer; outline: none; }
 button.sp-crumb:focus-visible { box-shadow: var(--ring); }
 /* the alias that matched most recently is the green chip (5h) */
-.sp-chip[data-color="success"] { background: var(--green-tint); border-color: var(--green); color: var(--green); }
+.sp-chip[data-color="success"] { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
 /* a bookmark's picture strip is the link to its page (22a) */
 a.sp-record__photos { color: inherit; text-decoration: none; }
 /* on a phone a popover is a bottom sheet holding the same panel (c9, c13) */
@@ -6102,9 +6102,9 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-chat__question {
   min-width: 0;
   padding: var(--sp-12) var(--card-pad);
-  border: 1px solid var(--green-tint);
+  border: 1px solid var(--primary-tint);
   border-radius: var(--r-field);
-  background: var(--green-tint);
+  background: var(--primary-tint);
   font-size: var(--t-13);
   line-height: var(--lh);
   color: var(--ink);
@@ -6205,7 +6205,7 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 /* saving a question the reader asked: the small icon button beside the bubble, the
    bookmark filled once it is saved */
 .sp-chat__save { align-self: center; }
-.sp-chat__save[aria-pressed="true"] { color: var(--green); }
+.sp-chat__save[aria-pressed="true"] { color: var(--primary); }
 .sp-chat__save[aria-pressed="true"] svg { fill: currentColor; }
 /* a saved question on the empty page: its button, which sends it, and its remove button.
    One line, at most 320px and never wider than the column; the text is .sp-truncate */
@@ -6294,20 +6294,20 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
   inset: 0;
   z-index: -1;
   border-radius: var(--r-tile);
-  background: var(--green);
+  background: var(--primary);
   pointer-events: none;
 }
 .sp-segmented__item:has(> .sp-marker),
 .sp-period__preset:has(> .sp-marker),
 .sp-choice--row:has(> .sp-marker),
 .sp-nav-item:has(> .sp-marker) { position: relative; isolation: isolate; background: none; }
-.sp-choice--row > .sp-marker { background: var(--green-tint); }
+.sp-choice--row > .sp-marker { background: var(--primary-tint); }
 /* the option holding the marker lets it slide in from its neighbour; its label clips its own
    text in place of the option, as on touch (c5) */
 .sp-segmented__item:has(> .sp-marker) { overflow: visible; }
 .sp-segmented__item:has(> .sp-marker) > .sp-label { inset: 50% 0 auto; transform: translateY(-50%); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 .sp-nav-item > .sp-marker { border-radius: var(--r-field); background: var(--shell-current); transform-origin: top; }
-.sp-nav-item--light > .sp-marker { background: var(--green-tint-2); }
+.sp-nav-item--light > .sp-marker { background: var(--primary-tint-2); }
 
 /* What folds by height (a card's body, a facet group's values): its parts keep the gap they had
    when they sat straight in their parent. Motion sets its height and clips it only while it moves. */

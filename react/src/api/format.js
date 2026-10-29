@@ -41,7 +41,7 @@ export const compactAmount = n => {
 	return (Number.isInteger(k) ? amount(k, 0) : amount(k, 1)) + 'k'
 }
 
-/** Whether a figure printed at `decimals` shows a saving: it is green only when it reads above zero. */
+/** Whether a figure printed at `decimals` shows a saving: it is in the positive colour only when it reads above zero. */
 export const isSaving = (n, decimals = 2) => Math.round((Number(n) || 0) * 10 ** decimals) > 0
 
 /* The currencies an account can keep, in step with the server's CURRENCIES

@@ -280,7 +280,7 @@ export function ChartTip({ title, value, rows = [], note, ...rest }) {
 	)
 }
 
-const RING = { 1: 'var(--green)', 2: 'var(--green-3)', 3: 'var(--green-4)', 4: 'var(--green-5)' }
+const RING = { 1: 'var(--primary)', 2: 'var(--primary-3)', 3: 'var(--primary-4)', 4: 'var(--primary-5)' }
 
 /** The ring a share list is read from (c14, 4a): a slice per share in that share's series key, and
     the whole named in its hole. `loading` holds its place before the shares arrive.

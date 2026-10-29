@@ -63,9 +63,10 @@ for (const name of ['tokens.css', 'components.css', 'schemes.css'])
 	if (read(join(root, '../design/styles', name)) !== read(join(src, 'styles', name)))
 		fail('copies of the design', `src/styles/${name}`, `differs from design/styles/${name}: copy it over, and put anything the app adds in app.css`)
 
-// the server colours its emails from the same schemes the app draws
-if (read(join(root, '../design/styles/schemes.css')) !== read(join(root, '../api/src/styles/schemes.css')))
-	fail('copies of the design', 'api/src/styles/schemes.css', 'differs from design/styles/schemes.css: copy it over')
+// the server colours its emails from the same schemes and tokens the app draws
+for (const name of ['schemes.css', 'tokens.css'])
+	if (read(join(root, '../design/styles', name)) !== read(join(root, '../api/src/styles', name)))
+		fail('copies of the design', `api/src/styles/${name}`, `differs from design/styles/${name}: copy it over`)
 
 // the server sends the design's emails as they are, so its copies match file for file
 // except a fix the build made, each one written in later.md and removed here once design/ carries it
@@ -1414,6 +1415,11 @@ for (const [p, css] of pages) {
 	if (/\.sp-section-nav\b/.test(rules)) fail('the section nav is .sp-section-nav', rel(p), 'restyles .sp-section-nav outside components.css and app.css')
 }
 
+/* ---- a described choice's second line is grey, as c5 draws it ---- */
+
+for (const p of checked.filter(p => !p.includes(`${sep}components${sep}`)))
+	if (/descriptionTone=["{']*help/.test(read(p))) fail('a described choice uses sp-meta', rel(p), 'a Choice describes itself in the help style: leave descriptionTone at meta')
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -1437,6 +1443,8 @@ const DESIGN_RULES = {
 	'nothing but search in the top bar': NOT_CHECKED,
 	'no saved row above the field': 'classes resolve',
 	'a saved question is capped': 'a saved question is capped',
+	'a described choice uses sp-meta': 'a described choice uses sp-meta',
+	'a filling text column has no spacer after it': COPY,
 	'Status and Kind are selects': 'Status and Kind are selects',
 	'the Go to menu matches the page': DESIGN,
 	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
