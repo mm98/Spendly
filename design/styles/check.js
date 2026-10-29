@@ -1605,7 +1605,7 @@
       const s = await readFile(f);
       if (/family=Poppins/.test(s) && !/family=Red\+Hat\+Mono:wght@400;500/.test(s)) fail('One monospaced face', f, 'loads Poppins without Red Hat Mono 400 and 500');
       for (const m of s.matchAll(/<input\b[^>]*>/g)) {
-        const code = /one-time-code|autoCapitalize="characters"|defaultValue="[^"]*spk_/.test(m[0]), mono = /\bsp-input--code\b/.test(m[0]);
+        const code = /one-time-code|autoCapitalize="characters"|defaultValue="[^"]*(?:spk_|\/mcp)/.test(m[0]), mono = /\bsp-input--code\b/.test(m[0]);
         if (code && !mono) fail('One monospaced face', f, 'a code field is not .sp-input--code: ' + m[0].slice(0, 80));
         if (!code && mono) fail('One monospaced face', f, '.sp-input--code on a field that is not a code: ' + m[0].slice(0, 80));
       }

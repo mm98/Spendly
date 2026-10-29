@@ -63,7 +63,7 @@ const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
     @param {boolean} [props.multiline] A box of several lines instead of one.
     @param {number} [props.rows] How many lines a multiline field shows.
     @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in.
-    @param {boolean} [props.code] The text is a sign-in or recovery code, or a key: set in the monospaced face, so every character is the same width, a code does not shift as it is typed, and 0 and O read apart. Goes with any variant, readonly for a key that is shown to be copied.
+    @param {boolean} [props.code] The text is a sign-in or recovery code, a key, or an address to paste: set in the monospaced face, so every character is the same width, a code does not shift as it is typed, and 0 and O read apart. Goes with any variant, readonly for a key that is shown to be copied.
     @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action] A button at the end of the field: its icon, its name, and what it does.
     @param {string} [props.value] The text in the field.
     @param {(value: string) => void} [props.onChange]

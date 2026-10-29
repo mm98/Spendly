@@ -1,5 +1,11 @@
 # A monospaced face for codes, keys and code
 
+## Fixed from handoff_mono_font
+
+**The plain Address field was left in Poppins.** On AI assistants (Settings and import 11e), Token and "Address with the token in it" took the monospaced face, but the plain Address (`https://<server>/mcp`) did not, while the note said every address field does. The drawing was the fault: Address now carries `.sp-input--code` too, so all three copied values read alike. In the app it is `variant="readonly" code`, as Token is. `styles/check.js` now counts a field holding an `/mcp` address as a code field, so it fails if one is left out.
+
+**The package left out the pages whose only change was the font link.** Every page, and the start page, changed: each loads Red Hat Mono beside Poppins, and `index.html` lists Typography 13b and counts 111 screens. This package carries every page, `index.html`, and everything they load to open, so the checker runs clean from the folder as it is.
+
 Brief: find a monospaced font that sits with Poppins, and use it everywhere the product shows a key or a code, and for code examples.
 
 ## Red Hat Mono, as --font-mono
@@ -11,7 +17,7 @@ Brief: find a monospaced font that sits with Poppins, and use it everywhere the 
 **Where.**
 - `styles/tokens.css`: `--font-mono`.
 - `styles/components.css`:
-  - `.sp-input--code` takes `var(--font-mono)`: the sign-in code and recovery code fields (Auth and first run 20g, Settings and import 11f, the delete-account code in 11g), and now the readonly token and address fields of an AI assistant (11e).
+  - `.sp-input--code` takes `var(--font-mono)`: the sign-in code and recovery code fields (Auth and first run 20g, Settings and import 11f, the delete-account code in 11g), and the three readonly fields of an AI assistant: Token, Address and Address with the token in it (11e).
   - `.sp-code`, new: a code or key shown rather than typed. The recovery code list (11f) and "Authorization: Bearer" in the 11e help line.
   - `.sp-well--snippet` (c26) takes `var(--font-mono)`: an assistant's setup text and key (11e) and the two-step key (11f).
   - `.sp code` (documents) takes `var(--font-mono)`.
@@ -23,7 +29,7 @@ Brief: find a monospaced font that sits with Poppins, and use it everywhere the 
 - App:
   - `react/src/styles/fonts.css` and `react/src/fonts/`: self-host Red Hat Mono 400 and 500, latin and latin-ext, `font-display: swap`, the same unicode range as Poppins.
   - `variant="code"` becomes `code` in `react/src/app/SessionDialog.jsx`, `react/src/pages/SignIn.jsx`, `react/src/pages/SettingsTwoStep.jsx` (two places) and `react/src/pages/SettingsDeleteAccount.jsx`.
-  - The assistant's token and address fields take `variant="readonly" code`; the recovery code list takes `sp-code`; the help line's header name sits in an `sp-code` span.
+  - The assistant's Token, Address and Address with the token in it fields take `variant="readonly" code`; the recovery code list takes `sp-code`; the help line's header name sits in an `sp-code` span.
   - Copy `styles/tokens.css` and `styles/components.css` into `react/src/styles/`.
 
 **What is still open.** Nothing.
@@ -40,18 +46,12 @@ The one entry, "A deleted record should not be removed for good at once", is mar
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Typography.dc.html` - 13a names the face, 13b the comparison and the decision.
-- `Settings and import.dc.html` - 11e token fields and help line, 11f recovery codes and key, 11g code field.
-- `Auth and first run.dc.html` - 20g recovery code fields.
-- `Components.dc.html` - c26 snippet well, now monospaced.
-- `Responsive reference.dc.html` - the CSS panels.
-- `support.js`, `components.js`, `icons.js`, `view.js` - what the pages load to open.
-- `styles/tokens.css`, `styles/components.css`, `styles/doc.css` - the changed stylesheets.
-- `styles/schemes.css`, `styles/pages/typography.css`, `styles/pages/settings.css`, `styles/pages/auth-and-first-run.css`, `styles/pages/responsive-reference.css` - stylesheets the pages link; the Auth and Responsive reference ones changed.
-- `styles/check.js` - the checker with the new assertion.
-- `react_handoff/Inputs.jsx` - `TextField` with the `code` prop.
-
-Every other page changed only its font link, so it is not in the package.
+- Every `.dc.html` page - each loads Red Hat Mono. The ones with drawn changes: `Typography.dc.html` (13a, 13b), `Settings and import.dc.html` (11e, 11f, 11g), `Auth and first run.dc.html` (20g), `Components.dc.html` (c26), `Responsive reference.dc.html` (the CSS panels).
+- `index.html` - the start page: Typography lists 13b, 111 screens.
+- `support.js`, `components.js`, `icons.js`, `view.js`, `playground-registry.js`, `assets/` - what the pages load to open.
+- `styles/` - `tokens.css`, `components.css`, `doc.css`, `pages/auth-and-first-run.css` and `pages/responsive-reference.css` changed; the rest are what the pages link.
+- `styles/check.js` - the checker with the "One monospaced face" assertion.
+- `react_handoff/` - `Inputs.jsx` changed (`TextField` `code`); the rest are what React components and Playground load.
 
 ## Result
 
