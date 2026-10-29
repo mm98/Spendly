@@ -199,13 +199,13 @@ export default function SignIn() {
 			onSubmit={submit} submit="Sign in" busy={busy} busyLabel="Signing in…" secondary={passkeyButton}
 			across={alert ? null : <>New here? <Link className="sp-strong au-across" to="/register">Create an account</Link></>}>
 			<Field label="Email" id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
-				<TextField type="email" autoComplete="username webauthn" inputMode="email" autoFocus={!given} value={email}
+				<TextField type="email" autoComplete="username webauthn" inputMode="email" autoFocus={!given && !touch} value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
 			<Field label="Password" id="signin-password"
 				labelAction={canReset && !touch ? <Button variant="outline" size="xsmall" to={resetTo}>Forgot it?</Button> : null}
 				message={passwordProblem ?? undefined} messageType={passwordProblem ? 'danger' : 'hint'}>
-				<PasswordField autoComplete="current-password" autoFocus={given} value={password}
+				<PasswordField autoComplete="current-password" autoFocus={given && !touch} value={password}
 					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
 			</Field>
 			{canReset && touch ? <Button variant="outline" fullWidth to={resetTo}>Forgot it?</Button> : null}

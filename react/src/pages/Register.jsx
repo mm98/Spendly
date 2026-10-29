@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
+import { useShellShape } from '../app/useMedia.js'
 import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, useFocusField, landing, onward, useAuthOptions, useSignedOut } from './AuthParts.jsx'
 
 const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
@@ -14,6 +15,7 @@ function NoticeLink({ to, page, children }) {
 
 export default function Register() {
 	const focusField = useFocusField()
+	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
 	const [name, setName] = useState('')
@@ -75,7 +77,7 @@ export default function Register() {
 			)}
 			<Field label="Email" id="register-email" message={emailMessage}
 				messageType={isTaken || emailProblem ? 'danger' : 'hint'}>
-				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
+				<TextField type="email" autoComplete="email" inputMode="email" autoFocus={!touch} value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
 			{isTaken ? null : (

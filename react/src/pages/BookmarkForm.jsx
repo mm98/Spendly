@@ -191,7 +191,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			<Field label="Link" id="bookmark-url"
 				message={errors.url || (editing ? 'The page you would buy it on.' : 'Paste the address first. The name and picture are taken from the page.')}
 				messageType={errors.url ? 'danger' : 'hint'}>
-				{h(<TextField value={url} inputMode="url" autoFocus
+				{h(<TextField value={url} inputMode="url" autoFocus={!touch}
 					onChange={setUrl}
 					onBlur={ev => { mark('url', ev.target.value); readPage(ev.target.value) }}
 					onPaste={ev => {
