@@ -36,6 +36,14 @@ export const Text = {
 
 export const Email = { args: { label: 'Email', type: 'email', value: '', placeholder: 'name@example.net' }, render: held(TextField) }
 
+export const Code = {
+	args: { label: 'Recovery code', value: 'K7QM-3XRA', code: true, variant: 'default', readOnly: false, autoCapitalize: 'characters', maxLength: 9 },
+	render: held(TextField),
+	play: async ({ canvas }) => {
+		await expect(getComputedStyle(canvas.getByRole('textbox', { name: 'Recovery code' })).fontFamily).toMatch(/^"Red Hat Mono"/)
+	}
+}
+
 export const Password = {
 	args: { label: 'Password', value: 'a secret', autoComplete: 'current-password' },
 	parameters: { variantsOf: PasswordField },

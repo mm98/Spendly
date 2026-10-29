@@ -9,8 +9,7 @@ const TEXT = {
 	default: null,
 	empty: 'sp-input--empty',
 	readonly: 'sp-input--readonly',
-	stretch: 'sp-input--stretch',
-	code: 'sp-input--code'
+	stretch: 'sp-input--stretch'
 }
 
 /** The box every field is. Internal: the fields below are its arguments. */
@@ -63,14 +62,15 @@ const TYPES = /** @type {const} */ (['text', 'email', 'tel', 'url'])
     @param {typeof TYPES[number]} [props.type] The kind of text, for the phone keyboard and the check that comes with it: text, email, url and so on.
     @param {boolean} [props.multiline] A box of several lines instead of one.
     @param {number} [props.rows] How many lines a multiline field shows.
-    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in; `code` is a sign-in or recovery code, every digit the same width so it does not shift as it is typed.
+    @param {keyof typeof TEXT} [props.variant] `default`; `empty` reads as no value yet; `readonly` reads as a value that cannot be changed; `stretch` takes the height of the row it sits in.
+    @param {boolean} [props.code] The text is a sign-in or recovery code, a key, or an address to paste: set in the monospaced face, so every character is the same width, a code does not shift as it is typed, and 0 and O read apart. Goes with any variant, readonly for a key that is shown to be copied.
     @param {{ icon: string, label: string, expanded?: boolean, onClick: () => void }} [props.action] A button at the end of the field: its icon, its name, and what it does.
     @param {string} [props.value] The text in the field.
     @param {(value: string) => void} [props.onChange]
     @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
     @param {string} [props.placeholder] Grey words shown while the field is empty.
     @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
-export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', action, fullWidth = false, ...rest }) {
+export function TextField({ type = 'text', multiline = false, rows = 3, variant = 'default', code = false, action, fullWidth = false, ...rest }) {
 	if (!TYPES.includes(type)) console.error(`<TextField> type="${type}" is not one of: ${TYPES.join(' | ')}`)
 	if (multiline) return <Box as="textarea" rows={rows} component="TextField" fullWidth={fullWidth} {...rest} />
 	if (action) return (
@@ -80,10 +80,10 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
 				<Icon name={action.icon} size={15} />
 			</button>
 		}>
-			<Box type={type} classes={join(pick(TEXT, variant, 'variant', 'TextField'), 'sp-input--trail')} component="TextField" {...rest} />
+			<Box type={type} classes={join(pick(TEXT, variant, 'variant', 'TextField'), code && 'sp-input--code', 'sp-input--trail')} component="TextField" {...rest} />
 		</Trailed>
 	)
-	return <Box type={type} classes={pick(TEXT, variant, 'variant', 'TextField')} component="TextField" fullWidth={fullWidth} {...rest} />
+	return <Box type={type} classes={join(pick(TEXT, variant, 'variant', 'TextField'), code && 'sp-input--code')} component="TextField" fullWidth={fullWidth} {...rest} />
 }
 
 /** @param {object} props

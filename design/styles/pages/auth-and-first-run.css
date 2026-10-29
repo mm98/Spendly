@@ -40,7 +40,7 @@
   .au-email { display: block; width: 600px; height: 560px; border: 0; border-radius: var(--r-card); }
   .au-right { justify-content: flex-end; }
 
-  .au-mono { font-family: ui-monospace, Menlo, monospace; font-size: var(--t-11); color: var(--ink-2); }
+  .au-mono { font-family: var(--font-mono); font-size: var(--t-11); color: var(--ink-2); }
 
 
   /* The app drawn small, so a first-run screen can show where the user lands.

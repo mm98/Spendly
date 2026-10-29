@@ -12,12 +12,12 @@
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029t">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029w">
 <link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
 <script src="./view.js?v=v20261029h"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029t">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029t">
+<link rel="stylesheet" href="styles/components.css?v=v20261029w">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029w">
 <link rel="stylesheet" href="styles/pages/settings.css?v=v20261029t">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -1846,22 +1846,22 @@
               <div class="sp-field">
               <label class="sp-field__label" id="st-ai-r-t-label" for="st-ai-r-t">Token</label>
               <span class="sp-field__wrap">
-                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-t" type="text" readOnly="{{ true }}" defaultValue="spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN">
+                <input class="sp-input sp-input--readonly sp-input--trail sp-input--code" id="st-ai-r-t" type="text" readOnly="{{ true }}" defaultValue="spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN">
                 <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the token"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
               </span>
             </div>
               <div class="sp-field">
               <label class="sp-field__label" id="st-ai-r-a-label" for="st-ai-r-a">Address</label>
               <span class="sp-field__wrap">
-                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-a" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp" aria-describedby="st-ai-r-a-help">
+                <input class="sp-input sp-input--readonly sp-input--trail sp-input--code" id="st-ai-r-a" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp" aria-describedby="st-ai-r-a-help">
                 <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the address"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
               </span>
-              <span class="sp-field__help" id="st-ai-r-a-help">Send the token with it, as the header Authorization: Bearer and the token.</span>
+              <span class="sp-field__help" id="st-ai-r-a-help">Send the token with it, as the header <span class="sp-code">Authorization: Bearer</span> and the token.</span>
             </div>
               <div class="sp-field">
               <label class="sp-field__label" id="st-ai-r-u-label" for="st-ai-r-u">Address with the token in it</label>
               <span class="sp-field__wrap">
-                <input class="sp-input sp-input--readonly sp-input--trail" id="st-ai-r-u" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp/spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN" aria-describedby="st-ai-r-u-help">
+                <input class="sp-input sp-input--readonly sp-input--trail sp-input--code" id="st-ai-r-u" type="text" readOnly="{{ true }}" defaultValue="https://spendly.example.net/mcp/spk_7Hq2mV9xLr4TnB8cWz3KpYd6FsJ1aGeN" aria-describedby="st-ai-r-u-help">
                 <button type="button" class="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="Copy the address with the token in it"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></button>
               </span>
               <span class="sp-field__help" id="st-ai-r-u-help">For a program that takes only an address.</span>
@@ -2133,7 +2133,7 @@
               <span class="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
               <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
             </div>
-            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">K7QM-3XRA</span><span class="sp-data sp-number">P2WD-8HNE</span><span class="sp-data sp-number">ZT4C-9GLB</span><span class="sp-data sp-number">M8RV-2YKF</span><span class="sp-data sp-number">Q5NJ-7DXP</span><span class="sp-data sp-number">H3LA-6TWC</span><span class="sp-data sp-number">W9EB-4MZR</span><span class="sp-data sp-number">C2YK-8PQS</span><span class="sp-data sp-number">N6FU-3VHT</span><span class="sp-data sp-number">R4XG-5JEM</span></div></div>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-code">K7QM-3XRA</span><span class="sp-data sp-code">P2WD-8HNE</span><span class="sp-data sp-code">ZT4C-9GLB</span><span class="sp-data sp-code">M8RV-2YKF</span><span class="sp-data sp-code">Q5NJ-7DXP</span><span class="sp-data sp-code">H3LA-6TWC</span><span class="sp-data sp-code">W9EB-4MZR</span><span class="sp-data sp-code">C2YK-8PQS</span><span class="sp-data sp-code">N6FU-3VHT</span><span class="sp-data sp-code">R4XG-5JEM</span></div></div>
             <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
           </div>
@@ -2146,7 +2146,7 @@
               <span class="sp-title sp-ink-warning">Save these codes now. They won't be shown again.</span>
               <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
             </div>
-            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">K7QM-3XRA</span><span class="sp-data sp-number">P2WD-8HNE</span><span class="sp-data sp-number">ZT4C-9GLB</span><span class="sp-data sp-number">M8RV-2YKF</span><span class="sp-data sp-number">Q5NJ-7DXP</span><span class="sp-data sp-number">H3LA-6TWC</span><span class="sp-data sp-number">W9EB-4MZR</span><span class="sp-data sp-number">C2YK-8PQS</span><span class="sp-data sp-number">N6FU-3VHT</span><span class="sp-data sp-number">R4XG-5JEM</span></div></div>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-code">K7QM-3XRA</span><span class="sp-data sp-code">P2WD-8HNE</span><span class="sp-data sp-code">ZT4C-9GLB</span><span class="sp-data sp-code">M8RV-2YKF</span><span class="sp-data sp-code">Q5NJ-7DXP</span><span class="sp-data sp-code">H3LA-6TWC</span><span class="sp-data sp-code">W9EB-4MZR</span><span class="sp-data sp-code">C2YK-8PQS</span><span class="sp-data sp-code">N6FU-3VHT</span><span class="sp-data sp-code">R4XG-5JEM</span></div></div>
             <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
           </div></div>
@@ -2161,7 +2161,7 @@
             <span class="sp-dialog__body">Type a code from your authenticator app, or one of your recovery codes.</span>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-n1">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-2s-n1" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="" data-focus="true">
+              <input class="sp-input sp-input--code" id="st-2s-n1" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="" data-focus="true">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Make new codes</button></div>
           </div>
@@ -2173,7 +2173,7 @@
             <span class="sp-dialog__body">Type a code from your authenticator app, or one of your recovery codes.</span>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-n2">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-2s-n2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-n2-help">
+              <input class="sp-input sp-input--code" id="st-2s-n2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-n2-help">
               <span class="sp-field__help" data-color="danger" id="st-2s-n2-help">That code is not right. Check the time on your phone, and try the newest code.</span>
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><button type="button" class="sp-btn">Make new codes</button></div>
@@ -2188,7 +2188,7 @@
               <span class="sp-meta sp-ink-warning">Each code works once, in place of a code from the app.</span>
             </div>
             <span class="sp-data">Your old recovery codes no longer work.</span>
-            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-number">T8VD-2KQN</span><span class="sp-data sp-number">B5MZ-7XRC</span><span class="sp-data sp-number">L3WP-9HFA</span><span class="sp-data sp-number">G6YC-4NTE</span><span class="sp-data sp-number">D9QK-3BWL</span><span class="sp-data sp-number">F2XR-8MJV</span><span class="sp-data sp-number">S7HN-5CPD</span><span class="sp-data sp-number">J4TB-6ZQY</span><span class="sp-data sp-number">V8LE-2RGK</span><span class="sp-data sp-number">X3CW-7FNM</span></div></div>
+            <div class="sp-well"><div class="st-codes"><span class="sp-data sp-code">T8VD-2KQN</span><span class="sp-data sp-code">B5MZ-7XRC</span><span class="sp-data sp-code">L3WP-9HFA</span><span class="sp-data sp-code">G6YC-4NTE</span><span class="sp-data sp-code">D9QK-3BWL</span><span class="sp-data sp-code">F2XR-8MJV</span><span class="sp-data sp-code">S7HN-5CPD</span><span class="sp-data sp-code">J4TB-6ZQY</span><span class="sp-data sp-code">V8LE-2RGK</span><span class="sp-data sp-code">X3CW-7FNM</span></div></div>
             <div class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>Copy all</button><button type="button" class="sp-btn sp-btn--outline sp-btn--small"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download</button></div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn">I have saved them</button></div>
           </div>
@@ -2210,7 +2210,7 @@
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-o2">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-2s-o2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
+              <input class="sp-input sp-input--code" id="st-2s-o2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Turn off</button></div>
           </div>
@@ -2229,7 +2229,7 @@
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="st-2s-o4">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-2s-o4" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-o4-help">
+              <input class="sp-input sp-input--code" id="st-2s-o4" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-2s-o4-help">
               <span class="sp-field__help" data-color="danger" id="st-2s-o4-help">That password and code do not match. Check both and try again.</span>
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Turn off</button></div>
@@ -2313,7 +2313,7 @@
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="st-del-c2">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-del-c2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
+              <input class="sp-input sp-input--code" id="st-del-c2" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="">
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
           </div>
@@ -2375,7 +2375,7 @@
             </div>
             <div class="sp-field">
               <label class="sp-field__label" for="st-del-c5">Code from the app or a recovery code</label>
-              <input class="sp-input sp-number" id="st-del-c5" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-del-c5-help">
+              <input class="sp-input sp-input--code" id="st-del-c5" type="text" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength="9" defaultValue="482193" aria-invalid="true" aria-describedby="st-del-c5-help">
               <span class="sp-field__help" data-color="danger" id="st-del-c5-help">That password and code do not match. Check both and try again.</span>
             </div>
             <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline">Cancel</button><span class="sp-grow"></span><button type="button" class="sp-btn" data-color="danger">Delete account</button></div>
