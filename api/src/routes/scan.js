@@ -44,13 +44,13 @@ const selectDraftWithFile = db.prepare(`SELECT d.id FROM uploads u JOIN order_dr
 	WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1`)
 
 /** What is already known about these bytes: when they were read, the orders that hold them and the
-    draft scanned from them (3c). Nothing is known of a file that was never read and no draft holds. */
+    draft scanned from them (3c). Nothing is known of a file no order or draft holds and that was never read. */
 function seenBefore(userId, sha256) {
 	const orders = selectOrdersWithFile.all({ sha256, userId })
 	const read = readingOf(userId, sha256)
 	const holder = selectDraftWithFile.get(userId, sha256)?.id
 	const [draft] = holder ? draftsAsOrders(userId, holder) : []
-	if (!read && !draft) return null
+	if (!read && !draft && !orders.length) return null
 	return {
 		readAt: read ? new Date(read.read_at * 1000).toISOString() : null,
 		draft: draft ? { id: draft.id, vendor: draft.vendor?.name ?? null, file: draft.draft.file, scanned: draft.draft.scanned, total: draft.total } : null,

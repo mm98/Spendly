@@ -341,6 +341,9 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	})
 	const touch = useShellShape() === 'touch'
 	const draft = seen.draft ?? null
+	// a file put on an order by hand was never read, so it was not scanned and has no reading to use
+	const read = Boolean(readAt || draft)
+	const heading = read ? 'This receipt has been scanned before' : seen.count === 1 ? 'This receipt is already on an order' : 'This receipt is already on orders'
 	const said = seen.count === 0
 		? (draft ? 'The same file is already in Drafts.' : `The same file was read ${readAt ? `${dayShortMonth(localDay(readAt))}, ${timeFormat().format(readAt)}` : 'before'}. No order holds it now.`)
 		: seen.count === 1 ? 'The same file is already on this order.' : `The same file is already on ${seen.count} orders${seen.count > 3 ? '. The newest 3 are shown' : ''}.`
@@ -400,17 +403,20 @@ function SeenBefore({ upload, onUse, onDiscard }) {
 	}
 	const lead = touch ? <span className="sp-meta">{said}</span> : (
 		<div className="sp-stacked">
-			<span className="sp-heading">This receipt has been scanned before</span>
+			<span className="sp-heading">{heading}</span>
 			<span className="sp-meta">{said}</span>
 		</div>
 	)
-	const choices = [
+	const readFile = <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={onUse}>Read the file</Button>
+	const choices = read ? [
 		{ key: 'use', title: 'New order from the saved reading', body: 'Starts a new order with the same lines, ready for you to check and change.', action: useIt },
 		{ key: 'again', title: 'Read it again', body: 'Use this if the lines came out wrong last time.', action: scanAgain }
+	] : [
+		{ key: 'read', title: 'New order from this file', body: 'Reads the file and starts a new order, ready for you to check and change.', action: readFile }
 	]
 	return (
 		<div className="oc-narrow">
-			{touch ? <ScreenBar onBack={onDiscard} title="Scanned before" meta={upload.name} /> : null}
+			{touch ? <ScreenBar onBack={onDiscard} title={read ? 'Scanned before' : 'Already on an order'} meta={upload.name} /> : null}
 			{touch ? (
 				<div className="sp-stack sp-gap-12">
 					{lead}
