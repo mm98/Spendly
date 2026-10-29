@@ -163,6 +163,10 @@
   /* the left column inside a page: the facet rail (Order list 2b) and the section nav (Settings 11a)
      are one width, so the content beside either starts at the same place */
   --rail-left-w: 232px;
+  /* the right column beside a record: the panel (Order editing 1a) holds a form's metadata, and
+     the wide one is itself a form (the library) */
+  --rail-right-w: 360px;
+  --rail-right-w-wide: 400px;
 
   /* where a line row's text starts: padding + border + handle + gap + mark + gap.
      The line editor derives its own gap from this, so the columns hold at any slot size. */

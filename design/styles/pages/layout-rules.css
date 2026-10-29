@@ -45,6 +45,8 @@
     align-items: center;
     justify-content: center;
     gap: var(--sp-2);
+    /* a label that wraps stays centred line by line, as the block centres it */
+    text-align: center;
   }
   /* a block standing for a column whose width is fixed rather than fluid */
   .lr-block--fixed {
@@ -55,6 +57,8 @@
     align-items: center;
     justify-content: center;
     gap: var(--sp-2);
+    /* a label that wraps stays centred line by line, as the block centres it */
+    text-align: center;
   }
   /* the rule marking a measurement beside a block */
   .lr-bar { width: 4px; border-radius: var(--r-marker); background: var(--primary); flex: none; }
