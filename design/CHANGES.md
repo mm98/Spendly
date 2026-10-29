@@ -1,19 +1,37 @@
-# Section nav scrollbar
+# Right rail widths as tokens
 
-Brief: the Settings section nav scrolls with the browser's default scrollbar, while the sidebar beside it uses the styled one.
+Brief: the right rail is a hardcoded 360px, while the left column already reads a token.
 
-## The section nav scrolls with the shared bar
+## The right rail reads two tokens
 
-**The problem.** In a window shorter than the Settings nav, the nav scrolls, and it shows the browser's default grey scrollbar with arrows. The sidebar next to it shows the thin shared bar. The design never said the section nav scrolls: `react/src/styles/app.css` adds `overflow-y: auto` to `.sp-section-nav` on its own, so the nav was never in the shared scrollbar rules and `styles/check.js` could not see it.
+**The problem.** `.sp-panel` was a bare `width: 360px` and `.sp-panel--wide` a bare `400px`, while the left column (`.sp-rail`, `.sp-section-nav`) reads `--rail-left-w`. Layout rules also listed a 320 right rail for Home that no rule draws: Home's two columns are proportional (`.hm-split`, 1.35fr / 1fr).
 
-**What changed.** The section nav now scrolls by its own nature in the design: `.sp-section-nav` carries `overflow-y: auto`, and it joins the shared scrolling-region rules, so it shows the same bar as every other scrolling region - thin, no track, a thumb in `--scroll-thumb`, 8px wide with a 2px inset and pill ends. Nothing changes at a window tall enough for the whole nav; no type, colour or spacing value changed.
+**What changed.** Two tokens, at the values the panel already had, so nothing moves on screen:
+- `--rail-right-w: 360px` - the rail beside a record, holding a form's metadata.
+- `--rail-right-w-wide: 400px` - the panel that is itself a form (the library).
+
+Layout rules now lists the right rail as 360 / 400 with the token names, and the 320 is gone since nothing draws it.
 
 **Where.**
-- `styles/components.css`: `.sp-section-nav` (c35) gains `overflow-y: auto`; the selector is added to the shared lists under "scrolling regions": the `scrollbar-width: thin; scrollbar-color` rule, `::-webkit-scrollbar { width: 8px }` and `::-webkit-scrollbar-thumb`.
-- Page: Settings and import 11a (the section nav, unchanged at its drawn height).
-- App: `react/src/styles/app.css`, the `.sp-section-nav` block. Its `overflow-y: auto` is now stated by the design and can be removed from `app.css`; copy `styles/components.css` into `react/src/styles/components.css`.
+- `styles/tokens.css`: the two tokens, after `--rail-left-w`.
+- `styles/components.css`: `.sp-panel` reads `var(--rail-right-w)`, `.sp-panel--wide` reads `var(--rail-right-w-wide)`.
+- Layout rules: the "Main plus right rail" shape note, and the "Fixed rail widths" row of the build-to-these table.
+- Responsive reference: the CSS shown for shape 3 now reads `width: var(--rail-right-w)`.
+- App: copy `styles/tokens.css` and `styles/components.css` into `react/src/styles/`. Any app rule that restates 360 or 400 for the panel should read the token.
 
 **What is still open.** Nothing.
+
+## Stale left-column widths in Layout rules
+
+**The problem.** The "Fixed rail widths" row still said "260 facets, 208 page nav". Both are `--rail-left-w`, 232px. `styles/check.js` missed it because its sweep only matched the number with `px` after it.
+
+**What changed.** The row says 232 left for the facets and the section nav (`--rail-left-w`), and names the sidebar tokens (`--sidebar-w`, `--sidebar-w-rail`) beside 248 and 68.
+
+**Where.** Layout rules, the build-to-these table. `styles/check.js`, the "One left column" sweep, now matches the number with or without `px`, and "page nav".
+
+## styles/check.js
+
+New assertion "One right rail": `.sp-panel` and `.sp-panel--wide` take their width from the two tokens, the tokens are 360px and 400px, and no page states another set of right rail widths or shows the panel at a bare pixel width. It reported 6 findings before the fix and none after.
 
 ## later.md
 
@@ -23,12 +41,13 @@ The one entry, "A deleted record should not be removed for good at once", is mar
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Settings and import.dc.html` - the page that shows the section nav.
-- `support.js`, `components.js`, `view.js` - what the page loads to open.
-- `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/settings.css` - stylesheets the page links.
-- `styles/components.css` - the changed stylesheet.
-- `styles/check.js` - the checker, whose scrolling-region assertion now covers the section nav.
+- `Layout rules.dc.html`, `Responsive reference.dc.html` - the changed pages.
+- `support.js`, `components.js`, `icons.js`, `view.js` - what the pages load to open.
+- `styles/tokens.css` - the two new tokens.
+- `styles/components.css` - `.sp-panel` and `.sp-panel--wide` read them.
+- `styles/schemes.css`, `styles/doc.css`, `styles/pages/layout-rules.css`, `styles/pages/responsive-reference.css` - stylesheets the pages link.
+- `styles/check.js` - the checker with the new assertion.
 
-## styles/check.js
+## Result
 
 0 finding(s) across 28 pages

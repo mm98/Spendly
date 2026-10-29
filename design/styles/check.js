@@ -1556,13 +1556,31 @@
     for (const sel of ['.sp-rail', '.sp-section-nav'])
       if (!/\bwidth:[^;]*var\(--rail-left-w\)/.test(body(sel))) fail('One left column', 'styles/components.css', sel + ' does not take its width from --rail-left-w');
     if (!/--rail-left-w:\s*232px/.test(await readFile('styles/tokens.css'))) fail('One left column', 'styles/tokens.css', '--rail-left-w is not 232px');
-    const said = /\b(\d{3})px (?:facet rail|facets|section nav)\b|\b(?:facet rail|section nav|page-level nav)(?: is| at| stays)? (\d{3})px\b|\b(\d{3})px for (?:the )?(?:facets|a page-level nav)\b/gi;
+    const said = /\b(\d{3})(?:px)? (?:facet rail|facets|section nav|page nav)\b|\b(?:facet rail|section nav|page-level nav)(?: is| at| stays)? (\d{3})px\b|\b(\d{3})px for (?:the )?(?:facets|a page-level nav)\b/gi;
     for (const f of (await ls('')).filter(f => f.endsWith('.dc.html'))) {
       const t = (await readFile(f)).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
       for (const m of t.matchAll(said)) {
         const n = m[1] || m[2] || m[3];
         if (n !== '232') fail('One left column', f, 'states ' + n + 'px for the left column: "' + m[0] + '"');
       }
+    }
+  }
+
+  /* The right rail is two widths, both tokens. .sp-panel was a bare 360 and .sp-panel--wide a
+     bare 400 while the left column already read --rail-left-w, and Layout rules listed a 320 rail
+     that no rule drew. Both rules read their token, and no page states another set. */
+  {
+    const css = await readFile('styles/components.css');
+    const body = sel => { const i = css.indexOf('\n' + sel + ' {'); return i < 0 ? '' : css.slice(i, css.indexOf('}', i)); };
+    for (const [sel, tok] of [['.sp-panel', '--rail-right-w'], ['.sp-panel--wide', '--rail-right-w-wide']])
+      if (!new RegExp('\\bwidth:\\s*var\\(' + tok + '\\)').test(body(sel))) fail('One right rail', 'styles/components.css', sel + ' does not take its width from ' + tok);
+    const tokens = await readFile('styles/tokens.css');
+    if (!/--rail-right-w:\s*360px/.test(tokens) || !/--rail-right-w-wide:\s*400px/.test(tokens)) fail('One right rail', 'styles/tokens.css', '--rail-right-w is not 360px or --rail-right-w-wide is not 400px');
+    for (const f of (await ls('')).filter(f => f.endsWith('.dc.html'))) {
+      const t = (await readFile(f)).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+      for (const m of t.matchAll(/\b(\d{3}(?: \/ \d{3})+)(?:px)? right\b|\bRail widths are (\d{3}(?: \/ \d{3})+)/g))
+        if ((m[1] || m[2]) !== '360 / 400') fail('One right rail', f, 'states the right rail as ' + (m[1] || m[2]));
+      for (const m of t.matchAll(/\.sp-panel(?:--wide)? \{ width: (\d{3})px/g)) fail('One right rail', f, 'shows .sp-panel at a bare ' + m[1] + 'px');
     }
   }
 

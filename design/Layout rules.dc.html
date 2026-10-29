@@ -18,7 +18,7 @@
 <script src="./view.js?v=v20261029h"></script>
 <link rel="stylesheet" href="styles/components.css?v=v20261029t">
 <link rel="stylesheet" href="styles/doc.css?v=v20261029t">
-<link rel="stylesheet" href="styles/pages/layout-rules.css?v=v20261029g">
+<link rel="stylesheet" href="styles/pages/layout-rules.css?v=v20261029u">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -72,7 +72,7 @@
           <div class="sp-meta sp-ink-accent">fixed</div>
         </div>
       </div>
-      <div class="doc-note">The default for a record: the thing you work on takes the fluid column, its metadata takes the rail. <b>Rail widths are 320 / 360 / 400</b> - 320 for read-only summaries (Home), 360 for a form rail (order edit), 400 for a panel that is itself a form (the library). Nothing in between; three values is already generous.</div>
+      <div class="doc-note">The default for a record: the thing you work on takes the fluid column, its metadata takes the rail. <b>Rail widths are 360 / 400</b> - 360 for a form rail (order edit), <code>--rail-right-w</code>, and 400 for a panel that is itself a form (the library), <code>--rail-right-w-wide</code>. Nothing in between.</div>
       <div class="doc-note"><b class="sp-ink">The rail stays shorter than the main column.</b> Once it is the longest thing on the page, the page scrolls for the rail's sake - which is the problem the whole redesign started from. Anything added to a rail has to displace something.</div>
     </div>
 
@@ -426,7 +426,7 @@
         <div>REAL - BUILD TO THESE</div><div>MOCKUP ONLY - IGNORE</div>
       </div>
       <div class="lr-row doc-table__row">
-        <div class="sp-ink-2"><b class="sp-ink">Fixed rail widths</b> - 320 / 360 / 400 right, 260 facets, 208 page nav, 248 sidebar, 68 collapsed.</div>
+        <div class="sp-ink-2"><b class="sp-ink">Fixed rail widths</b> - 360 / 400 right (<code>--rail-right-w</code>, <code>--rail-right-w-wide</code>), 232 left for the facets and the section nav (<code>--rail-left-w</code>), 248 sidebar, 68 collapsed (<code>--sidebar-w</code>, <code>--sidebar-w-rail</code>).</div>
         <div class="sp-ink-5"><b class="sp-ink-2">The 1400px shell frame</b> on 9a and 10a. That is a stand-in for a viewport, and it carries the rounded corners and shadow that are not part of the design either.</div>
       </div>
       <div class="lr-row doc-table__row">

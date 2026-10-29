@@ -1424,6 +1424,15 @@ for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
 		if (/\.sp-(rail|section-nav)(?![\w-])/.test(m[1]) && /(^|;)\s*(min-|max-)?width\s*:/.test(m[2]))
 			fail('One left column', rel(p), `${m[1].trim()} sets a width: the left column is --rail-left-w`)
 
+/* ---- one right rail (Layout rules) ----
+   The panel takes its width from --rail-right-w and --rail-right-w-wide in components.css, held by
+   the byte copy. No app stylesheet gives it another width. */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]*)\{([^{}]*)\}/g))
+		if (/\.sp-panel(?![\w-])/.test(m[1]) && /(^|;)\s*(min-|max-)?width\s*:/.test(m[2]))
+			fail('One right rail', rel(p), `${m[1].trim()} sets a width: the right rail is --rail-right-w`)
+
 /* ---- a described choice's second line is grey, as c5 draws it ---- */
 
 for (const p of checked.filter(p => !p.includes(`${sep}components${sep}`)))
@@ -1508,6 +1517,7 @@ const DESIGN_RULES = {
 	'a colour needs a component': 'a colour needs a component',
 	'the notes name a class that exists': DESIGN,
 	'One left column': 'One left column',
+	'One right rail': 'One right rail',
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
 	'a required marker is an element': 'a required marker is an element',

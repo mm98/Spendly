@@ -2600,7 +2600,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 }
 /* one column when the column the body sits in is 900 or less; that column is the
    container (the app's page column). In one column the panel is a card the width of
-   the column, like the cards around it: its 360 and its stickiness only mean
+   the column, like the cards around it: its fixed width and its stickiness only mean
    something beside a list. */
 @container (max-width: 900px) {
   .sp-shell__body--split { grid-template-columns: minmax(0, 1fr); }
@@ -2751,7 +2751,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
    Wider than the facet rail because it holds fields, not filters, and sticky so
    it stays level with the row it belongs to. */
 .sp-panel {
-  width: 360px;
+  width: var(--rail-right-w);
   flex: none;
   position: sticky;
   top: var(--sp-16);
@@ -2760,7 +2760,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
   gap: inherit;
   min-width: 0;
 }
-.sp-panel--wide { width: 400px; }
+.sp-panel--wide { width: var(--rail-right-w-wide); }
 .sp-field-group__head {
   display: flex;
   align-items: center;
