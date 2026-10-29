@@ -17,7 +17,7 @@ import { MenuSeparator, useToast, Leaving } from '../components/Overlays.jsx'
 import { Halves } from '../components/Well.jsx'
 import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
-import { chosenTheme, followSystem, setDensity, setScheme, setTheme, useTheme } from '../app/theme.js'
+import { chosenTheme, followSystem, setDensity, setScheme, setTheme, showScheme, useTheme } from '../app/theme.js'
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
@@ -165,6 +165,12 @@ export default function Settings() {
 		if (saved && stored(key) === next) delete out[key]
 		return out
 	})
+	// a picked scheme shows on the whole view at once; leaving without saving puts the saved one back
+	const shownScheme = value('colourScheme')
+	const savedScheme = useRef()
+	savedScheme.current = stored('colourScheme')
+	useEffect(() => { if (shownScheme !== undefined) showScheme(shownScheme) }, [shownScheme])
+	useEffect(() => () => { if (savedScheme.current !== undefined) showScheme(savedScheme.current) }, [])
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
 	const importing = useImportState()
 	const assistants = useAssistantsState()
@@ -392,7 +398,7 @@ function Arrive({ section, visit, room, children }) {
 }
 
 /* The theme lives in this browser, and applies the moment it is picked, as the sidebar's switch does.
-   The colour scheme is the account's, and applies when the card is saved. */
+   The colour scheme is the account's: a pick shows at once, and is kept when the card is saved. */
 function AppearanceCard({ value, change, touch }) {
 	useTheme()
 	const [, redraw] = useReducer(n => n + 1, 0)
