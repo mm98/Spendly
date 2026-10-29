@@ -1433,6 +1433,31 @@ for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
 		if (/\.sp-panel(?![\w-])/.test(m[1]) && /(^|;)\s*(min-|max-)?width\s*:/.test(m[2]))
 			fail('One right rail', rel(p), `${m[1].trim()} sets a width: the right rail is --rail-right-w`)
 
+/* ---- one monospaced face (Typography 13b) ----
+   --font-mono and the classes that take it are held by the byte copy. fonts.css loads the face at
+   400 and 500, no app stylesheet states a monospace stack of its own, a field typed as a code is a
+   code field, and a recovery code in its list is .sp-code. */
+
+{
+	const fonts = read(join(src, 'styles/fonts.css'))
+	for (const weight of [400, 500])
+		if (!new RegExp(`font-family:\\s*'Red Hat Mono';[^}]*font-weight:\\s*${weight};`).test(fonts))
+			fail('One monospaced face', 'src/styles/fonts.css', `Red Hat Mono ${weight} is not loaded`)
+	for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+		if (/font-family:[^;]*monospace/.test(css.replace(/\/\*[\s\S]*?\*\//g, '')))
+			fail('One monospaced face', rel(p), 'states a monospace stack: use var(--font-mono)')
+	for (const [p, ast] of parsed) {
+		if (p.includes(`${sep}components${sep}`)) continue
+		visit(ast, n => {
+			if (n.type !== 'JSXElement') return
+			if (tagOf(n) === 'TextField' && (literalOf(attrOf(n, 'autoCapitalize')) === 'characters' || literalOf(attrOf(n, 'autoComplete')) === 'one-time-code') && !attrOf(n, 'code'))
+				fail('One monospaced face', rel(p), 'a code field is a TextField with code')
+			if (literalOf(attrOf(n, 'className')) === 'st-codes')
+				visit(n, c => { if (c !== n && c.type === 'JSXElement' && !hasClass(c, 'sp-code')) fail('One monospaced face', rel(p), 'a recovery code is not .sp-code') })
+		})
+	}
+}
+
 /* ---- a described choice's second line is grey, as c5 draws it ---- */
 
 for (const p of checked.filter(p => !p.includes(`${sep}components${sep}`)))
@@ -1518,6 +1543,7 @@ const DESIGN_RULES = {
 	'the notes name a class that exists': DESIGN,
 	'One left column': 'One left column',
 	'One right rail': 'One right rail',
+	'One monospaced face': 'One monospaced face',
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
 	'a required marker is an element': 'a required marker is an element',

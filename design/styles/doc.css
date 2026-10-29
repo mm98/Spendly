@@ -269,7 +269,7 @@
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-tile);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: var(--t-11);
   line-height: 1.7;
   color: var(--ink-3);

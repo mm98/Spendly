@@ -441,6 +441,9 @@ a control that does nothing.
   button's name from its icon.
 - A saving is always an amount (`Saved 1.320,00 kr.`), green above zero and grey at zero, never a
   percentage.
+- One typeface for the interface, Poppins. Text read one character at a time (a sign-in or
+  recovery code, a key, a token, code) takes the one monospaced face, Red Hat Mono. Amounts, dates
+  and counts stay in Poppins.
 - A typical order is the median, never the average, so one very large order barely moves it.
   Totals and breakdowns stay sums.
 - An order left out of statistics is still listed, searched, filtered and exported, but no spend

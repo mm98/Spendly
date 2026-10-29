@@ -84,6 +84,15 @@
   .ty-well--clipped { overflow: hidden; }
   .ty-well--success { background: var(--primary-tint-2); border-color: var(--primary-5); }
 
+  /* 13b: the monospaced candidates, each in its own face, for codes, keys and code examples.
+     Nothing in the product uses them until one is chosen */
+  .ty-mono-dm { font-family: "DM Mono", ui-monospace, monospace; }
+  .ty-mono-redhat { font-family: "Red Hat Mono", ui-monospace, monospace; }
+  .ty-mono-azeret { font-family: "Azeret Mono", ui-monospace, monospace; }
+  .ty-mono-space { font-family: "Space Mono", ui-monospace, monospace; }
+  .ty-mono-sample { font-size: var(--t-13); line-height: 1.6; color: var(--ink-2); overflow-wrap: anywhere; }
+  .ty-codes { display: grid; grid-template-columns: repeat(2, max-content); gap: var(--sp-4) var(--sp-16); }
+
   .ty-w440 { width: 440px; }
   .ty-w620 { width: 620px; }
 

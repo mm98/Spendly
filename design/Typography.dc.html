@@ -12,13 +12,13 @@
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500&family=DM+Mono:wght@400;500&family=Azeret+Mono:wght@400;500&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029w">
 <link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
 <script src="./view.js?v=v20261029h"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029g">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
-<link rel="stylesheet" href="styles/pages/typography.css?v=v20261029g">
+<link rel="stylesheet" href="styles/components.css?v=v20261029w">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029w">
+<link rel="stylesheet" href="styles/pages/typography.css?v=v20261029w">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: var(--bg, #e5e9e6); font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
@@ -34,7 +34,7 @@
     <span class="doc-badge" id="13a">13a</span>
     <span class="doc-section__title">Typography</span>
   </div>
-  <div class="doc-lede">One family, four weights. Hierarchy comes from size and weight, never from a second typeface. Everything below is rendered at the real size - measure off this page rather than off a screenshot.</div>
+  <div class="doc-lede">One family for the interface, four weights. Hierarchy comes from size and weight, never from a second typeface. The one exception is text read character by character - codes, keys and code - which takes Red Hat Mono (<a href="#13b">13b</a>). Everything below is rendered at the real size - measure off this page rather than off a screenshot.</div>
 
   <div class="doc-specimens">
 
@@ -139,6 +139,7 @@
         <div class="sp-stack sp-gap-6">
           <div class="sp-field__label">Stack</div>
           <div class="sp-list-item ty-prose--tinted">Poppins, system-ui, sans-serif</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted sp-code">"Red Hat Mono", ui-monospace, monospace</span></div>
         </div>
         <div class="sp-data">Weights 400, 500, 600 and 700, latin and latin-ext. Nothing else - no italics anywhere in the interface, and no 300 or 800. If a weight is missing, the browser synthesises it and the amounts stop lining up.</div>
         <div class="sp-list-item sp-list-item--top">
@@ -292,6 +293,176 @@
       </div>
     </div>
 
+  </div>
+</section>
+
+<section class="doc-section" data-screen-label="13b">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="13b">13b</span>
+    <span class="doc-section__title">Red Hat Mono, for codes, keys and code</span>
+  </div>
+  <div class="doc-lede">The one place Poppins is not enough: text read character by character. Sign-in and recovery codes, keys and setup text for the AI assistants, and code in these documents take Red Hat Mono (B). Amounts and every other figure stay in Poppins with tabular digits (<a href="#13a">13a</a>). The other candidates stay beside it, each card setting the same text at the sizes the product already uses.</div>
+
+  <div class="doc-specimens">
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">POPPINS, AS TODAY</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44">0O 1lI</div>
+          <div class="sp-data sp-ink-5">400 · 500 · 600 · 700</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Recovery codes</div>
+          <div class="ty-codes ty-mono-sample sp-number">
+            <span>K7QM-3XRA</span><span>P2VD-8LWN</span>
+            <span>H0OE-61IL</span><span>Z9TB-4GCY</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Sign-in code</div>
+          <div class="sp-title sp-number">482 193</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">API key</div>
+          <div class="sp-list-item"><span class="ty-mono-sample">sk-ant-api03-Qx7fL0O1lIw9Rk2mVdTn4Hs8eYc6Ub3J</span></div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Code example</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted">.sp-input--code {<br>  font-variant-numeric: tabular-nums;<br>}<br>/* æ ø å in a comment */</span></div>
+        </div>
+        <div class="sp-card__footer doc-note">The reference. Tabular digits keep a code from shifting as it is typed, but 0 and O, and 1, l and I, are hard to tell apart in a key.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">A - DM MONO</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44 ty-mono-dm">0O 1lI</div>
+          <div class="sp-data sp-ink-5">300 · 400 · 500</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Recovery codes</div>
+          <div class="ty-codes ty-mono-sample ty-mono-dm">
+            <span>K7QM-3XRA</span><span>P2VD-8LWN</span>
+            <span>H0OE-61IL</span><span>Z9TB-4GCY</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Sign-in code</div>
+          <div class="sp-title ty-mono-dm">482 193</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">API key</div>
+          <div class="sp-list-item"><span class="ty-mono-sample ty-mono-dm">sk-ant-api03-Qx7fL0O1lIw9Rk2mVdTn4Hs8eYc6Ub3J</span></div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Code example</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted ty-mono-dm">.sp-input--code {<br>  font-variant-numeric: tabular-nums;<br>}<br>/* æ ø å in a comment */</span></div>
+        </div>
+        <div class="sp-card__footer doc-note">Round and low-contrast, the closest in tone to Poppins. Slashed zero, a tailed l, a serifed I. Three weights, so a code is never heavier than 500.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">B - RED HAT MONO, CHOSEN</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44 ty-mono-redhat">0O 1lI</div>
+          <div class="sp-data sp-ink-5">300 · 400 · 500 · 600 · 700</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Recovery codes</div>
+          <div class="ty-codes ty-mono-sample ty-mono-redhat">
+            <span>K7QM-3XRA</span><span>P2VD-8LWN</span>
+            <span>H0OE-61IL</span><span>Z9TB-4GCY</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Sign-in code</div>
+          <div class="sp-title ty-mono-redhat">482 193</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">API key</div>
+          <div class="sp-list-item"><span class="ty-mono-sample ty-mono-redhat">sk-ant-api03-Qx7fL0O1lIw9Rk2mVdTn4Hs8eYc6Ub3J</span></div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Code example</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted ty-mono-redhat">.sp-input--code {<br>  font-variant-numeric: tabular-nums;<br>}<br>/* æ ø å in a comment */</span></div>
+        </div>
+        <div class="sp-card__footer doc-note">Softer and slightly narrower. Dotted zero and clear 1 l I. The full weight range, so a code can match a 600 title beside it.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">C - AZERET MONO</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44 ty-mono-azeret">0O 1lI</div>
+          <div class="sp-data sp-ink-5">100 to 900</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Recovery codes</div>
+          <div class="ty-codes ty-mono-sample ty-mono-azeret">
+            <span>K7QM-3XRA</span><span>P2VD-8LWN</span>
+            <span>H0OE-61IL</span><span>Z9TB-4GCY</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Sign-in code</div>
+          <div class="sp-title ty-mono-azeret">482 193</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">API key</div>
+          <div class="sp-list-item"><span class="ty-mono-sample ty-mono-azeret">sk-ant-api03-Qx7fL0O1lIw9Rk2mVdTn4Hs8eYc6Ub3J</span></div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Code example</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted ty-mono-azeret">.sp-input--code {<br>  font-variant-numeric: tabular-nums;<br>}<br>/* æ ø å in a comment */</span></div>
+        </div>
+        <div class="sp-card__footer doc-note">Geometric and wide, with flat terminals. Slashed zero. The widest of the four, so a long key wraps sooner in a narrow column.</div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">D - SPACE MONO</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44 ty-mono-space">0O 1lI</div>
+          <div class="sp-data sp-ink-5">400 · 700</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Recovery codes</div>
+          <div class="ty-codes ty-mono-sample ty-mono-space">
+            <span>K7QM-3XRA</span><span>P2VD-8LWN</span>
+            <span>H0OE-61IL</span><span>Z9TB-4GCY</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Sign-in code</div>
+          <div class="sp-title ty-mono-space">482 193</div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">API key</div>
+          <div class="sp-list-item"><span class="ty-mono-sample ty-mono-space">sk-ant-api03-Qx7fL0O1lIw9Rk2mVdTn4Hs8eYc6Ub3J</span></div>
+        </div>
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Code example</div>
+          <div class="sp-list-item"><span class="ty-prose--tinted ty-mono-space">.sp-input--code {<br>  font-variant-numeric: tabular-nums;<br>}<br>/* æ ø å in a comment */</span></div>
+        </div>
+        <div class="sp-card__footer doc-note">The most character: squared curves and a distinct a and g. Two weights only, and it reads louder than Poppins at the same size.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
+    <div class="doc-note"><b>Chosen: B, Red Hat Mono.</b> One token, <code>--font-mono</code>, beside <code>--font</code>: <b>"Red Hat Mono", ui-monospace, monospace</b>, at 400. It carries æ ø å, and tells 0 from O and 1 from l and I.</div>
+    <div class="doc-note"><b>Where it is used.</b> The code field (<code>.sp-input--code</code>), for a sign-in code and a recovery code (Settings and import 11f, Auth and first run 20g). A recovery code in its list (<code>.sp-code</code>, 11f). The snippet well (<code>.sp-well--snippet</code>, c26): an assistant's setup and key (11e), and the two-step key (11f). In the documents, <code>code</code>, <code>.doc-code</code> and the CSS panels. Nothing else: amounts, dates and counts stay in Poppins.</div>
+    <div class="doc-note"><b>Loading.</b> Weights 400 and 500, latin and latin-ext, self-hosted with Poppins and <b>font-display: swap</b>. Only the 400 file needs preloading, on the sign-in page.</div>
+    <div class="doc-note"><b>Size.</b> A monospaced face runs wider than Poppins, so it takes the size of the text it replaces and no step of its own: 13 in a list, 14 in a field.</div>
   </div>
 </section>
 

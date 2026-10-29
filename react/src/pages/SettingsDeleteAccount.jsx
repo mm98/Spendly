@@ -110,7 +110,7 @@ function DeleteAccount({ onCancel }) {
 				{twoStep
 					? (
 						<Field label="Code from the app or a recovery code" id="delete-account-code" message={problem?.code} messageType={problem?.code ? 'danger' : 'hint'}>
-							<TextField variant="code" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={9} value={code} disabled={waiting}
+							<TextField code autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={9} value={code} disabled={waiting}
 								onChange={v => { setCode(cleanCode(v)); setProblem(null) }} />
 						</Field>
 					)

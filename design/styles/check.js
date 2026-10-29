@@ -1584,6 +1584,45 @@
     }
   }
 
+  /* One monospaced face. Codes, keys and code took three stacks (ui-monospace in doc.css,
+     Auth's routes and Responsive reference's CSS panel), recovery codes took Poppins, and a
+     doc <code> took the body face. --font-mono is Red Hat Mono (Typography 13b); every stack reads
+     it, and every page that loads Poppins loads Red Hat Mono with it. A key or code anywhere in the
+     product's text (spk_, a recovery code's 4-4 form, the two-step key) sits in a mono element. */
+  {
+    const tokens = await readFile('styles/tokens.css');
+    if (!/--font-mono:\s*"Red Hat Mono", ui-monospace, monospace;/.test(tokens)) fail('One monospaced face', 'styles/tokens.css', '--font-mono is not "Red Hat Mono", ui-monospace, monospace');
+    const sheets = ['styles/components.css', 'styles/doc.css', ...(await ls('styles/pages')).filter(f => f.endsWith('.css') && !/^(typography|type-specimen)\.css$/.test(f)).map(f => 'styles/pages/' + f)];
+    for (const f of sheets) {
+      const t = (await readFile(f)).replace(/\/\*[\s\S]*?\*\//g, '');
+      if (/font-family:[^;]*monospace/.test(t)) fail('One monospaced face', f, 'states a monospace stack; use var(--font-mono)');
+    }
+    const comp = await readFile('styles/components.css');
+    for (const sel of ['.sp-code', '.sp-input--code', '.sp-well--snippet'])
+      if (!new RegExp('\\n' + sel.replace('.', '\\.') + ' \\{[^}]*font-family:\\s*var\\(--font-mono\\)').test(comp)) fail('One monospaced face', 'styles/components.css', sel + ' does not take var(--font-mono)');
+    if (!/\.sp code \{[^}]*font-family:\s*var\(--font-mono\)/.test(comp)) fail('One monospaced face', 'styles/components.css', '.sp code does not take var(--font-mono)');
+    for (const f of (await ls('')).filter(f => f.endsWith('.dc.html'))) {
+      const s = await readFile(f);
+      if (/family=Poppins/.test(s) && !/family=Red\+Hat\+Mono:wght@400;500/.test(s)) fail('One monospaced face', f, 'loads Poppins without Red Hat Mono 400 and 500');
+      for (const m of s.matchAll(/<input\b[^>]*>/g)) {
+        const code = /one-time-code|autoCapitalize="characters"|defaultValue="[^"]*spk_/.test(m[0]), mono = /\bsp-input--code\b/.test(m[0]);
+        if (code && !mono) fail('One monospaced face', f, 'a code field is not .sp-input--code: ' + m[0].slice(0, 80));
+        if (!code && mono) fail('One monospaced face', f, '.sp-input--code on a field that is not a code: ' + m[0].slice(0, 80));
+      }
+      const prose = s.replace(/<div class="doc-notes?[\s\S]*?<\/div>/g, '');
+      for (const m of prose.matchAll(/<(span|div)\b([^>]*)>([^<]*(?:spk_\w+|\b[A-Z0-9]{4}-[A-Z0-9]{4}\b|JBSW[ A-Z0-9]+|Authorization: Bearer)[^<]*)</g)) {
+        if (/\bsp-code\b|sp-well--snippet|ty-mono/.test(m[2])) continue;
+        const open = prose.slice(Math.max(0, m.index - 300), m.index);
+        if (/<div class="sp-well sp-well--snippet">\s*$/.test(open) || /class="[^"]*ty-mono-[a-z]+[^"]*"[^<]*$/.test(open)) continue;
+        if (/ty-codes(?! ty-mono-sample sp-number)/.test(open.slice(-200)) && /ty-mono/.test(open.slice(-200))) continue;
+        if (f === 'Typography.dc.html' && /POPPINS, AS TODAY/.test(prose.slice(Math.max(0, m.index - 3000), m.index))) continue;
+        fail('One monospaced face', f, 'a key or code is not in the monospaced face: ' + m[3].trim().slice(0, 50));
+      }
+      for (const m of s.matchAll(/class="st-codes">([\s\S]*?)<\/div>/g))
+        if (/<span class="(?![^"]*\bsp-code\b)/.test(m[1])) fail('One monospaced face', f, 'a recovery code is not .sp-code');
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

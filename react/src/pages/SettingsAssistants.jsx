@@ -158,9 +158,10 @@ function MadeToken({ token, touch }) {
 			<Icon name={copied === key ? 'check' : 'copy'} size={15} />
 		</button>
 	)
-	const readOnly = (key, label, text, message) => (
+	// a value with the token in it is read character by character, so it is set as a code (11e)
+	const readOnly = (key, label, text, message, code = false) => (
 		<Field label={label} message={message}>
-			<TextField variant="readonly" readOnly value={text} action={{ icon: copied === key ? 'check' : 'copy', label: `Copy the ${label.toLowerCase()}`, onClick: () => copy(key, text) }} />
+			<TextField variant="readonly" readOnly code={code} value={text} action={{ icon: copied === key ? 'check' : 'copy', label: `Copy the ${label.toLowerCase()}`, onClick: () => copy(key, text) }} />
 		</Field>
 	)
 	return (
@@ -170,9 +171,9 @@ function MadeToken({ token, touch }) {
 				<span className="sp-title sp-ink-warning">Copy the token now. It won't be shown again.</span>
 				<span className="sp-meta sp-ink-warning">If you lose it, remove it and make a new one.</span>
 			</Well>
-			{readOnly('token', 'Token', values.token)}
-			{readOnly('address', 'Address', values.address, 'Send the token with it, as the header Authorization: Bearer and the token.')}
-			{readOnly('with-token', 'Address with the token in it', values.withToken, 'For a program that takes only an address.')}
+			{readOnly('token', 'Token', values.token, undefined, true)}
+			{readOnly('address', 'Address', values.address, <>Send the token with it, as the header <span className="sp-code">Authorization: Bearer</span> and the token.</>)}
+			{readOnly('with-token', 'Address with the token in it', values.withToken, 'For a program that takes only an address.', true)}
 			{touch
 				? null
 				: (

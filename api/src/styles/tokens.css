@@ -91,6 +91,8 @@
 
   /* ---- type ---- */
   --font: Poppins, system-ui, sans-serif;
+  /* text read character by character: a sign-in or recovery code, a key, code (Typography 13b) */
+  --font-mono: "Red Hat Mono", ui-monospace, monospace;
   /* Named by value, like the spacing scale above, so nothing has to be looked
      up and no two names can sound like the same size. */
   --t-10: 10px;            /* eyebrow labels, a count inside a mark, a tile's kind */

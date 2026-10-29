@@ -30,6 +30,7 @@
     .sp a:hover { color: var(--primary-2); }
   }
   .sp code {
+    font-family: var(--font-mono);
     font-size: var(--t-11);
     background: var(--hover);
     padding: var(--sp-2) var(--sp-6);
@@ -5486,7 +5487,7 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* text the user copies as written, such as an assistant's setup: its line breaks kept,
    long words broken anywhere, and the copy button in the top right corner, where a
    field keeps its trailing control - c26 variant */
-.sp-well--snippet { position: relative; padding-right: calc(var(--sp-6) + var(--field-trail) + var(--sp-8)); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sp-well--snippet { font-family: var(--font-mono); position: relative; padding-right: calc(var(--sp-6) + var(--field-trail) + var(--sp-8)); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* the marker, drawn inline so a line of text can name what it means */
 .sp-gauge__key { display: inline-block; width: 2px; height: 12px; background: var(--amber); flex: none; }
@@ -5702,9 +5703,13 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 
 /* a field showing a value the user cannot change here - c17 variant */
 .sp-input--readonly { background: var(--surface-2); color: var(--ink-2); }
-/* a sign-in code (6 digits, or a recovery code): every digit the same width, so the code does
-   not shift as it is typed. A variant of the field, since the field takes no class of its own */
-.sp-input--code { font-variant-numeric: tabular-nums; }
+/* a sign-in code (6 digits), a recovery code or a key: in the monospaced face, so every character
+   is the same width, a code does not shift as it is typed, and 0 and O, 1, l and I read apart.
+   A variant of the field, since the field takes no class of its own */
+.sp-input--code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* the same text shown rather than typed: a recovery code in its list (Settings 11f), or a key or
+   header named in a line of copy (11e) */
+.sp-code { font-family: var(--font-mono); }
 /* a field with nothing in it yet, where the emptiness is the point - c17 variant */
 .sp-input--empty { border-style: dashed; color: var(--ink-5); }
 /* the same statement on a picker: nothing is chosen, and that is a choice - c8 */

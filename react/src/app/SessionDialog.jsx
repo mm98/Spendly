@@ -94,7 +94,7 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 						<>
 							{alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
 							<Field label={words.label} id="session-code" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
-								<TextField {...words.field} variant="code" value={code} disabled={stopped || busy}
+								<TextField {...words.field} code value={code} disabled={stopped || busy}
 									onChange={v => { setCode(cleanCode(v)); setProblem(null); setAlert(null) }} />
 							</Field>
 							{stopped ? null : (
