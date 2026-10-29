@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029t">
 <link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
 <script src="./view.js?v=v20261029h"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029g">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
+<link rel="stylesheet" href="styles/components.css?v=v20261029t">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029t">
 <link rel="stylesheet" href="styles/pages/layout-rules.css?v=v20261029g">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="./components.js?v=v20261024s"></script>
@@ -83,15 +83,15 @@
       </div>
       <div class="lr-h116">
         <div class="lr-block lr-block--fixed lr-w80">
-          <div class="sp-title sp-ink-accent">260px</div>
-          <div class="sp-meta sp-ink-accent">facets</div>
+          <div class="sp-title sp-ink-accent">232px</div>
+          <div class="sp-meta sp-ink-accent">facets, section nav</div>
         </div>
         <div class="lr-block lr-block--label sp-grow">
           <div class="sp-title">1fr</div>
           <div class="sp-meta">the list</div>
         </div>
       </div>
-      <div class="doc-note">Controls on the left, results on the right - the reading order matches the causal order. <b>260px</b> for facets, <b>208px</b> for a page-level nav (Settings). A left rail is always narrower than a right rail, because it holds controls rather than content.</div>
+      <div class="doc-note">Controls on the left, results on the right - the reading order matches the causal order. <b>One left column, 232px</b> (<code>--rail-left-w</code>), for the facets (2a) and for a page's section nav (Settings 11a), so the content beside either starts at the same place: the page's 16 inset, the column, then the 12 gap. The facets are cards inside that column. The section nav has no card; it runs from the page's edge, taking in the 16, to a divider where the facet column ends, and its rows start where the facet cards do. A left rail is always narrower than a right rail, because it holds controls rather than content.</div>
       <div class="doc-note">Below <b>1280px</b> this rail becomes a drawer or a sheet rather than compressing. A facet list at 180px is unusable, so it leaves the layout instead.</div>
     </div>
 

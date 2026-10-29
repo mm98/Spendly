@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029t">
 <link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
 <script src="./view.js?v=v20261029h"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029g">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
-<link rel="stylesheet" href="styles/pages/settings.css?v=v20261029g">
+<link rel="stylesheet" href="styles/components.css?v=v20261029t">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029t">
+<link rel="stylesheet" href="styles/pages/settings.css?v=v20261029t">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: var(--bg, #e5e9e6); font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
@@ -64,7 +64,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Note on the frame</span>
     <div class="doc-note">The <b>1180px shell below is presentation only</b> - a stand-in for a viewport, so the screen reads in context on this page. It is not a width the app has. In the app the shell fills the browser edge to edge: sidebar 248px fixed, content column fluid, exactly as <a href="Navigation shell.dc.html#9a">9a</a> defines it.</div>
-    <div class="doc-note">Inside the content column, three widths do the work: the section nav is <b>208px fixed</b>, the divider beside it is a hairline, and the card column is <b>fluid with a 640px cap</b>. Past 640px the cards stop growing and the slack falls to their right - a 42px input stretched across a 1920px screen looks like an error (15a). Below roughly 900px the section nav becomes a select above the cards, and the cap stops binding because the column is already narrower than it.</div>
+    <div class="doc-note">Inside the content column, three widths do the work: the section nav is <b>the left column, 232px</b> (<code>--rail-left-w</code>) plus the page inset it runs to, the same column as the order list's facets, the divider beside it is a hairline, and the card column is <b>fluid with a 640px cap</b>. Past 640px the cards stop growing and the slack falls to their right - a 42px input stretched across a 1920px screen looks like an error (15a). Below roughly 900px the section nav becomes a select above the cards, and the cap stops binding because the column is already narrower than it.</div>
   </div>
 
   <div class="sp-shell st-screen">

@@ -2746,7 +2746,7 @@ label.sp-nav-item:focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18
 
 .sp-facets { display: flex; flex-direction: column; gap: var(--sp-16); width: 100%; min-width: 0; }
 /* the page sets the rail width; the facets fill whatever they are given */
-.sp-rail { width: 232px; flex: none; }
+.sp-rail { width: var(--rail-left-w); flex: none; }
 /* the panel: the record a list row opens, beside the list rather than over it.
    Wider than the facet rail because it holds fields, not filters, and sticky so
    it stays level with the row it belongs to. */
@@ -4357,13 +4357,16 @@ a.sp-chat__file-name { text-decoration: none; }
 .sp-touch .sp-nav-list > .sp-field__wrap { margin-block: calc((var(--row-h-touch) - var(--control-h-touch)) / 2); }
 
 /* ---------- section nav - c35 ---------- */
-/* the nav beside a page's pane (Settings 11a): a heading over c22's light rows. 224 wide, so
+/* the nav beside a page's pane (Settings 11a): a heading over c22's light rows. It is the facet
+   rail's column: it runs from the page's edge, taking in the body's 16 inset, to where the rail
+   ends, so its rows start where the rail's cards start and the pane beside it, 12 on, starts where
+   the order list does. Wide enough that
    the longest label, Money, dates and times, does not wrap. The divider is the boundary
    between the two columns, so it runs the pane's whole height rather than stopping at the
    last row, and the column does not scroll with the pane: in the app it is the window's
    height below the top bar, so the divider never moves. */
 .sp-section-nav {
-  width: 224px;
+  width: calc(var(--sp-16) + var(--rail-left-w));
   flex: none;
   align-self: stretch;
   padding: var(--card-pad);

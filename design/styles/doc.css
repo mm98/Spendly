@@ -167,7 +167,7 @@
   /* view options, driven by the host's Tweaks panel */
   .sp[data-notes="off"] .doc-notes { display: none; }
   /* the rail has no card of its own - this only gives the specimen its width */
-  .doc-rail-demo { display: flex; flex-direction: column; gap: var(--sp-8); width: 260px; }
+  .doc-rail-demo { display: flex; flex-direction: column; gap: var(--sp-8); width: var(--rail-left-w); }
   /* an explanation drawn as a panel: the documents' own card, not the product's */
   
 /* ---------- the documentation table ----------

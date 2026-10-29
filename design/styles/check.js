@@ -1547,6 +1547,25 @@
     }
   }
 
+  /* The left column is one width. The facet rail was 232, the section nav 224 and Layout rules
+     said 260 and 208, so the cards beside them started 20px apart. Both rules read --rail-left-w,
+     and no page states another width for either. */
+  {
+    const css = await readFile('styles/components.css');
+    const body = sel => { const i = css.indexOf('\n' + sel + ' {'); return i < 0 ? '' : css.slice(i, css.indexOf('}', i)); };
+    for (const sel of ['.sp-rail', '.sp-section-nav'])
+      if (!/\bwidth:[^;]*var\(--rail-left-w\)/.test(body(sel))) fail('One left column', 'styles/components.css', sel + ' does not take its width from --rail-left-w');
+    if (!/--rail-left-w:\s*232px/.test(await readFile('styles/tokens.css'))) fail('One left column', 'styles/tokens.css', '--rail-left-w is not 232px');
+    const said = /\b(\d{3})px (?:facet rail|facets|section nav)\b|\b(?:facet rail|section nav|page-level nav)(?: is| at| stays)? (\d{3})px\b|\b(\d{3})px for (?:the )?(?:facets|a page-level nav)\b/gi;
+    for (const f of (await ls('')).filter(f => f.endsWith('.dc.html'))) {
+      const t = (await readFile(f)).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+      for (const m of t.matchAll(said)) {
+        const n = m[1] || m[2] || m[3];
+        if (n !== '232') fail('One left column', f, 'states ' + n + 'px for the left column: "' + m[0] + '"');
+      }
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

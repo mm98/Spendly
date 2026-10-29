@@ -1415,6 +1415,15 @@ for (const [p, css] of pages) {
 	if (/\.sp-section-nav\b/.test(rules)) fail('the section nav is .sp-section-nav', rel(p), 'restyles .sp-section-nav outside components.css and app.css')
 }
 
+/* ---- one left column (Layout rules 15a) ----
+   The facet rail and the section nav take their width from --rail-left-w in components.css, held
+   by the byte copy. No app stylesheet gives either another width. */
+
+for (const [p, css] of [[join(src, 'styles/app.css'), app], ...pages])
+	for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]*)\{([^{}]*)\}/g))
+		if (/\.sp-(rail|section-nav)(?![\w-])/.test(m[1]) && /(^|;)\s*(min-|max-)?width\s*:/.test(m[2]))
+			fail('One left column', rel(p), `${m[1].trim()} sets a width: the left column is --rail-left-w`)
+
 /* ---- a described choice's second line is grey, as c5 draws it ---- */
 
 for (const p of checked.filter(p => !p.includes(`${sep}components${sep}`)))
@@ -1498,6 +1507,7 @@ const DESIGN_RULES = {
 	'a colour is one we define': 'variant values',
 	'a colour needs a component': 'a colour needs a component',
 	'the notes name a class that exists': DESIGN,
+	'One left column': 'One left column',
 	'one colour vocabulary': DESIGN,
 	'mockup mail is example.net': DESIGN,
 	'a required marker is an element': 'a required marker is an element',
