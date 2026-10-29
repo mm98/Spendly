@@ -511,6 +511,9 @@ media queries key off it. A change that moves a shot is regenerated in the same 
 never before, and only that shot: `--only=settings.png,phone.png` renders just the ones named. The
 script uses the session, so it fills its account once a run.
 
+**A shot shows the app as it is now.** A shot found out of date while verifying is re-rendered in the
+same pull request, whatever made it stale. Never ask whether to, and never leave it for another change.
+
 **A shot draws text the way a real screen does.** No launch flag that changes how fonts are drawn
 (`--font-render-hinting` and the like): one that snaps letters to whole pixels makes bold text read as
 loosely spaced, and every shot then documents the harness instead of the app. Before shots are
