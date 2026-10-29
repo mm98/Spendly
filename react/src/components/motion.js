@@ -165,20 +165,26 @@ export function Presence({ onGone, children }) {
 }
 
 /** A body that folds by height: a card's body under its toggle, a facet group's values. It grows to
-    its height as it opens and back to nothing as it closes, clipped only while it moves, so a menu
-    inside it is never cut off once it is open.
+    its height as it opens and back to nothing as it closes, clipped only while it moves, so a focus
+    ring or a menu inside it is never cut off once it is open.
+    The clip is set on the element when a move starts and taken off when it ends, every time, rather
+    than handed to Motion as a value: as a value it was kept at clip after any opening that animated.
     @param {object} props
     @param {boolean} props.open Whether it is unfolded.
     @param {import('react').ReactNode} [props.children] What folds. */
 export function Fold({ open, children }) {
+	const box = useRef(null)
+	const clip = on => { if (box.current) box.current.style.overflow = on ? 'clip' : '' }
 	return (
 		<AnimatePresence initial={false}>
 			{open
 				? (
-					<m.div className="sp-fold" key="fold"
-						initial={{ height: 0, opacity: 0, overflow: 'clip' }}
-						animate={{ height: 'auto', opacity: 1, transition: into(), transitionEnd: { overflow: 'visible' } }}
-						exit={{ height: 0, opacity: 0, overflow: 'clip', transition: away() }}>
+					<m.div className="sp-fold" key="fold" ref={box}
+						initial={{ height: 0, opacity: 0 }}
+						animate={{ height: 'auto', opacity: 1, transition: into() }}
+						exit={{ height: 0, opacity: 0, transition: away() }}
+						onAnimationStart={() => clip(true)}
+						onAnimationComplete={() => clip(false)}>
 						{children}
 					</m.div>
 				)

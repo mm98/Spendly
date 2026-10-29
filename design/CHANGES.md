@@ -1,58 +1,43 @@
-# A field does not open the keyboard on touch when a form opens
+# A folding group stays cut off after it opens again
 
-## Fixed from handoff_touch_autofocus_fixed
+Answers the brief "a folding group stays cut off after it opens again".
 
-Two values were still the old green (#1d4d33) instead of the emerald primary (#004d28).
+## Fold drops its clip once every opening ends
 
-- **The problem:** the Custom colour input in Components (SwatchPicker, Swatches) started on #1d4d33. In `styles/components.css` the tick in a checked checkbox inside a selected filter chip was drawn in #1d4d33 inside an SVG data URI, which cannot read a token, so it stayed green in every scheme.
-- **What changed:** the Custom colour input starts on #004d28. The tick is now cut out of the white box with a mask, so it shows the chip's own `--primary` behind it and follows every scheme. It looks the same as before in Green.
-- **Where:** Components, SwatchPicker, Swatches (`defaultValue="#004d28"`). `styles/components.css`, `.sp-chip--facet:has(input:checked) input[type="checkbox"]`: `background: var(--surface)` plus `mask` / `-webkit-mask` (tick, `linear-gradient(#000 0 0)`) with `mask-composite: exclude` / `-webkit-mask-composite: xor`. Copy the same rule into `react/src/styles/components.css`.
-- **What is still open:** nothing.
+**The problem.** A filter group that was folded and opened again kept `overflow: clip` on its
+inline style. From then on the focus ring of every field and box in it was cut at the sides and top:
+the vendor and category searches, the Kind field, the two Amount fields and the check boxes, in the
+order filter rail and the phone Filters sheet. It stayed like that until the page was loaded again.
+`Fold` gave the clip to Motion as an animated value (`overflow: 'clip'` in `initial` and `exit`,
+`transitionEnd: { overflow: 'visible' }` on `animate`), and after an opening that animated, Motion
+did not apply the `transitionEnd`.
 
-## Fixed from handoff_touch_autofocus
+**What changed.** `overflow` is no longer a Motion value. `Fold` sets `overflow: clip` on its own
+element in `onAnimationStart` and clears it in `onAnimationComplete`, on every opening and closing.
+At rest the element has no `overflow` style and takes the `.sp-fold` rule, which clips nothing. A
+fold drawn open on load never animates and is never clipped, as before. The height and opacity
+motion, its timing and its tokens are unchanged, and nothing about the look changes: the ring
+matches the Order list page in the design system.
 
-- **The problem:** that package's Components.dc.html had an old Swatches specimen (Components, SwatchPicker, Swatches): Green, Mid green, Light green, Pale green on `green`, `green-3`, `green-4`, `green-5`.
-- **What changed:** the specimen now matches main: Primary, Mid, Light, Pale on `primary`, `primary-3`, `primary-4`, `primary-5`. Apart from the focus note, this Components.dc.html is the same as `design/Components.dc.html` on main.
-- **Where:** Components, SwatchPicker, Swatches specimen.
-- **What is still open:** nothing.
+**Where.** `react_handoff/motion.js`, `Fold`; in the app, `react/src/components/motion.js`. It covers
+every place that uses `Fold`:
+- `Choice.jsx`, `FieldGroup` with `facet`: every group in the filter rail and the Filters sheet
+  (`react/src/pages/Orders.jsx`).
+- `Choice.jsx`, `FieldGroup` with `meta`: the Amount group on the order list.
+- `Card.jsx`, `CardBody` with `open`: Order details on a phone and in a narrow window
+  (`react/src/pages/OrderForm.jsx`) and the sums on an order (`react/src/pages/Order.jsx`). No ring
+  is cut there today, but they had the same stuck clip, which would cut off a menu opened inside them.
 
-The brief: on a phone the keyboard pops up every time a form is shown, before the reader has decided to type, and has to be closed first.
-
-## 1. On touch a field takes focus only when the reader has just asked to type
-
-- **The problem:** pages and forms autofocus their first field on every device. On touch that opens the keyboard over half the form as it opens, whether or not the reader wants to edit. Ask already skips it on touch (`Ask.jsx:80`), and the rest of the app does not.
-- **What changed:** one rule for every field. On touch (`useShellShape() === 'touch'`, the shell that adds `.sp-touch`) opening a page or form focuses nothing. Desktop keeps its autofocus. Focus still goes to the field on touch when:
-  - a tap meant "type here": Add row, Rename, New token, naming a view or a set of orders, a new item's name, Add link, search and the palette;
-  - the dialog's only job is a password or a code: confirm password, two-step, delete account;
-  - a submit failed: focus goes to the first field in error.
-- **Where:** Components, the opening notes, new note "On touch a field takes focus only when the reader has just asked to type". Auth and first run, the sign in / register note: email is autofocused on desktop, not on touch. App, page-open autofocus to gate with `autoFocus={!touch}` (or `if (!touch)` in the effect):
-  - `react/src/pages/VendorForm.jsx:289` name
-  - `react/src/pages/CategoryForm.jsx:218` name
-  - `react/src/pages/BookmarkForm.jsx:194` URL
-  - `react/src/pages/OrderForm.jsx:1185` VendorPicker `autoFocus={vendorFirst}` becomes `vendorFirst && !touch`
-  - `react/src/pages/SignIn.jsx:202, 208` email and password
-  - `react/src/pages/Register.jsx:78` email
-  - `react/src/pages/AccountLinks.jsx:221, 272` email and new password
-  - `react/src/pages/Welcome.jsx`: no page-open focus; its focus follows a tap on Other, which stays.
-  Left as they are, since each follows a tap or a failed submit: Budget.jsx row naming (959, 1026, 1162) and cells (785), OrderForm.jsx item title (1827) and link (1833), OrderViews.jsx, OrderBulk.jsx, OrderMenu.jsx, CopyPicker.jsx, Orders.jsx naming, SettingsStatuses.jsx, SettingsPasskeys.jsx, SettingsAssistants.jsx, the re-auth dialogs (SessionDialog.jsx, SettingsTwoStep.jsx, SettingsDeleteAccount.jsx, SettingsAccount.jsx change password) and every focus-on-error. If any of the left-as-is screens opens from navigation rather than a tap, it takes the gate too.
-- **What is still open:** nothing.
-
-## later.md entries left as they are
-
-- **A deleted record should not be removed for good at once:** an idea for later, not a planned task; untouched.
+**What is still open.** Nothing.
 
 ## Files
 
-- README.md: the design's overview, unchanged.
-- CHANGES.md: this note.
-- Components.dc.html: the new focus-on-touch note.
-- Auth and first run.dc.html: the sign in / register note names the rule.
-- support.js, view.js, components.js, icons.js: what the pages load to open.
-- styles/components.css: the filter chip tick rule.
-- styles/tokens.css, styles/schemes.css, styles/doc.css: shared styles, unchanged.
-- styles/pages/auth-and-first-run.css: Auth and first run's page styles, unchanged.
-- assets/shop-logo.svg: the logo mark drawn in Components.
+- `README.md` - the design's overview, unchanged from the project root.
+- `CHANGES.md` - this note.
+- `react_handoff/motion.js` - `Fold` with the clip set and cleared on the element.
+
+No page or stylesheet changed, so none is included.
 
 ## styles/check.js
 
-0 findings across 28 pages.
+0 finding(s) across 28 pages.
