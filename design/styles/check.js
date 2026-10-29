@@ -202,18 +202,22 @@
     }
   }
 
-  /* A page's Go to tweak lists its sections by badge. It is typed by hand, so a section
-     added or renumbered left the menu pointing at the old numbers. */
-  for (const f of pages) {
-    const t = await readFile(f);
-    const m = t.match(/&quot;jumpTo&quot;: \{[^}]*?options&quot;: \[([^\]]*)\]/);
-    if (!m) continue;
-    const opts = [...m[1].matchAll(/&quot;([^&]*)&quot;/g)].map(x => x[1]).filter(o => o !== 'top');
-    const ids = [...t.matchAll(/class="doc-badge" id="([^"]+)"/g)].map(x => x[1]);
-    const optIds = opts.map(o => o.split(' ')[0]);
-    for (const i of optIds) if (!ids.includes(i)) fail('the Go to menu matches the page', f, i + ' is in the menu but not on the page');
-    for (const i of ids) if (i !== 'r0' && !optIds.includes(i)) fail('the Go to menu matches the page', f, i + ' is on the page but not in the menu');
-    if (optIds.join() !== ids.filter(i => optIds.includes(i)).join()) fail('the Go to menu matches the page', f, 'menu order differs from page order');
+  /* Every page carries the same tweak bar, theme and scheme in the View section and
+     nothing else: a page-only tweak (Touch only, Go to, a variant switch) is a second
+     view of the solution that the other pages do not have. $preview is a size, not a tweak. */
+  {
+    const bars = {};
+    for (const f of pages) {
+      const m = src[f].match(/data-props="([^"]*)"/);
+      if (!m) { fail('one tweak bar on every page', f, 'no tweak bar'); continue; }
+      let p; try { p = JSON.parse(m[1].replace(/&quot;/g, '"')); } catch (e) { fail('one tweak bar on every page', f, 'props do not parse'); continue; }
+      delete p.$preview;
+      const keys = Object.keys(p).sort().join();
+      if (keys !== 'scheme,theme') fail('one tweak bar on every page', f, 'tweaks are ' + keys);
+      bars[f] = JSON.stringify(p.theme) + JSON.stringify(p.scheme);
+    }
+    const ref = Object.values(bars).sort((a, b) => Object.values(bars).filter(x => x === b).length - Object.values(bars).filter(x => x === a).length)[0];
+    for (const [f, b] of Object.entries(bars)) if (b !== ref) fail('one tweak bar on every page', f, 'theme or scheme differs from the other pages');
   }
 
   /* The shortcut badge sits only on the top bar's search. ⌘K opens the search window,

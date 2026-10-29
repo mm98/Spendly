@@ -2,7 +2,7 @@ import { db } from '../db.js'
 import { counted } from './aggregate.js'
 import { populateDemoBudget } from './demoBudget.js'
 import { newId } from './ids.js'
-import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
+import { CATEGORY_PALETTE, colourFor, nthColour } from './palette.js'
 
 /* A stretch of plausible ledger — a year by default, up to decades — for looking at the app
    with something in it.
@@ -171,7 +171,7 @@ export function populateDemoData(userId, { months = 12, seed = 424242, orders, t
 		vendorIds: VENDORS.map((v, i) => {
 			const id = newId('v')
 			insertVendor.run({ id, userId, name: v.name, initials: v.initials,
-				colour: nthColour(i, VENDOR_PALETTE), favourite: v.favourite ?? 0, lead: v.lead ?? null })
+				colour: colourFor(v.name), favourite: v.favourite ?? 0, lead: v.lead ?? null })
 			return { id, ...v }
 		}),
 		categoryIds: CATEGORIES.map((c, i) => {

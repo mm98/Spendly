@@ -1,40 +1,39 @@
 /* The colours a vendor or a category gets when nobody picked one.
 
-   This lived twice -- the same six-entry PALETTE and the same colourFor were copied into
-   routes/vendors.js and lib/findOrCreate.js, so a vendor created by saving the form and a
-   vendor created by importing an order agreed only for as long as nobody edited one copy.
-   One list, read by both.
-
-   Vendor colours carry white initials on an avatar, so every one of them is dark enough to read
-   under APCA: measured 76.7 Lc (#877364, the lightest) to 93.4 (#235553), against a floor of 45.
+   A vendor takes one of the design's eight swatches (c2), stored as the swatch's hex in SWATCHES,
+   the same as a picked one, so the app draws it as the swatch in the reader's scheme and theme.
    Category colours are swatches, legend dots and donut segments -- read against the card
    rather than written on, so they are free to be brighter, and they are chosen to differ
    from each other, which is the whole job of a data-viz palette. README: Color. */
-
-export const VENDOR_PALETTE = [
-	'#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5',
-	'#1F7A4D', '#A8324A', '#3E5C8A', '#6B4E9E', '#B4552B', '#2C6E6B'
-]
 
 export const CATEGORY_PALETTE = [
 	'#C43F2A', '#E9C517', '#8B5CF6', '#1FA8E0', '#F09A38',
 	'#2FA36B', '#D34F2E', '#7A8B2E', '#E0568A', '#45524C'
 ]
 
-/** A stable colour for a name, so the same vendor is the same colour on every page without
-    storing a choice nobody made. Two names can still land on one colour -- that is a hash,
-    not an allocation; use `nthColour` where the caller knows the whole set up front and can
-    hand out distinct ones instead. */
-export const colourFor = (name, palette = VENDOR_PALETTE) =>
-	palette[[...String(name)].reduce((n, c) => n + c.charCodeAt(0), 0) % palette.length]
+/** The design's eight swatches by name, as the hex the app stores, in the order the colour picker
+    shows them. The same list as react/src/app/categoryMark.jsx. */
+export const SWATCH_COLOURS = {
+	primary: '#1d4d33',
+	'primary-2': '#2f7a51',
+	'primary-3': '#4f7f63',
+	'primary-4': '#8caf97',
+	'amber-ink': '#7a5c23',
+	'amber-2': '#d3b98a',
+	'red-ink': '#8a4a41',
+	'ink-6': '#b3b1a9'
+}
+export const SWATCHES = Object.values(SWATCH_COLOURS)
+
+/** A stable swatch for a name, so the same vendor is the same colour on every page without
+    storing a choice nobody made. Two names can land on one swatch -- that is a hash, not an
+    allocation. Migration 286 works out the same sum in SQL: keep the two the same. */
+export const colourFor = name =>
+	SWATCHES[[...String(name)].reduce((n, c) => n + c.charCodeAt(0), 0) % SWATCHES.length]
 
 /** The i-th colour, wrapping. For a caller creating a known set in one go: distinct for as
-    many entries as the palette is long, which is what "every vendor a different colour"
-    actually requires and what a hash cannot promise. */
-export const nthColour = (i, palette = VENDOR_PALETTE) => palette[i % palette.length]
-
-/** The design's eight swatches, in the order the colour picker shows them (react/src/app/categoryMark.jsx). */
-export const SWATCHES = ['#1d4d33', '#2f7a51', '#4f7f63', '#8caf97', '#7a5c23', '#d3b98a', '#8a4a41', '#b3b1a9']
+    many entries as the palette is long. */
+export const nthColour = (i, palette) => palette[i % palette.length]
 
 /** The first swatch no colour in `worn` uses; past eight, the one worn least, first in order on a tie. */
 export function nextUnused(worn) {
@@ -46,17 +45,30 @@ export function nextUnused(worn) {
 	return [...count].reduce((a, b) => (b[1] < a[1] ? b : a))[0]
 }
 
-// APCA's screen luminance, as react/src/components/colour.js works out a mark's ink
+/** A stored colour as an email paints it: a swatch takes its light value in the reader's scheme
+    `tokens`, any other colour, and a swatch no scheme turns (ink-6), is painted as stored. */
+export function emailColour(stored, tokens) {
+	const name = Object.keys(SWATCH_COLOURS).find(n => SWATCH_COLOURS[n] === String(stored ?? '').toLowerCase())
+	return (name && tokens[`--${name}`]) || stored
+}
+
+// WCAG's relative luminance and contrast ratio, as react/src/components/colour.js works out a mark's ink
 const luminance = hex => {
-	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255) ** 2.4)
-	const y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
-	return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+	const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+		.map(c => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 const contrast = (ink, fill) => {
-	const [t, b] = [luminance(ink), luminance(fill)]
-	return Math.abs((b > t ? b ** 0.56 - t ** 0.57 : b ** 0.65 - t ** 0.62) * 1.14)
+	const [a, b] = [luminance(ink), luminance(fill)].sort((x, y) => y - x)
+	return (a + 0.05) / (b + 0.05)
 }
 
-/** The light theme's ink that reads better on `fill` (#rrggbb), white or near black, as an email draws a mark. */
-export const inkOn = fill => (!/^#[0-9a-f]{6}$/i.test(fill) || contrast('#ffffff', fill) >= contrast('#1b1a17', fill) ? '#ffffff' : '#1b1a17')
-
+/** The light theme's ink on `fill` (#rrggbb), white or near black, as an email draws a mark: the one
+    that reaches 4.5:1, and the stronger one when both or neither do, white on a tie. */
+export function inkOn(fill) {
+	if (!/^#[0-9a-f]{6}$/i.test(fill)) return '#ffffff'
+	const [white, dark] = [contrast('#ffffff', fill), contrast('#1b1a17', fill)]
+	if (white >= 4.5 && dark < 4.5) return '#ffffff'
+	if (dark >= 4.5 && white < 4.5) return '#1b1a17'
+	return white >= dark ? '#ffffff' : '#1b1a17'
+}

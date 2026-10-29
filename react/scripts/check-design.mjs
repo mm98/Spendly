@@ -1447,7 +1447,7 @@ const DESIGN_RULES = {
 	'a described choice uses sp-meta': 'a described choice uses sp-meta',
 	'a filling text column has no spacer after it': COPY,
 	'Status and Kind are selects': 'Status and Kind are selects',
-	'the Go to menu matches the page': DESIGN,
+	'one tweak bar on every page': DESIGN,
 	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
 	'a suggestion chip is sp-chip--suggestion': 'a suggestion chip is sp-chip--suggestion',
 	'balanced markup': DESIGN,

@@ -1,6 +1,6 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
-import { VENDOR_PALETTE, colourFor, nextUnused } from './palette.js'
+import { colourFor, nextUnused } from './palette.js'
 import { foldName, vatNumberOf, vendorKey, webAddressOf } from './names.js'
 
 /* Shared by manual order create/update and bulk import: a vendor or category named by string
@@ -100,7 +100,7 @@ export function vendorFinder(userId) {
 		if (existing) return existing
 		const id = newId('v')
 		insertVendor.run({ id, userId, name: clean, initials: clean.slice(0, 2).toUpperCase(),
-			colour: colourFor(clean, VENDOR_PALETTE), orderId })
+			colour: colourFor(clean), orderId })
 		resolve.learn({ id, name: clean })
 		return id
 	}

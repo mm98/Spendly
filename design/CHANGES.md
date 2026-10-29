@@ -1,61 +1,49 @@
-# Letters on coloured marks are too faint in some schemes
+# Vendor initials are too faint in the dark theme, and one tweak bar on every page
 
-Answers `Brief-mark-contrast.md`. Every solid mark now reaches 4.5:1 in all 16 schemes, light and dark, and `styles/check.js` asserts it.
+Fixed from `handoff_vendor_colours`: vendors on a failing colour are moved by a migration, without asking. The alert card on Vendors overview 5a is removed.
 
-## 1. Emerald mid green
 
-- **The problem:** `--primary-3` (light) and `--shell-mark` were `#518167`. White letters reached 4.48:1. The emails draw the initials on the same green.
-- **What changed:** both are `#508066` (4.55:1), the value the app already uses.
-- **Where:** `styles/tokens.css` `:root` `--primary-3` and `--shell-mark`. `styles/schemes.css` Emerald light block. `emails/ask-chat.html` (the initials mark, VML and HTML) and `emails/README.md` (the chart bars note). The page thumbnails that used the green now use `#508066` too (Actions inventory, Input types, Navigation shell, Order list, Order statistics, Responsive reference, Settings and import, States and confirmations, Type specimen). They have no effect on the app.
-- **App:** remove the Emerald override from `react/src/styles/app.css`. The design now has the fix.
-- **What is still open:** `emails/ask-chart-sample.png` is a sample render with bars in the old green. It has no text on it, so it is left as is. The server draws real charts from `api/src/format/chart/bars.js` and `shares.js`, so set the mid tone there to `#508066`.
+Answers `Brief-vendor-colours.md`, plus a request made with it: the same tweak bar on every page, with Touch only removed.
 
-## 2. Terracotta mid tone
+## 1. A vendor with no chosen colour takes one of the eight swatches
 
-- **The problem:** `--shell-mark` was `#a8664d`, 4.49:1 with white. Terracotta's light `--primary-3` is the same colour, so a mark on the `primary-3` swatch failed as well. The brief does not list that one.
-- **What changed:** both are `#a7664c` (4.52:1).
-- **Where:** `styles/schemes.css` Terracotta light block, `--primary-3` and `--shell-mark`.
+- **The problem:** a vendor with no chosen colour gets one of twelve colours from `VENDOR_PALETTE` in `api/src/lib/palette.js`. In the dark theme five of the twelve (`#877364`, `#177DA7`, `#AD620D`, `#8453F5`, `#B4552B`) fail 4.5:1 with either ink. The design already said the colour is a stable hash of the name over the eight swatches. The twelve-colour list was never drawn here.
+- **What changed:** there is no vendor palette any more. A new vendor, one made by a receipt scan and the demo vendors all take the swatch their name hashes to over the eight, in the picker's order: Primary, Mid, Light, Pale, Brown, Sand, Rust, Grey (`primary`, `primary-3`, `primary-4`, `primary-5`, `amber-ink`, `amber-2`, `red-ink`, `ink-6`). The vendor stores the swatch's name, not a hex value, the same as a picked swatch, so the mark follows the scheme and the theme and takes its ink from the existing rules. The ink rule does not change (the dark theme does not switch to pure white). Emails, which are light only, resolve the name to its light value in the reader's scheme.
+- **Where:** `Components 2` (IdentityMark, badge c2): a new specimen, "A vendor with no chosen colour", and a note under the same heading. No CSS changes: `.sp-mark--solid[data-swatch]` already covers all eight. App: delete `VENDOR_PALETTE` from `api/src/lib/palette.js` and hash over the swatch names in `api/src/lib/findOrCreate.js` and `api/src/routes/vendors.js`. Also update `api/src/lib/demoData.js`, `react/src/app/categoryMark.jsx` (`VendorMark` takes a swatch name, as `Mark` does with `inkFor` in `react_handoff/colour.js`) and `api/src/format/offers/index.js` (resolve the swatch to its light value before `inkOn`).
+- **What is still open:** nothing.
 
-## 3. Dark theme, every scheme
+## 2. Vendors already on a failing colour are moved automatically
 
-- **The problem:** light letters (`--ink`) on the dark-theme `primary` mark reached 2.5 to 3.2:1, and on `primary-3` 3.6 to 4.1:1. Neither ink passed on `primary-3`.
-- **What changed:**
-  - The `primary` mark, and a solid mark with no swatch (which draws on `--primary`), take dark letters (`--surface`) in the dark theme as well. In dark they now reach 5.1 to 5.7:1.
-  - Every scheme's dark `--primary-3` is darkened a little, by 0.02 to 0.06 in oklch lightness, so light letters reach 4.5:1. The scale keeps its order: primary, then primary-3, then primary-4. The chart ramp on Dark mode and image viewer is updated to match.
-  - Charcoal's dark `--primary` goes from `#8a877f` to `#8b8880`, so its dark letters reach 4.54:1. It was 4.48.
-- **Dark `--primary-3`, old to new:** Terracotta `#ad6c4e` to `#9d5d40`, Mocha `#8c7566` to `#80695b`, Ochre `#8f764c` to `#826a40`, Olive `#767f5b` to `#69714e`, Emerald `#57876d` to `#48775e`, Teal `#4f878e` to `#3e767d`, Ocean `#548197` to `#477389`, Slate `#707c88` to `#636f7b`, Navy `#5a7aa3` to `#506f98`, Cobalt `#587cab` to `#4c6f9d`, Indigo `#6d77a9` to `#616b9c`, Violet `#8170a2` to `#766596`, Plum `#916b8a` to `#876280`, Raspberry `#a36578` to `#995b6e`, Oxblood `#a0646d` to `#985d66`, Charcoal `#77746d` to `#706d66`.
-- **Where:** `styles/tokens.css` `[data-theme="dark"]` `--primary-3`. `styles/schemes.css`, every dark block. `styles/components.css`, the solid mark's ink rules after `.sp-mark--solid[data-swatch="ink-6"]`: the dark rule no longer lists `:not([data-swatch])` or `primary`, and the light island rule keeps only `primary-3`. `Dark mode and image viewer` (the chart ramp note under the sidebar section and in the token mapping note). App: `react/src/styles/` wherever the dark scheme values are copied, `react/src/components/Mark.jsx`, `react/src/app/categoryMark.jsx`.
+- **The problem:** a vendor keeps its stored colour, so changing the palette fixes only new vendors.
+- **What changed:** a one-time migration moves every vendor stored on one of the five failing colours to the swatch its name hashes to. Those colours were given by the app, not picked by the owner, so nothing is asked and nothing is announced. A vendor on any other colour, picked or automatic, is not touched. Vendors overview shows no alert for this.
+- **Where:** `Components 2` (c2), the note "A vendor with no chosen colour". App: a migration in `api/` that matches `color` against the five values, case-insensitively, and writes the swatch name.
+- **What is still open:** nothing.
 
-## 4. One ink rule for swatches and picked colours
+## 3. One tweak bar on every page
 
-- **The problem:** the ink was the one with the higher APCA lightness contrast. That never measured 4.5:1, so it chose light letters on fills where dark letters were the only ones that passed.
-- **What changed:** a solid mark's ink is whichever of `--surface` and `--ink` reaches 4.5:1 on its fill. If both or neither do, it is the one with the higher contrast, and a tie keeps `--surface`. The swatch rules in `components.css` are this result for every swatch in every scheme and theme. A colour the reader picks gets its `data-ink` by the same rule.
-- **Where:** `react_handoff/colour.js`: `lightnessContrast` is replaced by `contrastRatio` (WCAG ratio, 1 to 21), and `inkFor` applies the rule above. `react_handoff/README.md` names the new export. `Components` (the mark note under Fixed). `styles/COMPONENT-STATUS.md` log, 2026-10-29. App: `react/src/lib/colour.js` or wherever `inkFor` lives, and every import of `lightnessContrast`.
-
-## 5. The checker asserts it
-
-- **The problem:** nothing measured the letters on a mark, so the faults above went unseen.
-- **What changed:** `styles/check.js` has a new rule, "mark letters reach 4.5:1". For every scheme and theme it works out each swatch's ink from the `.sp-mark--solid` rules and measures it on the swatch's fill, and it measures white on `--shell-mark`. Before the fix it reported 74 failures.
-- **Where:** `styles/check.js`, before section 4.
+- **The problem:** Components had a Touch only tweak. Input types had Error states and Combobox variant. React components had Go to and Shell menu, with its theme and scheme under a section called Theme. Every other page had Theme and Scheme under View.
+- **What changed:** every page carries the same two tweaks, Theme and Scheme, in the View section, and nothing else. Input types always shows its error states and both combobox modes. React components always opens at the top with the menu expanded. The menu's other states can still be reached from the grip on the page. The Touch only rules are removed from `doc.css`.
+- **Where:** the `data-props` of `Components`, `Input types` and `React components`, the logic that read the removed tweaks, and `styles/doc.css` (the `.sp[data-touch="only"]` rules). `styles/check.js`: the Go to menu assertion is replaced by "one tweak bar on every page", which fails any page whose tweaks are not exactly Theme and Scheme, or differ from the others. Design docs only, nothing in the app.
+- **What is still open:** nothing.
 
 ## later.md
 
-Its one entry, "A deleted record should not be removed for good at once", is marked as an idea and not a planned task. Nothing is built for it until the user asks, so this package does not touch it.
+Its one entry, "A deleted record should not be removed for good at once", is marked as an idea not to build until asked. It is untouched.
 
 ## Files
 
-- `README.md` - the design's overview, copied unchanged.
-- `CHANGES.md` - this note.
-- `Components.dc.html` - the mark note now states the 4.5:1 rule.
-- `Dark mode and image viewer.dc.html` - the dark chart ramp now shows the new `--primary-3`.
-- `Actions inventory.dc.html`, `Input types.dc.html`, `Navigation shell.dc.html`, `Order list.dc.html`, `Order statistics.dc.html`, `Responsive reference.dc.html`, `Settings and import.dc.html`, `States and confirmations.dc.html`, `Type specimen.dc.html` - only their thumbnail green changed.
-- `styles/tokens.css`, `styles/schemes.css` - the new colours.
-- `styles/components.css` - the solid mark's ink rules.
-- `styles/doc.css`, `styles/pages/*.css` (the ones these pages link), `support.js`, `view.js`, `components.js`, `icons.js`, `assets/shop-logo.svg`, `assets/two-step-qr.svg` - loaded by the pages so they open from the folder.
-- `styles/check.js` - the new assertion.
-- `styles/COMPONENT-STATUS.md` - the log entry.
-- `react_handoff/colour.js`, `react_handoff/README.md` - the ink rule in code.
-- `emails/ask-chat.html`, `emails/README.md` - the initials green.
+- `README.md`: the design's overview, unchanged.
+- `CHANGES.md`: this note.
+- `Components.dc.html`: c2 specimen and note, tweak bar.
+- `Vendors and categories.dc.html`: unchanged from the project, included because Components links to it.
+- `Input types.dc.html`, `React components.dc.html`: tweak bar.
+- `support.js`, `components.js`, `icons.js`, `view.js`: what the pages load to open.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`: loaded by the pages, unchanged.
+- `styles/doc.css`: Touch only rules removed.
+- `styles/pages/input-types.css`: loaded by Input types.
+- `styles/check.js`: the new assertion.
+- `react_handoff/`: the component sources React components renders, unchanged.
+- `assets/shop-logo.svg`: used by Components.
 
 ## styles/check.js
 
