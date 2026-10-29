@@ -4,6 +4,12 @@
 		"pr": "",
 		"sessionUrl": false
 	},
+	"env": {
+		"GIT_AUTHOR_NAME": "mm98",
+		"GIT_AUTHOR_EMAIL": "992714+mm98@users.noreply.github.com",
+		"GIT_COMMITTER_NAME": "mm98",
+		"GIT_COMMITTER_EMAIL": "992714+mm98@users.noreply.github.com"
+	},
 	"hooks": {
 		"SessionStart": [
 			{
