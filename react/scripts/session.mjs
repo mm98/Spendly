@@ -45,7 +45,9 @@ async function start(name, cwd, command, env, ready) {
 /** Starts the API on a scratch database and the app's dev server, unless they already answer. */
 export async function ensureServers() {
 	mkdirSync(DIR, { recursive: true })
-	const api = await start('api', join(ROOT, 'api'), 'node src/server.js', { PORT: '4000', SPENDLY_DB: join(DIR, 'spendly.sqlite3') }, `${API}/api/health`)
+	// a made-up assistant key shows the assistant's pages; it gets no answer and costs nothing
+	const api = await start('api', join(ROOT, 'api'), 'node src/server.js',
+		{ PORT: '4000', SPENDLY_DB: join(DIR, 'spendly.sqlite3'), ANTHROPIC_API_KEY: 'not-a-real-key' }, `${API}/api/health`)
 	const app = await start('app', join(ROOT, 'react'), 'npx vite --port 5173 --strictPort', {}, BASE)
 	return { api, app }
 }

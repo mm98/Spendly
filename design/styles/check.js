@@ -1528,6 +1528,25 @@
     }
   }
 
+  /* A value Motion holds is a value Motion can keep. Fold handed it overflow: clip on the way in
+     and overflow: visible in transitionEnd; after an opening that animated the transitionEnd never
+     landed, so every facet group folded and opened again cut its fields' focus rings until the page
+     was loaded again (brief: a folding group stays cut off). A clip is set and cleared on the
+     element in onAnimationStart / onAnimationComplete; nothing is left for transitionEnd to restore. */
+  {
+    const files = (await ls('react_handoff')).filter(f => /\.jsx?$/.test(f));
+    for (const f of files) {
+      const s = (await readFile('react_handoff/' + f)).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+      if (/transitionEnd/.test(s)) fail('Motion never holds a clip', 'react_handoff/' + f, 'uses transitionEnd; a value meant to land at the end of a move is set on the element when the move completes');
+      for (const m of s.matchAll(/\b(initial|animate|exit|whileHover|whileTap|whileFocus|whileInView|whileDrag)=\{\{([\s\S]*?)\}\}/g))
+        if (/\boverflow[XY]?\s*:/.test(m[2])) fail('Motion never holds a clip', 'react_handoff/' + f, m[1] + ' animates overflow');
+      for (const m of s.matchAll(/\banimate\(\s*[\w.]+\s*,\s*\{([^}]*)\}/g))
+        if (/\boverflow[XY]?\s*:/.test(m[1])) fail('Motion never holds a clip', 'react_handoff/' + f, 'animate() sets overflow');
+      if (/style\.overflow\s*=\s*on\b|style\.overflow\s*=\s*'(clip|hidden)'/.test(s) && !/onAnimationComplete/.test(s))
+        fail('Motion never holds a clip', 'react_handoff/' + f, 'sets a clip on the element and never clears it when the move completes');
+    }
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};
