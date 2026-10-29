@@ -35,7 +35,6 @@ body { -webkit-font-smoothing: antialiased; }
 	height: calc(100dvh - var(--sp-12) - var(--control-h) - var(--sp-12) - 1px);
 	margin: calc(-1 * var(--sp-16)) 0 calc(-1 * var(--sp-16)) calc(-1 * var(--card-pad));
 	padding: var(--sp-16) var(--card-pad);
-	overflow-y: auto;
 }
 /* under the shell's signed-out notice, the divider starts below it, not inside it */
 .sp-shell__body > :not(:first-child) > .sp-section-nav { margin-top: 0; }

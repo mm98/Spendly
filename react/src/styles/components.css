@@ -4364,7 +4364,8 @@ a.sp-chat__file-name { text-decoration: none; }
    the longest label, Money, dates and times, does not wrap. The divider is the boundary
    between the two columns, so it runs the pane's whole height rather than stopping at the
    last row, and the column does not scroll with the pane: in the app it is the window's
-   height below the top bar, so the divider never moves. */
+   height below the top bar, so the divider never moves. A window shorter than the nav scrolls it
+   inside its column, with the shared bar like every other scrolling region. */
 .sp-section-nav {
   width: calc(var(--sp-16) + var(--rail-left-w));
   flex: none;
@@ -4376,6 +4377,7 @@ a.sp-chat__file-name { text-decoration: none; }
   border-right: 1px solid var(--line-3);
   position: sticky;
   top: 0;
+  overflow-y: auto;
 }
 /* the heading takes the rows' own start inset (--shell-item-pad's 8), so it lines up with their labels */
 .sp-section-nav__head { padding: 0 var(--sp-8) var(--sp-10); }
@@ -5244,7 +5246,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-dialog__scroll,
 .sp-chat__field,
 .sp-chat__figures,
-.sp-calendar--sheet { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.sp-calendar--sheet,
+.sp-section-nav { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .sp-menu--scrolls::-webkit-scrollbar,
 .sp-popover__list::-webkit-scrollbar,
 .sp-palette__body::-webkit-scrollbar,
@@ -5256,7 +5259,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-dialog__scroll::-webkit-scrollbar,
 .sp-chat__field::-webkit-scrollbar,
 .sp-chat__figures::-webkit-scrollbar,
-.sp-calendar--sheet::-webkit-scrollbar { width: 8px; }
+.sp-calendar--sheet::-webkit-scrollbar,
+.sp-section-nav::-webkit-scrollbar { width: 8px; }
 .sp-chat__figures::-webkit-scrollbar { height: 8px; }
 .sp-chat__scroll::-webkit-scrollbar-track { background: none; }
 .sp-menu--scrolls::-webkit-scrollbar-thumb,
@@ -5270,7 +5274,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-dialog__scroll::-webkit-scrollbar-thumb,
 .sp-chat__field::-webkit-scrollbar-thumb,
 .sp-chat__figures::-webkit-scrollbar-thumb,
-.sp-calendar--sheet::-webkit-scrollbar-thumb {
+.sp-calendar--sheet::-webkit-scrollbar-thumb,
+.sp-section-nav::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
   border: 2px solid transparent;
   background-clip: content-box;
