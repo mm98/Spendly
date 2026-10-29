@@ -1429,6 +1429,7 @@ const DESIGN = 'about the design\'s own pages, notes, start page or react_handof
 const NOT_CHECKED = 'applies to the app, not checked here yet'
 const DESIGN_RULES = {
 	'every page is checked': DESIGN,
+	'mark letters reach 4.5:1': COPY,
 	'Back is labelled Back': 'Back is labelled Back',
 	'figures in an answer fit a phone': COPY,
 	'the chat placeholder is one line': COPY,
@@ -1446,7 +1447,7 @@ const DESIGN_RULES = {
 	'a described choice uses sp-meta': 'a described choice uses sp-meta',
 	'a filling text column has no spacer after it': COPY,
 	'Status and Kind are selects': 'Status and Kind are selects',
-	'the Go to menu matches the page': DESIGN,
+	'one tweak bar on every page': DESIGN,
 	'no shortcut badge in a list toolbar': 'no shortcut badge in a list toolbar',
 	'a suggestion chip is sp-chip--suggestion': 'a suggestion chip is sp-chip--suggestion',
 	'balanced markup': DESIGN,

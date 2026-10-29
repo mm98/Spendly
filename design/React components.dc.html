@@ -458,7 +458,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
@@ -524,7 +524,7 @@ class Component extends DCLogic {
 	   not a pick - it is the page arriving, or another tweak changing. Jumping then
 	   dragged the reader to the top whenever they changed the theme. */
 	jump() {
-		const to = this.props.jumpTo ?? 'top'
+		const to = 'top'
 		if (this.jumped === undefined) { this.jumped = to; return }
 		if (to === this.jumped) return
 		this.jumped = to
@@ -687,7 +687,7 @@ class Component extends DCLogic {
 		   experiment the library flags as unsettled - the rail opening over the page on
 		   hover rather than pushing it - so it is a state to look at here, not a
 		   default. */
-		const menuState = this.props.menu ?? 'expanded';
+		const menuState = 'expanded';
 		const railed = this.state.railed ?? (menuState !== 'expanded');
 		const key = (i, node) => React.cloneElement(node, { key: i });
 		const row = nodes => nodes.map((n, i) => key(i, n));

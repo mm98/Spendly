@@ -1,6 +1,6 @@
 import { keepOffers, offersById, onePerShop } from '../../lib/askOffers.js'
 import { initialsOf } from '../../lib/names.js'
-import { inkOn } from '../../lib/palette.js'
+import { emailColour, inkOn } from '../../lib/palette.js'
 import { ITEMS_MOST, offerSourcesFor, offersAsked, shownOffers, withPapers } from '../../offers/index.js'
 import { text } from '../schema.js'
 
@@ -87,13 +87,16 @@ const SIZE = { 'ltr.': 'L', 'kg.': 'kg', 'stk.': 'pcs.' }
 // a shop that is not one of the reader's vendors sits on the grey no-colour mark (24d, the email of a chat)
 const NO_COLOUR = { bg: '#f0efe9', ink: '#686760' }
 
-// an email paints only a stored colour value, never a name the app resolves
-const colourOf = offer => (/^#[0-9a-f]{6}$/i.test(offer.vendor?.colour ?? '') ? offer.vendor.colour : null)
+// an email paints a colour value: a swatch as the reader's scheme draws it, any other as stored
+const colourOf = (offer, tokens) => {
+	const colour = emailColour(offer.vendor?.colour, tokens)
+	return /^#[0-9a-f]{6}$/i.test(colour ?? '') ? colour : null
+}
 
 /** Where an offer's name leads, said as its tip: "Netto's offer paper" or "Search on Tilbudsugen". */
 const goesTo = (offer, source) => (offer.link?.paper ? `${offer.shop}'s offer paper` : `Search on ${source.name}`)
 
-function emailBlocks(ids, blocks, { money, write }) {
+function emailBlocks(ids, blocks, { money, write, tokens }) {
 	return ids.map(id => blocks[id]).filter(Boolean).flatMap(block => {
 		const sourceUrl = `https://${block.source.site}`
 		const credit = { p: true, runs: [{ text: `Offers from ${block.source.name}`, url: sourceUrl }] }
@@ -104,8 +107,8 @@ function emailBlocks(ids, blocks, { money, write }) {
 			source_name: block.source.name,
 			items: block.offers.map((offer, i) => ({
 				first: i === 0,
-				mark_bg: colourOf(offer) ?? NO_COLOUR.bg,
-				mark_ink: colourOf(offer) ? inkOn(colourOf(offer)) : NO_COLOUR.ink,
+				mark_bg: colourOf(offer, tokens) ?? NO_COLOUR.bg,
+				mark_ink: colourOf(offer, tokens) ? inkOn(colourOf(offer, tokens)) : NO_COLOUR.ink,
 				initials: initialsOf(offer.vendor?.name ?? offer.shop),
 				url: offer.link?.url ?? sourceUrl,
 				goes_to: goesTo(offer, block.source),

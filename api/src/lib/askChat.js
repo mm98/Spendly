@@ -4,6 +4,7 @@ import { emailMessage } from './emails.js'
 import { newId } from './ids.js'
 import { publicLink, sendMail } from './mail.js'
 import { initialsOf } from './names.js'
+import { schemeTokens } from './schemes.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 
 /* What Ask keeps beside the conversation (24b, 24c): the reader's saved questions, and the
@@ -88,9 +89,10 @@ function tableOf(lines, write) {
 }
 
 /** An answer as the email's blocks: paragraphs, lists, tables, and what its makers made, as the app draws them.
-    `made` holds what was made, by maker and id, and `attached` the ids of what goes with the email. */
-export function answerBlocks(text, write, { made, attached }) {
-	const email = { attached, write, money: n => amountText(n, write) }
+    `made` holds what was made, by maker and id, `attached` the ids of what goes with the email, and
+    `scheme` the reader's colour scheme. */
+export function answerBlocks(text, write, { made, attached, scheme }) {
+	const email = { attached, write, money: n => amountText(n, write), tokens: schemeTokens(scheme, 'light') }
 	const blocks = []
 	for (const chunk of text.split(/\n\s*\n/)) {
 		const lines = chunk.split('\n').map(l => l.trimEnd()).filter(l => l.trim())
@@ -147,7 +149,7 @@ export async function emailConversation(userId, { chatId, turns, day, locale }) 
 		attached.add(a.id)
 		room -= a.content.length
 	}
-	const outputs = { made, attached }
+	const outputs = { made, attached, scheme: account.colour_scheme }
 	const message = emailMessage('ask-chat', account.email, {
 		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),

@@ -30,7 +30,7 @@
   /* ---- primary: the scheme's colour, Emerald by default (schemes.css) ---- */
   --primary: #004d28;        /* primary, marks, links */
   --primary-2: #007047;      /* hover on primary, positive figures */
-  --primary-3: #518167;
+  --primary-3: #508066;
   --primary-4: #90b5a0;
   --primary-5: #c4d6cc;
   --primary-tint: #e2ece6;   /* positive pill, focus ring */
@@ -225,7 +225,7 @@
   --shell-scroll: #384d42;   /* scrollbar thumb inside the sidebar */
   --shell-action: #004d28;   /* Scan receipt's fill, and the brand tile */
   --shell-action-hover: #007047;
-  --shell-mark: #518167;     /* the account mark in the sidebar */
+  --shell-mark: #508066;     /* the account mark in the sidebar */
   --shell-warning: #e2d3ae;  /* a warning count in the sidebar */
 
   /* the thumb every scrolling region shows: the divider ink, so a bar reads as a
@@ -313,7 +313,7 @@
   /* the rest of the scale runs from the primary toward this theme's surface, at the
      same steps the light scale uses - without these, dark kept the light values and
      a muted bar was a pale mint on a dark ground */
-  --primary-3: #57876d;
+  --primary-3: #48775e;
   --primary-4: #3c5e4c;
   --primary-5: #27372e;
   --primary-tint: #1c3026;

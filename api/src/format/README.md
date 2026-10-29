@@ -95,7 +95,7 @@ export const mapMaker = {
 	doing: input => 'Drawing your map',   // what Ask says while it makes one
 	make: async (input, making) => ({ item, said }),   // item has an id, or { items }; said is the tool's answer to Claude
 	byIds: (userId, ids) => ({ [id]: item }),           // what was made, as it is now
-	emailBlocks: (ids, items, { attached, write, money }) => [block],
+	emailBlocks: (ids, items, { attached, write, money, tokens }) => [block],
 	attachments: (userId, ids, items, write) => [{ id, inline, filename, content, contentType, cid }],
 	sweep: () => {}                       // runs every minute, to remove what is past its days
 }

@@ -38,7 +38,7 @@ const TICK = 24
 const GAP = 16
 const KEY_ROW = 44
 // the bars' green, then the lighter green a second series takes
-const KEYS = ['#518167', '#90b5a0', '#007047', '#c4d6cc'].map(rgb)
+const KEYS = ['#508066', '#90b5a0', '#007047', '#c4d6cc'].map(rgb)
 
 function picture(chart) {
 	const series = chart.series ?? []

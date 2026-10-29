@@ -588,6 +588,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
     apart only when one may need to be reverted alone, and say so.
   - Run every check `ci.yml` runs, locally, before the merge: a failure found after it costs a second
     full run and a second image build.
+  - A merge is done when the run it starts on main is green. Read that run's result before saying
+    the work is finished.
   - Merge only when asked to. A change that needs no image (this file, a note) waits for the next
     change that does, on the same branch.
 - **When waiting on a run, poll the thing that actually knows, at an interval matched to how fast it
