@@ -340,6 +340,9 @@ paged or searched on the server, and is tested with more rows than the demo data
   against the account's limit. Where a check needs a scan's reading, write the reading by hand and
   store it on the upload in a scratch database; say in the report that the reading was not real.
   If a key turns up anywhere, never print it: say only where it is.
+- **The API always starts with a made-up assistant key** (`ANTHROPIC_API_KEY=not-a-real-key`), so
+  Ask and the other assistant pages show; without a key they are hidden. The session sets it, and a
+  server started by hand sets it too. The made-up key gets no answer, so a check never sends a question.
 - **The session is `react/scripts/session.mjs`.** `node scripts/session.mjs` starts the API on a
   scratch database and the dev server, unless they already answer, and leaves them running. It
   registers and fills its account once and keeps the sign-in in a file under
@@ -422,7 +425,7 @@ too, or every page renders its error state.
 # api/ -- PORT 4000 is not a suggestion: react/vite.config.js's dev proxy hard-codes
 # 'http://localhost:4000' as its default target. SPENDLY_DB to a scratch path keeps
 # a verification run off the real database.
-cd api && SPENDLY_DB=/tmp/<scratch>/spendly.sqlite3 PORT=4000 npm run dev
+cd api && ANTHROPIC_API_KEY=not-a-real-key SPENDLY_DB=/tmp/<scratch>/spendly.sqlite3 PORT=4000 npm run dev
 
 # react/ -- plain `npm run dev`, no env needed; proxies /api to :4000 by default.
 cd react && npm run dev

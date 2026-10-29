@@ -65,7 +65,8 @@
   .ns-side--mid { height: 620px; }
   .ns-side--short { height: 500px; }
   /* the one scrolling region: the nav between the brand and the bottom zone */
-  .ns-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-6); }
+  /* the inset is room for a row's focus ring, as a facet's values keep */
+  .ns-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-6); margin: calc(var(--sp-4) * -1); padding: var(--sp-4); }
   .ns-scroll--faded { mask-image: linear-gradient(to bottom, #1b1a17 calc(100% - 22px), transparent); }
   .ns-side .sp-grow { min-height: var(--sp-16); }
 

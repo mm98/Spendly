@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Spendly checks</title>
-<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029q">
 <style>
   body { margin: 0; padding: 24px; background: var(--bg); color: var(--ink);
          font-family: Poppins, system-ui, sans-serif; font-size: 13px; }
@@ -19,14 +19,14 @@
   ul { margin: 0; padding-left: 18px; }
   li { margin-bottom: 3px; line-height: 1.45; }
   .page { color: var(--ink-2); font-weight: 600; }
-  .clean { color: var(--green-2); font-weight: 600; }
+  .clean { color: var(--primary-2); font-weight: 600; }
   .info { border-color: var(--line-3); }
   .info h2 { color: var(--ink-3); }
   iframe { position: absolute; left: -9999px; width: 1500px; height: 3000px; border: 0; }
   button.show { font: inherit; font-size: 11px; padding: 1px 7px; margin-left: 6px;
                 border: 1px solid var(--line-3); border-radius: var(--r-pill);
                 background: var(--surface); color: var(--ink-3); cursor: pointer; }
-  button.show:hover { border-color: var(--green); color: var(--green); }
+  button.show:hover { border-color: var(--primary); color: var(--primary); }
   #viewer { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: none; }
   #viewer.on { display: block; }
   #viewer header { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
@@ -58,7 +58,7 @@ run it; the report below is also on <code>window.__report</code>.</p>
 const PAGES = ['Actions inventory','Ask Spendly','Auth and first run','Bookmarks','Budget','Components','Dark mode and image viewer',
   'Duplicate and alerts','Home','Icon legend','Images and files','Input types','Layout rules',
   'Mobile screens','Navigation shell','Order create','Order editing layouts','Order list',
-  'Order statistics','Playground','React components','Responsive reference','Settings and import','States and confirmations',
+  'Order statistics','Playground','React components','Responsive reference','Section switcher','Settings and import','States and confirmations',
   'Type specimen','Typography','Vendors and categories'];
 
 /* Each rule says what it asserts and why it exists. A rule earns its place by having
@@ -496,7 +496,7 @@ const RULES = [
   id: 'a hover ground follows the rest ground',
   why: 'Hover looked like drift - 13 different grounds - but it is three rules nobody had written down, so the fourteenth value would have gone unnoticed. A control resting on the page ground tints to --hover; one resting on a white surface darkens to --surface-2; anything green-inked or green-tinted steps down the green scale; a toned variant stays in its own tone.',
   run(doc, add) {
-    const ALLOWED = ['--hover','--surface-2','--surface','--green-tint','--green-tint-2','--green-2','--green-5',
+    const ALLOWED = ['--hover','--surface-2','--surface','--primary-tint','--primary-tint-2','--primary-2','--primary-5',
       '--amber-tint','--amber-tint-2','--amber-ink-2','--red-tint','--red-hover','--red-ink','--shell-item-hover','--shell-count','none'];
     const seen = new Set();
     [...doc.styleSheets].forEach(sheet => {
@@ -550,9 +550,9 @@ const RULES = [
 },
 {
   id: 'selection is one ground',
-  why: 'Selection was drawn three ways: --green-tint on five components, --green-tint-2 on a choice row (which is the HOVER tint of a selected row elsewhere), and --hover on a palette row, where a selected row and a hovered one were indistinguishable. A card also marks selection on its border, since it has one to change; a row inside a bordered list has only the ground.',
+  why: 'Selection was drawn three ways: --primary-tint on five components, --primary-tint-2 on a choice row (which is the HOVER tint of a selected row elsewhere), and --hover on a palette row, where a selected row and a hovered one were indistinguishable. A card also marks selection on its border, since it has one to change; a row inside a bordered list has only the ground.',
   run(doc, add) {
-    const TINT = 'rgb(231, 239, 232)';                 // --green-tint
+    const TINT = 'rgb(231, 239, 232)';                 // --primary-tint
     const CARDS = '.sp-record, .sp-list-card';         // selection also moves their border
     doc.querySelectorAll('.sp-line, .sp-table tbody tr, .sp-record, .sp-list-card, .sp-choice--row, .sp-combobox__option, .sp-palette__row').forEach(e => {
       if (!inProduct(e)) return;
@@ -562,7 +562,7 @@ const RULES = [
       if (/--attention|--problem|--over/.test(e.className)) return;
       const cs = CS(e);
       if (cs.backgroundColor !== TINT)
-        add(`a selected ${e.className.split(' ')[0] || e.tagName.toLowerCase()} is ${cs.backgroundColor}, not --green-tint`, e);
+        add(`a selected ${e.className.split(' ')[0] || e.tagName.toLowerCase()} is ${cs.backgroundColor}, not --primary-tint`, e);
       if (e.matches(CARDS) && cs.borderTopColor !== 'rgb(29, 77, 51)')
         add(`a selected card does not carry the green border: ${cs.borderTopColor}`, e);
     });
@@ -642,6 +642,101 @@ const RULES = [
         if (s.whiteSpace !== 'nowrap' || s.textOverflow !== 'ellipsis') add(`text beside "${name.textContent.trim().slice(0, 24)}" can wrap: "${k.textContent.trim().slice(0, 24)}"`, k);
       });
       if (head.querySelector('.sp-legend, .sp-filters')) add(`a legend or filters in the head of "${name.textContent.trim().slice(0, 30)}"; it goes below the head`, head);
+    });
+  }
+},
+{
+  id: 'a focus ring is not clipped',
+  why: 'A facet group kept overflow: clip after it unfolded, so the 3px ring of the vendor search and every box in the group was cut at the sides and top. Each control that takes focus is measured, with its ring, against every parent that clips.',
+  run(doc, add) {
+    /* The ring each control draws is read from the stylesheets, not assumed: a rule with
+       :focus-visible or :focus draws on the control itself, one with :focus-within or
+       :has(:focus-visible) on the part around it. A focus drawn as a fill, inset, or on a
+       child (> svg) draws nothing outside the box and is not measured. */
+    const win = doc.defaultView, rootCS = win.getComputedStyle(doc.documentElement);
+    const resolve = v => { for (let i = 0; i < 4 && /var\(/.test(v); i++) v = v.replace(/var\((--[\w-]+)(?:,[^()]*)?\)/g, (_, n) => rootCS.getPropertyValue(n).trim()); return v; };
+    const reach = (shadow, outline, offset) => {
+      let most = 0;
+      if (shadow && shadow !== 'none')
+        for (const part of shadow.split(/,(?![^(]*\))/)) {
+          if (/\binset\b/.test(part)) continue;
+          const n = (part.replace(/(rgba?|hsla?|oklch|color-mix)\([^)]*\)/g, '').match(/-?[\d.]+px|\b0\b/g) || []).map(parseFloat);
+          if (n.length >= 3) most = Math.max(most, Math.max(Math.abs(n[0]), Math.abs(n[1])) + (n[2] || 0) + (n[3] || 0));
+        }
+      if (outline) most = Math.max(most, outline + Math.max(0, offset || 0));
+      return most;
+    };
+    /* The cascade decides which focus rule draws: an unlayered rule beats one in @layer base,
+       then the more specific, then the later. A flush card's head that overrides the ring
+       with an inset one draws nothing outside, and must not be read as the ring it replaced. */
+    const spec = s => {
+      const t = s.replace(/::[\w-]+/g, '');
+      const ids = (t.match(/#[\w-]+/g) || []).length;
+      const cls = (t.match(/\.[\w-]+|\[[^\]]*\]|:(?!is\(|where\(|not\(|has\()[\w-]+/g) || []).length;
+      const els = (t.replace(/\[[^\]]*\]|\([^)]*\)/g, '').match(/(^|[\s>+~(,])[a-z][\w-]*/gi) || []).length;
+      return ids * 1e6 + cls * 1e3 + els;
+    };
+    const rules = [];
+    let order = 0;
+    const walk = (list, layered) => { for (const r of list) {
+      if (r.cssRules && !r.selectorText) { try { walk(r.cssRules, layered || (r.constructor && r.constructor.name === 'CSSLayerBlockRule')); } catch (e) {} continue; }
+      order++;
+      if (!r.selectorText || !/:focus/.test(r.selectorText)) continue;
+      if (!r.style.boxShadow && !r.style.outlineStyle && !r.style.outline) continue;
+      const ow = r.style.outlineStyle && r.style.outlineStyle !== 'none' ? parseFloat(resolve(r.style.outlineWidth || '0')) : 0;
+      const ring = reach(resolve(r.style.boxShadow || ''), ow, parseFloat(resolve(r.style.outlineOffset || '0')));
+      for (const s of r.selectorText.split(/,(?![^(]*\))/)) {
+        if (!/:focus/.test(s) || /:focus[\w-]*\)?\s*[>+~ ]\s*\S/.test(s.trim())) continue;
+        const around = /:focus-within|:has\(/.test(s);
+        const base = s.replace(/:has\([^()]*:focus[^()]*\)/g, '').replace(/:focus(-visible|-within)?/g, '').trim() || '*';
+        rules.push({ base, around, ring, rank: (layered ? 0 : 1e12) + spec(s) * 1e3 + order / 1e3 });
+      }
+    } };
+    for (const sh of doc.styleSheets) { try { walk(sh.cssRules, false); } catch (e) {} }
+    // each rule's matches found once, so a page of a thousand controls stays fast
+    const own = new Map(), hosts = new Map();
+    for (const x of rules) {
+      let list; try { list = doc.querySelectorAll(x.base); } catch (err) { continue; }
+      const into = x.around ? hosts : own;
+      for (const el of list) { const was = into.get(el); if (!was || was.rank < x.rank) into.set(el, x); }
+    }
+    const ringOf = e => {
+      if (own.get(e)?.ring) return { t: e, ring: own.get(e).ring };
+      for (let p = e; p && p !== doc.body; p = p.parentElement) if (hosts.get(p)?.ring) return { t: p, ring: hosts.get(p).ring };
+      return null;
+    };
+    const px = v => parseFloat(v) || 0;
+    doc.querySelectorAll('input:not([type="hidden"]), textarea, select, button, a[href], [tabindex]:not([tabindex="-1"])').forEach(e => {
+      if (!inProduct(e) || e.disabled) return;
+      const found = ringOf(e);
+      if (!found) return;
+      const t = found.t, RING = found.ring;
+      const r = t.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      for (let p = t.parentElement; p && p !== doc.body; p = p.parentElement) {
+        const c = CS(p);
+        if (c.display === 'none') return;
+        if (c.overflowX === 'visible' && c.overflowY === 'visible') continue;
+        // a frame stands for the screen: what its edge cuts, the window's edge cuts too
+        if (p.matches(PRODUCT) || /(^|\s)[a-z]+-(frame|device|phone)(--[\w-]+)?(\s|$)/.test(String(p.className))) return;
+        const pr = p.getBoundingClientRect();
+        const box = { l: pr.left + px(c.borderLeftWidth), t: pr.top + px(c.borderTopWidth), r: pr.right - px(c.borderRightWidth), b: pr.bottom - px(c.borderBottomWidth) };
+        // scrolled out of view, or already cut itself: not a ring question
+        if (r.left < box.l - 0.5 || r.right > box.r + 0.5 || r.top < box.t - 0.5 || r.bottom > box.b + 0.5) return;
+        // a scroller moved off its start cuts whatever sits at its edge, by design
+        const sx = p.scrollLeft > 0, sy = p.scrollTop > 0;
+        const cut = [
+          !sx && r.left - RING < box.l - 0.5 && 'left',
+          r.right + RING > box.r + 0.5 && 'right',
+          !sy && r.top - RING < box.t - 0.5 && 'top',
+          r.bottom + RING > box.b + 0.5 && 'bottom'
+        ].filter(Boolean);
+        if (cut.length) {
+          const name = (e.getAttribute('aria-label') || e.placeholder || e.textContent || e.className || e.tagName).toString().trim().slice(0, 30);
+          add(`the ring of "${name}" is cut at the ${cut.join(', ')} by .${String(p.className).split(' ')[0] || p.tagName.toLowerCase()} (overflow ${c.overflowX}/${c.overflowY})`, t);
+          return;
+        }
+      }
     });
   }
 },

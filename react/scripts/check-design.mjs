@@ -1420,6 +1420,18 @@ for (const [p, css] of pages) {
 for (const p of checked.filter(p => !p.includes(`${sep}components${sep}`)))
 	if (/descriptionTone=["{']*help/.test(read(p))) fail('a described choice uses sp-meta', rel(p), 'a Choice describes itself in the help style: leave descriptionTone at meta')
 
+// a clip handed to Motion as a value stays after a move it should have ended with
+for (const p of checked.filter(p => p.includes(`${sep}components${sep}`))) {
+	const s = read(p)
+	if (/transitionEnd/.test(s)) fail('Motion never holds a clip', rel(p), 'uses transitionEnd: set the end value on the element in onAnimationComplete')
+	for (const m of s.matchAll(/\b(initial|animate|exit|whileHover|whileTap|whileFocus|whileInView|whileDrag)=\{\{([\s\S]*?)\}\}/g))
+		if (/\boverflow[XY]?\s*:/.test(m[2])) fail('Motion never holds a clip', rel(p), `${m[1]} animates overflow`)
+	for (const m of s.matchAll(/\banimate\(\s*[\w.]+\s*,\s*\{([^}]*)\}/g))
+		if (/\boverflow[XY]?\s*:/.test(m[1])) fail('Motion never holds a clip', rel(p), 'animate() sets overflow')
+	if (/style\.overflow\s*=\s*on\b|style\.overflow\s*=\s*'(clip|hidden)'/.test(s) && !/onAnimationComplete/.test(s))
+		fail('Motion never holds a clip', rel(p), 'sets a clip on the element and never clears it when the move completes')
+}
+
 /* ---- every rule of design/styles/check.js has an answer here ----
    A rule the design adds fails this check until it is placed in DESIGN_RULES: the name of the
    rule here that holds it, COPY, DESIGN or NOT_CHECKED. */
@@ -1429,6 +1441,7 @@ const DESIGN = 'about the design\'s own pages, notes, start page or react_handof
 const NOT_CHECKED = 'applies to the app, not checked here yet'
 const DESIGN_RULES = {
 	'every page is checked': DESIGN,
+	'Motion never holds a clip': 'Motion never holds a clip',
 	'mark letters reach 4.5:1': COPY,
 	'Back is labelled Back': 'Back is labelled Back',
 	'figures in an answer fit a phone': COPY,

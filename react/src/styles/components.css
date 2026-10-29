@@ -188,6 +188,14 @@
 }
 .sp-list__toolbar--link:focus-visible,
 .sp-list__toolbar--toggle:focus-visible { box-shadow: var(--ring); }
+/* a flush card clips its corners, so a head that spans it draws the ring inside its own edge,
+   following the card's top corners, and all four once the card is folded to its head */
+.sp-card--flush > :is(.sp-list__toolbar--link, .sp-list__toolbar--toggle):focus-visible {
+  box-shadow: inset var(--ring);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+.sp-card--flush > .sp-list__toolbar--toggle[aria-expanded="false"]:focus-visible { border-radius: inherit; }
 .sp-card__chevron { margin-left: auto; flex: none; display: flex; color: var(--line-5); transition: transform 120ms ease; }
 /* the name takes the cut; everything beside it keeps its own width */
 .sp-list__toolbar > .sp-section-label,
@@ -333,7 +341,8 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   cursor: pointer;
   outline: none;
 }
-.sp-mark__open:focus-visible { box-shadow: var(--ring); }
+/* the mark clips what it holds, so the ring of the button that fills it is drawn by the mark */
+.sp-mark:has(> .sp-mark__open:focus-visible) { box-shadow: var(--ring); }
 
 /* a mark that picks a file wraps a real input, clipped rather than hidden so it
    stays focusable and the label around it opens the platform's own picker */
@@ -3965,7 +3974,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   width: auto;
   max-height: 260px;
   overflow-y: auto;
-  padding: 0;
+  /* the inset is room for a day's focus ring at the grid's edges, as a facet's values keep */
+  margin: 0 calc(var(--sp-4) * -1);
+  padding: 0 var(--sp-4);
   border: 0;
   box-shadow: none;
 }
@@ -4164,6 +4175,9 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
    span, so it can truncate or clamp as its role does. */
 a.sp-link-out { display: inline-flex; align-items: center; gap: var(--sp-4); min-width: 0; max-width: 100%; color: inherit; text-decoration: none; border-radius: var(--r-marker); outline: none; }
 .sp-link-out > span { min-width: 0; }
+/* a title stack hides its overflow for the cut, so one that holds a link out keeps room for
+   the link's focus ring, as a facet's values keep */
+.sp-stacked:has(> a.sp-link-out) { margin: calc(var(--sp-4) * -1); padding: var(--sp-4); }
 .sp-link-out > svg { flex: none; color: var(--ink-5); }
 .sp-link-out:focus-visible { box-shadow: var(--ring); }
 .sp-link-out:focus-visible > span,
@@ -4649,7 +4663,8 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-popover__head { display: flex; flex-direction: column; gap: var(--sp-6); }
 /* the list caps its height and scrolls inside the panel, so a search that matches
    forty records cannot grow the popover past the viewport */
-.sp-popover__list { display: flex; flex-direction: column; gap: var(--sp-6); max-height: 216px; overflow-y: auto; }
+/* the inset is room for a row's focus ring, as a facet's values keep */
+.sp-popover__list { display: flex; flex-direction: column; gap: var(--sp-6); max-height: 216px; overflow-y: auto; margin: calc(var(--sp-4) * -1); padding: var(--sp-4); }
 .sp-popover__summary {
   display: flex;
   align-items: center;
@@ -5612,6 +5627,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a menu that is not a panel: inside a sheet or a dialog it has no box of its own,
    because the surface it sits on is already the surface */
 .sp-menu--plain { background: none; border: 0; padding: 0; min-width: 0; }
+/* a plain menu that is a popover's list keeps the list's room for a row's focus ring */
+.sp-menu--plain.sp-popover__list { padding: var(--sp-4); }
 
 .sp-menu--scrolls { max-height: var(--menu-max); overflow-y: auto; }
 /* a submenu opens to the side of the row that owns it, its top level with it */
@@ -6268,7 +6285,8 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 .sp-touch .sp-chat__wrap > .sp-field__trail { bottom: calc((var(--control-h-touch) - var(--field-trail)) / 2); }
 /* What Ask can do (Ask 24c): one block of parts, in the dialog on a computer and in the
    sheet on a phone. A part is its label, its formats on one comma-separated line, an example */
-.sp-chat__help { display: flex; flex-direction: column; gap: var(--sp-16); min-height: 0; overflow-y: auto; }
+/* the inset is room for an example's focus ring, as a facet's values keep */
+.sp-chat__help { display: flex; flex-direction: column; gap: var(--sp-16); min-height: 0; overflow-y: auto; margin: calc(var(--sp-4) * -1); padding: var(--sp-4); }
 /* a dialog holding it is at most the window less the scrim's padding, so the list
    scrolls and the heading and Close stay (Ask 24c) */
 .sp-dialog:has(> .sp-chat__help) { max-height: calc(100dvh - var(--sp-16) * 2); }
