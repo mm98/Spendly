@@ -1,5 +1,21 @@
 # A field does not open the keyboard on touch when a form opens
 
+## Fixed from handoff_touch_autofocus_fixed
+
+Two values were still the old green (#1d4d33) instead of the emerald primary (#004d28).
+
+- **The problem:** the Custom colour input in Components (SwatchPicker, Swatches) started on #1d4d33. In `styles/components.css` the tick in a checked checkbox inside a selected filter chip was drawn in #1d4d33 inside an SVG data URI, which cannot read a token, so it stayed green in every scheme.
+- **What changed:** the Custom colour input starts on #004d28. The tick is now cut out of the white box with a mask, so it shows the chip's own `--primary` behind it and follows every scheme. It looks the same as before in Green.
+- **Where:** Components, SwatchPicker, Swatches (`defaultValue="#004d28"`). `styles/components.css`, `.sp-chip--facet:has(input:checked) input[type="checkbox"]`: `background: var(--surface)` plus `mask` / `-webkit-mask` (tick, `linear-gradient(#000 0 0)`) with `mask-composite: exclude` / `-webkit-mask-composite: xor`. Copy the same rule into `react/src/styles/components.css`.
+- **What is still open:** nothing.
+
+## Fixed from handoff_touch_autofocus
+
+- **The problem:** that package's Components.dc.html had an old Swatches specimen (Components, SwatchPicker, Swatches): Green, Mid green, Light green, Pale green on `green`, `green-3`, `green-4`, `green-5`.
+- **What changed:** the specimen now matches main: Primary, Mid, Light, Pale on `primary`, `primary-3`, `primary-4`, `primary-5`. Apart from the focus note, this Components.dc.html is the same as `design/Components.dc.html` on main.
+- **Where:** Components, SwatchPicker, Swatches specimen.
+- **What is still open:** nothing.
+
 The brief: on a phone the keyboard pops up every time a form is shown, before the reader has decided to type, and has to be closed first.
 
 ## 1. On touch a field takes focus only when the reader has just asked to type
@@ -32,7 +48,8 @@ The brief: on a phone the keyboard pops up every time a form is shown, before th
 - Components.dc.html: the new focus-on-touch note.
 - Auth and first run.dc.html: the sign in / register note names the rule.
 - support.js, view.js, components.js, icons.js: what the pages load to open.
-- styles/tokens.css, styles/schemes.css, styles/components.css, styles/doc.css: shared styles, unchanged.
+- styles/components.css: the filter chip tick rule.
+- styles/tokens.css, styles/schemes.css, styles/doc.css: shared styles, unchanged.
 - styles/pages/auth-and-first-run.css: Auth and first run's page styles, unchanged.
 - assets/shop-logo.svg: the logo mark drawn in Components.
 
