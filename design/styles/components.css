@@ -4680,18 +4680,15 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-mark--solid[data-swatch="amber-2"] { background: var(--amber-2); color: var(--ink); }
 .sp-mark--solid[data-swatch="red-ink"] { background: var(--red-ink); }
 .sp-mark--solid[data-swatch="ink-6"] { background: var(--ink-6); color: var(--ink); }
-/* The ink on a solid mark is whichever of --surface and --ink has the higher APCA
-   lightness contrast on its fill, a tie keeping --surface. The rules above and below
-   are that result for each swatch in each theme; a colour the reader picks arrives
-   with data-ink, worked out the same way by the component. */
-:where([data-theme="dark"]) .sp-mark--solid:not([data-swatch]),
-:where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary"],
+/* The ink on a solid mark is whichever of --surface and --ink reaches 4.5:1 on its
+   fill; if both or neither do, the one with the higher contrast, a tie keeping
+   --surface. The letters are 13px bold, which is not large text. The rules above and
+   below are that result for each swatch in each theme; a colour the reader picks
+   arrives with data-ink, worked out the same way by the component. */
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary-3"],
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="primary-4"],
 :where([data-theme="dark"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }
 /* a light island inside a dark page takes the light results back */
-:where([data-theme="light"]) .sp-mark--solid:not([data-swatch]),
-:where([data-theme="light"]) .sp-mark--solid[data-swatch="primary"],
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="primary-3"] { color: var(--surface); }
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="primary-4"],
 :where([data-theme="light"]) .sp-mark--solid[data-swatch="ink-6"] { color: var(--ink); }

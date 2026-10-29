@@ -40,12 +40,6 @@ body { -webkit-font-smoothing: antialiased; }
 /* under the shell's signed-out notice, the divider starts below it, not inside it */
 .sp-shell__body > :not(:first-child) > .sp-section-nav { margin-top: 0; }
 
-/* white initials on Emerald's mid tone and account mark need 4.5:1; the design's value draws 4.48:1 */
-:root:not([data-scheme]),
-:root[data-scheme="emerald"] { --shell-mark: #508066; }
-:root[data-theme="light"]:not([data-scheme]),
-:root[data-theme="light"][data-scheme="emerald"] { --primary-3: #508066; }
-
 /* below 900 the search fills the width the bar has left (9f), measured on the bar as the body is */
 .sp-topbar:not(.sp-topbar--touch) { container-type: inline-size; }
 @container (max-width: 900px) {

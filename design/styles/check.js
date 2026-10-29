@@ -500,6 +500,52 @@
     fail('one name per role', 'stylesheets', key);
   }
 
+  /* The letters on a solid mark reach 4.5:1 in every scheme and theme. They are 13px
+     bold, which is not large text. Caught: Emerald's and Terracotta's mid tone measured
+     4.48 and 4.49 against white, and every dark scheme's primary and primary-3 marks
+     2.5 to 4.1, since the ink rules were worked out by APCA and never measured. The
+     ink each swatch takes is read from the .sp-mark--solid rules in source order, a
+     theme-scoped rule applying only in its theme; the account mark is white on
+     --shell-mark. */
+  {
+    const sch = await readFile('styles/schemes.css');
+    const hex = h => { h = h.toLowerCase(); return h.length === 4 ? '#' + [...h.slice(1)].map(c => c + c).join('') : h; };
+    const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    const lum = h => { h = hex(h); const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16) / 255)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)]; return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const vars = body => Object.fromEntries([...(body || '').matchAll(/(--[\w-]+):\s*(#[0-9a-f]{3,6})\b/gi)].map(m => [m[1], m[2]]));
+    const bareTok = tok.replace(/\/\*[\s\S]*?\*\//g, '');
+    const rootV = vars((bareTok.match(/:root\s*\{([^}]*)\}/) || [])[1]);
+    const darkV = { ...rootV, ...vars((bareTok.match(/\[data-theme="dark"\]\s*\{([^}]*)\}/) || [])[1]) };
+    const themes = { light: { tokens: rootV }, dark: { tokens: darkV } };
+    for (const m of sch.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+      const s = m[1].match(/data-scheme="(\w+)"/); if (!s || !/--primary:/.test(m[2])) continue;
+      const th = /dark/.test(m[1]) ? 'dark' : 'light';
+      themes[th][s[1]] = { ...(th === 'dark' ? darkV : rootV), ...vars(m[2]) };
+    }
+    const SW = [...new Set([...comp.matchAll(/\.sp-mark--solid\[data-swatch="([\w-]+)"\]\s*\{\s*background/g)].map(m => m[1]))];
+    const ink = { light: {}, dark: {} };
+    for (const th of ['light', 'dark']) for (const sw of ['none', ...SW]) ink[th][sw] = 'surface';
+    for (const m of comp.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+      const c = m[2].match(/(?:^|;)\s*color:\s*var\(--(surface|ink)\)/); if (!c) continue;
+      for (const sel of m[1].split(',').map(x => x.trim())) {
+        const t = sel.match(/^:where\(\[data-theme="(light|dark)"\]\)\s+\.sp-mark--solid(.*)$/) || (sel.startsWith('.sp-mark--solid') && [null, null, sel.slice(15)]);
+        if (!t) continue;
+        const rest = t[2]; const sw = rest === ':not([data-swatch])' || rest === '' ? 'none' : (rest.match(/^\[data-swatch="([\w-]+)"\]$/) || [])[1];
+        if (!sw) continue;
+        for (const th of t[1] ? [t[1]] : ['light', 'dark']) { if (rest === '') { for (const k of Object.keys(ink[th])) if (k === 'none') ink[th][k] = c[1]; } else ink[th][sw] = c[1]; }
+      }
+    }
+    for (const th of ['light', 'dark']) for (const [name, v] of Object.entries(themes[th])) {
+      for (const sw of ['none', ...SW]) {
+        const fill = v['--' + (sw === 'none' ? 'primary' : sw)]; if (!fill) continue;
+        const r = ratio(v['--' + ink[th][sw]], fill);
+        if (r < 4.5) fail('mark letters reach 4.5:1', name + ' ' + th, (sw === 'none' ? 'a mark with no swatch' : sw) + ' ' + fill + ' with --' + ink[th][sw] + ': ' + r.toFixed(2));
+      }
+      if (v['--shell-mark'] && ratio('#ffffff', v['--shell-mark']) < 4.5) fail('mark letters reach 4.5:1', name + ' ' + th, '--shell-mark ' + v['--shell-mark'] + ' with white: ' + ratio('#ffffff', v['--shell-mark']).toFixed(2));
+    }
+  }
+
   /* ---- 4. labels and names ------------------------------------------------ */
 
   /* There are two reds, and which one a rule takes is decided by whether it is

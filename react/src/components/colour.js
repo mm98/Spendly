@@ -1,29 +1,29 @@
-// APCA's screen luminance, with its soft clamp near black
+// WCAG 2 relative luminance
 const Y = hex => {
-	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255) ** 2.4)
-	const y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
-	return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
+	const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 const expand = hex => (/^#[0-9a-f]{3}$/i.test(hex) ? '#' + [...hex.slice(1)].map(c => c + c).join('') : hex)
 
-/** APCA lightness contrast of an ink on a fill, |Lc| 0-106: about 45 carries a bold glyph, 60 body text. */
-export function lightnessContrast(ink, fill) {
-	const [t, b] = [Y(expand(ink)), Y(expand(fill))]
-	const s = (b > t ? b ** 0.56 - t ** 0.57 : b ** 0.65 - t ** 0.62) * 1.14
-	return Math.abs(s) < 0.1 ? 0 : Math.abs((s > 0 ? s - 0.027 : s + 0.027) * 100)
+/** WCAG contrast ratio of an ink on a fill, 1-21. A mark's 13px bold letters need 4.5. */
+export function contrastRatio(ink, fill) {
+	const [a, b] = [Y(expand(ink)), Y(expand(fill))]
+	return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
 }
 
 const root = () => document.documentElement
 const read = name => getComputedStyle(root()).getPropertyValue(name).trim()
 const worked = new Map()
 
-/** Which of the theme's two inks, --surface or --ink, reads better on a fill: one of the design's
-    swatch names, or a colour the reader picked (#rrggbb). A tie keeps --surface. */
+/** Which of the theme's two inks, --surface or --ink, goes on a fill: one of the design's swatch
+    names, or a colour the reader picked (#rrggbb). The one that reaches 4.5:1; if both or neither
+    do, the one with the higher contrast. A tie keeps --surface. */
 export function inkFor(fill) {
 	const key = `${root().dataset.theme}|${root().dataset.scheme}|${fill}`
 	if (!worked.has(key)) {
 		const ground = fill.startsWith('#') ? fill : read(`--${fill}`)
-		worked.set(key, lightnessContrast(read('--surface'), ground) >= lightnessContrast(read('--ink'), ground) ? 'surface' : 'ink')
+		const [s, i] = [contrastRatio(read('--surface'), ground), contrastRatio(read('--ink'), ground)]
+		worked.set(key, s >= 4.5 && i < 4.5 ? 'surface' : i >= 4.5 && s < 4.5 ? 'ink' : s >= i ? 'surface' : 'ink')
 	}
 	return worked.get(key)
 }

@@ -48,7 +48,7 @@ and `tabler.js` stay in the app: the harness draws icons from the project's `ico
     Utilities.jsx     Stacked, Line, Kbd, Hold, Empty, EmptyTitle, EmptyBody, Skeleton,
                       Spinner, Redacted, AddRow
     Well.jsx          Well, Halves
-    colour.js         lightnessContrast, inkFor, themeNow, onThemeChange
+    colour.js         contrastRatio, inkFor, themeNow, onThemeChange
     format.js         formatNumber, parseNumber, round, singular
     variants.js       join, pick, reject
 

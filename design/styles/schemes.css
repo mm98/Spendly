@@ -22,7 +22,7 @@
   --hatch-b: #e9e3dd;
   --primary: #8a3b1e;
   --primary-2: #a84e2b;
-  --primary-3: #a8664d;
+  --primary-3: #a7664c;
   --primary-4: #d0a493;
   --primary-5: #e8d0c6;
   --primary-tint: #f6e9e3;
@@ -38,7 +38,7 @@
   --shell-scroll: #5a3c30;
   --shell-action: #8a3b1e;
   --shell-action-hover: #a84e2b;
-  --shell-mark: #a8664d;
+  --shell-mark: #a7664c;
   /* warning and problem, turned away from this scheme's primary */
   --amber-ink: #6d6224;
   --amber-ink-2: #615925;
@@ -72,7 +72,7 @@
   --hatch-b: #3c332d;
   --primary: #d08560;
   --primary-2: #dea183;
-  --primary-3: #ad6c4e;
+  --primary-3: #9d5d40;
   --primary-4: #7b4e39;
   --primary-5: #46322a;
   --primary-tint: #3b261c;
@@ -164,7 +164,7 @@
   --hatch-b: #342f2c;
   --primary: #aa8b77;
   --primary-2: #c1a492;
-  --primary-3: #8c7566;
+  --primary-3: #80695b;
   --primary-4: #625247;
   --primary-5: #39312c;
   --primary-tint: #332923;
@@ -256,7 +256,7 @@
   --hatch-b: #33302b;
   --primary: #af8c51;
   --primary-2: #c5a672;
-  --primary-3: #8f764c;
+  --primary-3: #826a40;
   --primary-4: #645235;
   --primary-5: #3a3123;
   --primary-tint: #342a18;
@@ -333,7 +333,7 @@
   --hatch-b: #30312c;
   --primary: #8c9967;
   --primary-2: #a5b184;
-  --primary-3: #767f5b;
+  --primary-3: #69714e;
   --primary-4: #52593f;
   --primary-5: #313528;
   --primary-tint: #292d1e;
@@ -360,7 +360,7 @@
   --hatch-b: #e1e6e3;
   --primary: #004d28;
   --primary-2: #007047;
-  --primary-3: #518167;
+  --primary-3: #508066;
   --primary-4: #90b5a0;
   --primary-5: #c4d6cc;
   --primary-tint: #e2ece6;
@@ -376,7 +376,7 @@
   --shell-scroll: #384d42;
   --shell-action: #004d28;
   --shell-action-hover: #007047;
-  --shell-mark: #518167;
+  --shell-mark: #508066;
 }
 [data-scheme="emerald"][data-theme="dark"],
 [data-scheme="emerald"] [data-theme="dark"],
@@ -395,7 +395,7 @@
   --hatch-b: #2d322f;
   --primary: #5fa380;
   --primary-2: #7fba9a;
-  --primary-3: #57876d;
+  --primary-3: #48775e;
   --primary-4: #3c5e4c;
   --primary-5: #27372e;
   --primary-tint: #1c3026;
@@ -457,7 +457,7 @@
   --hatch-b: #323a3b;
   --primary: #5fa3ab;
   --primary-2: #80b8be;
-  --primary-3: #4f878e;
+  --primary-3: #3e767d;
   --primary-4: #3e6267;
   --primary-5: #2e3e40;
   --primary-tint: #1b3236;
@@ -519,7 +519,7 @@
   --hatch-b: #2c3134;
   --primary: #5b9cba;
   --primary-2: #7cb4cf;
-  --primary-3: #548197;
+  --primary-3: #477389;
   --primary-4: #3a5a6a;
   --primary-5: #26353d;
   --primary-tint: #1b2e37;
@@ -581,7 +581,7 @@
   --hatch-b: #2d3135;
   --primary: #8494a6;
   --primary-2: #9eadbc;
-  --primary-3: #707c88;
+  --primary-3: #636f7b;
   --primary-4: #4e565f;
   --primary-5: #2f3338;
   --primary-tint: #272c31;
@@ -643,7 +643,7 @@
   --hatch-b: #33373e;
   --primary: #6d93c4;
   --primary-2: #8cabd4;
-  --primary-3: #5a7aa3;
+  --primary-3: #506f98;
   --primary-4: #44597a;
   --primary-5: #2f3a4c;
   --primary-tint: #1e2a3b;
@@ -705,7 +705,7 @@
   --hatch-b: #2d3135;
   --primary: #6195d6;
   --primary-2: #80aee8;
-  --primary-3: #587cab;
+  --primary-3: #4c6f9d;
   --primary-4: #3d5778;
   --primary-5: #273445;
   --primary-tint: #1d2c40;
@@ -767,7 +767,7 @@
   --hatch-b: #2f3035;
   --primary: #808dd2;
   --primary-2: #9aa7e5;
-  --primary-3: #6d77a9;
+  --primary-3: #616b9c;
   --primary-4: #4c5376;
   --primary-5: #2e3244;
   --primary-tint: #262a3f;
@@ -829,7 +829,7 @@
   --hatch-b: #312f34;
   --primary: #9c83c9;
   --primary-2: #b39edc;
-  --primary-3: #8170a2;
+  --primary-3: #766596;
   --primary-4: #5a4e71;
   --primary-5: #352f41;
   --primary-tint: #2e273c;
@@ -891,7 +891,7 @@
   --hatch-b: #38323a;
   --primary: #b083a8;
   --primary-2: #c49fbd;
-  --primary-3: #916b8a;
+  --primary-3: #876280;
   --primary-4: #674d63;
   --primary-5: #3d3140;
   --primary-tint: #33233a;
@@ -968,7 +968,7 @@
   --hatch-b: #342e30;
   --primary: #ca748f;
   --primary-2: #de91a8;
-  --primary-3: #a36578;
+  --primary-3: #995b6e;
   --primary-4: #724654;
   --primary-5: #422b32;
   --primary-tint: #3d222a;
@@ -1060,7 +1060,7 @@
   --hatch-b: #3b3230;
   --primary: #c27a84;
   --primary-2: #d4979f;
-  --primary-3: #a0646d;
+  --primary-3: #985d66;
   --primary-4: #74484e;
   --primary-5: #45302f;
   --primary-tint: #3a2226;
@@ -1135,9 +1135,9 @@
   --line-5: #5c5955;
   --hatch-a: #2e2d2b;
   --hatch-b: #383634;
-  --primary: #8a877f;
+  --primary: #8b8880;
   --primary-2: #a8a59c;
-  --primary-3: #77746d;
+  --primary-3: #706d66;
   --primary-4: #57544e;
   --primary-5: #3a3732;
   --primary-tint: #2e2b27;
