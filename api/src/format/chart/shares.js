@@ -30,7 +30,7 @@ function shape(asked) {
 }
 
 // the greens of the shares, darkest first
-const SHARE_KEYS = ['#2f7a51', '#4f7f63', '#8caf97', '#c6d6c9'].map(rgb)
+const SHARE_KEYS = ['#007047', '#518167', '#90b5a0', '#c4d6cc'].map(rgb)
 
 function picture(chart, write) {
 	const shares = chart.shares

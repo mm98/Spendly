@@ -4,6 +4,8 @@
    demo, the one impression a personal-finance app can least afford to give. An account starts
    genuinely empty: no vendor, no category, no order until the user adds one themselves. */
 
+import { DEFAULT_SCHEME } from './lib/schemes.js'
+
 export const DEFAULT_SETTINGS = {
 	defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10,
 	sort: 'date-desc',
@@ -16,7 +18,9 @@ export const DEFAULT_SETTINGS = {
 	// every account got before the column existed and the right answer wherever a reader's
 	// browser language and their region already agree. Registration overrides it when the
 	// client managed to work out where the reader is (see routes/auth.js).
-	locale: 'auto'
+	locale: 'auto',
+	// set here: the column's own default is not a scheme
+	colourScheme: DEFAULT_SCHEME
 }
 
 /** Inserts the settings row every account needs, inside the caller's transaction. `overrides`
@@ -24,7 +28,7 @@ export const DEFAULT_SETTINGS = {
 export function seedAccountDefaults(db, userId, overrides = {}) {
 	const settings = { ...DEFAULT_SETTINGS, ...overrides }
 	db.prepare(`INSERT INTO user_settings (user_id, default_kind, default_status, page_size, sort,
-		list_sort, currency, locale)
-		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @listSort, @currency, @locale)`)
+		list_sort, currency, locale, colour_scheme)
+		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @listSort, @currency, @locale, @colourScheme)`)
 		.run({ userId, ...settings })
 }

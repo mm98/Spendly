@@ -4105,7 +4105,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
   [data-tip]:hover::after { opacity: 1; }
 }
 [data-theme="dark"] [data-tip]::after {
-  background: #2e2b26;
+  background: #232825;
   border: 1px solid var(--line);
   color: var(--ink);
 }
@@ -4250,7 +4250,7 @@ a.sp-chat__file-name { text-decoration: none; }
 /* dark theme lifts an overlay instead of shadowing it (12a) */
 [data-theme="dark"] .sp-toast,
 [data-theme="dark"] .sp-tip {
-  background: #2e2b26;
+  background: #232825;
   border: 1px solid var(--line);
   color: var(--ink);
 }

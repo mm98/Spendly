@@ -12,32 +12,32 @@
   --ink-6: #b3b1a9;        /* icon rest state, empty glyphs */
 
   /* ---- ground ---- */
-  --bg: #eceae4;           /* app background */
+  --bg: #e5e9e6;           /* app background */
   --surface: #fff;         /* cards, rows, fields */
-  --surface-2: #f7f6f2;    /* read-only fields, option tiles */
-  --surface-3: #f2f1eb;    /* a line item row inside a card */
-  --hatch-a: #dcdad2;      /* stand-in for a photo these mockups do not have */
-  --hatch-b: #e8e6de;
-  --hover: #f0efe9;        /* hover and selected row */
+  --surface-2: #f3f6f4;    /* read-only fields, option tiles */
+  --surface-3: #eef1ef;    /* a line item row inside a card */
+  --hatch-a: #d2d7d4;      /* stand-in for a photo these mockups do not have */
+  --hatch-b: #e1e6e3;
+  --hover: #ecefed;        /* hover and selected row */
 
   /* ---- line ---- */
-  --line: #e6e4dc;         /* card and header borders */
-  --line-2: #f0efe9;       /* rules between rows */
-  --line-3: #dedcd4;       /* field borders */
-  --line-4: #d6d4ca;       /* control borders (checkbox) */
-  --line-5: #c3c1b8;       /* hovered field border, note rule */
+  --line: #e0e4e1;         /* card and header borders */
+  --line-2: #ecefed;       /* rules between rows */
+  --line-3: #d7dcd9;       /* field borders */
+  --line-4: #cdd3cf;       /* control borders (checkbox) */
+  --line-5: #b9c0bc;       /* hovered field border, note rule */
 
-  /* ---- primary: the scheme's colour, Green by default (schemes.css) ---- */
-  --primary: #1d4d33;        /* primary, marks, links */
-  --primary-2: #2d754e;      /* hover on primary, positive figures */
-  --primary-3: #4f7f63;
-  --primary-4: #8caf97;
-  --primary-5: #c6d6c9;
-  --primary-tint: #e7efe8;   /* positive pill, focus ring */
-  --primary-tint-2: #eef1ee; /* selected option tile, meter track */
-  --range-in: #e4ede7;     /* a day inside the chosen range */
-  --range-line: #eeece5;   /* the range popover's own rules */
-  --primary-press: #1b4530;  /* active state on primary */
+  /* ---- primary: the scheme's colour, Emerald by default (schemes.css) ---- */
+  --primary: #004d28;        /* primary, marks, links */
+  --primary-2: #007047;      /* hover on primary, positive figures */
+  --primary-3: #518167;
+  --primary-4: #90b5a0;
+  --primary-5: #c4d6cc;
+  --primary-tint: #e2ece6;   /* positive pill, focus ring */
+  --primary-tint-2: #ebf0ed; /* selected option tile, meter track */
+  --range-in: #deeae3;     /* a day inside the chosen range */
+  --range-line: #e7eae8;   /* the range popover's own rules */
+  --primary-press: #00421e;  /* active state on primary */
 
 
   /* ---- amber: attention, over a limit ---- */
@@ -216,16 +216,16 @@
   --overlay-scrim: rgba(27, 26, 23, 0.35);  /* the page dimmed behind the search palette (9d) */
 
   /* ---- shell: the dark sidebar ---- */
-  --shell: #14261c;          /* sidebar ground */
-  --shell-item: #c3d2c8;     /* item label at rest */
+  --shell: #082014;          /* sidebar ground */
+  --shell-item: #c5d1ca;     /* item label at rest */
   --shell-item-hover: rgba(255, 255, 255, 0.05);
-  --shell-current: #1f3d2c;  /* current destination */
-  --shell-group: #7d9186;    /* group label, dim count */
-  --shell-count: #a9bdb1;    /* count on the current item */
-  --shell-scroll: #3a5546;   /* scrollbar thumb inside the sidebar */
-  --shell-action: #1d4d33;   /* Scan receipt's fill, and the brand tile */
-  --shell-action-hover: #2f7a51;
-  --shell-mark: #4f7f63;     /* the account mark in the sidebar */
+  --shell-current: #143525;  /* current destination */
+  --shell-group: #7e8983;    /* group label, dim count */
+  --shell-count: #acb8b1;    /* count on the current item */
+  --shell-scroll: #384d42;   /* scrollbar thumb inside the sidebar */
+  --shell-action: #004d28;   /* Scan receipt's fill, and the brand tile */
+  --shell-action-hover: #007047;
+  --shell-mark: #518167;     /* the account mark in the sidebar */
   --shell-warning: #e2d3ae;  /* a warning count in the sidebar */
 
   /* the thumb every scrolling region shows: the divider ink, so a bar reads as a
@@ -246,29 +246,29 @@
    declared and the other inherited. Identical to :root; nothing new is chosen here. */
 
 [data-theme="light"] {
-  --bg: #eceae4;
+  --bg: #e5e9e6;
   --surface: #fff;
-  --surface-2: #f7f6f2;
-  --surface-3: #f2f1eb;
-  --hover: #f0efe9;
-  --line: #e6e4dc;
-  --line-2: #f0efe9;
-  --line-3: #dedcd4;
-  --line-4: #d6d4ca;
-  --line-5: #c3c1b8;
+  --surface-2: #f3f6f4;
+  --surface-3: #eef1ef;
+  --hover: #ecefed;
+  --line: #e0e4e1;
+  --line-2: #ecefed;
+  --line-3: #d7dcd9;
+  --line-4: #cdd3cf;
+  --line-5: #b9c0bc;
   --ink: #1b1a17;
   --ink-2: #3d3c36;
   --ink-3: #57564f;
   --ink-4: #5f5e58;
   --ink-5: #686760;
   --ink-6: #b3b1a9;
-  --primary: #1d4d33;
-  --primary-2: #2d754e;
-  --primary-tint: #e7efe8;
-  --primary-tint-2: #eef1ee;
-  --range-in: #e4ede7;
-  --range-line: #eeece5;
-  --primary-press: #1b4530;
+  --primary: #004d28;
+  --primary-2: #007047;
+  --primary-tint: #e2ece6;
+  --primary-tint-2: #ebf0ed;
+  --range-in: #deeae3;
+  --range-line: #e7eae8;
+  --primary-press: #00421e;
   --amber: #b58a2b;
   --amber-tint: #f3ede1;
   --amber-tint-2: #fdf8ee;
@@ -279,8 +279,8 @@
   --red: #c98a80;
   --red-tint: #f0e6e4;
   --red-tint-2: #fdf6f5;
-  --hatch-a: #dcdad2;
-  --hatch-b: #e8e6de;
+  --hatch-a: #d2d7d4;
+  --hatch-b: #e1e6e3;
   --overlay-photo: rgba(27, 26, 23, 0.62);
   --overlay-badge: rgba(27, 26, 23, 0.72);
   --ring: 0 0 0 3px var(--primary-tint);
@@ -289,17 +289,17 @@
 }
 
 [data-theme="dark"] {
-  --bg: #1a1815;
-  --surface: #221f1b;
-  --surface-2: #262320;
-  --surface-3: #2a2621;
-  --hover: #2a2621;
+  --bg: #121513;
+  --surface: #191d1b;
+  --surface-2: #1d201e;
+  --surface-3: #202421;
+  --hover: #202421;
 
-  --line: #38332c;
-  --line-2: #2e2b26;
-  --line-3: #463f37;
-  --line-4: #463f37;
-  --line-5: #5c554b;
+  --line: #2d322f;
+  --line-2: #232825;
+  --line-3: #383d3a;
+  --line-4: #383d3a;
+  --line-5: #4d5550;
 
   --ink: #f2f0ea;
   --ink-2: #d8d4ca;
@@ -308,19 +308,19 @@
   --ink-5: #90897e;
   --ink-6: #5c554b;
 
-  --primary: #5d9b76;
-  --primary-2: #7ab08e;
+  --primary: #5fa380;
+  --primary-2: #7fba9a;
   /* the rest of the scale runs from the primary toward this theme's surface, at the
      same steps the light scale uses - without these, dark kept the light values and
      a muted bar was a pale mint on a dark ground */
-  --primary-3: #508062;
-  --primary-4: #405e49;
-  --primary-5: #313e32;
-  --primary-tint: #1f3328;
-  --primary-tint-2: #2e2b26;
-  --range-in: #1f3328;
-  --range-line: #38332c;
-  --primary-press: #4d8763;
+  --primary-3: #57876d;
+  --primary-4: #3c5e4c;
+  --primary-5: #27372e;
+  --primary-tint: #1c3026;
+  --primary-tint-2: #232825;
+  --range-in: #1c3026;
+  --range-line: #2d322f;
+  --primary-press: #509471;
 
 
   --amber: #d9b166;
@@ -339,12 +339,12 @@
   --red-hover: #eb9e93;
   --red-press: #c9877e;
 
-  --hatch-a: #2e2b26;
-  --hatch-b: #38332c;
+  --hatch-a: #232825;
+  --hatch-b: #2d322f;
   --overlay-photo: rgba(0, 0, 0, 0.62);
   --overlay-scrim: rgba(0, 0, 0, 0.35);
   --overlay-badge: rgba(0, 0, 0, 0.72);
-  --ring: 0 0 0 3px #1f3328;
+  --ring: 0 0 0 3px #1c3026;
   --shadow-menu: 0 6px 16px rgba(0, 0, 0, 0.4);
   --shadow-sheet: 0 -8px 24px rgba(0, 0, 0, 0.45);
 }

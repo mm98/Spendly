@@ -26,9 +26,9 @@ for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
 for (const scheme of Object.values(SCHEMES))
 	for (const theme of ['light', 'dark']) scheme[theme] = { ...shared[theme], ...scheme[theme] }
 
-export const DEFAULT_SCHEME = 'green'
+export const DEFAULT_SCHEME = 'emerald'
 export const WARNING_AND_PROBLEM_TOKENS = Object.keys(shared.light)
 export const SCHEME_IDS = Object.keys(SCHEMES)
 
-/** The scheme's tokens in one theme; an id that is not a scheme gets Green. */
+/** The scheme's tokens in one theme; an id that is not a scheme gets Emerald. */
 export const schemeTokens = (id, theme) => (SCHEMES[id] ?? SCHEMES[DEFAULT_SCHEME])[theme]

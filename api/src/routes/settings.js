@@ -35,7 +35,7 @@ const toApi = row => ({
 	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
 	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
 	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month,
-	recentRows: row.recent_rows, colourScheme: row.colour_scheme,
+	recentRows: row.recent_rows, colourScheme: SCHEME_IDS.includes(row.colour_scheme) ? row.colour_scheme : DEFAULT_SCHEME,
 	statusEmailWeekly: Boolean(row.status_email_weekly), statusEmailMonthly: Boolean(row.status_email_monthly)
 })
 

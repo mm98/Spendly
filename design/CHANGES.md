@@ -1,5 +1,13 @@
 # Colour schemes: a choice of scheme beside the theme
 
+## Fixed from handoff_colour_schemes_fixed_11
+
+A scheme id that is not one of the 16 (one removed in an earlier round) passed through `view.js` unchanged, so the page drew Emerald while no Colour scheme tile in 11a was selected. `view.js` now lists the 16 schemes and reads any other id as `emerald`. In the app the same holds: an id outside `SCHEME_IDS` is Emerald, and Settings shows Emerald as chosen.
+
+## Fixed from handoff_colour_schemes_fixed_10
+
+The scheme colours are back to the ones on main (`design/styles/schemes.css`, the 17 of F and G), at the user's decision, with one change: Green is removed and Emerald is the default (K). The later sets (eight hues deep and pastel, then sixteen named colours) and the four tokens they needed (`--primary-ink`, `--primary-ink-2`, `--on-primary`, `--on-primary-mark`) are withdrawn; `styles/components.css`, `styles/doc.css` and `styles/pages/settings.css` are main's, with Green's literal values replaced by Emerald's.
+
 ## Fixed from handoff_colour_schemes_fixed_6
 
 J is new: the import mapping's field picker is the height of the file column beside it.
@@ -126,6 +134,16 @@ After the change each scheme's primary and `--primary-2` stand at least as far f
 
 **What is still open.** Nothing.
 
+### K. Emerald is the default; Green is removed
+
+**The problem.** Green and Emerald were two near-identical schemes, and Green was the default.
+
+**What changed.** Green is removed, leaving 16 schemes in hue order. Emerald is the default for a new account and for one with no scheme stored, and `styles/tokens.css` holds Emerald's values, light and dark, neutrals included. Every hard-coded Green value in the pages, the stylesheets and the emails (the primary scale and the sidebar) is the Emerald value. An account stored with `green` reads as `emerald`.
+
+**Where.** `styles/tokens.css`; `styles/schemes.css` (the Green block removed, its header note); `styles/components.css` literals; `view.js` (`green` reads as `emerald`, the default `emerald`); `Settings and import 11a` tiles (Emerald checked) and note; every page's Scheme tweak (default `emerald`); `emails/*.html` literals; `Auth and first run 20f` note. App: `api/src/lib/schemes.js` (`DEFAULT_SCHEME = 'emerald'`, and an id that is not a scheme gets Emerald), the default in the settings record, a migration of stored `green` to `emerald`, `react/src/styles/tokens.css` and `schemes.css` (byte copies of `design/styles`), and the emails' literals table.
+
+**What is still open.** `CLAUDE.md` still says a saving is "green in the Green scheme"; the rule is unchanged in substance (the scheme's positive colour), and the project's owner updates that line.
+
 ## later.md (this pass)
 
 Read on main before this pass. One entry, "A deleted record should not be removed for good at once", is an idea for later and stays as it is.
@@ -138,7 +156,7 @@ The brief: offer colour schemes other than the green, chosen in Settings beside 
 
 **The problem.** Spendly had one colour: the brand green ran through the primary, links, marks, savings, the neutrals and the sidebar, with no way to change it.
 
-**What changed.** An account chooses one of 17 schemes: Green (the default), Deep navy, Cobalt, Indigo, Ocean, Slate, Petrol teal, Emerald, Olive, Ochre, Terracotta, Mocha, Oxblood, Raspberry, Plum, Violet, Charcoal. A scheme replaces three groups of tokens, in both themes:
+**What changed.** An account chooses one of 16 schemes (Green removed in K): Deep navy, Cobalt, Indigo, Ocean, Slate, Petrol teal, Emerald, Olive, Ochre, Terracotta, Mocha, Oxblood, Raspberry, Plum, Violet, Charcoal. A scheme replaces three groups of tokens, in both themes:
 
 - the primary scale: `--primary`, `--primary-2` to `--primary-5`, `--primary-tint`, `--primary-tint-2`, `--range-in`, `--range-line`, `--primary-press`, and in dark `--ring`
 - the neutrals, tuned a little toward the scheme's hue: `--bg`, `--surface-2`, `--surface-3`, `--hover`, `--line` to `--line-5`, `--hatch-a`, `--hatch-b` (dark also `--surface`)

@@ -8,16 +8,16 @@
 <body>
 <x-dc>
 <helmet>
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="40" font-weight="600" fill="#f2f0ea" text-anchor="middle">R</text></svg></template>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#004d28"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="40" font-weight="600" fill="#f2f0ea" text-anchor="middle">R</text></svg></template>
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
-<script src="./view.js?v=v20261029a"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029u">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
+<script src="./view.js?v=v20261029h"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029g">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 <script src="https://unpkg.com/framer-motion@11.18.2/dist/framer-motion.js"></script>
@@ -48,7 +48,7 @@
 		<div class="doc-note"><b>This page is a harness, not a build.</b> It fetches each <code>.jsx</code> file, strips the module syntax, and evaluates it against React with three stand-ins: the router's link, the app's <code>Icon</code>, and the shared variant helpers. The app compiles the same files properly; nothing here is a second implementation of them.</div>
 		<div class="doc-note"><b>A console error is the point.</b> The components report an unknown prop value, a <code>className</code> or a <code>style</code> rather than rendering something wrong quietly. The last block on this page calls them wrongly on purpose, so the reporting is visible in the browser console.</div>
 		<div class="doc-note"><b>The stylesheets are the ones the pages use.</b> No copy, no override: <code>tokens.css</code> then <code>components.css</code>, loaded from <code>styles/</code>.</div>
-		<div class="doc-note"><b>Every specimen sits on the surface it sits on in the product.</b> Not decoration: the focus ring is <code>--ring</code>, three pixels of <code>#e7efe8</code>, and against the page ground it is almost the same colour as the page. A field drawn loose on the page therefore looked as though it had no ring at all, when the ring was there and the specimen was wrong. Controls live inside a card, rows live inside a card or a list, and the specimens do too.</div>
+		<div class="doc-note"><b>Every specimen sits on the surface it sits on in the product.</b> Not decoration: the focus ring is <code>--ring</code>, three pixels of <code>#e2ece6</code>, and against the page ground it is almost the same colour as the page. A field drawn loose on the page therefore looked as though it had no ring at all, when the ring was there and the specimen was wrong. Controls live inside a card, rows live inside a card or a list, and the specimens do too.</div>
 	</div>
 	<div class="doc-note">{{ status }}</div>
 </section>
@@ -324,7 +324,7 @@
 		<span class="sp-meta">what happened, and what is still true</span>
 	</div>
 	<div class="doc-note">A Toast reports what already happened and takes itself away; the <code>asks</code> variant needs an answer, so it sits on the page's own surface rather than reading as something that will disappear. An Alert states a condition that persists and stays until the condition does.</div>
-	<div class="doc-note"><b>Grey on a toast.</b> Small grey text on a toast, the seconds beside Undo, is #8b8a82 in the light theme (5.02:1 on #1b1a17) and <code>--ink-4</code> #a8a29a in the dark theme (5.57:1 on #2e2b26). The toast sets <code>--ink-5</code> to it, so <code>sp-meta</code> inside takes it. A toast that asks sits on the page's surface and keeps the page's grey.</div>
+	<div class="doc-note"><b>Grey on a toast.</b> Small grey text on a toast, the seconds beside Undo, is #8b8a82 in the light theme (5.02:1 on #1b1a17) and <code>--ink-4</code> #a8a29a in the dark theme (5.57:1 on #232825). The toast sets <code>--ink-5</code> to it, so <code>sp-meta</code> inside takes it. A toast that asks sits on the page's surface and keeps the page's grey.</div>
 	<span class="doc-specimen__label">a result with the way back, a problem, a count, and one that asks</span>
 	<div class="sp-card"><div class="sp-stack sp-gap-12">{{ toasts }}</div></div>
 	{{ toastsCode }}
@@ -458,7 +458,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;jumpTo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;r1 Button&quot;,&quot;r2 Mark&quot;,&quot;r3 Chip, Pill&quot;,&quot;r4 Inputs&quot;,&quot;r5 Card, Well&quot;,&quot;r6 ListItem&quot;,&quot;r7 Menu, Popover, Dialog&quot;,&quot;r8 Toast, Alert&quot;,&quot;r9 List&quot;,&quot;r10 Gauge, Bars, Plot&quot;,&quot;r11 Skeleton, Spinner&quot;,&quot;r12 Shell, Sidebar&quot;,&quot;r13 Touch&quot;,&quot;r14 LineEditor&quot;,&quot;r15 Called wrongly&quot;],&quot;default&quot;:&quot;top&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Go to&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;rail&quot;,&quot;peek&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded' | 'rail' | 'peek'&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
 /* Helpers first: a stripped module has no imports left, so each file is evaluated
    with what the earlier ones exported - a helper loaded after its callers leaves
    them with no binding at all. */
@@ -1412,7 +1412,7 @@ class Component extends DCLogic {
 
 			palette: e(Picker, {
 				'aria-label': 'A palette of its own',
-				swatches: ['#1d4d33', '#7a5c23', '#8a4a41', '#3f5d6b', '#6b5b7b'],
+				swatches: ['#004d28', '#7a5c23', '#8a4a41', '#3f5d6b', '#6b5b7b'],
 				value: this.state.own,
 				onChange: own => this.setState({ own })
 			}),

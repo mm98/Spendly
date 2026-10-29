@@ -37,13 +37,11 @@ function merge(template, values, write) {
 		})
 }
 
-/* The templates are drawn in Green (20f): each Green literal takes the scheme's value of its token,
+/* The templates are drawn in Emerald (20f): each Emerald literal takes the scheme's value of its token,
    the primary scale, warning and problem outside the dark block and every token in it; a square fill is the mark tile. */
 const LIGHT_TOKENS = ['--primary', '--primary-2', '--primary-3', '--primary-tint', '--primary-tint-2', ...WARNING_AND_PROBLEM_TOKENS]
-// the templates' saving and link green is --shell-action-hover in Green, --primary-2 in every other scheme
-const LIGHT_ALIASES = { '#2f7a51': '--primary-2' }
-// the dark links are Green's light --primary-4, and take the scheme's
-const DARK_ALIASES = { '#8caf97': ['light', '--primary-4'] }
+// the dark links are Emerald's light --primary-4, and take the scheme's
+const DARK_ALIASES = { '#90b5a0': ['light', '--primary-4'] }
 
 const byHex = (tokens, names) => {
 	const out = {}
@@ -52,12 +50,12 @@ const byHex = (tokens, names) => {
 }
 
 function recolour(html, scheme) {
-	const green = { light: schemeTokens(DEFAULT_SCHEME, 'light'), dark: schemeTokens(DEFAULT_SCHEME, 'dark') }
+	const drawn = { light: schemeTokens(DEFAULT_SCHEME, 'light'), dark: schemeTokens(DEFAULT_SCHEME, 'dark') }
 	const own = { light: schemeTokens(scheme, 'light'), dark: schemeTokens(scheme, 'dark') }
-	const light = { ...byHex(green.light, LIGHT_TOKENS), ...LIGHT_ALIASES }
+	const light = byHex(drawn.light, LIGHT_TOKENS)
 	// the scheme's own tokens claim a shared hex before warning and problem do
-	const darkNames = [...Object.keys(green.dark).filter(n => !WARNING_AND_PROBLEM_TOKENS.includes(n)), ...WARNING_AND_PROBLEM_TOKENS]
-	const dark = byHex(green.dark, darkNames.filter(n => /^#[0-9a-f]{6}$/i.test(green.dark[n])))
+	const darkNames = [...Object.keys(drawn.dark).filter(n => !WARNING_AND_PROBLEM_TOKENS.includes(n)), ...WARNING_AND_PROBLEM_TOKENS]
+	const dark = byHex(drawn.dark, darkNames.filter(n => /^#[0-9a-f]{6}$/i.test(drawn.dark[n])))
 	const swap = (text, pick) => text.replace(/#[0-9a-f]{6}\b/gi, hex => pick(hex.toLowerCase()) ?? hex)
 	const square = tag => {
 		const attrs = tag.match(/width="(\d+)" height="(\d+)"/) ?? tag.match(/width:(\d+)px;height:(\d+)px/)
@@ -70,7 +68,7 @@ function recolour(html, scheme) {
 		return dark[hex] && own.dark[dark[hex]]
 	})
 	const outside = text => text.replace(/<[^>]+>|[^<]+/g, part => swap(part, hex => {
-		if (hex === green.light['--shell-action'] && part.startsWith('<') && square(part)) return own.light['--shell-action']
+		if (hex === drawn.light['--shell-action'] && part.startsWith('<') && square(part)) return own.light['--shell-action']
 		return light[hex] && own.light[light[hex]]
 	}))
 	return outside(html.slice(0, start)) + darkBlock + outside(html.slice(end))
@@ -85,7 +83,7 @@ const htmlIn = (name, scheme) => {
 }
 
 /** The message `name` to `to`, ready for sendMail: the HTML version and the plain one, with `values` merged in,
-    drawn in the account's colour `scheme` (Green when none is given). */
+    drawn in the account's colour `scheme` (Emerald when none is given). */
 export function emailMessage(name, to, values, { scheme } = {}) {
 	const t = TEMPLATES[name]
 	return { to, subject: merge(t.subject, values, String), text: merge(t.text, values, String), html: merge(htmlIn(name, scheme), values, escapeHtml) }
