@@ -127,6 +127,9 @@ have to. Putting screens together from its patterns is the build's job:
   patterns, not each place or situation they are used in. Where a sentence does not clearly fit the case
   in front of you, do not apply it literally and do not guess: ask the user. A case a pattern already
   covers is the build's to decide, and is not a question for Claude Design.
+- **The drawn page answers before any question does.** Before calling two parts of `design/`
+  contradictory, open the page as it renders and look at the case. A class in the markup or a line
+  in `CHANGES.md` is not the drawing; what the page shows is.
 - **Ask in one batch.** Compare the whole change with `design/` before building, and put every real
   question in one brief, not one per round of building.
 - **A drawing of one thing several ways is not a list of cards.** A screen that shows a part in its

@@ -13,7 +13,7 @@
   .ol-fill { display: block; height: 40px; border-radius: var(--r-tile); border: 1px solid var(--line); }
   .ol-fill[data-fill="surface"] { background: var(--surface); }
   .ol-fill[data-fill="hover"] { background: var(--hover); }
-  .ol-fill[data-fill="green-tint"] { background: var(--green-tint); }
+  .ol-fill[data-fill="primary-tint"] { background: var(--primary-tint); }
   .ol-fill[data-fill="green-tint-hover"] { background: #dfe6e0; }
 
   /* 2i draws the table at four stated widths, so each frame is pinned to one */

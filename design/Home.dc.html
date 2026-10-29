@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
-<script src="./view.js?v=v20261028b"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261028a">
-<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
-<link rel="stylesheet" href="styles/pages/home.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
+<script src="./view.js?v=v20261029a"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
+<link rel="stylesheet" href="styles/pages/home.css?v=v20261029s">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
@@ -44,7 +44,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The month card measures this month against one whole earlier month</b>, set in Settings, Appearance, "Compare this month with" (<a href="Settings and import.dc.html#11a">11a</a>): Last month (the default) or Same month last year. Every order dated in that calendar month counts, the same scope as Spent this month. The line names the month: "95% of 64.520 kr. in July", or "90% of 71.890 kr. in August 2025" with the year when it is last year's, the share rounded to a whole number. Category limits are never added together here or anywhere else; there is no overall monthly limit. The pace marker is unchanged (day 21 of 31 sits at 68%), and the pace words keep their rule: "ahead of pace" when the share is more than 10 points over the marker.</div>
-    <div class="doc-note"><b>Past the compared month the bar stops full and stays green</b> (state 2 below). That month is a reference, not a limit, so there is no over segment and no amber on the bar. The share keeps counting past 100%. The only amber is the "ahead of pace" word, by the same rule as before.</div>
+    <div class="doc-note"><b>Past the compared month the bar stops full and stays in the primary</b> (state 2 below). That month is a reference, not a limit, so there is no over segment and no amber on the bar. The share keeps counting past 100%. The only amber is the "ahead of pace" word, by the same rule as before.</div>
     <div class="doc-note"><b>With nothing in the compared month the bar is drawn empty</b> (state 4 below): a new account, an account younger than a year on Same month last year, or a month with no orders. There is no fallback to the other choice; the line names the month it looked at. The track takes the faded <code>sp-gauge--untargeted</code> ground, with no fill and no marker, and the line under it reads "Nothing from July to compare with yet." (or the month with its year). No pace words. The card keeps its height.</div>
     <div class="doc-note"><b>A very large reference month is not corrected.</b> The line names its amount and month, which is enough to explain a short bar. Only the chosen month is shown, never both.</div>
     <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Drafts: newest 3. Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400. No list on Home or Statistics shows more than one page of rows (Rows per page, never fewer than 10); Home's caps sit below it. The Statistics rule is in <a href="Order statistics.dc.html#4d">4d</a>.</div>
@@ -123,7 +123,7 @@
       <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
       <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
       <a class="sp-nav-item" href="#10a">
-        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -353,7 +353,7 @@
               </div>
               <a class="sp-stack sp-gap-6 sp-row-opens" href="Vendors and categories.dc.html">
                 <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="primary" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
                   <span class="sp-data">Decor</span>
                   <span class="sp-grow"></span>
                   <span class="sp-meta sp-meta--over">24.100 / 22.000</span>
@@ -366,7 +366,7 @@
               </a>
               <a class="sp-stack sp-gap-6 sp-row-opens" href="Vendors and categories.dc.html">
                 <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-3" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="primary-3" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
                   <span class="sp-data">Seating</span>
                   <span class="sp-grow"></span>
                   <span class="sp-meta">17.320 / 24.000</span>
@@ -378,7 +378,7 @@
               </a>
               <a class="sp-stack sp-gap-6 sp-row-opens" href="Vendors and categories.dc.html">
                 <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-4" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span>
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="primary-4" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span>
                   <span class="sp-data">Lighting</span>
                   <span class="sp-grow"></span>
                   <span class="sp-meta">12.740 / 14.000</span>
@@ -390,7 +390,7 @@
               </a>
               <a class="sp-stack sp-gap-6 sp-row-opens" href="Vendors and categories.dc.html">
                 <div class="sp-row-flex sp-gap-8">
-                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-5" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="primary-5" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
                   <span class="sp-data">Textiles</span>
                   <span class="sp-grow"></span>
                   <span class="sp-meta">3.180</span>
@@ -589,7 +589,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

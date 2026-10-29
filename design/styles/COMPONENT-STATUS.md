@@ -90,10 +90,10 @@ Each entry names classes and values as they were on its date. Many were renamed 
   was counting the documented per-instance hooks and an attribute `components.js` sets
   at runtime.
 
-  **Selection is `--green-tint`, once.** It had been three grounds: the tint on five
-  components, `--green-tint-2` on a choice row - which is the *hover* tint of a selected
+  **Selection is `--primary-tint`, once.** It had been three grounds: the tint on five
+  components, `--primary-tint-2` on a choice row - which is the *hover* tint of a selected
   row elsewhere - and `--hover` on a palette row, where a selected row and a hovered one
-  were indistinguishable. A card also moves its border to `--green`, since it has one to
+  were indistinguishable. A card also moves its border to `--primary`, since it has one to
   change; a row inside a bordered list has only the ground. An attention row keeps its
   amber, because over a limit is a state rather than a selection. Asserted now.
 

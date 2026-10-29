@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { DEFAULT_SCHEME, SCHEME_IDS, schemeTokens } from './schemes.js'
+import { DEFAULT_SCHEME, SCHEME_IDS, WARNING_AND_PROBLEM_TOKENS, schemeTokens } from './schemes.js'
 
 /* The account, status and conversation emails (20f): byte copies of design/emails, which design:check holds equal.
    Each .txt opens with its subject line, "Subject: ..." or the status email's {{subject}}. */
@@ -38,12 +38,12 @@ function merge(template, values, write) {
 }
 
 /* The templates are drawn in Green (20f): each Green literal takes the scheme's value of its token,
-   the primary scale outside the dark block and every token in it; a square fill is the mark tile. */
-const LIGHT_TOKENS = ['--green', '--green-2', '--green-3', '--green-tint', '--green-tint-2']
-// the templates' saving and link green is --shell-action-hover in Green, --green-2 in every other scheme
-const LIGHT_ALIASES = { '#2f7a51': '--green-2' }
-// the dark links are Green's light --green-4, and take the scheme's
-const DARK_ALIASES = { '#8caf97': ['light', '--green-4'] }
+   the primary scale, warning and problem outside the dark block and every token in it; a square fill is the mark tile. */
+const LIGHT_TOKENS = ['--primary', '--primary-2', '--primary-3', '--primary-tint', '--primary-tint-2', ...WARNING_AND_PROBLEM_TOKENS]
+// the templates' saving and link green is --shell-action-hover in Green, --primary-2 in every other scheme
+const LIGHT_ALIASES = { '#2f7a51': '--primary-2' }
+// the dark links are Green's light --primary-4, and take the scheme's
+const DARK_ALIASES = { '#8caf97': ['light', '--primary-4'] }
 
 const byHex = (tokens, names) => {
 	const out = {}
@@ -55,7 +55,9 @@ function recolour(html, scheme) {
 	const green = { light: schemeTokens(DEFAULT_SCHEME, 'light'), dark: schemeTokens(DEFAULT_SCHEME, 'dark') }
 	const own = { light: schemeTokens(scheme, 'light'), dark: schemeTokens(scheme, 'dark') }
 	const light = { ...byHex(green.light, LIGHT_TOKENS), ...LIGHT_ALIASES }
-	const dark = byHex(green.dark, Object.keys(green.dark).filter(n => /^#[0-9a-f]{6}$/i.test(green.dark[n])))
+	// the scheme's own tokens claim a shared hex before warning and problem do
+	const darkNames = [...Object.keys(green.dark).filter(n => !WARNING_AND_PROBLEM_TOKENS.includes(n)), ...WARNING_AND_PROBLEM_TOKENS]
+	const dark = byHex(green.dark, darkNames.filter(n => /^#[0-9a-f]{6}$/i.test(green.dark[n])))
 	const swap = (text, pick) => text.replace(/#[0-9a-f]{6}\b/gi, hex => pick(hex.toLowerCase()) ?? hex)
 	const square = tag => {
 		const attrs = tag.match(/width="(\d+)" height="(\d+)"/) ?? tag.match(/width:(\d+)px;height:(\d+)px/)

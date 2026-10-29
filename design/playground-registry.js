@@ -27,7 +27,7 @@ export const ICONS = ['alert-circle', 'alert-triangle', 'archive', 'armchair', '
 	'refresh', 'search', 'settings', 'shopping-bag', 'star', 'sun', 'tag', 'trash', 'upload',
 	'user', 'wifi', 'x'];
 
-export const SWATCHES = ['green-1', 'green-2', 'green-3', 'amber-1', 'amber-2', 'red-1', 'red-2', 'blue-1', 'grey-1'];
+export const SWATCHES = ['primary', 'primary-2', 'primary-3', 'amber-1', 'amber-2', 'red-1', 'red-2', 'blue-1', 'grey-1'];
 
 const C = (n, f, g, kids, sample, p, needs) => ({ n, f, g, kids, sample, p: p || [], needs });
 
@@ -85,9 +85,9 @@ export const COMPONENTS = [
 	]),
 	C('FieldGroup', 'Choice.jsx', 'Choice', 'nodes', null, [['legend', 'text', 'What to send']]),
 	C('Picker', 'Choice.jsx', 'Choice', null, null, [
-		['swatches', 'json', '["green-1","green-2","green-3","amber-1","amber-2","red-1"]'],
+		['swatches', 'json', '["primary","primary-2","primary-3","amber-1","amber-2","red-1"]'],
 		['icons', 'json', ''],
-		['value', 'text', 'green-2'],
+		['value', 'text', 'primary-2'],
 		['custom', 'bool', false],
 		['customIcon', 'node', null],
 		['onChange', 'fn', null]
@@ -231,7 +231,7 @@ export const COMPONENTS = [
 	C('Mark', 'Mark.jsx', 'Identity', 'text', 'HAY', [
 		['size', 'enum', 'medium', ['small', 'medium', 'large', 'xlarge']],
 		['fill', 'enum', 'default', ['default', 'solid', 'plain', 'photo', 'empty', 'none', 'add']],
-		['swatch', 'enum', '', ['', 'green-1', 'green-2', 'green-3', 'amber-1', 'amber-2', 'red-1', 'red-2', 'blue-1']],
+		['swatch', 'enum', '', ['', 'primary', 'primary-2', 'primary-3', 'amber-1', 'amber-2', 'red-1', 'red-2', 'blue-1']],
 		['round', 'bool', false],
 		['count', 'num', null],
 		['text', 'node', null],

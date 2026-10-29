@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
-<script src="./view.js?v=v20261028b"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261028a">
-<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
-<link rel="stylesheet" href="styles/pages/navigation-shell.css?v=v20260917b">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
+<script src="./view.js?v=v20261029a"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
+<link rel="stylesheet" href="styles/pages/navigation-shell.css?v=v20261029s">
 <script src="./components.js?v=v20261024s"></script>
 <style>
   body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
@@ -66,7 +66,7 @@
       <a class="sp-nav-item" href="Ask Spendly.dc.html#24a" aria-label="Ask"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
       <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
       <a class="sp-nav-item" href="#9c" aria-label="Mikkel M.">
-        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -107,7 +107,7 @@
       <div class="doc-note"><b>Scan receipt and New order go to different places.</b> New order opens step 1 of <a href="Order create.dc.html#3a">3a</a>, where the user picks receipt, empty order or copy. Scan receipt opens the file picker straight away and the chosen file goes to step 2, reading; cancelling the picker changes nothing.</div>
     <div class="doc-note"><b>68px, and the width alone decides it.</b> Rows keep their 40px height and 44px targets; only the labels go. Nothing shrinks - the rail is the expanded sidebar with the text removed, not a scaled copy of it. The viewport produces this state below 1280. On a wider screen the user can also choose it with the grip (<a href="#9i">9i</a>), and the choice is stored per user.</div>
     
-    <div class="doc-note"><b>Two greens, and on the rail they are the only thing telling two tiles apart.</b> <code>--green</code> is the capture action; <code>--shell-current</code> is the active destination. With labels gone there is nothing else to distinguish them, so a tile drawn in the wrong green reads as the page you are on.</div>
+    <div class="doc-note"><b>Two greens, and on the rail they are the only thing telling two tiles apart.</b> <code>--primary</code> is the capture action; <code>--shell-current</code> is the active destination. With labels gone there is nothing else to distinguish them, so a tile drawn in the wrong shade reads as the page you are on.</div>
     <div class="doc-note"><b>Collapsed, the rail is the same destinations as static icons - saved views drop out.</b> Five glyphs derived from filters are not distinguishable from one another - the ORDERS group collapses to <b>All orders</b>' icon alone. Every other row survives one-to-one - Home, Scan receipt, New order, All orders, This year, Vendors, Categories, Bookmarks, Statistics, Settings, dark mode, account - in the same order, with the same two greens and the same divider. Views are reached from the facet rail (<a href="#9e">9e</a>), which is where they are managed anyway.</div>
     <div class="doc-note"><b>Every tile needs a tooltip and an aria-label.</b> An icon-only rail is unusable without them, and the label is the destination's name - the same string the expanded row shows.</div>
     <div class="doc-note"><b>⌘K is not the collapsed state's compensation.</b> It works identically expanded; the palette is drawn here because it is the other thing the shell owns, not because collapsing needs a fallback.</div>
@@ -132,7 +132,7 @@
         <hr class="sp-sidebar__divider">
         <a class="sp-nav-item" href="Ask Spendly.dc.html#24a" aria-label="Ask"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span></a>
         <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span></a>
-        <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span></a>
+        <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span></a>
       </nav>
     </div>
 
@@ -216,7 +216,7 @@
         <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 6a7.75 7.75 0 1 0 10 0" /><path d="M12 4l0 8" /></svg><span>Sign out</span></button></li>
       </ul>
       <a class="sp-nav-item" href="#9c" aria-expanded="true">
-        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -227,7 +227,7 @@
 
     <div class="doc-notes ns-col-440">
       <span class="doc-notes__label">Notes for implementation</span>
-      <div class="doc-note"><b>Two greens, two meanings, and they are not interchangeable.</b> <code>--green</code> is the primary action - Scan receipt, and the capture tile on the rail. <code>--shell-current</code> is the active destination - the row you are currently on, and the account block. Scan receipt is a button, so it is filled on every screen; that is not an active state and it never moves. The account block is filled for the same reason a card has a surface, not because it is selected.</div>
+      <div class="doc-note"><b>Two greens, two meanings, and they are not interchangeable.</b> <code>--primary</code> is the primary action - Scan receipt, and the capture tile on the rail. <code>--shell-current</code> is the active destination - the row you are currently on, and the account block. Scan receipt is a button, so it is filled on every screen; that is not an active state and it never moves. The account block is filled for the same reason a card has a surface, not because it is selected.</div>
       <div class="doc-note"><b>Why each row exists.</b> The header repeats the email, which appears nowhere else in the shell and is how you confirm which account you are in. <b>Account and profile</b> deep-links to that section of Settings rather than duplicating it - the nav's Settings row goes to the page top. <b>Shortcuts</b> opens the shortcut sheet, titled "Keyboard shortcuts", and this is its only entry point besides pressing <b>?</b>. <b>Sign out</b> is the reason the menu exists at all: it is the one action that should not be buried in a settings page.</div>
       <div class="doc-note"><b>The account block is name over email, and the part before the @ gives first.</b> There is no company name on an account, so line two is the email. It is <b>.sp-email-line</b>, two spans, because truncating from the right would hide the part that identifies which account is signed in: <b>mikkel.mortensen@verylongcompany.example.net</b> renders as <b>mikkel.mo…@verylongcompany.example.net</b>, not <b>mikkel.mortensen@very…</b>. The local part shrinks first, down to its first three characters and the ellipsis. Only when the <b>@domain</b> alone is still wider than the line does it shorten too, from its end: <b>mik…@a-rather-long-company-na…</b>. Nothing runs out of its box or scrolls the page. The chevron is <b>flex: none</b> for the same reason. Every email on one line uses it, the phone's account card and Settings' read-only Email field included; the name above it truncates from the right. Inside a sentence an email or a name is <b>.sp-break</b> and wraps instead.</div>
       <div class="doc-note"><b>Where "Account and profile" goes.</b> Not a new screen - it is Settings (11a) at <b>/settings/account</b>, whose first card is already that form: avatar with upload and remove, name, read-only email, and Change password. The only difference from the nav's Settings row is arrival state: the section is selected in the left nav, the page is scrolled to that card, and focus lands on the card's heading so a keyboard user knows where they arrived. No highlight flash, no auto-focused field - nothing is being asked for yet.</div>
@@ -577,7 +577,7 @@
         <span class="doc-eyebrow">The email case, drawn</span>
         <nav class="sp-sidebar ns-email" aria-label="Account">
           <a class="sp-nav-item" href="#9c">
-            <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+            <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
             <span class="sp-stack sp-grow">
               <span class="sp-truncate">Mikkel Møller</span>
               <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel.mortensen</span><span class="sp-email-line__domain">@verylongcompany.dk</span></span>
@@ -594,7 +594,7 @@
       <div class="sp-list ns-table--widths ns-col-400">
         <div class="ns-table__row doc-table__head"><div>Width</div><div>Shell</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">≥ 1280</div><div class="sp-meta">Sidebar 248px expanded, <b>Scan receipt</b> and New order above the ORDERS group. Top bar with the 420px search field and nothing else.</div></div>
-        <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 1280</div><div class="sp-meta">Sidebar may collapse to the 68px rail (9b) - icons only, labels as tooltips. <b>Scan receipt</b> keeps its green fill as a 44px tile at the top of the icon stack, with New order below it as a neutral icon and a hairline separating both from the destinations. The ORDERS group shows only <b>All orders</b>' icon. Search keeps its field but stops growing.</div></div>
+        <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 1280</div><div class="sp-meta">Sidebar may collapse to the 68px rail (9b) - icons only, labels as tooltips. <b>Scan receipt</b> keeps its primary fill as a 44px tile at the top of the icon stack, with New order below it as a neutral icon and a hairline separating both from the destinations. The ORDERS group shows only <b>All orders</b>' icon. Search keeps its field but stops growing.</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 900</div><div class="sp-meta">Sidebar stays the collapsed rail - capture and New order unchanged at its top. Search keeps its field, which now fills the width the bar has left.</div></div>
         <div class="ns-table__row doc-table__row"><div class="sp-data">&lt; 640</div><div class="sp-meta">Sidebar becomes a <b>bottom tab bar</b>: Home, Orders, Statistics, More. <b>New order</b> leaves the sidebar and becomes the 56px floating action button above the bar (7a). It opens 3a step 1, where the receipt zone leads - the phone is the camera - with an empty order and a copy beneath it. Top bar is the search field and nothing else - no title, no hamburger, no back arrow; tapping it opens the palette over the whole screen (7b). Settings, the account and saved views move under More, and the theme is under Settings, in Appearance.</div></div>
       </div>
@@ -648,7 +648,7 @@
         <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
         <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -683,7 +683,7 @@
         <a class="sp-nav-item" href="Ask Spendly.dc.html#24a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
         <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -714,7 +714,7 @@
         </div>
         <hr class="sp-sidebar__divider">
         <a class="sp-nav-item" href="#9c">
-          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+          <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
           <span class="sp-stack sp-grow">
             <span class="sp-truncate">Mikkel M.</span>
             <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -797,7 +797,7 @@
           <hr class="sp-sidebar__divider">
           <a class="sp-nav-item" href="Ask Spendly.dc.html#24a" aria-label="Ask"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span></a>
           <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span></a>
-          <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span></a>
+          <a class="sp-nav-item" href="#9c" aria-label="Mikkel M."><span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span></a>
       </nav>
         <div class="sp-shell__page">
           <div class="sp-topbar">
@@ -867,7 +867,7 @@
       <a class="sp-nav-item" href="Ask Spendly.dc.html#24a" aria-label="Ask"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg></span><span>Ask</span></a>
       <a class="sp-nav-item" href="#10a" aria-label="Settings"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
       <a class="sp-nav-item" href="#9c" aria-label="Mikkel M.">
-        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="green-3" aria-hidden="true">MM</span>
+        <span class="sp-mark sp-mark--medium sp-mark--round sp-mark--solid" data-swatch="primary-3" aria-hidden="true">MM</span>
         <span class="sp-stack sp-grow">
           <span class="sp-truncate">Mikkel M.</span>
           <span class="sp-nav-item__sub sp-email-line"><span class="sp-email-line__local">mikkel</span><span class="sp-email-line__domain">@example.net</span></span>
@@ -904,7 +904,7 @@
 </section>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

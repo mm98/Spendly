@@ -57,7 +57,7 @@
   .au-mini { width: 210px; padding: 18px 16px; box-shadow: var(--shadow-menu); }
   .au-mini-row { padding: var(--sp-8); border-radius: 7px; }
   .au-bar { width: 100%; height: 28px; border: 1px solid var(--line-3); border-radius: 7px; }
-  .au-bar--on { border: 0; background: var(--green); }
+  .au-bar--on { border: 0; background: var(--primary); }
   .au-divider { width: 1px; height: 16px; background: var(--line-3); }
 
   /* the placeholder bars inside a miniature frame, at its scale */

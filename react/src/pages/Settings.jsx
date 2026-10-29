@@ -78,22 +78,22 @@ const THEMES = [
 
 // in the order 11a draws them; each value is a data-scheme in styles/schemes.css
 const SCHEMES = [
+	{ value: 'rust', label: 'Terracotta' },
+	{ value: 'mocha', label: 'Mocha' },
+	{ value: 'ochre', label: 'Ochre' },
+	{ value: 'olive', label: 'Olive' },
+	{ value: 'emerald', label: 'Emerald' },
 	{ value: 'green', label: 'Green' },
+	{ value: 'teal', label: 'Petrol teal' },
+	{ value: 'ocean', label: 'Ocean' },
+	{ value: 'slate', label: 'Slate' },
 	{ value: 'navy', label: 'Deep navy' },
 	{ value: 'cobalt', label: 'Cobalt' },
 	{ value: 'indigo', label: 'Indigo' },
-	{ value: 'ocean', label: 'Ocean' },
-	{ value: 'slate', label: 'Slate' },
-	{ value: 'teal', label: 'Petrol teal' },
-	{ value: 'emerald', label: 'Emerald' },
-	{ value: 'olive', label: 'Olive' },
-	{ value: 'ochre', label: 'Ochre' },
-	{ value: 'rust', label: 'Terracotta' },
-	{ value: 'mocha', label: 'Mocha' },
-	{ value: 'oxblood', label: 'Oxblood' },
-	{ value: 'raspberry', label: 'Raspberry' },
-	{ value: 'plum', label: 'Plum' },
 	{ value: 'violet', label: 'Violet' },
+	{ value: 'plum', label: 'Plum' },
+	{ value: 'raspberry', label: 'Raspberry' },
+	{ value: 'oxblood', label: 'Oxblood' },
 	{ value: 'charcoal', label: 'Charcoal' }
 ]
 
@@ -404,7 +404,7 @@ function AppearanceCard({ value, change, touch }) {
 	return (
 		<Card>
 			<CardHeader name="Appearance" {...landing('appearance')} />
-			<Field label="Theme" message={touch ? undefined : 'You can also switch this from the sidebar.'}>
+			<Field label="Theme">
 				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
 			<span className="sp-rule" />
@@ -412,13 +412,14 @@ function AppearanceCard({ value, change, touch }) {
 				<SchemeTiles name="colourScheme" options={SCHEMES} value={value('colourScheme') ?? 'green'} onChange={v => change('colourScheme', v)} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Row density" message="Compact fits more rows on screen.">
-				<Segmented name="density" variant={touch ? 'default' : 'narrow'} options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
-			</Field>
-			<span className="sp-rule" />
-			<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
-				<Choose narrow={!touch} value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
-			</Field>
+			<Pair touch={touch}>
+				<Field label="Row density" message="Compact fits more rows on screen.">
+					<Segmented name="density" fullWidth options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+				</Field>
+				<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
+					<Choose value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
+				</Field>
+			</Pair>
 		</Card>
 	)
 }
@@ -578,7 +579,7 @@ function PhoneIndex({ user }) {
 			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label="Account and profile"
 				mark={!email ? null : user.picture
 					? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
-					: <Mark size="large" fill="solid" swatch="green-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
+					: <Mark size="large" fill="solid" swatch="primary-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
 				{email
 					? (
 						<Stacked>

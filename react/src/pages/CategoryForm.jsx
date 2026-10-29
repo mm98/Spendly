@@ -88,7 +88,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 
 	// a new category starts on the first of the eight no other category has
 	const next = useApi(getNextCategoryColour, [], { enabled: !editing && !loading }).data
-	const colour = values.colour ?? (next ? swatchOf(next) : 'green')
+	const colour = values.colour ?? (next ? swatchOf(next) : 'primary')
 	// the other category a name already means, case and accents set aside
 	const sameAs = name => getCategoryPage({ name, except: category?.id, pageSize: 1 }).then(r => r.categories[0] ?? null, () => null)
 	const typed = values.name.trim()

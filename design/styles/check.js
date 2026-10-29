@@ -608,6 +608,10 @@
         fail('a field label binds its control', p, `"${m[4].replace(/<[^>]*>/g,'').trim().slice(0,40)}" names a token field as a span, not a bound label`);
     }
 
+    // a described choice's second line is .sp-meta, as c5 draws it; never .sp-field__help
+    for (const m of s.matchAll(/<span class="sp-choice__text">\s*<strong>([^<]*)<\/strong>\s*<span class="([^"]*)"/g))
+      if (!/^sp-meta$/.test(m[2].trim())) fail('a described choice uses sp-meta', p, `"${m[1].trim()}" describes itself on .${m[2]}`);
+
     // a field label naming ONE control is a bound <label>; a <span> is for a group only
     for (const m of s.matchAll(/<span([^>]*)class="([^"]*sp-field__label[^"]*)"([^>]*)>([^<]{0,44})<\/span>/g)) {
       const after = s.slice(m.index + m[0].length, m.index + m[0].length + 420);
@@ -1452,6 +1456,25 @@
     for (const [k, v] of Object.entries(others)) {
       if (/\bst-subnav\b/.test(v)) fail('the section nav is .sp-section-nav', k, 'styles the retired .st-subnav');
       if (/\.sp-section-nav\b/.test(v.replace(/\/\*[\s\S]*?\*\//g, ''))) fail('the section nav is .sp-section-nav', k, 'restyles .sp-section-nav outside components.css');
+    }
+  }
+
+  /* A name uses the row's free space before it is cut. Caught: the AI assistants token row
+     (Settings 11e, Mobile 7a) put a .sp-grow spacer after Stacked (sp-stacked--fill, flex: 1),
+     so the spacer took half the free space and "Claude on my laptop" was cut beside empty room.
+     No page puts a spacer right after a filling column, and the stylesheet hides one if left. */
+  {
+    if (!/\.sp-stacked--fill \+ \.sp-grow \{ display: none; \}/.test(comp)) fail('a filling text column has no spacer after it', 'styles/components.css', 'the .sp-stacked--fill + .sp-grow rule is missing');
+    for (const f of pages) {
+      const t = src[f].replace(/<script[\s\S]*?<\/script>/g, '');
+      for (const m of t.matchAll(/<(span|div)\b[^>]*class="[^"]*\bsp-stacked--fill\b[^"]*"[^>]*>/g)) {
+        const re = /<(\/?)(span|div)\b[^>]*>/g; re.lastIndex = m.index + m[0].length;
+        let depth = 1, x;
+        while (depth && (x = re.exec(t))) depth += x[1] ? -1 : 1;
+        if (!x) continue;
+        const next = t.slice(re.lastIndex).match(/^\s*<span class="sp-grow"><\/span>/);
+        if (next) fail('a filling text column has no spacer after it', f, 'a .sp-grow spacer right after sp-stacked--fill');
+      }
     }
   }
 

@@ -4,7 +4,7 @@ import { Field } from '../../react/src/components/Field.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
 import { useHeld } from './controls.js'
 
-const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
+const SWATCHES = ['primary', 'primary-2', 'primary-3', 'primary-4', 'primary-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
 const GLYPHS = ['armchair', 'lamp', 'flower', 'bookmark', 'shopping-bag', 'receipt', 'tag', 'diamond']
 
 // The box beside the words: which kind it is, and its own state, are the story's controls.
@@ -116,12 +116,12 @@ const pickerStory = extra => ({
 export const Colours = {
 	parameters: { variantsOf: Picker },
 	...pickerStory({ swatches: SWATCHES }),
-	args: { 'aria-label': 'Colour', value: 'green-2', custom: true, customIcon: 'plus', onChange: fn() },
+	args: { 'aria-label': 'Colour', value: 'primary-2', custom: true, customIcon: 'plus', onChange: fn() },
 	argTypes: { value: { control: 'select', options: SWATCHES } },
 	play: async ({ args, canvas }) => {
-		const mid = canvas.getByRole('button', { name: 'Mid green' })
+		const mid = canvas.getByRole('button', { name: 'Mid' })
 		await userEvent.click(mid)
-		await expect(args.onChange).toHaveBeenCalledWith('green-3')
+		await expect(args.onChange).toHaveBeenCalledWith('primary-3')
 		await waitFor(() => expect(mid).toHaveAttribute('aria-pressed', 'true'))
 	}
 }

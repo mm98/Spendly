@@ -44,7 +44,7 @@ let added = { inBlock: false, typed: false };
 let removed = { inBlock: false, typed: false };
 
 // byte copies of design/styles and design/react_handoff: their prose is the design's
-const DESIGN_COPIES = ["react/src/styles/components.css", "react/src/styles/tokens.css", "react/src/styles/schemes.css", "api/src/styles/schemes.css"];
+const DESIGN_COPIES = ["react/src/styles/components.css", "react/src/styles/tokens.css", "react/src/styles/schemes.css", "api/src/styles/schemes.css", "api/src/styles/tokens.css"];
 const HANDOFF = /^react\/src\/components\/([^/]+)$/;
 
 function isDesignCopy(path) {

@@ -64,7 +64,7 @@ export const WithCountAndRemove = {
 const LOGO = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="40"><rect width="96" height="40" rx="6" fill="#ffd500"/><text x="48" y="27" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#1b1a17">Netto</text></svg>')}`
 
 export const ShopOnAnOffer = {
-	args: { logo: true, size: 'medium', shop: 'Netto', vendor: 'Mine Indkøb', swatch: 'green-3' },
+	args: { logo: true, size: 'medium', shop: 'Netto', vendor: 'Mine Indkøb', swatch: 'primary-3' },
 	argTypes: { shop: { control: 'text', description: 'The shop the offer is in' }, vendor: { control: 'text', description: 'The reader\'s own vendor that is that shop' }, swatch: { control: 'text', description: 'The vendor\'s colour' } },
 	render: ({ logo, size, shop, vendor, swatch }) => (
 		<div className="sp-row-flex sp-gap-8">

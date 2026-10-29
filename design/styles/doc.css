@@ -50,7 +50,7 @@
     font-size: var(--t-12);
     font-weight: 600;
     letter-spacing: 0.08em;
-    background: var(--green);
+    background: var(--primary);
     color: var(--surface);
     padding: var(--sp-6) var(--sp-8);
     border-radius: var(--r-marker);
@@ -261,9 +261,9 @@
 .doc-legend__swatch[data-bg="line-2"] { background: var(--line-2); border-color: var(--line-3); }
 .doc-legend__swatch[data-bg="surface-2"] { background: var(--surface-2); border-color: var(--line-3); }
 .doc-legend__swatch[data-bg="red-tint-2"] { background: var(--red-tint-2); border-color: var(--red); }
-.doc-legend__swatch[data-bg="green-2"] { background: var(--green-2); border-color: var(--green-2); }
-.doc-legend__swatch[data-bg="green-press"] { background: var(--green-press); border-color: var(--green-press); }
-.doc-legend__swatch[data-bg="surface"] { background: var(--surface); border-color: var(--green); }
+.doc-legend__swatch[data-bg="primary-2"] { background: var(--primary-2); border-color: var(--primary-2); }
+.doc-legend__swatch[data-bg="green-press"] { background: var(--primary-press); border-color: var(--primary-press); }
+.doc-legend__swatch[data-bg="surface"] { background: var(--surface); border-color: var(--primary); }
 
 /* a card of prose: capped at a reading width rather than fixed to one, so it
    cannot overflow a narrower column the way the doc-w* widths can */

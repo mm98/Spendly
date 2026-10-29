@@ -8,10 +8,10 @@ import { COMMON, loadIndex, pathOf, searchIcons, useTablerPath, useTablerPaths }
 /* The design's eight colours as the hex the app stores, at their light values, so a picked
    colour reads back as the same one in either theme. */
 export const SWATCHES = {
-	green: '#1d4d33',
-	'green-2': '#2f7a51',
-	'green-3': '#4f7f63',
-	'green-4': '#8caf97',
+	primary: '#1d4d33',
+	'primary-2': '#2f7a51',
+	'primary-3': '#4f7f63',
+	'primary-4': '#8caf97',
 	'amber-ink': '#7a5c23',
 	'amber-2': '#d3b98a',
 	'red-ink': '#8a4a41',
@@ -22,7 +22,7 @@ export const SWATCHES = {
 export function swatchOf(hex) {
 	const value = String(hex ?? '').toLowerCase()
 	const named = Object.keys(SWATCHES).find(name => SWATCHES[name] === value)
-	return named ?? (/^#[0-9a-f]{6}$/.test(value) ? value : 'green')
+	return named ?? (/^#[0-9a-f]{6}$/.test(value) ? value : 'primary')
 }
 export const storedColour = name => SWATCHES[name] ?? name
 

@@ -147,11 +147,11 @@ export function AccountCard({ user, value, change, touch }) {
 
 	const shownName = name.trim() || user?.email?.split('@')[0] || ''
 	const drop = { as: 'label', htmlFor: 'account-picture', onDragOver: ev => ev.preventDefault(), onDrop: ev => { ev.preventDefault(); choose(ev.dataTransfer?.files?.[0]) } }
-	// initials passed as text would pick their own colour; the account's are always on green-3 (11a)
+	// initials passed as text would pick their own colour; the account's are always on primary-3 (11a)
 	const avatar = shown
 		? <Mark size="large" fill="photo" round {...drop}><img src={shown} alt="" /></Mark>
 		: shownName
-			? <Mark size="large" fill="solid" swatch="green-3" round {...drop}><>{initialsOf(shownName)}</></Mark>
+			? <Mark size="large" fill="solid" swatch="primary-3" round {...drop}><>{initialsOf(shownName)}</></Mark>
 			: <Mark size="large" fill="empty" round {...drop} />
 
 	const fields = (

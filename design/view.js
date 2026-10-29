@@ -20,6 +20,12 @@ window.SpView = (() => {
       }
       if (changed) write(v);
     },
+    // a choice made inside the design (Settings 11a tiles) is the shared choice at once
+    choose(k, val) {
+      const v = read(); v[k] = val; write(v);
+      const el = document.querySelector('.sp');
+      if (el && (k === 'theme' || k === 'scheme')) el.setAttribute('data-' + k, val);
+    },
     current(props) { return { ...pick(props || {}), ...read() }; },
     apply(props, prev, opts) {
       this.sync(props, prev);

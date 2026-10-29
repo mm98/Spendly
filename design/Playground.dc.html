@@ -12,17 +12,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261025c">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261028b">
-<script src="./view.js?v=v20261028b"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261027c">
-<link rel="stylesheet" href="styles/doc.css?v=v20261024a">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
+<script src="./view.js?v=v20261029a"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029u">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
 <script src="./icons.js?v=v20260918a"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 <style>
 	body { margin: 0; background: var(--bg); font-family: Poppins, system-ui, sans-serif; color: var(--ink); }
-	a { color: var(--green); }
-	a:hover { color: var(--green-2); }
+	a { color: var(--primary); }
+	a:hover { color: var(--primary-2); }
 </style>
 </helmet>
 
@@ -78,7 +78,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;green&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;teal&quot;,&quot;emerald&quot;,&quot;olive&quot;,&quot;ochre&quot;,&quot;rust&quot;,&quot;mocha&quot;,&quot;oxblood&quot;,&quot;raspberry&quot;,&quot;plum&quot;,&quot;violet&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;green\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;teal\&quot; | \&quot;emerald\&quot; | \&quot;olive\&quot; | \&quot;ochre\&quot; | \&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;oxblood\&quot; | \&quot;raspberry\&quot; | \&quot;plum\&quot; | \&quot;violet\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 /* The playground. It evaluates the real component files, so what the canvas renders
    is the library rather than a copy of it, and the properties panel is driven by
    `playground-registry.js` rather than by anything typed here.
@@ -384,12 +384,12 @@ class Component extends DCLogic {
 		if (kind === 'bool') return e('input', {
 			type: 'checkbox', checked: value === true,
 			onChange: ev => this.setProp(id, prop, ev.target.checked ? true : ''),
-			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--green)' }
+			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--primary)' }
 		});
 		if (kind === 'fn') return e('input', {
 			type: 'checkbox', checked: value === true,
 			onChange: ev => this.setProp(id, prop, ev.target.checked ? true : ''),
-			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--green)' }
+			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--primary)' }
 		});
 		if (kind === 'enum' || kind === 'icon') {
 			const list = kind === 'icon' ? [''].concat(this.state.reg.ICONS) : options;
@@ -432,7 +432,7 @@ class Component extends DCLogic {
 			? [
 				e('button', {
 					key: 'p', type: 'button', onClick: () => onPick(childId),
-					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--green)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
 				}, child.name),
 				e('span', { key: 'g', style: { flex: 1 } }),
 				e('button', {
@@ -492,7 +492,7 @@ class Component extends DCLogic {
 			...node.kids.map(k => e('div', { key: k, style: { display: 'flex', alignItems: 'center', gap: 6, padding: '3px 6px', border: '1px solid var(--line-2)', borderRadius: 5 } },
 				e('button', {
 					type: 'button', onClick: () => this.setState({ sel: k }),
-					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--green)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
 				}, this.state.nodes[k] ? this.state.nodes[k].name : '?'),
 				e('span', { style: { flex: 1 } }),
 				e('button', {
@@ -582,7 +582,7 @@ class Component extends DCLogic {
 				},
 				style: {
 					position: 'absolute', left: node.x, top: node.y, cursor: 'grab',
-					outline: on ? '2px solid var(--green)' : 'none', outlineOffset: 4, borderRadius: 2
+					outline: on ? '2px solid var(--primary)' : 'none', outlineOffset: 4, borderRadius: 2
 				}
 			}, e(Boundary, { name: node.name, signature: JSON.stringify(node) }, this.build(id, seen)));
 		});

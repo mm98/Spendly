@@ -19,7 +19,7 @@ Dark mode: set `data-theme="dark"` on `<html>`. Without it, the light look is us
 - **Text** in your own layout uses the type classes: `sp-title` (a name), `sp-subtitle` (the line under it), `sp-data` (a value), `sp-meta` (quiet detail), `sp-note`, `sp-section-label` (small caps heading), `sp-stat__figure` (a large figure), `sp-number` (aligned digits), `sp-truncate`, `sp-nowrap`.
 - **Ink**: `sp-ink-2`, `sp-ink-5`, `sp-ink-accent`, `sp-ink-success`, `sp-ink-warning`, `sp-ink-danger`, `sp-ink-inverse`.
 - **Layout glue**: `sp-row-flex` (a row), `sp-stack` (a column), `sp-stacked` (a title with its second line), `sp-gap-6` / `-8` / `-10` / `-12` / `-14` / `-16`, `sp-grow` (pushes the rest to the end), `sp-column--form` (a form's column width).
-- **Tokens**, when you must write CSS for your own page frame: `var(--bg)` page ground, `var(--surface)` card ground, `var(--ink)` to `var(--ink-6)`, `var(--line)`, `var(--green)` brand, `var(--amber)` warning, `var(--red)` danger, spacing `var(--sp-2)` to `var(--sp-16)`, radii `var(--r-card)` / `var(--r-field)` / `var(--r-pill)`, type sizes `var(--t-11)` to `var(--t-24)`, `var(--font)`.
+- **Tokens**, when you must write CSS for your own page frame: `var(--bg)` page ground, `var(--surface)` card ground, `var(--ink)` to `var(--ink-6)`, `var(--line)`, `var(--primary)` primary colour, `var(--amber)` warning, `var(--red)` danger, spacing `var(--sp-2)` to `var(--sp-16)`, radii `var(--r-card)` / `var(--r-field)` / `var(--r-pill)`, type sizes `var(--t-11)` to `var(--t-24)`, `var(--font)`.
 
 ## Composition rules the components hold to
 

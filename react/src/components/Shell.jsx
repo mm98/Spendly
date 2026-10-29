@@ -412,7 +412,7 @@ export function SidebarAccount({ name, picture, email, expanded = false, onClick
 	const split = email.lastIndexOf('@')
 	const mark = picture
 		? <Mark size="medium" fill="photo" round aria-hidden="true" aria-label={name || email}><img src={picture} alt="" /></Mark>
-		: <Mark size="medium" fill="solid" swatch="green-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || (split > 0 ? email.slice(0, split) : email))}</></Mark>
+		: <Mark size="medium" fill="solid" swatch="primary-3" round aria-hidden="true" aria-label={name || email}><>{initialsOf(name || (split > 0 ? email.slice(0, split) : email))}</></Mark>
 	const label = (
 		<span className="sp-stack">
 			{name ? <span className="sp-truncate">{name}</span> : null}

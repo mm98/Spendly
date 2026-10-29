@@ -48,8 +48,8 @@
   }
   /* a block standing for a column whose width is fixed rather than fluid */
   .lr-block--fixed {
-    background: var(--green-tint);
-    border-color: var(--green-5);
+    background: var(--primary-tint);
+    border-color: var(--primary-5);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -57,7 +57,7 @@
     gap: var(--sp-2);
   }
   /* the rule marking a measurement beside a block */
-  .lr-bar { width: 4px; border-radius: var(--r-marker); background: var(--green); flex: none; }
+  .lr-bar { width: 4px; border-radius: var(--r-marker); background: var(--primary); flex: none; }
   .lr-bar--quiet { background: var(--line-5); }
   /* the same diagram in three equal tracks */
   .lr-h116-grid { height: 116px; }
