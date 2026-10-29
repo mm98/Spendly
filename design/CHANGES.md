@@ -1,65 +1,34 @@
-# One left column: the facet rail and the section nav are one width
+# Section nav scrollbar
 
-This answers the brief: the Settings section nav takes the same width as the order list's facet rail,
-so the content cards beside either start at the same left position. Layout rules states it.
+Brief: the Settings section nav scrolls with the browser's default scrollbar, while the sidebar beside it uses the styled one.
 
-## The facet rail and the section nav share one width
+## The section nav scrolls with the shared bar
 
-**The problem.** The two left columns had different widths, and the design said a third thing. The
-facet rail (`.sp-rail`) was 232px and the section nav (`.sp-section-nav`) 224px. Layout rules,
-"2 - Left rail plus main", gave 260px for the facets and 208px for a page-level nav. The first card
-beside the facets started 260px from the page's edge, and in Settings it started at 240px, so moving
-between the two pages shifted the content 20px.
+**The problem.** In a window shorter than the Settings nav, the nav scrolls, and it shows the browser's default grey scrollbar with arrows. The sidebar next to it shows the thin shared bar. The design never said the section nav scrolls: `react/src/styles/app.css` adds `overflow-y: auto` to `.sp-section-nav` on its own, so the nav was never in the shared scrollbar rules and `styles/check.js` could not see it.
 
-**What changed.**
-- There is a new token, `--rail-left-w: 232px`, the width of the left column inside a page.
-  `.sp-rail` takes `width: var(--rail-left-w)`, so the facet rail is unchanged.
-- The section nav is the same column. It has no card: it runs from the page's edge, taking in the
-  body's 16px inset, to a divider where the facet column ends. Its width is
-  `calc(var(--sp-16) + var(--rail-left-w))`, 248px, which is 24px wider than before. Its rows now
-  start 16px in, where the facet cards start.
-- The pane beside it starts 12px after the divider, which is the body's column gap. The first card
-  in Settings is now at 260px, the same as on the order list.
-- The longest Settings label, Money, dates and times, still fits on one line, and every row is
-  still 40px.
+**What changed.** The section nav now scrolls by its own nature in the design: `.sp-section-nav` carries `overflow-y: auto`, and it joins the shared scrolling-region rules, so it shows the same bar as every other scrolling region - thin, no track, a thumb in `--scroll-thumb`, 8px wide with a 2px inset and pill ends. Nothing changes at a window tall enough for the whole nav; no type, colour or spacing value changed.
 
 **Where.**
-- `styles/tokens.css`: `--rail-left-w`.
-- `styles/components.css`: `.sp-rail`, and `.sp-section-nav` with its comment.
-- `styles/pages/settings.css`: `.st-pane`, left padding `var(--sp-12)`.
-- `styles/doc.css`: `.doc-rail-demo`, the documents' facet specimen, at `var(--rail-left-w)`.
-- Text: `Layout rules 15a` card "2 - Left rail plus main" (its block and its note),
-  `Settings and import 11a` note, `Responsive reference` Settings row, `Order list` note on
-  container queries.
-- In the app:
-  - `react/src/styles/tokens.css` and `react/src/styles/components.css` take the same token and
-    rules.
-  - `react/src/pages/Settings.jsx`: the desktop row is `sp-row-flex sp-top sp-gap-16`. It becomes
-    `sp-gap-12`, so the cards are 12 from the divider, as in the drawing.
-  - `react/src/styles/app.css` already pulls the nav out to the page's edge with a
-    `-var(--card-pad)` left margin. That stays.
+- `styles/components.css`: `.sp-section-nav` (c35) gains `overflow-y: auto`; the selector is added to the shared lists under "scrolling regions": the `scrollbar-width: thin; scrollbar-color` rule, `::-webkit-scrollbar { width: 8px }` and `::-webkit-scrollbar-thumb`.
+- Page: Settings and import 11a (the section nav, unchanged at its drawn height).
+- App: `react/src/styles/app.css`, the `.sp-section-nav` block. Its `overflow-y: auto` is now stated by the design and can be removed from `app.css`; copy `styles/components.css` into `react/src/styles/components.css`.
 
 **What is still open.** Nothing.
 
+## later.md
+
+The one entry, "A deleted record should not be removed for good at once", is marked as an idea not to be built until asked, so it is left as it is.
+
 ## Files
 
-- `README.md` - the design's overview, unchanged from the project root.
+- `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `styles/tokens.css`, `styles/components.css`, `styles/pages/settings.css`, `styles/doc.css` - the
-  rules above.
-- `styles/check.js` - new assertion "One left column": `.sp-rail` and `.sp-section-nav` take their
-  width from `--rail-left-w`, the token is 232px, and no page states another width for the facet
-  rail, the facets or the section nav.
-- `Layout rules.dc.html`, `Settings and import.dc.html`, `Order list.dc.html`,
-  `Responsive reference.dc.html` - the text that stated the old widths, and the new stylesheet
-  version.
-- `Section switcher.dc.html`, `Components.dc.html` - pages that draw the section nav. Only their
-  stylesheet version changed.
-- `support.js`, `components.js`, `icons.js`, `view.js`, `styles/schemes.css`,
-  `styles/pages/layout-rules.css`, `styles/pages/section-switcher.css`,
-  `styles/pages/order-list.css`, `styles/pages/responsive-reference.css` - what those pages load to
-  open from the folder.
+- `Settings and import.dc.html` - the page that shows the section nav.
+- `support.js`, `components.js`, `view.js` - what the page loads to open.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/settings.css` - stylesheets the page links.
+- `styles/components.css` - the changed stylesheet.
+- `styles/check.js` - the checker, whose scrolling-region assertion now covers the section nav.
 
 ## styles/check.js
 
-0 finding(s) across 28 pages.
+0 finding(s) across 28 pages
