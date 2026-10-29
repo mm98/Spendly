@@ -38,9 +38,10 @@ opening a pull request or posting a comment, read the text back from GitHub and 
 tool added.
 
 Every commit, pull request and comment on GitHub has the user as its author: author and committer
-are `mm98 <992714+mm98@users.noreply.github.com>`. The session's own git setup names Claude instead,
-so the `SessionStart` hook in `.claude/settings.json` sets the user's name for every repository in the
-session. Before each push, read `git log origin/main..HEAD --format='%an <%ae> | %cn <%ce>'`; a commit
+are `mm98 <992714+mm98@users.noreply.github.com>`. The session's own git setup names Claude and can
+set it again after the session starts, so `.claude/settings.json` gives every command the user's name
+through `env`, which wins over any git setup, and its `SessionStart` hook sets the git setup as well.
+A session started before a change to that file keeps the old settings. Before each push, read `git log origin/main..HEAD --format='%an <%ae> | %cn <%ce>'`; a commit
 with any other name is redone with the user's name (`git -c user.name=mm98 -c
 user.email=992714+mm98@users.noreply.github.com commit --amend --reset-author --no-edit`) before
 the push.
