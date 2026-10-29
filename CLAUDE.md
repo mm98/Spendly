@@ -37,6 +37,14 @@ A tool that posts to GitHub can add such a line itself, whatever `.claude/settin
 opening a pull request or posting a comment, read the text back from GitHub and remove any line the
 tool added.
 
+Every commit, pull request and comment on GitHub has the user as its author: author and committer
+are `mm98 <992714+mm98@users.noreply.github.com>`. The session's own git setup names Claude instead,
+so the `SessionStart` hook in `.claude/settings.json` sets the user's name for every repository in the
+session. Before each push, read `git log origin/main..HEAD --format='%an <%ae> | %cn <%ce>'`; a commit
+with any other name is redone with the user's name (`git -c user.name=mm98 -c
+user.email=992714+mm98@users.noreply.github.com commit --amend --reset-author --no-edit`) before
+the push.
+
 ## Names
 
 Name and write everything for a developer who opens it in three months and does not know today's
