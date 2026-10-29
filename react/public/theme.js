@@ -7,8 +7,9 @@
 	document.documentElement.dataset.theme = theme
 	var scheme = null
 	try { scheme = localStorage.getItem('spendly:scheme') } catch (e) { /* storage denied */ }
-	document.documentElement.dataset.scheme = scheme || 'green'
+	// a removed scheme reads as the default
+	document.documentElement.dataset.scheme = !scheme || scheme === 'green' ? 'emerald' : scheme
 	// the browser's bar takes the dark --surface (tokens.css) until app/theme.js reads the token itself
 	var bar = document.querySelector('meta[name="theme-color"]')
-	if (bar && theme === 'dark') bar.content = '#221f1b'
+	if (bar && theme === 'dark') bar.content = '#191d1b'
 })()

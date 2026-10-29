@@ -9,22 +9,22 @@
 <x-dc>
 <helmet>
 <meta name="design_doc_mode" content="canvas">
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">20</text></svg></template>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#004d28"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">20</text></svg></template>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
-<script src="./view.js?v=v20261029a"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029u">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
-<link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20261029s">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
+<script src="./view.js?v=v20261029h"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029g">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
+<link rel="stylesheet" href="styles/pages/auth-and-first-run.css?v=v20261029g">
 <script src="./icons.js?v=v20260917b"></script>
 <script src="./components.js?v=v20261024s"></script>
 <style>
-  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
-  a { color: #1d4d33; }
-  a:hover { color: #2f7a51; }
+  body { margin: 0; background: var(--bg, #e5e9e6); font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: var(--primary, #004d28); }
+  a:hover { color: var(--primary-2, #007047); }
 </style>
 </helmet>
 
@@ -794,7 +794,7 @@
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
     <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
-    <div class="doc-note"><b class="sp-ink">The emails follow the account's colour scheme</b> (<a href="Settings and import.dc.html#11a">11a</a>): the button, the links and positive figures take the scheme's <code>--primary</code> and <code>--primary-2</code>, the mark tile its <code>--shell-action</code>, and the dark block the scheme's dark values, written in as literals from <code>styles/schemes.css</code> when the email is rendered. An account with no scheme gets Green. The specimens below are drawn in Green.</div>
+    <div class="doc-note"><b class="sp-ink">The emails follow the account's colour scheme</b> (<a href="Settings and import.dc.html#11a">11a</a>): the button, the links and positive figures take the scheme's <code>--primary</code> and <code>--primary-2</code>, the mark tile its <code>--shell-action</code>, and the dark block the scheme's dark values, written in as literals from <code>styles/schemes.css</code> when the email is rendered. An account with no scheme, or with a scheme since removed, gets Emerald. The specimens below are drawn in Emerald.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
     <div class="doc-note"><b class="sp-ink">Password changed is sent on every change</b> - from Settings and from the reset flow alike - to the account's address. Its button opens <b>/reset</b> with the address filled in rather than a token, so it never expires. It carries no link that undoes the change.</div>
     <div class="doc-note"><b class="sp-ink">Passkey added is sent each time one is added</b>, naming it as the device reported it. Its button opens Settings, Account, where the passkey can be removed. Removing one sends nothing, and resetting the password leaves passkeys as they are.</div>
@@ -1206,7 +1206,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

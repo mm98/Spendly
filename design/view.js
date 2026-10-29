@@ -5,8 +5,10 @@
 window.SpView = (() => {
   const KEY = 'sp-view-v1';
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+  // the schemes there are; any other id (one since removed) reads as the default
+  const SCHEMES = ['rust', 'mocha', 'ochre', 'olive', 'emerald', 'teal', 'ocean', 'slate', 'navy', 'cobalt', 'indigo', 'violet', 'plum', 'raspberry', 'oxblood', 'charcoal'];
   const write = (v) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
-  const pick = (p) => ({ theme: (p.theme ?? 'light') === 'dark' ? 'dark' : 'light', scheme: p.scheme ?? 'green' });
+  const pick = (p) => ({ theme: (p.theme ?? 'light') === 'dark' ? 'dark' : 'light', scheme: p.scheme ?? 'emerald' });
   return {
     // called with the previous props on update: a tweak that changed becomes the shared choice
     // a value arriving where there was none is the page's saved tweak loading, not a
@@ -26,7 +28,7 @@ window.SpView = (() => {
       const el = document.querySelector('.sp');
       if (el && (k === 'theme' || k === 'scheme')) el.setAttribute('data-' + k, val);
     },
-    current(props) { return { ...pick(props || {}), ...read() }; },
+    current(props) { const v = { ...pick(props || {}), ...read() }; if (!SCHEMES.includes(v.scheme)) v.scheme = 'emerald'; return v; },
     apply(props, prev, opts) {
       this.sync(props, prev);
       const el = document.querySelector('.sp');

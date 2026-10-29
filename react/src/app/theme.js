@@ -44,16 +44,19 @@ export function useTheme() {
    public/theme.js can set it before the first paint. The key is read there too. */
 const SCHEME_KEY = 'spendly:scheme'
 
+// a removed scheme reads as the default, as public/theme.js reads it
+const schemeOrDefault = scheme => !scheme || scheme === 'green' ? 'emerald' : scheme
+
 /** A colour scheme drawn on the whole view without keeping it, as a pick in Settings shows before it is saved. */
 export function showScheme(scheme) {
-	document.documentElement.dataset.scheme = scheme || 'green'
+	document.documentElement.dataset.scheme = schemeOrDefault(scheme)
 	paintBar()
 }
 
-/** The account's colour scheme (styles/schemes.css), set on the root beside the theme. Green when none is stored. */
+/** The account's colour scheme (styles/schemes.css), set on the root beside the theme. Emerald when none is stored. */
 export function setScheme(scheme) {
 	showScheme(scheme)
-	try { localStorage.setItem(SCHEME_KEY, scheme || 'green') } catch { /* storage denied: this tab only */ }
+	try { localStorage.setItem(SCHEME_KEY, schemeOrDefault(scheme)) } catch { /* storage denied: this tab only */ }
 }
 
 /** The lists' row density, a stored setting: compact draws each table row closer to the next. */

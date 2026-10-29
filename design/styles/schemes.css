@@ -3,8 +3,8 @@
    neutrals tuned toward its hue, and the sidebar, in both themes. Ink is the same in every
    scheme; amber (a warning) and red (a problem) are too, except in the five schemes whose
    primary sits near them (Terracotta, Mocha, Ochre, Raspberry, Oxblood), which turn them
-   to another hue at the same lightness and strength. Schemes run in hue order, Terracotta round the colour wheel to Oxblood, with Charcoal last; Green is the default wherever it sits. Green repeats tokens.css so a Green tile inside another
-   scheme still draws green. Generated schemes step oklch lightness at fixed points. */
+   to another hue at the same lightness and strength. Schemes run in hue order, Terracotta round the colour wheel to Oxblood, with Charcoal last; Emerald is the default wherever it sits. Emerald repeats tokens.css so an Emerald tile inside
+   another scheme still draws emerald. Generated schemes step oklch lightness at fixed points. */
 
 /* Terracotta */
 [data-scheme="rust"],
@@ -404,68 +404,6 @@
   --range-line: #2d322f;
   --primary-press: #509471;
   --ring: 0 0 0 3px #1c3026;
-}
-
-/* Green */
-[data-scheme="green"],
-[data-scheme="green"] [data-theme="light"] {
-  --bg: #eceae4;
-  --surface-2: #f7f6f2;
-  --surface-3: #f2f1eb;
-  --hover: #f0efe9;
-  --line: #e6e4dc;
-  --line-2: #f0efe9;
-  --line-3: #dedcd4;
-  --line-4: #d6d4ca;
-  --line-5: #c3c1b8;
-  --hatch-a: #dcdad2;
-  --hatch-b: #e8e6de;
-  --primary: #1d4d33;
-  --primary-2: #2d754e;
-  --primary-3: #4f7f63;
-  --primary-4: #8caf97;
-  --primary-5: #c6d6c9;
-  --primary-tint: #e7efe8;
-  --primary-tint-2: #eef1ee;
-  --range-in: #e4ede7;
-  --range-line: #eeece5;
-  --primary-press: #1b4530;
-  --shell: #14261c;
-  --shell-item: #c3d2c8;
-  --shell-current: #1f3d2c;
-  --shell-group: #7d9186;
-  --shell-count: #a9bdb1;
-  --shell-scroll: #3a5546;
-  --shell-action: #1d4d33;
-  --shell-action-hover: #2f7a51;
-  --shell-mark: #4f7f63;
-}
-[data-scheme="green"][data-theme="dark"],
-[data-scheme="green"] [data-theme="dark"],
-[data-theme="dark"] [data-scheme="green"] {
-  --bg: #1a1815;
-  --surface: #221f1b;
-  --surface-2: #262320;
-  --surface-3: #2a2621;
-  --hover: #2a2621;
-  --line: #38332c;
-  --line-2: #2e2b26;
-  --line-3: #463f37;
-  --line-4: #463f37;
-  --line-5: #5c554b;
-  --hatch-a: #2e2b26;
-  --hatch-b: #38332c;
-  --primary: #5d9b76;
-  --primary-2: #7ab08e;
-  --primary-3: #508062;
-  --primary-4: #405e49;
-  --primary-5: #313e32;
-  --primary-tint: #1f3328;
-  --primary-tint-2: #2e2b26;
-  --range-in: #1f3328;
-  --range-line: #38332c;
-  --primary-press: #4d8763;
-  --ring: 0 0 0 3px #1f3328;
 }
 
 /* Petrol teal */

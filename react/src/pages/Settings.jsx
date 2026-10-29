@@ -83,7 +83,6 @@ const SCHEMES = [
 	{ value: 'ochre', label: 'Ochre' },
 	{ value: 'olive', label: 'Olive' },
 	{ value: 'emerald', label: 'Emerald' },
-	{ value: 'green', label: 'Green' },
 	{ value: 'teal', label: 'Petrol teal' },
 	{ value: 'ocean', label: 'Ocean' },
 	{ value: 'slate', label: 'Slate' },
@@ -415,7 +414,7 @@ function AppearanceCard({ value, change, touch }) {
 			</Field>
 			<span className="sp-rule" />
 			<Field label="Colour scheme" message="Sets the colour of buttons, links, the sidebar and savings, in light and dark.">
-				<SchemeTiles name="colourScheme" options={SCHEMES} value={value('colourScheme') ?? 'green'} onChange={v => change('colourScheme', v)} />
+				<SchemeTiles name="colourScheme" options={SCHEMES} value={value('colourScheme') ?? 'emerald'} onChange={v => change('colourScheme', v)} />
 			</Field>
 			<span className="sp-rule" />
 			<Pair touch={touch}>

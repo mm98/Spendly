@@ -9,21 +9,21 @@
 <body>
 <x-dc>
 <helmet>
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">5</text></svg></template>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#004d28"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">5</text></svg></template>
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
-<script src="./view.js?v=v20261029a"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029u">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
+<script src="./view.js?v=v20261029h"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029g">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
 <script src="./components.js?v=v20261024s"></script>
 <style>
-  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
-  a { color: #1d4d33; }
-  a:hover { color: #2f7a51; }
+  body { margin: 0; background: var(--bg, #e5e9e6); font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: var(--primary, #004d28); }
+  a:hover { color: var(--primary-2, #007047); }
 </style>
 </helmet>
 
@@ -264,7 +264,7 @@
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
-              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour1" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour1" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour1" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour1" type="color" defaultValue="#004d28" aria-label="Custom colour"></label>
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
@@ -402,7 +402,7 @@
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
-              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour2" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour2" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour2" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour2" type="color" defaultValue="#004d28" aria-label="Custom colour"></label>
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
@@ -913,7 +913,7 @@
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
-              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour3" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour3" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour3" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour3" type="color" defaultValue="#004d28" aria-label="Custom colour"></label>
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
@@ -1051,7 +1051,7 @@
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
-              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour4" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour4" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour4" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour4" type="color" defaultValue="#004d28" aria-label="Custom colour"></label>
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
@@ -1202,7 +1202,7 @@
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Sand" data-swatch="amber-2" data-tip="Sand"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Rust" data-swatch="red-ink" data-tip="Rust"></button>
               <button type="button" class="sp-option sp-option--swatch" aria-pressed="false" aria-label="Grey" data-swatch="ink-6" data-tip="Grey"></button>
-              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour5" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour5" type="color" defaultValue="#1d4d33" aria-label="Custom colour"></label>
+              <label class="sp-option sp-option--swatch sp-option--custom" for="vc-colour5" data-tip="Custom colour"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg><input id="vc-colour5" type="color" defaultValue="#004d28" aria-label="Custom colour"></label>
             </div>
             <span class="sp-field__help">Pick one of the eight, or choose your own in the last box.</span>
           </div>
@@ -1256,7 +1256,7 @@
     <div class="doc-legends">
       <div class="doc-legend">
               <span class="sp-gauge sp-gauge--thin"><meter value="60" min="0" max="100" aria-label="Share of the limit used"></meter><span class="sp-gauge__fill" data-fill="60"></span></span>
-              <span class="sp-title">#1d4d33</span>
+              <span class="sp-title">#004d28</span>
               <span class="sp-subtitle">Under the limit - whatever the pace marker says</span>
               <span class="sp-meta">list row, rail, form</span>
             </div>
@@ -1285,7 +1285,7 @@
         <span class="sp-meta">2px, always</span>
       </div>
     </div>
-    <div class="sp-card__footer sp-meta">Track is <b>#eef1ee</b> in every case except no-limit. A bar is <b>8px / radius 4</b> in a list row and <b>10px / radius 5</b> in a rail or a form - the only dimension that changes by context.</div>
+    <div class="sp-card__footer sp-meta">Track is <b>#ebf0ed</b> in every case except no-limit. A bar is <b>8px / radius 4</b> in a list row and <b>10px / radius 5</b> in a rail or a form - the only dimension that changes by context.</div>
   </div>
   
     <div class="doc-note"><b>Crossing a limit never blocks a save.</b> Keep this check out of the validation layer entirely: once it shares a code path with required fields, it eventually starts blocking. It is a fact about the month, not a rule about the data.</div>
@@ -1874,7 +1874,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

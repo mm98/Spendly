@@ -8,22 +8,22 @@
 <body>
 <x-dc>
 <helmet>
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">16</text></svg></template>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#518167"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">16</text></svg></template>
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029u">
-<link rel="stylesheet" href="styles/schemes.css?v=v20261029w">
-<script src="./view.js?v=v20261029a"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029u">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029s">
-<link rel="stylesheet" href="styles/pages/actions-inventory.css?v=v20261029s">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
+<script src="./view.js?v=v20261029h"></script>
+<link rel="stylesheet" href="styles/components.css?v=v20261029g">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
+<link rel="stylesheet" href="styles/pages/actions-inventory.css?v=v20261029g">
 <script src="./components.js?v=v20261024s"></script>
 <style>
-  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
-  a { color: #1d4d33; }
-  a:hover { color: #2f7a51; }
+  body { margin: 0; background: var(--bg, #e5e9e6); font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: var(--primary, #004d28); }
+  a:hover { color: var(--primary-2, #007047); }
 </style>
 </helmet>
 
@@ -58,7 +58,7 @@
       <span class="sp-strong">New order</span><span class="sp-ink-2">Opens New order, step 1 (<a href="Order create.dc.html#3a">3a</a>): scan a receipt, start an empty order, or copy a previous one. A plain row, and the FAB on a phone.</span><span class="sp-ink-5">Nothing is created until a choice is made. An empty order is a draft from its first change until Create or Discard; leaving keeps it in Drafts, without asking.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Nav item</span><span class="sp-ink-2">Navigates. The count on the right is live and is part of the link, not a separate target.</span><span class="sp-ink-5">Active row fills <b>#1f3d2c</b>. Scroll position resets; returning by Back restores it.</span>
+      <span class="sp-strong">Nav item</span><span class="sp-ink-2">Navigates. The count on the right is live and is part of the link, not a separate target.</span><span class="sp-ink-5">Active row fills <b>#143525</b>. Scroll position resets; returning by Back restores it.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Collapse rail</span><span class="sp-ink-2">The grip on the sidebar's edge collapses it to the 68px icon rail, and opens it again (<b>9i</b>). Below 1280px the viewport produces the rail on its own.</span><span class="sp-ink-5">The choice is stored per user. Labels become tooltips. No hover peek.</span>
@@ -76,7 +76,7 @@
       <div>CONTROL</div><div>DOES</div><div>AFTER</div>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Drop zone / Choose file</span><span class="sp-ink-2">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</span><span class="sp-ink-5">Goes straight to stage two of 3a. Drag-over: border <b>#1d4d33</b>, fill <b>#e7efe8</b>.</span>
+      <span class="sp-strong">Drop zone / Choose file</span><span class="sp-ink-2">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</span><span class="sp-ink-5">Goes straight to stage two of 3a. Drag-over: border <b>#004d28</b>, fill <b>#e2ece6</b>.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Copy an order</span><span class="sp-ink-2">Opens the 3b dialog over Home - the same dialog as the create screen. Hidden when there are no orders.</span><span class="sp-ink-5">Escape or Cancel stays on Home. Picking an order opens the copy in edit, under 8a's duplicate rules, a draft from its first change.</span>
@@ -121,7 +121,7 @@
       <span class="sp-strong">Move up / down</span><span class="sp-ink-2">Reorders one position. Disabled at the ends. The keyboard and touch path for what the handle does with a mouse.</span><span class="sp-ink-5">Marks the order dirty; position saves with the order, never on its own.</span>
     </div>
     <div class="ai-act doc-table__row">
-      <span class="sp-strong">Drag handle</span><span class="sp-ink-2">Drags the row; a 2px <b>#1d4d33</b> line shows the drop position.</span><span class="sp-ink-5">Row lifts with the raised shadow and drops it on release.</span>
+      <span class="sp-strong">Drag handle</span><span class="sp-ink-2">Drags the row; a 2px <b>#004d28</b> line shows the drop position.</span><span class="sp-ink-5">Row lifts with the raised shadow and drops it on release.</span>
     </div>
     <div class="ai-act doc-table__row">
       <span class="sp-strong">Duplicate / delete line</span><span class="sp-ink-2">Copies the line below itself, or removes it.</span><span class="sp-ink-5">Delete is a toast + Undo, no dialog - it is cheap to restore.</span>
@@ -351,7 +351,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;green&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;green&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;green\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }
