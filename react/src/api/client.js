@@ -1277,9 +1277,16 @@ export async function getScanDraft(documentKey, signal) {
 	return readScan(documentKey, '', signal)
 }
 
-/** A scan's review (3a): what was read, and the draft the file is from now on, with the form as it was left. */
+/** A scan's review (3a): what was read, and its draft with the form as it was left, once its first change made one. */
 export async function getScanReview(documentKey, signal) {
 	return readScan(documentKey, '&draft=1', signal)
+}
+
+/** A scan becomes a draft at its review's first change (3a): `{ id }`. */
+export async function makeScanDraft(documentKey) {
+	const made = await request(`/api/scan/documents/${documentKey}/draft`, { method: 'POST' })
+	invalidateDraftData()
+	return made
 }
 
 async function readScan(documentKey, extra, signal) {

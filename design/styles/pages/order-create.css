@@ -65,5 +65,9 @@
   .oc-col { width: 620px; }
   .oc-col--narrow { width: 520px; }
   .oc-notes-col { width: 430px; display: flex; flex-direction: column; gap: var(--sp-16); }
+  /* the 3c flow table: when, what is checked, what is shown, the ways on, when a draft is made */
+  .oc-flow { width: 1080px; }
+  .oc-flow .doc-table__head,
+  .oc-flow .doc-table__row { grid-template-columns: 140px 200px 170px minmax(0, 1fr) 190px; }
 
 }

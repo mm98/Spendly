@@ -26,8 +26,8 @@ import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrderLookalike, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
-	getVendorPage, discardDraft, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
+	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrderLookalike, makeScanDraft, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
+	getVendorPage, discardDraft, discardScanDocument, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -149,8 +149,8 @@ const takeAway = address => {
 	return kept?.address === address ? kept : null
 }
 
-/** `origin` is `{ copy, draftId }` or `{ scan, draftId }`; `region` draws the split for a route whose body is not
-    one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
+/** `origin` is `{ copy, draftId }` or `{ scan, draftId, shownOrders }`, the last the orders 3c showed for the scan;
+    `region` draws the split for a route whose body is not one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
 export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -162,8 +162,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const scan = origin.scan ?? null
 	// the values as the receipt gave them, which a note stays beside until they are changed (3a)
 	const [asRead] = useState(() => (scan ? readSeed(scan) : null))
-	// a draft keeps the form as it is edited, until Create or Discard (3a): a scan is one from the start,
-	// an order made here from its first change
+	// a draft keeps the form as it is edited, until Create or Discard (3a): a scan or an order made here is one
+	// from its first change
 	const [draftId, setDraftId] = useState(creating ? origin.draftId ?? null : null)
 	const draftNow = useRef(draftId)
 	const here = useLocation()
@@ -769,15 +769,16 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			...(origin.copy ? { origin: { copy: origin.copy } } : {})
 		}
 	}
-	// an order made here becomes a draft at its first change, and not before (3a); answers its id, or null
+	// an order made here, or a scan, becomes a draft at its first change, and not before (3a); answers its id, or null
 	const becomeDraft = ({ keepalive = false } = {}) => {
 		if (draftNow.current) return Promise.resolve(draftNow.current)
 		if (!making.current) {
-			if (!creating || scan || !dirtyNow.current) return Promise.resolve(null)
+			if (!creating || !dirtyNow.current) return Promise.resolve(null)
 			const form = keptForm()
-			making.current = makeDraft(form, { keepalive }).then(made => {
+			// a scan's draft starts empty and is given the form by keep()
+			making.current = (scan ? makeScanDraft(scan.documentKey) : makeDraft(form, { keepalive })).then(made => {
 				draftNow.current = made.id
-				keptAs.current = JSON.stringify(form)
+				if (!scan) keptAs.current = JSON.stringify(form)
 				if (alive.current) { setDraftId(made.id); onDraft?.(made.id) }
 				return made.id
 			}, () => { making.current = null; return null })
@@ -831,6 +832,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		clearTimeout(keepSoon.current)
 		const id = draftNow.current ?? await making.current
 		if (id) await discardDraft(id).catch(() => {})
+		// a scan that was never changed has no draft yet, only its file
+		else if (scan) await discardScanDocument(scan.documentKey).catch(() => {})
 		leave()
 	}
 	// the files and photos an order made here would take with it, by the names the reader knows them by
@@ -1325,14 +1328,18 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const vendorTyped = (draft.vendor ?? '').trim()
 	const lookalike = useApi(getOrderLookalike, [vendorTyped, draft.date, Math.round(sums.total * 100) / 100, orderId ?? ''],
 		{ enabled: Boolean(vendorTyped) && dated && sums.total > 0 }).data?.order
-	const lookalikeNotice = lookalike && vendorTyped && dated && sums.total > 0
+	// not for the order 3c already showed on this scan (3c, the flow)
+	const lookalikeNotice = lookalike && vendorTyped && dated && sums.total > 0 && !origin.shownOrders?.includes(lookalike.id)
 		? (
-			<ListItem color="warning" count="!">
+			<ListItem color="warning" count="!" variant="top">
 				<span className="sp-stack sp-gap-6">
 					<span className="sp-title sp-ink-warning">You already have an order like this</span>
 					<span className="sp-meta sp-ink-warning">
 						{money(lookalike.total)} at {vendorTyped} on {dayShortMonth(lookalike.date)}. You can still {creating ? 'create' : 'save'} this one.
 					</span>
+					{touch
+						? <Button variant="outline" fullWidth to={`/orders/${lookalike.id}`}>Open that order</Button>
+						: <span className="sp-row-flex sp-gap-8"><Button variant="outline" size="small" to={`/orders/${lookalike.id}`}>Open that order</Button></span>}
 				</span>
 			</ListItem>
 		)

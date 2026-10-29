@@ -44,13 +44,13 @@ const selectDraftWithFile = db.prepare(`SELECT d.id FROM uploads u JOIN order_dr
 	WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1`)
 
 /** What is already known about these bytes: when they were read, the orders that hold them and the
-    draft scanned from them (3c). Nothing is known of a file that was never read and no draft holds. */
+    draft scanned from them (3c). Nothing is known of a file no order or draft holds and that was never read. */
 function seenBefore(userId, sha256) {
 	const orders = selectOrdersWithFile.all({ sha256, userId })
 	const read = readingOf(userId, sha256)
 	const holder = selectDraftWithFile.get(userId, sha256)?.id
 	const [draft] = holder ? draftsAsOrders(userId, holder) : []
-	if (!read && !draft) return null
+	if (!read && !draft && !orders.length) return null
 	return {
 		readAt: read ? new Date(read.read_at * 1000).toISOString() : null,
 		draft: draft ? { id: draft.id, vendor: draft.vendor?.name ?? null, file: draft.draft.file, scanned: draft.draft.scanned, total: draft.total } : null,
@@ -99,7 +99,7 @@ const saveAiRead = db.prepare('UPDATE uploads SET ai_read_json = @json, read_at 
 
 /** A file kept until a save files it: an image gets a display copy and a thumbnail, a PDF keeps its
     bytes and gets a thumbnail of its first page (lib/images.js). `?scan=1` makes it a scan (3a): a
-    file not seen before becomes a draft, and is read whether or not anyone waits. */
+    file not seen before is read whether or not anyone waits. It becomes a draft only at the review's first change. */
 router.post('/documents', requireConfirmed, upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
@@ -134,10 +134,9 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 
 function scanned(req, answer) {
 	if (req.query.scan !== '1' || answer.seen) return answer
-	const draftId = draftOfUpload(req.user.id, answer.key)
 	const row = selectUploadForRead.get(answer.key, req.user.id)
 	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(() => {})
-	return { ...answer, draftId }
+	return answer
 }
 
 /** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
@@ -171,6 +170,14 @@ router.get('/documents/:key/pages/:page', async (req, res) => {
 	res.set('Content-Type', page.contentType)
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(page.image)
+})
+
+/** A scan becomes a draft at its review's first change (3a), never by itself: `{ id }`. */
+router.post('/documents/:key/draft', (req, res) => {
+	if (!selectUploadMeta.get(req.params.key, req.user.id)) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	const id = draftOfUpload(req.user.id, req.params.key)
+	forgetReads(req.user.id)
+	res.status(201).json({ id })
 })
 
 /** Forget the reading of these bytes, so the next opening of the draft reads the file again (3c). */
@@ -210,14 +217,12 @@ router.delete('/documents/:key', (req, res) => {
     (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
     both fetch this for the same key -- never pays for a second read. Falls back to the same
     honest blank draft this route always returned when no ANTHROPIC_API_KEY is configured, or
-    when the read fails. `?draft=1` is the scan's review (3a): the file is a draft from then on, and the
-    answer names it and the form as it was left. A receipt compared with an order (3d) makes none. */
+    when the read fails. `?draft=1` is the scan's review (3a): the answer names its draft, made at the review's
+    first change, and the form as it was left. A receipt compared with an order (3d) has none. */
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	const made = req.query.draft === '1' && !heldBy(req.user.id, upload.id)
-	const draft = req.query.draft === '1' ? draftRow(req.user.id, draftOfUpload(req.user.id, upload.id)) : null
-	if (made) forgetReads(req.user.id)
+	const draft = req.query.draft === '1' ? draftRow(req.user.id, heldBy(req.user.id, upload.id)) : null
 
 	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
 	   read (3a step 2), then `{ draft }`, the same object the plain answer is. */
