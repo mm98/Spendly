@@ -84,6 +84,10 @@ async function settle(page) {
 	await page.waitForFunction(() => {
 		const d = [...document.querySelectorAll('svg path')].map(p => p.getAttribute('d')).join('|')
 			+ '#' + [...document.querySelectorAll('*')].length
+			// a menu's marker is placed by script after the page draws, so its place is part of the state
+			+ '#' + [...document.querySelectorAll('.sp-marker')].map(m => JSON.stringify(m.getBoundingClientRect())).join('|')
+			// a page that opens at one of its sections scrolls there itself, and the shot is where it ends
+			+ '#' + window.scrollY
 		if (window.__sig === d) window.__set = (window.__set ?? 0) + 1
 		else { window.__set = 0; window.__sig = d }
 		return window.__set >= 3
@@ -91,12 +95,15 @@ async function settle(page) {
 	await page.evaluate(() => document.getAnimations().forEach(a => { a.pause(); a.currentTime = 0 }))
 	if (await page.evaluate(() => document.body.textContent.includes('Loading')))
 		throw new Error('refusing to shoot: "Loading" still on screen')
-	// a probe leaves the page where it left it -- put scroll back where a fresh load has it
-	await page.evaluate(() => window.scrollTo(0, 0))
 }
 
 async function shoot(page, file) {
 	if (!wanted(file)) return
+	// settle() freezes movement at its start, so a finite one (bars growing in, the menu's marker
+	// sliding to the current item, rows fading in) ends first
+	await page.evaluate(() => Promise.all(document.getAnimations()
+		.filter(a => a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity)
+		.map(a => a.finished.catch(() => {}))))
 	await settle(page)
 	await page.screenshot({ path: join(outdir, file) })
 }
@@ -107,10 +114,6 @@ async function area(page, route, ready, file, then) {
 	await page.goto(BASE + route, { timeout: 15000 })
 	await page.locator(ready).first().waitFor({ timeout: 5000 })
 	await then?.(page)
-	// a chart grows its bars in: settle() freezes movement at its start, so let a finite one end first
-	await page.evaluate(() => Promise.all(document.getAnimations()
-		.filter(a => a.effect?.getTiming().iterations !== Infinity)
-		.map(a => a.finished.catch(() => {}))))
 	await shoot(page, file)
 }
 
