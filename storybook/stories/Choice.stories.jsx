@@ -1,4 +1,5 @@
 import { expect, fn, userEvent, waitFor } from 'storybook/test'
+import { MotionGlobalConfig } from 'motion/react'
 import { Check, Radio, Switch, Choice, FieldGroup, FieldGroupValues, FieldGroupMore, Picker } from '../../react/src/components/Choice.jsx'
 import { Field } from '../../react/src/components/Field.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
@@ -85,7 +86,7 @@ export const Facet = {
 			<FieldGroup legend={legend} facet count={count}>
 				<FieldGroupValues>
 					{['Indbo Møbler', 'HAY', 'Muuto', 'Bilka'].map((name, i) => (
-						<Choice key={name} variant="row" control={<Check defaultChecked={i < 2} />}>{name}</Choice>
+						<Choice key={name} control={<Check defaultChecked={i < 2} />}>{name}</Choice>
 					))}
 				</FieldGroupValues>
 				<FieldGroupMore onClick={onMore}>Show 6 more</FieldGroupMore>
@@ -96,10 +97,34 @@ export const Facet = {
 		await userEvent.click(canvas.getByText('Show 6 more'))
 		await expect(args.onMore).toHaveBeenCalledOnce()
 		const fold = canvas.getByRole('button', { name: /Vendor/ })
-		await userEvent.click(fold)
-		await expect(fold).toHaveAttribute('aria-expanded', 'false')
-		await userEvent.click(fold)
+		// the fold runs its real move here: a clip it keeps after moving shows only when it moves
+		const skipped = MotionGlobalConfig.skipAnimations
+		MotionGlobalConfig.skipAnimations = false
+		try {
+			await userEvent.click(fold)
+			await expect(fold).toHaveAttribute('aria-expanded', 'false')
+			await waitFor(() => expect(canvas.queryAllByRole('checkbox')).toHaveLength(0))
+			await userEvent.click(fold)
+			// once the group has opened again, nothing around a value cuts its focus ring
+			for (const box of await canvas.findAllByRole('checkbox'))
+				await waitFor(() => expect(ringCutBy(box)).toBeNull())
+		} finally {
+			MotionGlobalConfig.skipAnimations = skipped
+		}
 	}
+}
+
+// the class of the first part around `el` that clips into the focus ring every control draws, or null
+function ringCutBy(el) {
+	const ring = Math.max(...[...getComputedStyle(el).getPropertyValue('--ring').matchAll(/(-?[\d.]+)px/g)].map(m => Number(m[1])))
+	const r = el.getBoundingClientRect()
+	for (let a = el.parentElement; a; a = a.parentElement) {
+		const cs = getComputedStyle(a)
+		if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue
+		const b = a.getBoundingClientRect()
+		if (r.left - ring < b.left || r.right + ring > b.right || r.top - ring < b.top || r.bottom + ring > b.bottom) return a.className
+	}
+	return null
 }
 
 const pickerStory = extra => ({
