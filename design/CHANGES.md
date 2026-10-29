@@ -1,97 +1,65 @@
-# No focus ring is cut by the part around it
+# One left column: the facet rail and the section nav are one width
 
-This answers the follow-up to the brief "a folding group stays cut off after it opens again": check
-that a focus ring is not cut anywhere else, and fix every place where it is.
+This answers the brief: the Settings section nav takes the same width as the order list's facet rail,
+so the content cards beside either start at the same left position. Layout rules states it.
 
-`Fold` itself is already on main (`react/src/components/motion.js`, from `handoff_fold_clip`). This
-package adds the two checks that look for the fault, and fixes the eight components they found.
+## The facet rail and the section nav share one width
 
-## The checks
+**The problem.** The two left columns had different widths, and the design said a third thing. The
+facet rail (`.sp-rail`) was 232px and the section nav (`.sp-section-nav`) 224px. Layout rules,
+"2 - Left rail plus main", gave 260px for the facets and 208px for a page-level nav. The first card
+beside the facets started 260px from the page's edge, and in Settings it started at 240px, so moving
+between the two pages shifted the content 20px.
 
-**The problem.** The `Fold` fault showed only in the app, and nothing in the design caught it or
-anything like it. A container that clips (`overflow` hidden, clip, auto or scroll) cuts the 3px
-ring of any control that sits closer than 3px to its edge.
+**What changed.**
+- There is a new token, `--rail-left-w: 232px`, the width of the left column inside a page.
+  `.sp-rail` takes `width: var(--rail-left-w)`, so the facet rail is unchanged.
+- The section nav is the same column. It has no card: it runs from the page's edge, taking in the
+  body's 16px inset, to a divider where the facet column ends. Its width is
+  `calc(var(--sp-16) + var(--rail-left-w))`, 248px, which is 24px wider than before. Its rows now
+  start 16px in, where the facet cards start.
+- The pane beside it starts 12px after the divider, which is the body's column gap. The first card
+  in Settings is now at 260px, the same as on the order list.
+- The longest Settings label, Money, dates and times, still fits on one line, and every row is
+  still 40px.
 
-**What changed.** There are two new assertions.
-- `styles/check.js`, "Motion never holds a clip": no file in `react_handoff/` gives Motion an
-  `overflow` value (in `initial`, `animate`, `exit`, a `while*` prop or `animate()`), uses
-  `transitionEnd`, or sets a clip on an element without clearing it in `onAnimationComplete`. Run
-  against the old `Fold`, it reports four findings.
-- `checks.html`, "a focus ring is not clipped": every control on every page that can take focus is
-  measured, with its ring, against every parent that clips. The ring is read from the stylesheets
-  by the cascade (unlayered over `@layer base`, then specificity, then order). An inset ring or a
-  focus drawn as a fill reaches nothing outside the box. A ring drawn by the part around the control
-  (`:focus-within`, `:has(:focus-visible)`) is measured on that part. A device or window frame is
-  not counted, since its edge stands for the screen's edge. A scroller moved off its start is not
-  counted at the edge it has scrolled past.
+**Where.**
+- `styles/tokens.css`: `--rail-left-w`.
+- `styles/components.css`: `.sp-rail`, and `.sp-section-nav` with its comment.
+- `styles/pages/settings.css`: `.st-pane`, left padding `var(--sp-12)`.
+- `styles/doc.css`: `.doc-rail-demo`, the documents' facet specimen, at `var(--rail-left-w)`.
+- Text: `Layout rules 15a` card "2 - Left rail plus main" (its block and its note),
+  `Settings and import 11a` note, `Responsive reference` Settings row, `Order list` note on
+  container queries.
+- In the app:
+  - `react/src/styles/tokens.css` and `react/src/styles/components.css` take the same token and
+    rules.
+  - `react/src/pages/Settings.jsx`: the desktop row is `sp-row-flex sp-top sp-gap-16`. It becomes
+    `sp-gap-12`, so the cards are 12 from the divider, as in the drawing.
+  - `react/src/styles/app.css` already pulls the nav out to the page's edge with a
+    `-var(--card-pad)` left margin. That stays.
 
-**Where.** `styles/check.js`, `checks.html`.
-
-**What is still open.** Neither check runs the app. A browser test on the app side, which folds and
-opens a filter group and then measures the ring, would cover what happened there. Please confirm
-whether one is wanted.
-
-## Eight components gave a ring room
-
-**The problem.** On its first run the ring check found 72 cut rings in 8 components.
-
-**What changed.** Nothing moves at rest. A scroller keeps room for the ring the way a facet's values
-already do (`.sp-field-group__values`): a negative `--sp-4` margin and a `--sp-4` padding, so its
-content stays where it was. Where a control fills a clipping part, the ring is drawn inside it, or
-by the part itself.
-
-1. **Sidebar nav scroll** (Navigation shell, short window). `.ns-scroll` takes the room. 21 rows,
-   which were cut at the left, and at the top for the first row.
-2. **Open button inside an attachment mark** (Components; Order editing layouts strip). The mark
-   clips, so `.sp-mark:has(> .sp-mark__open:focus-visible)` draws the ring on the mark, as
-   `button.sp-mark` does. This replaces the ring on `.sp-mark__open`, which could not be seen.
-3. **Link out inside a title stack** (Ask Spendly 24d file rows, Mobile screens 7a). The stack
-   hides its overflow for the cut, so `.sp-stacked:has(> a.sp-link-out)` takes the room.
-4. **Calendar days at the edges** (Components, the range sheet). `.sp-calendar--sheet` takes the
-   room at the sides.
-5. **What Ask can do examples** (Ask Spendly 24c, Mobile screens 7a). `.sp-chat__help` takes the
-   room.
-6. **Card head that spans a flush card** (Components c1; Order create and Order editing layouts,
-   Order details on a phone). `.sp-card--flush` clips its corners, so a `.sp-list__toolbar--toggle`
-   or `--link` that is its child draws `inset var(--ring)`. It follows the card's top corners, and
-   all four once the card is folded to its head.
-7. **Rows in a popover list** (Vendors and categories picker). `.sp-popover__list` takes the room,
-   and `.sp-menu--plain.sp-popover__list` keeps it where the list is also a plain menu, whose
-   `padding: 0` overrode it.
-8. **Create row in a popover list** (Components, Order list 2b category picker). Fixed by the same
-   `.sp-popover__list` rule.
-
-**Where.** `styles/components.css`: `.sp-card--flush > :is(.sp-list__toolbar--link,
-.sp-list__toolbar--toggle):focus-visible`, `.sp-mark:has(> .sp-mark__open:focus-visible)`,
-`.sp-calendar--sheet`, `.sp-popover__list`, `.sp-menu--plain.sp-popover__list`, `.sp-chat__help`,
-`.sp-stacked:has(> a.sp-link-out)`. `styles/pages/navigation-shell.css`: `.ns-scroll`. In the app,
-`react/src/styles/components.css` takes the same rules.
-
-**What is still open.** `.ns-scroll` is how the Navigation shell page draws a short window. Please
-confirm that the app's sidebar, when it scrolls in a short window, keeps the same room on its
-scrolling part.
+**What is still open.** Nothing.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged from the project root.
 - `CHANGES.md` - this note.
-- `styles/components.css` - the seven component rules above.
-- `styles/pages/navigation-shell.css` - `.ns-scroll`.
-- `styles/check.js` - "Motion never holds a clip".
-- `checks.html` - "a focus ring is not clipped". It runs against every page in the full design
-  folder.
-- `Navigation shell.dc.html`, `Components.dc.html`, `Ask Spendly.dc.html`, `Mobile screens.dc.html`,
-  `Order create.dc.html`, `Order editing layouts.dc.html`, `Vendors and categories.dc.html`,
-  `Order list.dc.html` - the pages where a ring changed. Only their stylesheet version changed.
-- `support.js`, `components.js`, `icons.js`, `view.js`, `styles/tokens.css`, `styles/schemes.css`,
-  `styles/doc.css`, `styles/pages/ask-spendly.css`, `styles/pages/budget.css`,
-  `styles/pages/mobile-screens.css`, `styles/pages/order-create.css`,
-  `styles/pages/order-editing.css`, `styles/pages/order-list.css` - what those pages load to open
-  from the folder.
+- `styles/tokens.css`, `styles/components.css`, `styles/pages/settings.css`, `styles/doc.css` - the
+  rules above.
+- `styles/check.js` - new assertion "One left column": `.sp-rail` and `.sp-section-nav` take their
+  width from `--rail-left-w`, the token is 232px, and no page states another width for the facet
+  rail, the facets or the section nav.
+- `Layout rules.dc.html`, `Settings and import.dc.html`, `Order list.dc.html`,
+  `Responsive reference.dc.html` - the text that stated the old widths, and the new stylesheet
+  version.
+- `Section switcher.dc.html`, `Components.dc.html` - pages that draw the section nav. Only their
+  stylesheet version changed.
+- `support.js`, `components.js`, `icons.js`, `view.js`, `styles/schemes.css`,
+  `styles/pages/layout-rules.css`, `styles/pages/section-switcher.css`,
+  `styles/pages/order-list.css`, `styles/pages/responsive-reference.css` - what those pages load to
+  open from the folder.
 
 ## styles/check.js
 
 0 finding(s) across 28 pages.
-
-`checks.html`: "a focus ring is not clipped" reports 0, down from 72. The other 142 findings are
-from other rules and are the same before and after this change.

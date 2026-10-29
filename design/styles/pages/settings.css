@@ -13,7 +13,8 @@
   .st-pk-row { min-height: var(--control-h); }
 
   /* the pane being edited, at the reading width a form wants */
-  .st-pane { padding: var(--card-pad); max-width: 640px; }
+  /* 12 from the section nav's divider, the body's column gap, so the cards start where the order list's do */
+  .st-pane { padding: var(--card-pad) var(--card-pad) var(--card-pad) var(--sp-12); max-width: 640px; }
   /* the account row's divider inside the dark rail */
   
 

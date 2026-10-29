@@ -160,6 +160,9 @@
   --shell-gap: var(--sp-10);
   --sidebar-w: 248px;            /* the sidebar expanded */
   --sidebar-w-rail: 68px;        /* and collapsed to the icon rail */
+  /* the left column inside a page: the facet rail (Order list 2b) and the section nav (Settings 11a)
+     are one width, so the content beside either starts at the same place */
+  --rail-left-w: 232px;
 
   /* where a line row's text starts: padding + border + handle + gap + mark + gap.
      The line editor derives its own gap from this, so the columns hold at any slot size. */

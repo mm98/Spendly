@@ -13,11 +13,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/tokens.css?v=v20261029g">
+<link rel="stylesheet" href="styles/tokens.css?v=v20261029t">
 <link rel="stylesheet" href="styles/schemes.css?v=v20261029g">
 <script src="./view.js?v=v20261029h"></script>
-<link rel="stylesheet" href="styles/components.css?v=v20261029s">
-<link rel="stylesheet" href="styles/doc.css?v=v20261029g">
+<link rel="stylesheet" href="styles/components.css?v=v20261029t">
+<link rel="stylesheet" href="styles/doc.css?v=v20261029t">
 <link rel="stylesheet" href="styles/pages/order-list.css?v=v20261029g">
 <script src="./components.js?v=v20261024s"></script>
 <style>
@@ -2401,7 +2401,7 @@
     <div class="doc-note"><b>A column is a header cell and a body cell, dropped together as one unit.</b> Removing the header while the rows still render the cell puts every cell after it one place to the left, and leaves the row with more children than the grid has columns - the surplus wraps to a second line, which is what a <b>⋮</b> appearing underneath a row means. It is not a wrapping bug in the menu; it is a column-count mismatch upstream of it. Write the drop as one conditional covering both, never two.</div>
     <div class="doc-note"><b>The check is arithmetic, not visual.</b> Count the header's children and every row's children at each breakpoint and require them equal. A row that is suddenly twice as tall is the symptom; the count is the cause, and it is the only reliable way to catch a cell landing in the wrong column when both happen to hold short text.</div>
     <div class="doc-note"><b>A chip's width follows its label, and that is intended.</b> Decor, Seating and Lighting come out 52, 61 and 62px wide; they are left-aligned in the cell, so their left edges stack and only their right edges differ. <b>Do not force them to a common width</b> - a fixed-width chip either truncates a long category name or pads a short one out with dead space, and the category column is fluid precisely so several chips can sit in it. What must be identical is the chip itself: <b>2px 8px</b>, radius <b>6px</b>, 22px tall, 11px text, matching <a href="#2b">2b</a> and every other chip in the app.</div>
-    <div class="doc-note"><b>Container queries on the list column, not media queries on the viewport.</b> The same table sits beside a 260px facet rail and, at 1280, without one - the widths above are the <i>table's</i> width, not the window's. Measuring the window gets both cases wrong.</div>
+    <div class="doc-note"><b>Container queries on the list column, not media queries on the viewport.</b> The same table sits beside a 232px facet rail and, at 1280, without one - the widths above are the <i>table's</i> width, not the window's. Measuring the window gets both cases wrong.</div>
     <div class="doc-note"><b>One grid definition, shared by the header and every row</b>, declared once as a custom property and overridden per breakpoint. Repeating it per row is how the header drifts out of alignment the first time a column changes.</div>
     <div class="doc-note"><b>Drop columns with <span class="sp-nowrap">display: none</span>, and remove them from the template in the same rule.</b> A hidden cell that still occupies a track leaves a gap the eye reads as a missing value.</div>
     <div class="doc-note"><b>Every fluid cell needs <span class="sp-nowrap">min-width: 0</span></b> and every text cell <b>overflow: hidden; text-overflow: ellipsis; white-space: nowrap</b>. Without the first, a grid child refuses to shrink below its content and the row overflows instead of truncating - the same automatic-minimum-size rule as 13a and 9g. This is what produces wrapping and overlap at narrow widths.</div>

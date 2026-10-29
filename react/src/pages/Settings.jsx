@@ -282,7 +282,7 @@ export default function Settings() {
 	}
 
 	return (
-		<div className="sp-row-flex sp-top sp-gap-16" ref={row}>
+		<div className="sp-row-flex sp-top sp-gap-12" ref={row}>
 			{narrow ? null : <SettingsNav current={navCurrent(seen ?? current)} />}
 			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{/* in the pane column, so the section menu and its line still start at the top bar (11a) */}
