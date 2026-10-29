@@ -414,7 +414,7 @@ function AppearanceCard({ value, change, touch }) {
 			<span className="sp-rule" />
 			<Pair touch={touch}>
 				<Field label="Row density" message="Compact fits more rows on screen.">
-					<Segmented name="density" fullWidth={!touch} options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+					<Segmented name="density" fullWidth options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 				</Field>
 				<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
 					<Choose value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
