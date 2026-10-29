@@ -1277,13 +1277,12 @@ export async function getScanDraft(documentKey, signal) {
 	return readScan(documentKey, '', signal)
 }
 
-/** A scan's review (3a): what was read, its draft and the form as it was left, or `lookalike`, the order it may
-    repeat, while it waits for its first change to be a draft. `chosen` is a pick on 3c, which makes the draft. */
-export async function getScanReview(documentKey, chosen, signal) {
-	return readScan(documentKey, chosen ? '&draft=1&chosen=1' : '&draft=1', signal)
+/** A scan's review (3a): what was read, and its draft with the form as it was left, once its first change made one. */
+export async function getScanReview(documentKey, signal) {
+	return readScan(documentKey, '&draft=1', signal)
 }
 
-/** A scan whose review opened with no draft becomes one at its first change (3a): `{ id }`. */
+/** A scan becomes a draft at its review's first change (3a): `{ id }`. */
 export async function makeScanDraft(documentKey) {
 	const made = await request(`/api/scan/documents/${documentKey}/draft`, { method: 'POST' })
 	invalidateDraftData()

@@ -1,5 +1,48 @@
 # A scanned receipt that looks like an order you already have
 
+## Fixed from handoff_scan_lookalike_fixed_2
+
+**The problem.** handoff_scan_lookalike_fixed_2 held the pages from the package before it, not the changed ones, so none of the changes below were in its files.
+
+**What changed.** The four pages are the current ones: Order create, Actions inventory, States and confirmations, and Images and files. Nothing else changed.
+
+## Fixed from handoff_scan_lookalike_fixed
+
+This package also answers the brief "the yellow row and the limits notice on desktop".
+
+### The amber row and the limits notice on desktop
+
+**The problem.** The package put the amber row "under the Totals card, above the limits notice". But 8b, and the app, put the limits notice inside the Totals card, above the total. So when both showed, the limits notice was above the amber row, in a different container.
+
+**What changed.** On desktop both rows sit inside the Totals card, under its head and above the total, in the phone's order: the amber row first, then the limits notice. 8b does not change. The amber row is now the limits notice's row exactly, with the same title and the same amber meta line:
+- title "You already have an order like this"
+- meta line "1.234,00 kr. at Bilka on 12 Aug. You can still create this one."
+- Open that order under them, which makes it `variant="top"`
+
+The phone keeps both rows under the totals, amber first, above the save bar. A row that does not apply is left out.
+
+**Where.** Order create 3a, "The order form, when it looks like an order you have and crosses a limit" (Totals card, and phone). `react/src/pages/OrderForm.jsx`: `lookalikeNotice` moves into `totalsCard`, before `limitNotice`, on desktop.
+
+**What is still open.** Nothing.
+
+### No scan becomes a draft by itself
+
+**The problem.** A scan with no match still became a draft when its reading ended, even if the reader never looked at it.
+
+**What changed.** Every scan becomes a draft at his first change in the review, or when he presses Create, as an empty order does. Until then it is the upload and its reading, held 24 hours and cleaned up after that. Leaving an unchanged review says nothing. Adding the same file again within 24 hours opens 3c with Use the reading. A changed review left behind is kept, with "Kept in Drafts." as before.
+
+The same rule covers a failed reading (6e) and a scan without a reader key.
+
+**Where.**
+- Order create 3a: the lede, "A scan is a draft until it is created or discarded", and the amber row notes.
+- Order create 3c: the flow table's Draft column and its notes.
+- States and confirmations 6e.
+- Actions inventory: Discard.
+- Images and files: the scan's file and the 24-hour cleanup.
+- App: `react/src/pages/OrderNew.jsx` (`Scanned`), `react/src/pages/OrderForm.jsx` (draft at the first change for a scan too), and the server's scan and upload cleanup.
+
+**What is still open.** Nothing.
+
 ## Fixed from handoff_scan_lookalike
 
 **The problem.** That package left one point open. Step 2 said "If you leave, the scan is kept in Drafts on Home." This was untrue when the reading then matched an order, because such a scan makes no draft. The slow-reading card in 6e said the same, and so did the rule "a scan is a draft from upload".
@@ -83,7 +126,8 @@ The app shows a heading and a line under it on 3c ("This receipt has been scanne
 
 - `Order create.dc.html`: the changed page (3a, 3c).
 - `Actions inventory.dc.html`, `styles/pages/actions-inventory.css`: Discard rows, with what leaving keeps.
-- `States and confirmations.dc.html`, `styles/pages/states.css`: 6e, the slow-reading card.
+- `States and confirmations.dc.html`, `styles/pages/states.css`: 6e, the slow-reading card and leaving a failed reading.
+- `Images and files.dc.html`, `styles/pages/images-and-files.css`: the scan file and the 24-hour cleanup.
 - `README.md`: the design's overview, unchanged.
 - `support.js`, `components.js`, `view.js`: what the page loads.
 - `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`: the shared stylesheets, unchanged.

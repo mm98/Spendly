@@ -10,21 +10,6 @@
 				"sqlite_autoindex_order_drafts_1"
 			]
 		},
-		"SELECT 1 FROM order_drafts WHERE upload_id = @uploadId UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1": {
-			"plan": [
-				"COMPOUND QUERY",
-				"LEFT-MOST SUBQUERY",
-				"SEARCH order_drafts USING COVERING INDEX sqlite_autoindex_order_drafts_2 (upload_id=?)",
-				"UNION ALL",
-				"SCAN f",
-				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_order_drafts_1",
-				"sqlite_autoindex_order_drafts_2"
-			]
-		},
 		"SELECT 1 FROM sqlite_master WHERE name = 'sqlite_stat1'": {
 			"plan": [
 				"SCAN sqlite_master"

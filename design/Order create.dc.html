@@ -34,7 +34,7 @@
     <span class="doc-badge" id="3a">3a</span>
     <span class="doc-section__title">New order - scan a receipt</span>
   </div>
-  <div class="doc-lede">Three steps: pick a way to start, drop the file, then check what was read - in the ordinary edit screen, which is also where you stay once it is saved. Reviewing a scan and editing a saved order are one screen in two states, not two screens. Nothing becomes an order until you create it: from the moment the file is uploaded the scan is kept as a draft, and every extracted value stays editable.</div>
+  <div class="doc-lede">Three steps: pick a way to start, drop the file, then check what was read - in the ordinary edit screen, which is also where you stay once it is saved. Reviewing a scan and editing a saved order are one screen in two states, not two screens. Nothing becomes an order until you create it: from his first change the scan is kept as a draft, and every extracted value stays editable.</div>
 
   <div class="doc-specimen">
     <span class="doc-specimen__label">Step 1 · how to start</span>
@@ -136,7 +136,7 @@
                   <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><span class="sp-spinner"></span></span>
                   <strong class="sp-data">Reading the lines…</strong>
                 </div>
-                <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.</span>
+                <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the reading carries on, and adding the same file again picks it up.</span>
               </div>
               <div class="oc-read__foot">
                 <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Discard</button>
@@ -238,7 +238,7 @@
                 <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><span class="sp-spinner"></span></span>
                 <strong class="sp-data">Reading the lines…</strong>
               </div>
-              <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.</span>
+              <span class="sp-meta">Usually 5 - 10 seconds. If you leave, the reading carries on, and adding the same file again picks it up.</span>
             </div>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button>
           </div>
@@ -255,7 +255,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation - steps 1 and 2 on a phone</span>
-    <div class="doc-note"><b>The phone keeps the app's own frame:</b> the search top bar and the tab bar with Orders current, as every phone page at the first level (Navigation shell <a href="Navigation shell.dc.html#2b">2b</a>). No Back: the tab bar is the way out, and leaving during step 2 keeps the scan in Drafts.</div>
+    <div class="doc-note"><b>The phone keeps the app's own frame:</b> the search top bar and the tab bar with Orders current, as every phone page at the first level (Navigation shell <a href="Navigation shell.dc.html#2b">2b</a>). No Back: the tab bar is the way out, and leaving during step 2 lets the reading carry on.</div>
     <div class="doc-note"><b>Step 1: the zone says Add a receipt and carries no button.</b> A phone cannot drop a file, so the word Drop goes, and the whole zone is the tap target: it is the same label around the one file input, and the phone's picker offers camera, photos and files. The body reads "Add a PDF or a photo" for the same reason. The two other ways to start stack in one column (<code>oc-choices--stack</code>), each card at full width.</div>
     <div class="doc-note"><b>Step 2: the receipt is a large mark beside the file name, not the 156 x 220 preview.</b> The preview left about 160px for the text on a phone, so the file name truncated to its first letters and every step wrapped. The mark (<code>sp-mark--large sp-mark--photo</code>) shows the receipt's first page, cropped, as an order row shows its photo. The file name truncates at the card's width; the gauge, the steps and the hint run the full width under it.</div>
     <div class="doc-note"><b>Discard is a full-width outline button at the bottom of the card</b> (<code>sp-btn--block</code>), as every button in a phone card is (<a href="#3c">3c</a>).</div>
@@ -495,10 +495,25 @@
 
   <div class="doc-specimens">
     <div class="doc-specimen">
-      <span class="doc-specimen__label">The order form, when it looks like an order you have · side column</span>
+      <span class="doc-specimen__label">The order form, when it looks like an order you have and crosses a limit · Totals card</span>
       <div class="sp-stack sp-gap-12 doc-w400">
         <div class="sp-card">
           <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
+          <div class="sp-list-item sp-list-item--top" data-color="warning">
+          <span class="sp-list-item__count">!</span>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title sp-ink-warning">You already have an order like this</span>
+            <span class="sp-meta sp-ink-warning">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
+            <span class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open that order</button></span>
+          </div>
+        </div>
+          <div class="sp-list-item" data-color="warning">
+            <span class="sp-list-item__count">!</span>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-title sp-ink-warning">This order puts Groceries over its limit</span>
+              <span class="sp-meta sp-ink-warning">6.240 of 6.000 kr. for August. Saving is fine - you will just see it flagged.</span>
+            </div>
+          </div>
           <div class="sp-stack">
             <div class="sp-sum">
             <span class="sp-ink-2">Order total</span>
@@ -507,20 +522,8 @@
           </div>
           <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
             <button type="button" class="sp-btn sp-btn--outline">Discard</button>
-            <button type="button" class="sp-btn">Create</button>
+            <button type="button" class="sp-btn">Create anyway</button>
           </div>
-        </div>
-        <div class="sp-list-item sp-list-item--top" data-color="warning">
-          <span class="sp-list-item__count">!</span>
-          <span class="sp-stack sp-gap-8 sp-grow">
-            <span class="sp-stacked">
-              <span class="sp-title sp-ink-warning">You already have an order like this</span>
-              <span class="sp-subtitle">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
-            </span>
-            <span class="sp-row-flex sp-gap-8">
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open that order</button>
-            </span>
-          </span>
         </div>
       </div>
     </div>
@@ -554,13 +557,11 @@
         </div>
         <div class="sp-list-item sp-list-item--top" data-color="warning">
           <span class="sp-list-item__count">!</span>
-          <span class="sp-stack sp-gap-8 sp-grow">
-            <span class="sp-stacked">
-              <span class="sp-title sp-ink-warning">You already have an order like this</span>
-              <span class="sp-subtitle">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
-            </span>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title sp-ink-warning">You already have an order like this</span>
+            <span class="sp-meta sp-ink-warning">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that order</button>
-          </span>
+          </div>
         </div>
         <div class="sp-savebar"><span class="sp-subtitle sp-grow">Total 1.198,00 kr.</span><button type="button" class="sp-btn sp-btn--outline">Discard</button><button type="button" class="sp-btn">Create</button></div>
       </div>
@@ -569,11 +570,11 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation - the order form when it looks like an order you have</span>
-    <div class="doc-note"><b>One amber attention row</b> (<a href="Components.dc.html#c23">c23</a>, <code>ListItem color="warning" count="!" variant="top"</code>), the same row as the limits notice: title, the sentence, then <b>Open that order</b> under it. It shows when the vendor, a date up to 3 days away and a total within 10% match an order already saved (<code>react/src/pages/OrderForm.jsx</code>, <code>lookalikeNotice</code>).</div>
+    <div class="doc-note"><b>One amber attention row</b>, the limits notice's row from <a href="Duplicate and alerts.dc.html#8b">8b</a> (<a href="Components.dc.html#c23">c23</a>, <code>ListItem color="warning" count="!"</code>), with the same title and line, and <b>Open that order</b> under them. The button makes it <code>variant="top"</code>, so the ! sits on the title's line. It shows when the vendor, a date up to 3 days away and a total within 10% match an order already saved (<code>react/src/pages/OrderForm.jsx</code>, <code>lookalikeNotice</code>).</div>
     <div class="doc-note"><b>Where it shows:</b> the review of a scan (step 3), a new order typed by hand, a copy (<a href="#3b">3b</a>), and a saved order being edited, where the sentence ends "You can still save this one." It never stops the save: Open that order to see the one he has, or Create to go on. Not shown for the order 3c already named on the same scan.</div>
-    <div class="doc-note"><b>Placement.</b> On desktop it sits in the side column under the Totals card, above the limits notice when both show. On a phone it sits under the totals, above the save bar, the button full width.</div>
+    <div class="doc-note"><b>Placement.</b> On desktop both rows sit inside the Totals card, under its head and above the total, as 8b draws the limits notice: the amber row first, then the limits notice. 8b does not change. On a phone they sit under the totals in the same order, above the save bar, the button full width. A row that does not apply is left out, and the other keeps its place.</div>
     <div class="doc-note"><b>Open that order</b> opens the order it names. A saved order with changes asks first, as any page away does (6d). A new order or a copy that is already a draft is kept, with the usual "Kept in Drafts." toast.</div>
-    <div class="doc-note"><b>A scan with this row is not a draft yet.</b> The review opens on the reading held with the upload, and becomes a draft at his first change, as an empty order does, or when he presses Create. Open that order, or leaving the review unchanged, makes no draft and says nothing; the upload and its reading are held 24 hours, so scanning the same file again opens 3c with Use the reading. Any other scan is a draft from the upload, as before. If he left during step 2 and the reading then matches, no draft is made either.</div>
+    <div class="doc-note"><b>Open that order makes no draft</b> from a scan he has not changed: like every scan, it becomes a draft only at his first change or Create (see "A scan is a draft until it is created or discarded" below).</div>
   </div>
 
   <div class="doc-specimen">
@@ -1019,14 +1020,14 @@
     <div class="doc-note"><b>Attachments is the same card in both states,</b> beneath the lines, with the scanned file as its first attachment. Opening it is the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>), as on any order. The file is never shown beside the form.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
     <span class="doc-notes__label">A scan is a draft until it is created or discarded</span>
-    <div class="doc-note"><b>The scan is an order with status Draft from the moment its file is uploaded</b>, through the reading and the review, until Create or Discard. Leaving in any other way keeps it: Back, another page, closing the tab or the app, a phone put away while it reads. There is no Save as draft button and no question on leaving. Leaving the review shows the toast "Kept in Drafts", with no Undo, since nothing was lost. Like every draft it moves no money until it is created.</div>
+    <div class="doc-note"><b>The scan becomes an order with status Draft at his first change in the review, or when he presses Create</b>, as an empty order does. Until then it is the upload and its reading, held 24 hours, and Drafts does not fill with scans nobody looked at. Once a draft, leaving in any way keeps it: Back, another page, closing the tab or the app. There is no Save as draft button and no question on leaving. Leaving a changed review shows the toast "Kept in Drafts", with no Undo, since nothing was lost; leaving an unchanged one says nothing, and adding the same file again within 24 hours opens 3c with Use the reading. Like every draft it moves no money until it is created.</div>
     <div class="doc-note"><b>What is on the screen is what is kept.</b> The review is written to the draft as it is edited: the values as changed, the lines ticked and unticked, and the marks - which values were hard to read, which lines were unsure, which of them have been touched. A draft never removes itself, and its file stays with it for as long as it exists.</div>
-    <div class="doc-note"><b>Opening a draft later is step 3 exactly as drawn</b>, on desktop and on a phone: the amber bar with the count still to look at, the ticks, the tones, Jump to first. A value touched before leaving stays cleared. The file is in Attachments, beneath the lines. A draft whose reading has not finished opens step 2, and step 3 when the reading is done. It opens from Home's Drafts card, the order list (status Draft) and the palette's Drafts.</div>
+    <div class="doc-note"><b>Opening a draft later is step 3 exactly as drawn</b>, on desktop and on a phone: the amber bar with the count still to look at, the ticks, the tones, Jump to first. A value touched before leaving stays cleared. The file is in Attachments, beneath the lines. It opens from Home's Drafts card, the order list (status Draft) and the palette's Drafts.</div>
     <div class="doc-note"><b>Create turns the draft into an order</b> with the status a scan gets today: the account's default status, or the one the document shows when Settings, Defaults lets a scan set it (<a href="Settings and import.dc.html#11a">11a</a>). The button stays <b>Create</b>, the rule on every new record: the draft is not an order until then. <b>Discard</b> is the 6d dialog (<a href="States and confirmations.dc.html#6d">6d</a>), because the file goes with it.</div>
-    <div class="doc-note"><b>Without a reader key</b> the blank scan is kept as a draft the same way: the file, and no values.</div>
+    <div class="doc-note"><b>Without a reader key</b> the blank scan follows the same rule: the file and no values, a draft from his first change.</div>
     <span class="doc-notes__label">An order made by hand is a draft from its first change</span>
     <div class="doc-note"><b>An empty order and a copy become a draft at their first change</b>: a character typed in any field, a vendor or category picked, a line added or removed, a file attached. What the form opens with - today's date, the default status, a copy's carried-over lines - is not a change. Until then nothing is kept, leaving says nothing, and Drafts does not fill with forms nobody typed in. A copy left untouched has lost nothing: its source is still there.</div>
-    <div class="doc-note"><b>Leaving it keeps it, as a scan is kept.</b> Back, another page, closing the tab or the app: no question, and the toast "Kept in Drafts" with no Undo. There is no "Leave without saving?" on a new order. Editing an order that is already created keeps the unsaved-changes prompt, since that order already exists as it was.</div>
+    <div class="doc-note"><b>Leaving it keeps it, as a changed scan is kept.</b> Back, another page, closing the tab or the app: no question, and the toast "Kept in Drafts" with no Undo. There is no "Leave without saving?" on a new order. Editing an order that is already created keeps the unsaved-changes prompt, since that order already exists as it was.</div>
     <div class="doc-note"><b>Reopening it is the edit screen as it was left</b>, footer Discard / Create, and a copy keeps its primary notice naming the order it came from. Create gives it the account's default status, as any new order.</div>
     <div class="doc-note"><b>Discard without files is a toast</b>, "Draft discarded" with Undo, since nothing beyond the form goes (<a href="States and confirmations.dc.html#6d">6d</a>, <a href="States and confirmations.dc.html#6f">6f</a>). A draft holding a file or a photo uses the 6d dialog, naming them. Before the first change Discard just closes the form.</div>
     <span class="doc-notes__label">Category suggestions</span>
@@ -1335,11 +1336,11 @@
     <span class="sp-section-label">The flow</span>
     <div class="sp-list oc-flow">
       <div class="doc-table__head"><div>When</div><div>What matches</div><div>What he sees</div><div>Ways on</div><div>Draft</div></div>
-      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, with a saved reading</span><span class="sp-ink-2">3c, Scanned before</span><span class="sp-ink-2">Open that order. Use the reading: the review. Scan again: step 2, then the check after reading. Discard the upload.</span><span class="sp-ink-5">Made only by Use the reading or by a reading with no match</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, with a saved reading</span><span class="sp-ink-2">3c, Scanned before</span><span class="sp-ink-2">Open that order. Use the reading: the review. Scan again: step 2, then the check after reading. Discard the upload.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
       <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, in a draft</span><span class="sp-ink-2">3c, Scanned before, pointing to the draft</span><span class="sp-ink-2">Open that draft. Use the reading. Discard the upload.</span><span class="sp-ink-5">None new: the existing draft is the one opened</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, on an order, never read</span><span class="sp-ink-2">3c, Already on an order</span><span class="sp-ink-2">Open that order. Read the file: step 2, then the review. Discard the upload.</span><span class="sp-ink-5">Made when the reading ends</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Same vendor, a date up to 3 days away, a total within 10%</span><span class="sp-ink-2">3a step 3, the review, with the amber row</span><span class="sp-ink-2">Open that order. Create. Discard.</span><span class="sp-ink-5">Made at his first change or by Create; none if he opens that order or leaves</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Nothing</span><span class="sp-ink-2">3a step 3, the review</span><span class="sp-ink-2">Create. Discard.</span><span class="sp-ink-5">Made as the review opens</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, on an order, never read</span><span class="sp-ink-2">3c, Already on an order</span><span class="sp-ink-2">Open that order. Read the file: step 2, then the review. Discard the upload.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Same vendor, a date up to 3 days away, a total within 10%</span><span class="sp-ink-2">3a step 3, the review, with the amber row</span><span class="sp-ink-2">Open that order. Create. Discard.</span><span class="sp-ink-5">None until his first change or Create</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Nothing</span><span class="sp-ink-2">3a step 3, the review</span><span class="sp-ink-2">Create. Discard.</span><span class="sp-ink-5">None until his first change or Create</span></div>
       <div class="doc-table__row"><span class="sp-strong">In the order form</span><span class="sp-ink-2">Same vendor, date and total, on an order typed, copied or edited</span><span class="sp-ink-2">The amber row (3a)</span><span class="sp-ink-2">Open that order, or carry on and create or save.</span><span class="sp-ink-5">As the form already has it</span></div>
     </div>
   </div>
@@ -1347,7 +1348,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation - the flow</span>
     <div class="doc-note"><b>Two checks, in order.</b> The file check runs on upload, before reading, and is the only one that stops: it is certain, and it saves a reading. The order check runs when the reading ends and never stops him: the review opens with the amber row, which offers that order beside Create. When the file check has fired and been answered, the amber row does not show for the same order.</div>
-    <div class="doc-note"><b>No draft for a scan nobody has decided on.</b> A scan becomes a draft when the reading ends with no match, when he picks Use the reading or Read the file, or, in a review with the amber row, at his first change or Create. Open that order and leaving that review unchanged make none; the upload and its reading are held 24 hours, so scanning the file again finds them (the first row).</div>
+    <div class="doc-note"><b>No draft for a scan nobody has decided on.</b> Every scan becomes a draft at his first change in the review or when he presses Create, never by itself. Open that order and leaving an unchanged review make none; the upload and its reading are held 24 hours, so scanning the file again finds them (the first row).</div>
   </div>
 
   <div class="doc-specimens">

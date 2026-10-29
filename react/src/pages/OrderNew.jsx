@@ -141,9 +141,8 @@ function Copy({ id, onDraft }) {
 	)
 }
 
-/** A scan (3a): its reading, then the review, a draft from the reading's end (or, when it looks like an order
-    you have, from its first change) until it is created or discarded. Its address is
-    the file's, so a draft opened again from Home or the order list is the same page. */
+/** A scan (3a): its reading, then the review, a draft from its first change until it is created or discarded.
+    Its address is the file's, so a draft opened again from Home or the order list is the same page. */
 function Scanned({ documentKey, upload, from }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
@@ -151,7 +150,7 @@ function Scanned({ documentKey, upload, from }) {
 	const chosen = Boolean(upload?.seen) && !asking
 	// a failed reading is shown as such (6e) until the reader chooses to go on by hand
 	const [manual, setManual] = useState(false)
-	const read = useApi(getScanReview, [documentKey, chosen], { enabled: !asking })
+	const read = useApi(getScanReview, [documentKey], { enabled: !asking })
 	const answer = read.data?.documentKey === documentKey ? read.data : null
 	const seed = useMemo(() => (answer ? scanSeed(answer) : null), [answer])
 	const back = () => navigate('/orders/new?source=scan')

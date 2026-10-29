@@ -32,7 +32,7 @@ Everything that needs you, on one page.
   list. Each rule can be turned off in Settings.
 - **Last month in review** - from the 1st of each month: which categories went over, how often,
   and when a limit may be too low.
-- **Recent orders and drafts** - a scanned receipt shows as a draft once it has been read.
+- **Recent orders and drafts** - a scanned receipt shows as a draft once you have changed it.
 - **Add an order** - drop a receipt, start an empty order, or copy an earlier one.
 - **Top categories** with their limit bars, and **the last 8 months** as a chart. A click opens
   Statistics at that point.
@@ -102,9 +102,9 @@ Everything that needs you, on one page.
   first.
 - **Already have it?** - a scanned, new or edited order warns when you have an order from the same
   vendor up to 3 days away, with a total up to 10% higher or lower, and opens that order for you. It
-  is only a warning: you can still save. A scan like this is kept as a draft only once you change it.
-- **Drafts** - an order you start is kept as a draft from your first change, so you can come back
-  to it.
+  is only a warning: you can still save.
+- **Drafts** - an order you start or scan is kept as a draft from your first change, so you can come
+  back to it.
 - **Import** - bring in many orders at once from a spreadsheet (CSV, XLSX or JSON). See
   [Settings](#settings).
 

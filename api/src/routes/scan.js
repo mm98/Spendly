@@ -14,7 +14,7 @@ import { listedNames } from '../lib/categorySuggest.js'
 import { pageCount, pageImage } from '../lib/filePages.js'
 import { fromEpoch, nowEpoch } from '../lib/dates.js'
 import { assertImageOrPdf, fileDisposition } from '../lib/fileType.js'
-import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, draftsAsOrders, heldBy, lookalikeOfReading, readings } from '../lib/orderDrafts.js'
+import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, draftsAsOrders, heldBy, readings } from '../lib/orderDrafts.js'
 import { forgetReads } from '../lib/readCache.js'
 import { paidReadWait } from '../lib/rateLimit.js'
 
@@ -99,7 +99,7 @@ const saveAiRead = db.prepare('UPDATE uploads SET ai_read_json = @json, read_at 
 
 /** A file kept until a save files it: an image gets a display copy and a thumbnail, a PDF keeps its
     bytes and gets a thumbnail of its first page (lib/images.js). `?scan=1` makes it a scan (3a): a
-    file not seen before is read whether or not anyone waits, and becomes a draft when the reading ends. */
+    file not seen before is read whether or not anyone waits. It becomes a draft only at the review's first change. */
 router.post('/documents', requireConfirmed, upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
@@ -135,24 +135,8 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 function scanned(req, answer) {
 	if (req.query.scan !== '1' || answer.seen) return answer
 	const row = selectUploadForRead.get(answer.key, req.user.id)
-	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null)
-		readOnce(req.user.id, row, req.today).then(({ read, failure }) => draftOfReading(req.user.id, req.today, answer.key, read, failure)).catch(() => {})
-	return { ...answer, draftId: heldBy(req.user.id, answer.key) }
-}
-
-/** A scan becomes a draft when its reading ends (3c, the flow), unless it looks like an order the account has
-    and `chosen` (a pick on 3c) is not set: `{ draftId, lookalike }`. */
-function draftOfReading(userId, today, uploadId, read, failure, { chosen = false } = {}) {
-	const held = heldBy(userId, uploadId)
-	if (held) return { draftId: held, lookalike: null }
-	const upload = selectUploadForRead.get(uploadId, userId)
-	// discarded while it was read
-	if (!upload) return { draftId: null, lookalike: null }
-	const lookalike = chosen ? null : lookalikeOfReading(userId, answerOf({ userId, today }, upload, read, failure))
-	if (lookalike) return { draftId: null, lookalike }
-	const draftId = draftOfUpload(userId, uploadId)
-	forgetReads(userId)
-	return { draftId, lookalike: null }
+	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(() => {})
+	return answer
 }
 
 /** A stored upload's own bytes: an image's display copy, or the PDF as it arrived. */
@@ -188,8 +172,7 @@ router.get('/documents/:key/pages/:page', async (req, res) => {
 	res.send(page.image)
 })
 
-/** A scan whose review opened with no draft, since it looks like an order the account has, becomes one at
-    the reader's first change (3a): `{ id }`. */
+/** A scan becomes a draft at its review's first change (3a), never by itself: `{ id }`. */
 router.post('/documents/:key/draft', (req, res) => {
 	if (!selectUploadMeta.get(req.params.key, req.user.id)) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	const id = draftOfUpload(req.user.id, req.params.key)
@@ -234,13 +217,12 @@ router.delete('/documents/:key', (req, res) => {
     (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
     both fetch this for the same key -- never pays for a second read. Falls back to the same
     honest blank draft this route always returned when no ANTHROPIC_API_KEY is configured, or
-    when the read fails. `?draft=1` is the scan's review (3a): the file becomes a draft when the reading
-    ends, unless it looks like an order the account has (`lookalike`, 3c the flow), and the answer names the
-    draft and the form as it was left. `&chosen=1` is a pick on 3c. A receipt compared with an order (3d) makes none. */
+    when the read fails. `?draft=1` is the scan's review (3a): the answer names its draft, made at the review's
+    first change, and the form as it was left. A receipt compared with an order (3d) has none. */
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	const review = req.query.draft === '1'
+	const draft = req.query.draft === '1' ? draftRow(req.user.id, heldBy(req.user.id, upload.id)) : null
 
 	/* ?progress=stream answers in NDJSON: `{ progress: { found, lines } }` lines while the file is
 	   read (3a step 2), then `{ draft }`, the same object the plain answer is. */
@@ -252,11 +234,9 @@ router.get('/draft/:key', async (req, res) => {
 	const { read, failure } = upload.ai_read_json != null
 		? { read: JSON.parse(upload.ai_read_json), failure: null }
 		: await readOnce(req.user.id, upload, req.today, progress => { if (streaming && !res.writableEnded) res.write(JSON.stringify({ progress }) + '\n') }, res)
-	const settled = review ? draftOfReading(req.user.id, req.today, upload.id, read, failure, { chosen: req.query.chosen === '1' }) : null
-	const draft = settled?.draftId ? draftRow(req.user.id, settled.draftId) : null
 	const answer = {
 		...answerOf({ userId: req.user.id, today: draft ? fromEpoch(draft.created_at) : req.today }, upload, read, failure),
-		draftId: draft?.id ?? null, form: draft?.form ? JSON.parse(draft.form) : null, lookalike: settled?.lookalike ?? null
+		draftId: draft?.id ?? null, form: draft?.form ? JSON.parse(draft.form) : null
 	}
 	if (streaming) res.end(JSON.stringify({ draft: answer }) + '\n')
 	else res.json(answer)

@@ -68,7 +68,7 @@
         <div class="sp-row-flex sp-gap-12 sp-top">
           <div class="sp-list-item__count">5</div>
           <div class="doc-note"><b class="sp-ink">Saving the order commits the ids.</b> Files uploaded to a draft that is never saved become orphans, cleaned by a job after 24 hours. That window is deliberate: it is what makes step 3 safe.</div>
-<div class="doc-note"><b class="sp-ink">A scan is the exception.</b> Its file belongs to its Draft order from the upload on, so the 24-hour cleanup never reaches it. It goes only when the draft is discarded (<a href="Order create.dc.html#3a">3a</a>).</div>
+<div class="doc-note"><b class="sp-ink">A scan follows the same 24 hours until it is a draft.</b> The upload and its reading are held 24 hours, and cleaned up then if no draft was made. From his first change or Create the file belongs to its Draft order, so the cleanup no longer reaches it; it goes only when the draft is discarded (<a href="Order create.dc.html#3a">3a</a>).</div>
         </div>
       </div>
 
