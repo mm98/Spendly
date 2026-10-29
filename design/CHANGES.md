@@ -1,5 +1,12 @@
 # A field does not open the keyboard on touch when a form opens
 
+## Fixed from handoff_touch_autofocus
+
+- **The problem:** that package's Components.dc.html had an old Swatches specimen (Components, SwatchPicker, Swatches): Green, Mid green, Light green, Pale green on `green`, `green-3`, `green-4`, `green-5`.
+- **What changed:** the specimen now matches main: Primary, Mid, Light, Pale on `primary`, `primary-3`, `primary-4`, `primary-5`. Apart from the focus note, this Components.dc.html is the same as `design/Components.dc.html` on main.
+- **Where:** Components, SwatchPicker, Swatches specimen.
+- **What is still open:** nothing.
+
 The brief: on a phone the keyboard pops up every time a form is shown, before the reader has decided to type, and has to be closed first.
 
 ## 1. On touch a field takes focus only when the reader has just asked to type
