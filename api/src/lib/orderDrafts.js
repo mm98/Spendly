@@ -4,6 +4,7 @@ import { keyOfType } from './statuses.js'
 import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
 import { findVendorIdByAnyName, findVendorIdForReceipt, resolveVendor } from './findOrCreate.js'
 import { describe } from './categorySuggest.js'
+import { findLookalikeOrder } from './orderLookalike.js'
 import { sep, fileSizeLabel } from './copy.js'
 
 /* An order not created yet (migrations/236): the form as it was left, and its scan when it has one.
@@ -204,6 +205,16 @@ function sumsOf(form) {
 	const retail = kept.reduce((s, l) => s + Math.max(amountOf(l.retail ?? l.price), amountOf(l.price)) * amountOf(l.quantity), 0)
 	const discount = amountOf(form.values.discount)
 	return { any: kept.length > 0, total: paid + amountOf(form.values.shipping) - discount, saved: retail - paid + discount, discount }
+}
+
+/** The order a reading may repeat, by the vendor, date and total its review opens on (3a): `{ id, date, total }`
+    or null. The same question the order form asks, so the review's amber row names the same order. */
+export function lookalikeOfReading(userId, answer) {
+	const form = formOf({ form: null }, answer)
+	const sums = sumsOf(form)
+	if (!sums.any || !(sums.total > 0) || !form.values.vendor) return null
+	const vendorId = resolveVendor(userId, String(form.values.vendor).trim())?.id ?? null
+	return findLookalikeOrder(userId, vendorId, form.values.date, Math.round(sums.total * 100) / 100)
 }
 
 const selectCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ?')

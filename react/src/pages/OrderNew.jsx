@@ -141,15 +141,17 @@ function Copy({ id, onDraft }) {
 	)
 }
 
-/** A scan (3a): its reading, then the review, a draft until it is created or discarded. Its address is
+/** A scan (3a): its reading, then the review, a draft from the reading's end (or, when it looks like an order
+    you have, from its first change) until it is created or discarded. Its address is
     the file's, so a draft opened again from Home or the order list is the same page. */
 function Scanned({ documentKey, upload, from }) {
 	const navigate = useNavigate()
 	// a file read before is asked about first (3c); "Use the reading" goes on to the review
 	const [asking, setAsking] = useState(Boolean(upload?.seen))
+	const chosen = Boolean(upload?.seen) && !asking
 	// a failed reading is shown as such (6e) until the reader chooses to go on by hand
 	const [manual, setManual] = useState(false)
-	const read = useApi(getScanReview, [documentKey], { enabled: !asking })
+	const read = useApi(getScanReview, [documentKey, chosen], { enabled: !asking })
 	const answer = read.data?.documentKey === documentKey ? read.data : null
 	const seed = useMemo(() => (answer ? scanSeed(answer) : null), [answer])
 	const back = () => navigate('/orders/new?source=scan')
@@ -176,7 +178,8 @@ function Scanned({ documentKey, upload, from }) {
 	if (!seed) return <Reading file={upload ?? { key: documentKey }} documentKey={documentKey} onDiscard={discard} />
 	if (answer.failure && answer.failure !== 'unread' && !manual)
 		return <ReadFailed answer={answer} onManual={() => setManual(true)} onAnother={another} onDiscard={discard} />
-	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer, draftId: answer.draftId }} photoUrl={draftPhotoUrl} onLeave={away} />
+	const shownOrders = chosen ? upload.seen.orders.map(o => o.id) : []
+	return <OrderForm mode="new" region seed={seed} origin={{ scan: answer, draftId: answer.draftId, shownOrders }} photoUrl={draftPhotoUrl} onLeave={away} />
 }
 
 /** Discard on a scan (6d), asked before the draft and its file go. */
@@ -197,7 +200,7 @@ function DiscardScan({ file, onKeep, onDiscard }) {
 
 /** Step 2 (3a): the receipt while it is sent and read, with what has been found so far. The
     gauge counts the steps: sent, vendor and date found, the whole reading in. A scan has Discard,
-    which asks first (6d), since it is a draft by now; a receipt read for another page has Cancel. */
+    which asks first (6d), since the file goes with it; a receipt read for another page has Cancel. */
 export function Reading({ file, documentKey, onCancel, onDiscard }) {
 	const [asking, setAsking] = useState(false)
 	const scan = Boolean(onDiscard)
@@ -244,7 +247,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 					<strong className="sp-data">{doing}</strong>
 				</div>
 				{reads && file.key
-					? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the scan is kept in Drafts on Home.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
+					? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the reading carries on, and adding the same file again picks it up.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
 					: null}
 			</div>
 		</>
@@ -296,7 +299,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 						<div className="sp-stack sp-gap-6">
 							<span className="sp-title">Reading is taking longer than usual</span>
 							<span className="sp-subtitle">
-								{scan ? 'You can leave this page. The scan is kept in Drafts on Home and the reading carries on.' : 'You can leave this page - the order appears in the list when it is done.'}
+								{scan ? 'You can leave this page. The reading carries on, and adding the same file again picks it up.' : 'You can leave this page - the order appears in the list when it is done.'}
 							</span>
 						</div>
 					</Card>
@@ -549,7 +552,7 @@ function Start({ scanOnly, file, from, picking }) {
 		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
 		sendFile(f, { scan: true, onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
-				// a scan discarded while it was sent goes as it arrives, its draft with it
+				// a scan discarded while it was sent goes as it arrives
 				if (cancelled.current) return discardScanDocument(upload.key).catch(() => {})
 				invalidate(getScanReview)
 				invalidateDraftData()

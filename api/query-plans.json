@@ -1,5 +1,15 @@
 {
 	"statements": {
+		"SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = ? AND f.upload_id = ? LIMIT 1": {
+			"plan": [
+				"SCAN f",
+				"SEARCH d USING INDEX sqlite_autoindex_order_drafts_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_order_drafts_1"
+			]
+		},
 		"SELECT 1 FROM order_drafts WHERE upload_id = @uploadId UNION ALL SELECT 1 FROM order_drafts d JOIN order_draft_files f ON f.draft_id = d.id WHERE d.user_id = @userId AND f.upload_id = @uploadId LIMIT 1": {
 			"plan": [
 				"COMPOUND QUERY",
