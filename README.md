@@ -456,3 +456,5 @@ a control that does nothing.
 - The area for things worth buying later is called Bookmarks, everywhere.
 - On a phone every target is at least 44 tall, a box or a switch with its whole line, and nothing
   shows a hover look: a phone keeps the last thing tapped as hovered.
+- On a phone a field takes focus only when the reader has just asked to type: opening a page or a
+  form never raises the keyboard. Desktop puts the cursor in a form's first field.

@@ -10,6 +10,7 @@ import {
 	AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, useFocusField, onward, useAuthOptions, useCountdown, useMail
 } from './AuthParts.jsx'
 import { addPasskeyHere, alreadyHere, closedPrompt, deviceFailed, passkeysHere } from '../app/passkeys.js'
+import { useShellShape } from '../app/useMedia.js'
 
 const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 const NO_MAIL = 'This Spendly server cannot send email. Ask the person who runs it to reset your password for you.'
@@ -183,6 +184,7 @@ export function ConfirmLink() {
 /** /reset: ask for a link (20c 1 and 2). The answer is the same whether or not the address has an account. */
 export function ResetAsk() {
 	const focusField = useFocusField()
+	const touch = useShellShape() === 'touch'
 	const [params] = useSearchParams()
 	const mail = useMail()
 	const [email, setEmail] = useState(params.get('email') ?? '')
@@ -218,7 +220,7 @@ export function ResetAsk() {
 			alert={mail ? alert : NO_MAIL} alertColor={mail ? 'danger' : 'warning'} alertTitle="Email is not set up"
 			onSubmit={send} submit="Send the link" busy={busy} busyLabel="Sending…" disabled={!mail} gap={12} secondary={back}>
 			<Field label="Email" id="reset-email" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
-				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
+				<TextField type="email" autoComplete="email" inputMode="email" autoFocus={!touch} value={email}
 					placeholder="you@example.com" onChange={v => { setEmail(v); setProblem(null) }} />
 			</Field>
 		</AuthCard>
@@ -228,6 +230,7 @@ export function ResetAsk() {
 /** /reset/:token: the new password, or the expired link's way back (20c 3 and expired). */
 export function ResetLink() {
 	const focusField = useFocusField()
+	const touch = useShellShape() === 'touch'
 	const { token } = useParams()
 	const navigate = useNavigate()
 	const [link, setLink] = useState(null)
@@ -269,7 +272,7 @@ export function ResetLink() {
 			<Field label="New password" id="reset-password"
 				message={problem ?? <PasswordHint password={password} hint={`At least ${MIN_PASSWORD} characters. Longer beats complicated.`} />}
 				messageType={problem ? 'danger' : 'hint'}>
-				<PasswordField autoComplete="new-password" autoFocus value={password}
+				<PasswordField autoComplete="new-password" autoFocus={!touch} value={password}
 					onChange={v => { setPassword(v); setProblem(null) }} />
 			</Field>
 		</AuthCard>

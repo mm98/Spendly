@@ -64,6 +64,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// opened from a scanned receipt (5b): the name it read starts the form, and saving goes back to it
 	const fromScan = useLocation().state?.fromScan ?? null
 	const h = loading ? hold : control => control
+	const touch = useShellShape() === 'touch'
 	const statsSwitch = useId()
 	const editing = Boolean(vendor)
 	const start = useMemo(() => ({
@@ -286,7 +287,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
 					messageType={errors.name ? 'danger' : 'hint'}>
-					{h(<TextField value={values.name} autoFocus onChange={v => { set('name', v); setClose(null) }}
+					{h(<TextField value={values.name} autoFocus={!touch} onChange={v => { set('name', v); setClose(null) }}
 						onBlur={checkName}
 						placeholder={editing ? undefined : 'Where you bought it'} />)}
 				</Field>
@@ -351,7 +352,6 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		</>
 	)
 
-	const touch = useShellShape() === 'touch'
 	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
 	const bar = touch || !editing || changed
 		? (

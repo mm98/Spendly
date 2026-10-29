@@ -190,6 +190,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	})
 	// the vendor is the first field, unless a line opened with the form and holds the cursor
 	const [vendorFirst] = useState(() => !editing)
+	// on touch a line that opened with the form waits for a tap before its field takes focus
+	const [openedLine] = useState(() => editing?.key ?? null)
+	const lineFocus = !touch || editing?.key !== openedLine
 	const [tried, setTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [files, setFiles] = useState(back?.files ?? (seed.files ?? []).map(keptFile))
@@ -228,7 +231,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const sheeted = touch || stacked
 	const quietVendor = useRef(false)
 	const sheetBox = useRef(null)
-	useFocusTrap(sheetBox, Boolean(sheeted && editing), '.sp-line-editor__form input')
+	// the heading takes no focus, so a line that waits for a tap opens its sheet with nothing focused
+	useFocusTrap(sheetBox, Boolean(sheeted && editing), lineFocus ? '.sp-line-editor__form input' : '.sp-heading')
 	// the line or add control whose editor is open, which takes focus back when it closes
 	const reopen = useRef(editing?.isNew ? 'add' : editing?.key ?? null)
 	const [start, setStart] = useState(seed)
@@ -951,6 +955,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<LineForm
 				key={editing.key}
 				editing={editing}
+				focus={lineFocus}
 				sheet={sheeted}
 				photoUrl={photoUrl}
 				sendPhoto={sendPhoto}
@@ -1182,7 +1187,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const fields = (
 		<>
 			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
-				<VendorPicker recent={recentVendors} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst} />
+				<VendorPicker recent={recentVendors} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst && !touch} />
 			</Field>
 			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />
@@ -1756,7 +1761,7 @@ function notices({ origin, scan, unclear: fields, lines, leave, touch, jump }) {
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
-function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
+function LineForm({ editing, focus, sheet, photoUrl, sendPhoto, refused, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
 	const v = editing.values
 	// the product link is judged as it is left, as every field is (c3)
 	const [linkSeen, setLinkSeen] = useState(false)
@@ -1824,7 +1829,7 @@ function LineForm({ editing, sheet, photoUrl, sendPhoto, refused, onRemovePhoto,
 			onCancel={onCancel}
 		>
 			<Field label="Item" {...problem(errors.title)}>
-				<TextField value={v.title} placeholder="Item name" autoFocus onChange={title => set({ title })}
+				<TextField value={v.title} placeholder="Item name" autoFocus={focus} onChange={title => set({ title })}
 					action={{ icon: 'link', label: hasLink ? 'Edit product link' : 'Add a product link', expanded: linkOpen, onClick: toggleLink }} />
 			</Field>
 			{linkOpen

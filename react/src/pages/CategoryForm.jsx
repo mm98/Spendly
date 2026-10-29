@@ -215,7 +215,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				<Field id="category-name" label="Name"
 					message={errors.name ?? (editing ? undefined : 'Appears on chips, filters and charts, so short wins - "Decor", not "Home decoration items".')}
 					messageType={errors.name ? 'danger' : 'hint'}>
-					{h(<TextField value={values.name} autoFocus onChange={v => set('name', v)}
+					{h(<TextField value={values.name} autoFocus={!touch} onChange={v => set('name', v)}
 						onBlur={() => { const asked = values.name; nameProblem(asked).then(problem => setErrors(e => ({ ...e, name: problem }))) }}
 						placeholder={editing ? undefined : 'What you spent it on'} />)}
 				</Field>
