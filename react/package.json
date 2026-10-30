@@ -13,16 +13,19 @@
 		"preview": "vite preview",
 		"icons:sync": "node scripts/sync-icons.mjs",
 		"icons:check": "node scripts/sync-icons.mjs --check",
+		"language:check": "node scripts/check-language-files.mjs",
 		"scroll:check": "node scripts/check-page-scroll.mjs"
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "^14.0.0",
+		"intl-messageformat": "12.1.4",
 		"motion": "14.6.0",
 		"react": "19.2.8",
 		"react-dom": "19.2.8",
 		"react-router": "8.3.0"
 	},
 	"devDependencies": {
+		"@formatjs/icu-messageformat-parser": "3.5.22",
 		"@tabler/icons": "3.49.0",
 		"@vitejs/plugin-react": "6.0.4",
 		"vite": "8.1.6"

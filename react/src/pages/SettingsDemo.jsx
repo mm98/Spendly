@@ -10,20 +10,19 @@ import { invalidate } from '../api/useApi.js'
 import { populateDemoData } from '../api/client.js'
 import { amount, plural } from '../api/format.js'
 import { Choose, landing, useStepFocus } from './SettingsParts.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 const COUNTS = [500, 1000, 5000, 10000, 25000, 50000]
 // months, which is the unit the fill spreads by; offered in years
 const SPANS = [12, 24, 48, 72, 96, 120, 144, 216, 288]
 
-const orders = n => `${amount(n, 0)} ${n === 1 ? 'order' : 'orders'}`
-const lastSpan = months => (months === 12 ? 'the last year' : `the last ${months / 12} years`)
+const orders = n => plural(n, 'order')
 
 const COUNT_ID = 'demo-count'
 
-const INTRO = 'Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.'
-
 /* Demo data, through the five states of 11c. The fill reports its count as it writes. */
 export function DemoCard() {
+	const phrase = usePhrase()
 	const [stage, setStage] = useState({ name: 'rest' })
 	const [count, setCount] = useState(COUNTS[0])
 	const [months, setMonths] = useState(SPANS[0])
@@ -48,24 +47,24 @@ export function DemoCard() {
 			})
 	}
 
-	const heading = <CardHeader name="Demo data" {...landing('demo')} />
+	const heading = <CardHeader name={phrase('settings.section.demo')} {...landing('demo')} />
 
 	if (stage.name === 'choosing') return (
 		<Card ref={box} footerCommits footerLayout="split" footer={[
-			<Button key="cancel" variant="outline" onClick={() => go({ name: 'rest' }, 'action')}>Cancel</Button>,
-			<Button key="confirm" color="danger" onClick={fill}>Yes, fill it</Button>
+			<Button key="cancel" variant="outline" onClick={() => go({ name: 'rest' }, 'action')}>{phrase('action.cancel')}</Button>,
+			<Button key="confirm" color="danger" onClick={fill}>{phrase('demo.confirm')}</Button>
 		]}>
 			{heading}
-			<span className="sp-data">{INTRO}</span>
-			<Field label="How many orders" id={COUNT_ID}>
+			<span className="sp-data">{phrase('demo.intro')}</span>
+			<Field label={phrase('demo.howMany')} id={COUNT_ID}>
 				<Choose value={count} onChange={setCount} options={COUNTS.map(n => ({ id: n, label: orders(n) }))} />
 			</Field>
-			<Field label="Over how long" message="How far back the orders reach, ending today.">
+			<Field label={phrase('demo.howLong')} message={phrase('demo.howLongHint')}>
 				<Choose value={months} onChange={setMonths} options={SPANS.map(m => ({ id: m, label: plural(m / 12, 'year') }))} />
 			</Field>
 			<Well color="danger">
-				<span className="sp-title sp-ink-danger">This replaces what is here now</span>
-				<span className="sp-meta sp-ink-danger">Every order, bookmark, vendor, category and budget you have added is removed first.</span>
+				<span className="sp-title sp-ink-danger">{phrase('demo.replaces')}</span>
+				<span className="sp-meta sp-ink-danger">{phrase('demo.replacesBody')}</span>
 			</Well>
 		</Card>
 	)
@@ -73,12 +72,12 @@ export function DemoCard() {
 	if (stage.name === 'filling') return (
 		<Card ref={box} aria-busy="true">
 			{heading}
-			<span className="sp-data">Creating {orders(count)} over {lastSpan(months)}.</span>
-			<Gauge thin value={(stage.done / count) * 100} aria-label="Demo data progress" />
+			<span className="sp-data">{phrase('demo.creating', { orders: orders(count), years: months / 12 })}</span>
+			<Gauge thin value={(stage.done / count) * 100} aria-label={phrase('demo.progress')} />
 			<div className="sp-sum">
-				<span className="sp-meta">{amount(stage.done, 0)} of {amount(count, 0)}</span>
+				<span className="sp-meta">{phrase('demo.done', { done: amount(stage.done, 0), count: amount(count, 0) })}</span>
 				<span className="sp-grow" />
-				<span className="sp-meta">This can take a moment.</span>
+				<span className="sp-meta">{phrase('demo.moment')}</span>
 			</div>
 		</Card>
 	)
@@ -87,14 +86,14 @@ export function DemoCard() {
 		const { made } = stage
 		return (
 			<Card ref={box} footerCommits footerLayout="split" footer={[
-				<Button key="again" variant="outline" onClick={choose}>Fill again</Button>,
-				<Button key="see" to="/orders">See the orders</Button>
+				<Button key="again" variant="outline" onClick={choose}>{phrase('demo.fillAgain')}</Button>,
+				<Button key="see" to="/orders">{phrase('demo.seeOrders')}</Button>
 			]}>
 				{heading}
 				<ListItem color="success">
 					<Icon name="check" />
 					<span className="sp-subtitle sp-ink-accent">
-						{orders(made.orders)} created across {plural(made.vendors, 'vendor')} and {plural(made.categories, 'category', 'categories')}.
+						{phrase('demo.made', { orders: orders(made.orders), vendors: plural(made.vendors, 'vendor'), categories: plural(made.categories, 'category') })}
 					</span>
 				</ListItem>
 			</Card>
@@ -102,27 +101,27 @@ export function DemoCard() {
 	}
 
 	if (stage.name === 'failed') return (
-		<Card ref={box} footerCommits footer={<Button key="again" variant="outline" fullWidth onClick={choose}>Try again</Button>}>
+		<Card ref={box} footerCommits footer={<Button key="again" variant="outline" fullWidth onClick={choose}>{phrase('action.tryAgain')}</Button>}>
 			{heading}
 			<Well color="danger">
-				<span className="sp-title sp-ink-danger">Couldn't finish filling.</span>
+				<span className="sp-title sp-ink-danger">{phrase('demo.failed')}</span>
 				<span className="sp-meta sp-ink-danger">
 					{stage.landed > 0
-						? `${orders(stage.landed)} ${stage.landed === 1 ? 'was' : 'were'} created before it stopped. They are in your lists now.`
+						? phrase('demo.failedSome', { count: stage.landed, orders: orders(stage.landed) })
 						: stage.landed === 0
-							? 'No orders were created before it stopped. Everything you had added was removed first.'
+							? phrase('demo.failedNone')
 							: stage.answered
-								? 'Nothing was changed. Your lists are as they were.'
-								: 'Spendly did not answer. The fill may still finish, so look at your orders in a minute.'}
+								? phrase('demo.failedNothing')
+								: phrase('demo.failedNoAnswer')}
 				</span>
 			</Well>
 		</Card>
 	)
 
 	return (
-		<Card ref={box} footerCommits footer={<Button key="start" variant="outline" fullWidth onClick={choose}>Fill with demo data</Button>}>
+		<Card ref={box} footerCommits footer={<Button key="start" variant="outline" fullWidth onClick={choose}>{phrase('demo.start')}</Button>}>
 			{heading}
-			<span className="sp-data">{INTRO}</span>
+			<span className="sp-data">{phrase('demo.intro')}</span>
 		</Card>
 	)
 }

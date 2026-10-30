@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /** @param {object} props
     @param {import('react').ReactNode} [props.children] The lines, one under the other. */
@@ -96,7 +97,8 @@ export function Spinner(props) {
 /** An amount held back from view: a bar of one length, so its width says nothing about the figure. */
 export function Redacted(props) {
 	reject(props, 'Redacted')
-	return <span className="sp-redacted" role="img" aria-label="Hidden" {...props} />
+	const phrase = usePhrase()
+	return <span className="sp-redacted" role="img" aria-label={phrase('redacted.hidden')} {...props} />
 }
 
 /** @param {object} props

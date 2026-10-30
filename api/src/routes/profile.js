@@ -9,6 +9,7 @@ import { detectFileType } from '../lib/fileType.js'
 import { toSquare } from '../lib/images.js'
 import { sendPasswordChanged } from '../lib/notices.js'
 import { MAX_NAME, MIN_PASSWORD, checkPassword, cleanName, locked } from './auth.js'
+import { words } from '../lib/phrases.js'
 
 /* The account's own profile (Settings 11a): name, picture, password, and the first run's end. */
 export const router = Router()
@@ -26,28 +27,28 @@ const finishSetup = db.prepare('UPDATE users SET needs_setup = 0 WHERE id = ?')
 
 router.patch('/', (req, res) => {
 	const name = cleanName(req.body?.name)
-	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
+	if (name.length > MAX_NAME) return res.status(400).json({ error: words('account.nameLong', { most: MAX_NAME }) })
 	setName.run(name || null, req.user.id)
 	res.json({ name: name || null })
 })
 
 router.get('/picture', (req, res) => {
 	const picture = selectPicture.get(req.user.id)
-	if (!picture) return res.status(404).json({ error: 'There is no picture.' })
+	if (!picture) return res.status(404).json({ error: words('profile.noPicture') })
 	res.set({ 'Content-Type': picture.content_type, 'Cache-Control': 'private, max-age=31536000, immutable' })
 	res.send(picture.data)
 })
 
 router.put('/picture', upload.single('file'), async (req, res) => {
-	if (!req.file) return res.status(400).json({ error: 'No picture was sent.' })
+	if (!req.file) return res.status(400).json({ error: words('profile.noPictureSent') })
 	if (detectFileType(req.file.buffer)?.kind !== 'image')
-		return res.status(400).json({ error: 'That file is not a picture. Choose a JPG or PNG.' })
+		return res.status(400).json({ error: words('profile.notPicture') })
 	let meta
 	try { meta = await sharp(req.file.buffer).rotate().metadata() } catch {
-		return res.status(400).json({ error: 'That picture could not be read. Choose a JPG or PNG.' })
+		return res.status(400).json({ error: words('profile.unreadable') })
 	}
 	if (Math.min(meta.width ?? 0, meta.height ?? 0) < MIN_PICTURE)
-		return res.status(400).json({ error: `That picture is too small. It must be at least ${MIN_PICTURE} by ${MIN_PICTURE}.` })
+		return res.status(400).json({ error: words('profile.pictureSmall', { least: MIN_PICTURE }) })
 	const data = await toSquare(req.file.buffer)
 	const at = nowEpoch()
 	upsertPicture.run(req.user.id, data, 'image/webp', at)
@@ -66,9 +67,9 @@ router.post('/password', async (req, res) => {
 	const { user, wait } = await checkPassword(req, req.user.email, current)
 	if (wait) return locked(res, wait)
 	if (!user)
-		return res.status(400).json({ error: 'That is not your current password.', fields: { current: 'That is not your current password.' } })
+		return res.status(400).json({ error: words('profile.wrongCurrent'), fields: { current: words('profile.wrongCurrent') } })
 	if (password.length < MIN_PASSWORD)
-		return res.status(400).json({ error: `Use at least ${MIN_PASSWORD} characters.`, fields: { password: `Use at least ${MIN_PASSWORD} characters.` } })
+		return res.status(400).json({ error: words('profile.passwordShort', { least: MIN_PASSWORD }), fields: { password: words('profile.passwordShort', { least: MIN_PASSWORD }) } })
 	const newHash = await hashPassword(password)
 	db.transaction(() => {
 		setPassword.run(newHash, req.user.id)

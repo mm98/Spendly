@@ -1,5 +1,6 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
+import { refusal } from './phrases.js'
 
 /* A deleted order is kept in memory a while so its toast can undo the delete (6d): never written
    anywhere, so a restart meanwhile only means the order cannot be brought back. Every stored column
@@ -64,11 +65,11 @@ const insertRow = (table, row) => {
 /** Puts a deleted order back as it was: a 404 when the copy is gone, a 409 when its vendor is. */
 export const restoreOrder = db.transaction((userId, trashId) => {
 	const copy = kept.get(trashId)
-	if (!copy || copy.userId !== userId) throw Object.assign(new Error('This order can no longer be brought back.'), { status: 404 })
+	if (!copy || copy.userId !== userId) throw refusal(404, 'trash.gone')
 	const { rows } = copy
 	if (orderExists.get(rows.order.id)) { forget(trashId); return rows.order.id }
 	if (!vendorExists.get(rows.order.vendor_id, userId))
-		throw Object.assign(new Error('The order could not be brought back: its vendor was deleted.'), { status: 409 })
+		throw refusal(409, 'trash.vendorGone')
 	// the file it names is put back below, so the validation follows it
 	insertRow('orders', { ...rows.order, validated_by: null })
 	for (const item of rows.items) insertRow('order_items', item)

@@ -2218,7 +2218,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly FROM user_settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, language, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly FROM user_settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH user_settings USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
 			],
@@ -2415,15 +2415,6 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT id FROM user_saved_views WHERE id = ? AND user_id = ?": {
-			"plan": [
-				"SEARCH user_saved_views USING INDEX sqlite_autoindex_user_saved_views_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_user_saved_views_1"
-			]
-		},
 		"SELECT id FROM users ORDER BY created_at, rowid LIMIT 1": {
 			"plan": [
 				"SCAN users",
@@ -2542,7 +2533,7 @@
 				"sqlite_autoindex_user_ask_chats_1"
 			]
 		},
-		"SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?": {
+		"SELECT id, key, name, builtin_name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=? AND key=?)"
 			],
@@ -2551,7 +2542,7 @@
 				"sqlite_autoindex_statuses_2"
 			]
 		},
-		"SELECT id, key, name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
+		"SELECT id, key, name, builtin_name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -2652,6 +2643,24 @@
 			"findings": [],
 			"indexes": [
 				"idx_categories_user"
+			]
+		},
+		"SELECT id, name, builtin_name FROM user_saved_views WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH user_saved_views USING INDEX sqlite_autoindex_user_saved_views_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_saved_views_1"
+			]
+		},
+		"SELECT id, name, builtin_name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid": {
+			"plan": [
+				"SEARCH user_saved_views USING INDEX idx_user_saved_views_user (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_user_saved_views_user"
 			]
 		},
 		"SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name": {
@@ -2781,15 +2790,6 @@
 				"sqlite_autoindex_budget_accounts_2"
 			]
 		},
-		"SELECT id, name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid": {
-			"plan": [
-				"SEARCH user_saved_views USING INDEX idx_user_saved_views_user (user_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_user_saved_views_user"
-			]
-		},
 		"SELECT id, name, transports, created_at, last_used_at FROM user_passkeys WHERE user_id = ? ORDER BY created_at": {
 			"plan": [
 				"SEARCH user_passkeys USING INDEX idx_user_passkeys_user (user_id=?)"
@@ -2831,7 +2831,16 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT id, question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid": {
+		"SELECT id, question, answer, state, asked_at, answered_at, answer_ms, answer_tokens, answer_rounds FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id": {
+			"plan": [
+				"SEARCH user_ask_chat_turns USING INDEX user_ask_chat_turns_chat (chat_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"user_ask_chat_turns_chat"
+			]
+		},
+		"SELECT id, question, builtin_question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid": {
 			"plan": [
 				"SEARCH user_ask_questions USING INDEX sqlite_autoindex_user_ask_questions_2 (user_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY"
@@ -2841,15 +2850,6 @@
 			],
 			"indexes": [
 				"sqlite_autoindex_user_ask_questions_2"
-			]
-		},
-		"SELECT id, question, answer, state, asked_at, answered_at, answer_ms, answer_tokens, answer_rounds FROM user_ask_chat_turns WHERE chat_id = ? ORDER BY id": {
-			"plan": [
-				"SEARCH user_ask_chat_turns USING INDEX user_ask_chat_turns_chat (chat_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"user_ask_chat_turns_chat"
 			]
 		},
 		"SELECT id, question, state FROM user_ask_chat_turns WHERE id = ? AND chat_id = ?": {
@@ -2968,7 +2968,7 @@
 				"sqlite_autoindex_statuses_2"
 			]
 		},
-		"SELECT key, name FROM statuses WHERE user_id = ?": {
+		"SELECT key, name, builtin_name FROM statuses WHERE user_id = ?": {
 			"plan": [
 				"SEARCH statuses USING INDEX sqlite_autoindex_statuses_2 (user_id=?)"
 			],
@@ -3021,6 +3021,15 @@
 			"indexes": [
 				"sqlite_autoindex_budget_groups_1",
 				"sqlite_autoindex_budget_years_1"
+			]
+		},
+		"SELECT language FROM user_settings WHERE user_id = ?": {
+			"plan": [
+				"SEARCH user_settings USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_settings_1"
 			]
 		},
 		"SELECT made_files_count FROM user_ask_days WHERE user_id = ? AND day = ?": {

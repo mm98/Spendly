@@ -15,12 +15,14 @@ import { forgetChat } from '../app/ask.js'
 import { AskListFrame } from '../app/askListFrame.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { usePhrase } from '../language/phrases.js'
 
 const STEP = 25
 
 /** Chats (24f): every chat kept, latest asked first, to open again, search or delete with the files
     its answers made. */
 export default function AskChats() {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -34,20 +36,20 @@ export default function AskChats() {
 			out => {
 				forgetChat(chat.id)
 				toast({
-					message: out.files ? `Chat and its ${plural(out.files, 'file')} deleted` : 'Chat deleted',
-					undo: { label: 'Undo', onClick: () => restoreChat(chat.id).catch(e => problem(e, 'The chat could not be brought back.')) }
+					message: out.files ? phrase('chats.deletedWithFiles', { files: plural(out.files, 'file') }) : phrase('chats.deleted'),
+					undo: { label: phrase('action.undo'), onClick: () => restoreChat(chat.id).catch(e => problem(e, phrase('chats.notBack'))) }
 				})
 			},
-			e => problem(e, 'The chat was not deleted. Try again.')
+			e => problem(e, phrase('chats.notDeleted'))
 		)
 	}
 
 	const data = list.data
 	const searching = !!query.trim()
-	const mark = <Mark size="large" fill="none" aria-hidden="true" aria-label="Chats"><Icon name="message-circle" /></Mark>
+	const mark = <Mark size="large" fill="none" aria-hidden="true" aria-label={phrase('page.chats')}><Icon name="message-circle" /></Mark>
 	let empty = null
 	let body = null
-	if (list.error && !data) empty = <Failed what="Your chats" error={list.error} onRetry={list.refresh} />
+	if (list.error && !data) empty = <Failed what={phrase('chats.yours')} error={list.error} onRetry={list.refresh} />
 	else if (!data) body = <ChatFiles aria-busy="true"><Skeleton shape="line" /></ChatFiles>
 	else if (!data.chats.length) {
 		empty = (
@@ -55,8 +57,8 @@ export default function AskChats() {
 				<Empty>
 					{mark}
 					{searching
-						? <><EmptyTitle>No chats found</EmptyTitle><EmptyBody>Try another word, or clear the search.</EmptyBody></>
-						: <><EmptyTitle>No chats yet</EmptyTitle><EmptyBody>Ask Spendly something, and the chat is kept here for {data.keptDays} days after its last message.</EmptyBody></>}
+						? <><EmptyTitle>{phrase('chats.noneFound')}</EmptyTitle><EmptyBody>{phrase('ask.tryAnotherWord')}</EmptyBody></>
+						: <><EmptyTitle>{phrase('chats.none')}</EmptyTitle><EmptyBody>{phrase('chats.noneBody', { days: data.keptDays })}</EmptyBody></>}
 				</Empty>
 			</ChatStart>
 		)
@@ -76,10 +78,10 @@ export default function AskChats() {
 		)
 	}
 
-	const search = data?.total ? <SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder="Search chats" aria-label="Search chats" /> : null
-	if (touch) return <><ScreenBar title="Chats" onBack={() => navigate('/ask')} />{search}{empty ?? body}</>
+	const search = data?.total ? <SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder={phrase('chats.search')} aria-label={phrase('chats.search')} /> : null
+	if (touch) return <><ScreenBar title={phrase('page.chats')} onBack={() => navigate('/ask')} />{search}{empty ?? body}</>
 	let count = null
-	if (data?.total) count = searching ? `${data.matched} of ${plural(data.total, 'chat')}` : plural(data.total, 'chat')
+	if (data?.total) count = searching ? phrase('ask.matchedOf', { matched: data.matched, total: plural(data.total, 'chat') }) : plural(data.total, 'chat')
 	const controls = search ? <Controls>{search}<span className="sp-meta">{count}</span></Controls> : null
 	return <AskListFrame controls={controls} empty={empty}>{body}</AskListFrame>
 }

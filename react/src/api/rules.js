@@ -1,19 +1,20 @@
 import { AMOUNT_PATTERN } from './format.js'
+import { phrase } from '../language/phrases.js'
 
 /* What a bookmark may hold; each rule takes the trimmed value and returns the message or ''.
    Required: what it is and where to buy it. The address is the one field here normalised
    rather than only judged -- api/src/lib/validate.js stores the form this mirrors. */
 export const BOOKMARK_FIELDS = [
 	{ name: 'bookmark-name', label: 'Name', check: v =>
-		!v ? 'What is it called?' : v.length > 120 ? '120 characters at most.' : '' },
+		!v ? phrase('bookmark.rule.name') : v.length > 120 ? phrase('rule.maxLength', { count: 120 }) : '' },
 	{ name: 'bookmark-url', label: 'Link', check: v =>
-		!v ? 'Where can you buy it?'
-		: v.length > 2048 ? 'That address is too long.'
-		: httpUrl(v) ? '' : 'That is not a web address. One looks like this: shop.dk/product' },
+		!v ? phrase('bookmark.rule.link')
+		: v.length > 2048 ? phrase('bookmark.rule.linkLong')
+		: httpUrl(v) ? '' : phrase('bookmark.rule.notLink') },
 	{ name: 'bookmark-price', label: 'Price', check: v =>
 		!v ? ''
-		: v.startsWith('-') ? 'A price cannot go below zero.'
-		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 2.799,00.' }
+		: v.startsWith('-') ? phrase('rule.priceNegative')
+		: AMOUNT_PATTERN.test(v) ? '' : phrase('rule.amountComma') }
 ]
 
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i

@@ -8,6 +8,7 @@ import { Sheet } from './Touch.jsx'
 import { roomOf, usePanelPlace, usePanelRest } from './Combobox.jsx'
 import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
 import { PRESENCE, Presence, m, useGoing, usePanelMotion } from './motion.js'
+import { usePhrase } from '../language/phrases.js'
 
 const MENU = {
 	floating: 'sp-menu--floating',
@@ -539,6 +540,7 @@ export const useToast = () => useContext(ToastContext)
     @param {import('react').ReactNode} [props.notice] A toast that asks, held above any other toast until it is answered.
     @param {import('react').ReactNode} [props.children] The page. */
 export function Toaster({ notice, children }) {
+	const phrase = usePhrase()
 	const [toast, setToast] = useState(null)
 	const [hovered, setHovered] = useState(false)
 	const [focused, setFocused] = useState(false)
@@ -642,9 +644,9 @@ export function Toaster({ notice, children }) {
 						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}
 							title={toast.title}
 							// the seconds belong to an Undo; a way on (Retry now, Open) is not counted down
-							seconds={(toast.undo?.label ?? 'Undo') === 'Undo' ? Math.ceil(left / 1000) : undefined}>
+							seconds={(toast.undo?.label ?? phrase('action.undo')) === phrase('action.undo') ? Math.ceil(left / 1000) : undefined}>
 							{toast.message}
-							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
+							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? phrase('action.undo')}</ToastUndo> : null}
 						</Toast>
 					)
 					: null}

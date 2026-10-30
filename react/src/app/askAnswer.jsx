@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../components/Chat.jsx'
 import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
 import { amount, currency, dot, plural, shortDate } from '../api/format.js'
+import { phrase } from '../language/phrases.js'
 
 /* An answer from Ask, in the small format lib/ask.js asks for: paragraphs, "- "
    lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place
@@ -132,7 +133,7 @@ function BarsChart({ chart }) {
 			label: keyed ? `${c.label}, ${chart.series.map((s, n) => `${s.name} ${currency(c.values[n])}`).join('; ')}` : `${c.label}, ${currency(c.values[0])}${orders}`,
 			readout: keyed
 				? <ChartTip title={c.label} rows={chart.series.map((s, n) => ({ key: String(n), series: SERIES_KEYS[n], name: s.name, value: currency(c.values[n]) }))} />
-				: <ChartTip title={c.label} value={currency(c.values[0])} rows={c.orders === undefined ? [] : [{ key: 'orders', name: 'Orders', value: amount(c.orders, 0) }]} />
+				: <ChartTip title={c.label} value={currency(c.values[0])} rows={c.orders === undefined ? [] : [{ key: 'orders', name: phrase('page.orders'), value: amount(c.orders, 0) }]} />
 		}
 	})
 	const tap = ev => {

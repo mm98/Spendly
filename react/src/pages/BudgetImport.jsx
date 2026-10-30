@@ -4,13 +4,15 @@ import { Dialog, DialogActions, DialogBody, DialogTitle, useToast, Leaving } fro
 import { budgetFromFile } from '../api/budgetImport.js'
 import { failureMessage, getBudgetYears, importBudget } from '../api/client.js'
 import { plural } from '../api/format.js'
+import { names } from './orderSave.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
-const listed = items => (items.length < 2 ? items.join('')
-	: `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
+const listed = items => names(items.map(String))
 
 /** Import from Excel (21f): reads the workbook in the browser and asks before anything is written.
     Budget and Settings' Import tab both offer it; `onImported(years)` hears the years brought in. */
 export function ImportButton({ onImported }) {
+	const phrase = usePhrase()
 	const picker = useRef(null)
 	const toast = useToast()
 	const [found, setFound] = useState(null)
@@ -22,7 +24,7 @@ export function ImportButton({ onImported }) {
 			// null when the years already here could not be read, so the dialog claims none
 			const have = result.years.length ? await getBudgetYears().then(r => r.years, () => null) : null
 			if (result.years.length) setFound({ file: file.name, have, ...result })
-			else toast({ message: `${file.name} has no sheet named after a year, like 2026.`, color: 'danger' })
+			else toast({ message: phrase('budgetImport.noYears', { file: file.name }), color: 'danger' })
 		} catch (e) {
 			toast({ message: e.message, color: 'danger' })
 		}
@@ -31,12 +33,12 @@ export function ImportButton({ onImported }) {
 		setBusy(true)
 		try {
 			await importBudget(found.years, found.accounts)
-			toast({ message: `${plural(found.years.length, 'year')} brought in.` })
+			toast({ message: phrase('budgetImport.done', { years: plural(found.years.length, 'year') }) })
 			const years = found.years.map(y => y.year)
 			setFound(null)
 			onImported?.(years)
 		} catch (e) {
-			const message = failureMessage(e, 'The budget was not brought in.')
+			const message = failureMessage(e, phrase('budgetImport.failed'))
 			if (message) toast({ message, color: 'danger' })
 		} finally {
 			setBusy(false)
@@ -47,28 +49,28 @@ export function ImportButton({ onImported }) {
 	const replaced = found?.have ? years.filter(y => found.have.includes(y)) : []
 	return (
 		<>
-			<Button size="small" onClick={() => picker.current?.click()}>Import from Excel</Button>
-			<input ref={picker} type="file" name="budget" hidden accept=".xlsx" aria-label="Choose the Excel budget"
+			<Button size="small" onClick={() => picker.current?.click()}>{phrase('budgetImport.button')}</Button>
+			<input ref={picker} type="file" name="budget" hidden accept=".xlsx" aria-label={phrase('budgetImport.choose')}
 				onChange={ev => { read(ev.target.files?.[0]); ev.target.value = '' }} />
 			<Leaving>{found ? (
 				<Dialog onCancel={() => setFound(null)}>
-					<DialogTitle>Bring in {plural(years.length, 'year')}?</DialogTitle>
-					<DialogBody>{found.file} holds {listed(years.map((y, i) => `${y} (${plural(rows[i], 'row')})`))}.</DialogBody>
+					<DialogTitle>{phrase('budgetImport.title', { years: plural(years.length, 'year') })}</DialogTitle>
+					<DialogBody>{phrase('budgetImport.holds', { file: found.file, years: listed(years.map((y, i) => `${y} (${plural(rows[i], 'row')})`)) })}</DialogBody>
 					{found.have === null ? (
-						<DialogBody>A year that is already in your budget is replaced.</DialogBody>
+						<DialogBody>{phrase('budgetImport.replacedAny')}</DialogBody>
 					) : replaced.length ? (
-						<DialogBody>{listed(replaced)} {replaced.length === 1 ? 'is already in your budget, so it is' : 'are already in your budget, so they are'} replaced.</DialogBody>
+						<DialogBody>{phrase('budgetImport.replaced', { years: listed(replaced), count: replaced.length })}</DialogBody>
 					) : null}
 					{found.left.length ? (
-						<DialogBody>{listed(found.left)} {found.left.length === 1 ? 'is not a year, so it is' : 'are not years, so they are'} left out.</DialogBody>
+						<DialogBody>{phrase('budgetImport.left', { sheets: listed(found.left), count: found.left.length })}</DialogBody>
 					) : null}
 					{found.skipped ? (
-						<DialogBody>{plural(found.skipped, 'cell')} held something other than an amount, so {found.skipped === 1 ? 'it is' : 'they are'} left empty.</DialogBody>
+						<DialogBody>{phrase('budgetImport.skipped', { cells: plural(found.skipped, 'cell'), count: found.skipped })}</DialogBody>
 					) : null}
 					<DialogActions>
-						<Button variant="outline" onClick={() => setFound(null)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setFound(null)}>{phrase('action.cancel')}</Button>
 						<span className="sp-grow" />
-						<Button disabled={busy} onClick={write}>Import {plural(years.length, 'year')}</Button>
+						<Button disabled={busy} onClick={write}>{phrase('budgetImport.import', { years: plural(years.length, 'year') })}</Button>
 					</DialogActions>
 				</Dialog>
 			) : null}</Leaving>

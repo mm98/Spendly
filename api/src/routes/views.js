@@ -3,6 +3,7 @@ import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { countMatching } from './orders.js'
 import { draftCount } from '../lib/orderDrafts.js'
+import { words } from '../lib/phrases.js'
 
 /* Saved order views (Order list 2g, Navigation shell 9e): one list, read by the sidebar and the
    order list's rail alike, each view with its live count. */
@@ -14,14 +15,14 @@ const QUERY_MAX = 2000
 const SHOWN_FIRST = 4
 const SHOWN = [2, 3, 4, 5, 6, 8, 10]
 
-const selectViews = db.prepare('SELECT id, name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid')
-const selectView = db.prepare('SELECT id FROM user_saved_views WHERE id = ? AND user_id = ?')
+const selectViews = db.prepare('SELECT id, name, builtin_name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid')
+const selectView = db.prepare('SELECT id, name, builtin_name FROM user_saved_views WHERE id = ? AND user_id = ?')
 const selectFirst = db.prepare('SELECT MIN(position) p FROM user_saved_views WHERE user_id = ?')
 const selectShown = db.prepare('SELECT saved_views_shown AS shown FROM user_settings WHERE user_id = ?')
 const updateShown = db.prepare('UPDATE user_settings SET saved_views_shown = ? WHERE user_id = ?')
 const countAll = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const insertView = db.prepare('INSERT INTO user_saved_views (id, user_id, name, query, position, attention) VALUES (?, ?, ?, ?, ?, ?)')
-const renameView = db.prepare('UPDATE user_saved_views SET name = ? WHERE id = ? AND user_id = ?')
+const renameView = db.prepare('UPDATE user_saved_views SET name = ?, builtin_name = NULL WHERE id = ? AND user_id = ?')
 const requeryView = db.prepare('UPDATE user_saved_views SET query = ? WHERE id = ? AND user_id = ?')
 const flagView = db.prepare('UPDATE user_saved_views SET attention = ? WHERE id = ? AND user_id = ?')
 const clearDefault = db.prepare('UPDATE user_saved_views SET is_default = 0 WHERE user_id = ?')
@@ -58,12 +59,15 @@ function requestOf(query, today) {
 	}
 }
 
+// a built-in name shows in the reader's language until it is renamed
+const nameOf = v => (v.builtin_name ? String(words(`builtin.view.${v.builtin_name}`)) : v.name)
+
 const list = (userId, today) => ({
 	// drafts are in the list, so All orders counts them as the list does
 	all: countAll.get(userId).c + draftCount(userId),
 	shown: selectShown.get(userId)?.shown ?? SHOWN_FIRST,
 	views: selectViews.all(userId).map(v => ({
-		id: v.id, name: v.name, query: v.query, isDefault: Boolean(v.is_default), attention: Boolean(v.attention),
+		id: v.id, name: nameOf(v), query: v.query, isDefault: Boolean(v.is_default), attention: Boolean(v.attention),
 		count: countMatching(userId, requestOf(v.query, today))
 	}))
 })
@@ -81,7 +85,7 @@ router.get('/', (req, res) => res.json(list(req.user.id, req.today)))
 // a new view lands directly under All orders, so it is seen in both lists at once
 router.post('/', (req, res) => {
 	const name = cleanName(req.body?.name)
-	if (!name) return refuse(res, 'A view needs a name.')
+	if (!name) return refuse(res, words('view.nameMissing'))
 	const id = newId('sv')
 	insertView.run(id, req.user.id, name, cleanQuery(req.body?.query), (selectFirst.get(req.user.id).p ?? 1) - 1, req.body?.attention === true ? 1 : 0)
 	res.status(201).json({ id, ...list(req.user.id, req.today) })
@@ -89,18 +93,20 @@ router.post('/', (req, res) => {
 
 router.put('/shown', (req, res) => {
 	const shown = Number(req.body?.shown)
-	if (!SHOWN.includes(shown)) return refuse(res, `Pick one of ${SHOWN.join(', ')}.`)
+	if (!SHOWN.includes(shown)) return refuse(res, words('view.shownChoice', { choices: SHOWN.join(', ') }))
 	updateShown.run(shown, req.user.id)
 	res.json(list(req.user.id, req.today))
 })
 
 router.patch('/:id', (req, res) => {
-	if (!selectView.get(req.params.id, req.user.id)) return refuse(res, 'That view does not exist.', 404)
+	const view = selectView.get(req.params.id, req.user.id)
+	if (!view) return refuse(res, words('view.missing'), 404)
 	const body = req.body ?? {}
 	if ('name' in body) {
 		const name = cleanName(body.name)
-		if (!name) return refuse(res, 'A view needs a name.')
-		renameView.run(name, req.params.id, req.user.id)
+		if (!name) return refuse(res, words('view.nameMissing'))
+		// the name shown, sent back unchanged, keeps following the language
+		if (name !== nameOf(view)) renameView.run(name, req.params.id, req.user.id)
 	}
 	if ('query' in body) requeryView.run(cleanQuery(body.query), req.params.id, req.user.id)
 	// the amber count is the view's own setting, chosen when it is saved or edited (9e)
@@ -117,12 +123,12 @@ const reorder = db.transaction((userId, ids) => ids.forEach((id, at) => placeVie
 router.put('/order', (req, res) => {
 	const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : []
 	const known = selectViews.all(req.user.id).map(v => v.id)
-	if (ids.length !== known.length || !known.every(id => ids.includes(id))) return refuse(res, 'Send every view once, in the new order.')
+	if (ids.length !== known.length || !known.every(id => ids.includes(id))) return refuse(res, words('view.orderAll'))
 	reorder(req.user.id, ids)
 	res.json(list(req.user.id, req.today))
 })
 
 router.delete('/:id', (req, res) => {
-	if (!deleteView.run(req.params.id, req.user.id).changes) return refuse(res, 'That view does not exist.', 404)
+	if (!deleteView.run(req.params.id, req.user.id).changes) return refuse(res, words('view.missing'), 404)
 	res.json(list(req.user.id, req.today))
 })

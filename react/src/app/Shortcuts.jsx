@@ -3,51 +3,53 @@ import { Button } from '../components/Button.jsx'
 import { Kbd } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogTitle } from '../components/Overlays.jsx'
 import { MAC } from './useMedia.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const MOD = MAC ? '⌘' : 'Ctrl'
 
 // "G then a letter" opens a section, in the sidebar's order (9d); Ask only while it is set up
 const GO_KEYS = [
-	['o', 'orders', '/orders', 'Orders'],
-	['v', 'vendors', '/vendors', 'Vendors'],
-	['c', 'categories', '/categories', 'Categories'],
-	['b', 'budget', '/budget', 'Budget'],
-	['t', 'statistics', '/statistics', 'Statistics'],
-	['a', 'ask', '/ask', 'Ask'],
-	['s', 'settings', '/settings', 'Settings']
+	['o', 'orders', '/orders', 'page.orders'],
+	['v', 'vendors', '/vendors', 'page.vendors'],
+	['c', 'categories', '/categories', 'page.categories'],
+	['b', 'budget', '/budget', 'page.budget'],
+	['t', 'statistics', '/statistics', 'page.statistics'],
+	['a', 'ask', '/ask', 'page.ask'],
+	['s', 'settings', '/settings', 'page.settings']
 ]
 const goKeys = asks => GO_KEYS.filter(([, key]) => asks || key !== 'ask')
 const CHORD_MS = 1500
 
 /* Only keys the app really answers to. Each row is one sentence and the keys that do it. */
 const groupsFor = asks => [
-	['Anywhere', [
-		['Open or close search', [[MOD, 'K']]],
-		['Scan a receipt', [['S']]],
-		['New order', [['N']]],
-		...goKeys(asks).map(([key, , , name]) => [`Go to ${name}`, [['G'], [key.toUpperCase()]], 'then']),
-		['Show this list', [['?']]],
-		['Close a window or a menu', [['Esc']]],
-		['Undo, when a message offers it', [[MOD, 'Z']]]
+	[phrase('keys.anywhere'), [
+		[phrase('keys.search'), [[MOD, 'K']]],
+		[phrase('keys.scan'), [['S']]],
+		[phrase('page.newOrder'), [['N']]],
+		...goKeys(asks).map(([key, , , name]) => [phrase('keys.goTo', { name: phrase(name) }), [['G'], [key.toUpperCase()]], phrase('keys.then')]),
+		[phrase('keys.sheet'), [['?']]],
+		[phrase('keys.close'), [['Esc']]],
+		[phrase('keys.undo'), [[MOD, 'Z']]]
 	]],
-	['In search', [
-		['Move through the results', [['↑'], ['↓']]],
-		['Open the marked result', [['↵']]],
-		['Open it in a new tab', [[MOD, '↵']]]
+	[phrase('keys.inSearch'), [
+		[phrase('keys.move'), [['↑'], ['↓']]],
+		[phrase('keys.open'), [['↵']]],
+		[phrase('keys.newTab'), [[MOD, '↵']]]
 	]],
-	['On a page', [
-		['Open the calendar in a date field', [['Alt', '↓']]],
-		['Save an item line', [['↵']]],
-		['Save an item line and start the next', [[MOD, '↵']]],
-		['Next or previous picture', [['←'], ['→']]]
+	[phrase('keys.onPage'), [
+		[phrase('keys.calendar'), [['Alt', '↓']]],
+		[phrase('keys.saveLine'), [['↵']]],
+		[phrase('keys.saveLineNext'), [[MOD, '↵']]],
+		[phrase('keys.picture'), [['←'], ['→']]]
 	]]
 ]
 
 /** The list of keyboard shortcuts, opened with ? or from the account menu (9c). */
 export function ShortcutSheet({ asks = false, onClose }) {
+	const phrase = usePhrase()
 	return (
 		<Dialog onCancel={onClose}>
-			<DialogTitle>Keyboard shortcuts</DialogTitle>
+			<DialogTitle>{phrase('keys.title')}</DialogTitle>
 			<div className="ns-keys-list sp-scrolls">
 				{groupsFor(asks).map(([label, rows]) => (
 					<div key={label} className="ns-keys">
@@ -58,7 +60,7 @@ export function ShortcutSheet({ asks = false, onClose }) {
 								<span className="ns-keys__caps">
 									{keys.map((cap, i) => (
 										<Fragment key={i}>
-											{i ? <span className="sp-meta">{joiner ?? 'or'}</span> : null}
+											{i ? <span className="sp-meta">{joiner ?? phrase('keys.or')}</span> : null}
 											{cap.map(k => <Kbd key={k}>{k}</Kbd>)}
 										</Fragment>
 									))}
@@ -69,7 +71,7 @@ export function ShortcutSheet({ asks = false, onClose }) {
 				))}
 			</div>
 			<DialogActions>
-				<Button size="small" onClick={onClose}>Done</Button>
+				<Button size="small" onClick={onClose}>{phrase('action.done')}</Button>
 			</DialogActions>
 		</Dialog>
 	)

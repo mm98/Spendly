@@ -24,12 +24,13 @@
    answered, so a log or a devtools pane can tell a recompute from a replay. */
 
 import { forgetModel } from './categoryModel.js'
+import { languageOf } from './phrases.js'
 
 const TTL_MS = 60 * 1000
 const MAX_URLS_PER_USER = 100
 const MAX_USERS = 500
 
-const byUser = new Map()   // userId -> Map(today + originalUrl -> { body, at })
+const byUser = new Map()   // userId -> Map(today + language + originalUrl -> { body, at })
 
 /* Insertion order is eviction order, the same shape useApi.js uses client-side: re-set on
    every store, so `.keys().next()` is always the entry longest unrefreshed. */
@@ -56,8 +57,9 @@ export function readCache(req, res, next) {
 	}
 	if (req.method !== 'GET') return next()   // HEAD/OPTIONS: neither a write nor cacheable here
 
-	// Keyed by the reader's day too: the same address answers differently either side of midnight.
-	const key = `${req.today} ${req.originalUrl}`
+	// Keyed by the reader's day and language too: the same address answers differently either side of
+	// midnight, and in each language.
+	const key = `${req.today} ${languageOf(req)} ${req.originalUrl}`
 	const urls = byUser.get(req.user.id)
 	const hit = urls?.get(key)
 	if (hit && Date.now() - hit.at < TTL_MS) {

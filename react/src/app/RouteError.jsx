@@ -7,10 +7,11 @@ import { Empty, EmptyBody, EmptyTitle } from '../components/Utilities.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useShellShape } from './useMedia.js'
+import { phrase } from '../language/phrases.js'
 
 const words = error => (error?.status === 404
-	? { title: 'This page does not exist', body: 'The address may be old, or the record was deleted.' }
-	: { title: 'This page could not be shown', body: 'Reload the page to try again. If it happens again, Spendly may be down.' })
+	? { title: phrase('routeError.missing'), body: phrase('routeError.missingBody') }
+	: { title: phrase('routeError.failed'), body: phrase('routeError.failedBody') })
 
 const reload = () => window.location.reload()
 
@@ -19,10 +20,10 @@ export function RouteError() {
 	const { title, body } = words(useRouteError())
 	return (
 		<Empty>
-			<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
+			<Mark size="medium" fill="none" aria-label={phrase('failed.mark')}><Icon name="alert-circle" /></Mark>
 			<EmptyTitle>{title}</EmptyTitle>
 			<EmptyBody>{body}</EmptyBody>
-			<Button variant="outline" onClick={reload}>Reload</Button>
+			<Button variant="outline" onClick={reload}>{phrase('action.reload')}</Button>
 		</Empty>
 	)
 }
@@ -56,7 +57,7 @@ export function ShellError() {
 						<span className="sp-data">{body}</span>
 					</div>
 				</div>
-				<Button size="small" fullWidth onClick={reload}>Reload</Button>
+				<Button size="small" fullWidth onClick={reload}>{phrase('action.reload')}</Button>
 			</Card>
 		</main>
 	)

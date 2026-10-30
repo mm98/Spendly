@@ -23,6 +23,7 @@ import { ShortcutSheet, useShortcutKeys } from './Shortcuts.jsx'
 import { pasteAnywhere } from '../components/FileDrop.jsx'
 import { useUpdateNotice } from './UpdateNotice.jsx'
 import { markLoaded } from './loaded.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -30,15 +31,16 @@ import { markLoaded } from './loaded.js'
 const handleOf = matches => Object.assign({}, ...matches.map(m => m.handle ?? {}))
 
 const TABS = [
-	{ to: '/', key: 'home', icon: 'home', label: 'Home' },
-	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
-	{ to: '/statistics', key: 'statistics', icon: 'chart-bar', label: 'Statistics' },
-	{ to: '/more', key: 'more', icon: 'user', label: 'More' }
+	{ to: '/', key: 'home', icon: 'home', label: 'page.home' },
+	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'page.orders' },
+	{ to: '/statistics', key: 'statistics', icon: 'chart-bar', label: 'page.statistics' },
+	{ to: '/more', key: 'more', icon: 'user', label: 'page.more' }
 ]
 // below 640 the rest of the sidebar lives under More (9h)
 const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'ask', 'settings', 'more']
 
 export function AppShell() {
+	const phrase = usePhrase()
 	const [screenSlot, setScreenSlot] = useState(null)
 	// null, or the screen in the top bar: a 'task' hides the tab bar, a 'place' keeps it
 	const [screenOn, setScreenOn] = useState(null)
@@ -54,7 +56,8 @@ export function AppShell() {
 
 	const fold = useFold(shape, visit)
 
-	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
+	const tabTitle = title ? `${phrase(title)} - Spendly` : 'Spendly'
+	useEffect(() => { document.title = tabTitle }, [tabTitle])
 
 	useEffect(() => markLoaded(document.body), [])
 
@@ -130,8 +133,8 @@ export function AppShell() {
 			value=""
 			onChange={text => openPalette(text)}
 			onClick={() => openPalette()}
-			placeholder={touch ? 'Search' : 'Search orders, vendors, items…'}
-			aria-label="Search orders"
+			placeholder={phrase(touch ? 'shell.search' : 'shell.searchLong')}
+			aria-label={phrase('shell.searchOrders')}
 			kbd={touch ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
 		/>
 	)
@@ -177,12 +180,12 @@ export function AppShell() {
 					{touch ? <div className="sp-topbar__screen" ref={setScreenSlot} /> : null}
 				</TopBar>
 				{content}
-				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
+				{touch && fab ? <Fab to="/orders/new" aria-label={phrase('page.newOrder')} /> : null}
 				{touch && screenOn !== 'task'
 					? (
-						<TabBar aria-label="Sections">
+						<TabBar aria-label={phrase('shell.sections')}>
 							{TABS.map(t => (
-								<TabBarItem key={t.key} icon={t.icon} current={t.key === tab} to={go(t.key, t.to)}>{t.label}</TabBarItem>
+								<TabBarItem key={t.key} icon={t.icon} current={t.key === tab} to={go(t.key, t.to)}>{phrase(t.label)}</TabBarItem>
 							))}
 						</TabBar>
 					)
@@ -206,30 +209,30 @@ function sidebar({ navKey, fold, short, go, asks, showKeys, making }) {
 	const { rail } = fold
 	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
-		<Sidebar aria-label="Sections" ref={fold.box} variant={fold.over ? 'peek' : 'default'} motion={fold.motion} onMotionEnd={fold.motionEnd}>
+		<Sidebar aria-label={phrase('shell.sections')} ref={fold.box} variant={fold.over ? 'peek' : 'default'} motion={fold.motion} onMotionEnd={fold.motionEnd}>
 			{rail
 				? <>{brand}<SidebarDivider /></>
 				: <SidebarBrand>{brand}<span>Spendly</span></SidebarBrand>}
 			<NavScroll navKey={navKey}>
-				<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
+				<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>{phrase('page.home')}</Row>
 				<ScanReceipt rail={rail} />
 				<NewOrder rail={rail} current={making} />
-				{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
-				<Counted to={ALL_ORDERS} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>All orders</Counted>
+				{rail ? <SidebarDivider /> : <SidebarGroup>{phrase('page.orders')}</SidebarGroup>}
+				<Counted to={ALL_ORDERS} icon="receipt" rail={rail} current={navKey === 'orders' && !making && !onView()} useCount={useOrdersCount}>{phrase('shell.allOrders')}</Counted>
 				<SidebarViews rail={rail} savedId={navKey === 'orders' ? onView() : null} />
 				<AfterSidebarViews rail={rail}>
-					{rail ? null : <SidebarGroup>Library</SidebarGroup>}
-					<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
-					<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
-					<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
-					<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>Budget</Counted>
-					<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
+					{rail ? null : <SidebarGroup>{phrase('shell.library')}</SidebarGroup>}
+					<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>{phrase('page.vendors')}</Counted>
+					<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>{phrase('page.categories')}</Counted>
+					<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>{phrase('page.bookmarks')}</Counted>
+					<Counted to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'} useCount={useBudgetDueCount}>{phrase('page.budget')}</Counted>
+					<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>{phrase('page.statistics')}</Row>
 				</AfterSidebarViews>
 			</NavScroll>
 			{/* only while the server has Ask set up (24a); on a short window it moves to the account menu with Settings (9g) */}
 			<SidebarDivider />
-			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>Ask</Row>}
-			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>}
+			{short || !asks ? null : <Row to="/ask" icon="message-circle" rail={rail} current={navKey === 'ask'}>{phrase('page.ask')}</Row>}
+			{short ? null : <Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>{phrase('page.settings')}</Row>}
 			<Account rail={rail} short={short} asks={asks} onShortcuts={showKeys} />
 			<SidebarGrip expanded={!rail} onClick={fold.toggle} />
 		</Sidebar>
@@ -318,19 +321,21 @@ function NavScroll({ navKey, children }) {
 /* Scan receipt opens the file picker at once (16a). Before the email is confirmed the row only reports,
    and says why on hover and on focus. */
 function ScanReceipt({ rail }) {
+	const phrase = usePhrase()
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
 	if (held)
 		return (
-			<NavItem icon="camera" tip="Available once your email is confirmed" tabIndex={0} aria-disabled="true">Scan receipt</NavItem>
+			<NavItem icon="camera" tip={phrase('shell.scanHeld')} tabIndex={0} aria-disabled="true">{phrase('shell.scanReceipt')}</NavItem>
 		)
-	return <Row icon="camera" variant="action" rail={rail} onClick={scan.open}>Scan receipt</Row>
+	return <Row icon="camera" variant="action" rail={rail} onClick={scan.open}>{phrase('shell.scanReceipt')}</Row>
 }
 
 /* New order is a plain row to step 1 of 3a, where scan, empty and copy are chosen, as the phone's button. It is
    current while a new order is made, until it is saved (9a). */
 function NewOrder({ rail, current }) {
-	return <NavItem icon="plus" current={current} to="/orders/new" tip={rail ? 'New order' : undefined}>New order</NavItem>
+	const phrase = usePhrase()
+	return <NavItem icon="plus" current={current} to="/orders/new" tip={rail ? phrase('page.newOrder') : undefined}>{phrase('page.newOrder')}</NavItem>
 }
 
 function Row({ rail, count, children, ...rest }) {
@@ -356,23 +361,24 @@ const useBudgetDueCount = () => {
 /** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
     ends on the sign-in page, once the reader has been let go. */
 export function AccountMenu({ name, email, position, short = false, asks = false, onShortcuts, onClose }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	return (
-		<Menu position={position} aria-label="Account">
+		<Menu position={position} aria-label={phrase('shell.account')}>
 			<li className="ns-menu-head" role="presentation">
 				{name ? <span className="sp-data sp-truncate">{name}</span> : null}
 				<EmailLine email={email} tone="meta" />
 			</li>
-			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
+			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>{phrase('shell.accountAndProfile')}</MenuItem>
 			{onShortcuts
 				? <MenuItem icon="keyboard" onClick={() => { onClose(); onShortcuts() }}>
-					<span className="sp-truncate">Shortcuts</span><span className="sp-grow" /><Kbd>?</Kbd>
+					<span className="sp-truncate">{phrase('shell.shortcuts')}</span><span className="sp-grow" /><Kbd>?</Kbd>
 				</MenuItem>
 				: null}
 			{/* on a short window the sidebar's bottom zone lives here, in its sidebar order (9c, 9g) */}
-			{short && asks ? <MenuItem icon="message-circle" onClick={() => { onClose(); navigate('/ask') }}>Ask</MenuItem> : null}
-			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>Settings</MenuItem> : null}
-			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
+			{short && asks ? <MenuItem icon="message-circle" onClick={() => { onClose(); navigate('/ask') }}>{phrase('page.ask')}</MenuItem> : null}
+			{short ? <MenuItem icon="settings" onClick={() => { onClose(); navigate('/settings') }}>{phrase('page.settings')}</MenuItem> : null}
+			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>{phrase('shell.signOut')}</MenuItem>
 		</Menu>
 	)
 }

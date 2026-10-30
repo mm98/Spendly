@@ -4,6 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Toast } from '../components/Overlays.jsx'
 import { BUNDLE_VERSION, onBuildChanged } from '../api/build.js'
 import { getReleaseNotes } from '../api/client.js'
+import { phrase } from '../language/phrases.js'
 
 // the line a version with no change you can see has (scripts/release-notes.mjs)
 const NOTHING_TO_SEE = 'No change you can see.'
@@ -47,12 +48,12 @@ export function useUpdateNotice() {
 	}, [newer])
 	if (!newer || waitedOn) return null
 	return (
-		<Toast asks mark="!" title="A newer version is available" list={lines ?? undefined} listLabel="What changed"
+		<Toast asks mark="!" title={phrase('update.title')} list={lines?.map(line => (line === NOTHING_TO_SEE ? phrase('update.nothing') : line))} listLabel={phrase('update.whatChanged')}
 			actions={<>
-				<Button variant="outline" size="small" onClick={() => setWaitedOn(pathname)}>Wait for later</Button>
-				<Button size="small" color="warning" onClick={() => window.location.reload()}>Update</Button>
+				<Button variant="outline" size="small" onClick={() => setWaitedOn(pathname)}>{phrase('update.later')}</Button>
+				<Button size="small" color="warning" onClick={() => window.location.reload()}>{phrase('update.update')}</Button>
 			</>}>
-			Updating reloads the app. What you have saved stays. Text you typed but did not save will be lost.
+			{phrase('update.body')}
 		</Toast>
 	)
 }

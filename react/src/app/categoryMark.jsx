@@ -4,6 +4,7 @@ import { Glyph, Icon } from '../components/Icon.jsx'
 import { Picker } from '../components/Choice.jsx'
 import { ICONS } from '../components/icons.js'
 import { COMMON, loadIndex, pathOf, searchIcons, useTablerPath, useTablerPaths } from '../components/tabler.js'
+import { phrase } from '../language/phrases.js'
 
 /* The design's eight colours as the hex the app stores, at their light values, so a picked
    colour reads back as the same one in either theme. */
@@ -80,9 +81,9 @@ export function CategoryIconPicker({ value, onChange }) {
 	]
 	return (
 		<Picker icons={icons} value={chosen} onChange={onChange}
-			search={search} onSearch={v => { setSearch(v); setLimit(PAGE) }} searchLabel="Search icons…" noun="icons"
-			more={more ? 'More' : undefined} onMore={() => setLimit(n => n + PAGE)}
-			empty={entries && needle ? `No icon matches "${needle}". Try another word, in English.` : undefined} />
+			search={search} onSearch={v => { setSearch(v); setLimit(PAGE) }} searchLabel={phrase('icon.search')} noun="icons"
+			more={more ? phrase('action.more') : undefined} onMore={() => setLimit(n => n + PAGE)}
+			empty={entries && needle ? phrase('icon.noMatch', { search: needle }) : undefined} />
 	)
 }
 CategoryIconPicker.fieldRole = 'group'

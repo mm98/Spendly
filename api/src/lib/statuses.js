@@ -1,6 +1,8 @@
 import { db } from '../db.js'
+import { LANGUAGES } from './constants.js'
+import { phraseIn } from './phrases.js'
 
-const selectKeys = db.prepare('SELECT key, name FROM statuses WHERE user_id = ?')
+const selectKeys = db.prepare('SELECT key, name, builtin_name FROM statuses WHERE user_id = ?')
 
 /** The account's status keys. */
 export const statusKeys = userId => selectKeys.all(userId).map(s => s.key)
@@ -11,7 +13,10 @@ export function resolveStatus(userId, value) {
 	const text = String(value ?? '').trim()
 	if (!text) return null
 	const all = selectKeys.all(userId)
-	return (all.find(s => s.key === text) ?? all.find(s => s.key.toLowerCase() === text.toLowerCase() || s.name.toLowerCase() === text.toLowerCase()))?.key ?? null
+	const said = text.toLowerCase()
+	// a built-in name is matched in every language it can be shown in
+	const names = s => [s.name, ...(s.builtin_name ? LANGUAGES.map(code => phraseIn(code, `builtin.status.${s.builtin_name}`)) : [])]
+	return (all.find(s => s.key === text) ?? all.find(s => s.key.toLowerCase() === said || names(s).some(n => n.toLowerCase() === said)))?.key ?? null
 }
 
 const selectKeyOfType = db.prepare('SELECT key FROM statuses WHERE user_id = ? AND type = ?').pluck()

@@ -15,6 +15,7 @@ import {
 	attachmentDownloadUrl, attachmentFileUrl, attachmentPageUrl, getAttachmentPages, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
 import { currency, dot, quantity, plural } from '../api/format.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /* The parts the order's read view and its form share: one row, one tile and one set of sums,
    so reading an order and editing it draw the same things in the same places (1a, 1d). */
@@ -39,7 +40,7 @@ export function totalsOf(lines, shipping, discount) {
 /** "1 × 330,00 kr. · retail 1.650,00 kr."; `compact` is the phone's, quantity and price only (1c). */
 export const lineMeta = (line, compact = false) =>
 	`${quantity(Number(line.quantity) || 0)} × ${line.price == null ? '-' : money(line.price)}`
-	+ (line.retail != null && !compact ? `${dot}retail ${money(line.retail)}` : '')
+	+ (line.retail != null && !compact ? dot + phrase('order.retail', { amount: money(line.retail) }) : '')
 
 export const itemsWord = n => plural(n, 'item')
 
@@ -71,9 +72,10 @@ export function LineText({ line, compact = false }) {
 
 /** A line's photo at the row's size, or c2's empty photo mark when it has none (17d). */
 export function LinePhoto({ src, name, onOpen }) {
-	if (!src) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
-	if (onOpen) return <Mark size="medium" fill="photo" goods aria-label={`Open the photo of ${name}`} onClick={onOpen}><img src={src} alt="" /></Mark>
-	return <Mark size="medium" fill="photo" goods aria-label={`Photo of ${name}`}><img src={src} alt="" /></Mark>
+	const phrase = usePhrase()
+	if (!src) return <Mark size="medium" fill="empty" aria-label={phrase('order.noPhoto')} aria-hidden="true"><Icon name="photo" size={16} /></Mark>
+	if (onOpen) return <Mark size="medium" fill="photo" goods aria-label={phrase('order.openPhoto', { name })} onClick={onOpen}><img src={src} alt="" /></Mark>
+	return <Mark size="medium" fill="photo" goods aria-label={phrase('order.photo', { name })}><img src={src} alt="" /></Mark>
 }
 
 export const itemPhoto = (orderId, item) => {
@@ -120,25 +122,26 @@ export function filesOf(order) {
 /** One attachment in the strip: `problem` says why it cannot be kept (17b), `sending` is the part sent,
     0 to 1 (17a), and `twin` warns that the same file is already there. */
 export function AttachmentTile({ name, kind, thumb, problem, sending, twin = false, onOpen, onRemove, bare = false }) {
+	const phrase = usePhrase()
 	const label = kindOf({ name, kind })
 	const remove = onRemove
-		? <MarkRemove aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
+		? <MarkRemove aria-label={phrase('order.removeFile', { name })} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
 		: null
-	const named = onOpen ? `Open ${name}` : name
+	const named = onOpen ? phrase('order.openFile', { name }) : name
 	let mark
 	if (sending !== undefined) {
 		const part = `${Math.round(sending * 100)}%`
 		mark = (
-			<Mark size="xlarge" fill="photo" aria-label={`${name}, ${part} sent`} remove={remove}>
+			<Mark size="xlarge" fill="photo" aria-label={phrase('order.sent', { name, part })} remove={remove}>
 				{thumb ? <img src={thumb} alt="" /> : null}
 				<Spinner />
 			</Mark>
 		)
 		return bare ? mark : <Attachment name={part}>{mark}</Attachment>
 	}
-	if (problem === 'Upload failed')
+	if (problem === phrase('file.uploadFailed'))
 		mark = (
-			<Mark size="xlarge" fill="photo" danger="Retry" aria-label={`${name} was not sent. Send it again`} onClick={onOpen} remove={remove}>
+			<Mark size="xlarge" fill="photo" danger={phrase('action.retry')} aria-label={phrase('order.notSent', { name })} onClick={onOpen} remove={remove}>
 				{thumb ? <img src={thumb} alt="" /> : null}
 			</Mark>
 		)
@@ -150,7 +153,7 @@ export function AttachmentTile({ name, kind, thumb, problem, sending, twin = fal
 		)
 	else if (twin)
 		mark = (
-			<Mark size="xlarge" fill={thumb ? 'photo' : 'none'} text="Added twice" aria-label={`${named}. This file is already on the order`} onClick={onOpen} remove={remove}>
+			<Mark size="xlarge" fill={thumb ? 'photo' : 'none'} text={phrase('order.twice')} aria-label={phrase('order.twin', { name: named })} onClick={onOpen} remove={remove}>
 				{thumb ? <img src={thumb} alt="" /> : <span>{label}</span>}
 			</Mark>
 		)
@@ -191,6 +194,7 @@ const rowsLoading = n => Array.from({ length: n }, (_, i) => (
 /** The page while the order loads: its cards at their own size, so nothing jumps (6b). `form`
     is the edit and create screen's shape, else the read view's. */
 export function OrderLoading({ region = false, form = false }) {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const fieldLoading = key => (
 		<div key={key} className="sp-stack sp-gap-6">
@@ -203,8 +207,8 @@ export function OrderLoading({ region = false, form = false }) {
 		<Sum key={label} variant={variant} value={variant ? '\u200b' : <Skeleton shape="line" data-w="88" data-h="13" />}>{label}</Sum>
 	)
 	const items = (
-		<Card aria-busy="true" aria-label="Loading the order">
-			<CardHeader name="Items" />
+		<Card aria-busy="true" aria-label={phrase('order.loading')}>
+			<CardHeader name={phrase('order.items')} />
 			<div className="sp-stack sp-gap-8">
 				{rowsLoading(3)}
 				{form ? <ListItem mark={<Skeleton shape="mark" />}><Skeleton shape="line" data-w="88" data-h="13" /></ListItem> : null}
@@ -215,7 +219,7 @@ export function OrderLoading({ region = false, form = false }) {
 	const attachments = form
 		? (
 			<Card aria-hidden="true">
-				<CardHeader name="Attachments" />
+				<CardHeader name={phrase('order.attachments')} />
 				<div className="or-tiles"><div className="or-tile"><Skeleton shape="fill" /></div></div>
 			</Card>
 		)
@@ -226,7 +230,7 @@ export function OrderLoading({ region = false, form = false }) {
 			<Card variant="flush" aria-hidden="true">
 				<Toolbar>
 					<span className="sp-stacked sp-grow">
-						<span className="sp-title">Order details</span>
+						<span className="sp-title">{phrase('order.details')}</span>
 						<Skeleton shape="line" data-w="130" data-h="13" />
 					</span>
 				</Toolbar>
@@ -236,7 +240,7 @@ export function OrderLoading({ region = false, form = false }) {
 		rail = (
 			<>
 				<Card aria-hidden="true">
-					<CardHeader name="Order details" />
+					<CardHeader name={phrase('order.details')} />
 					{fieldLoading('vendor')}
 					<div className="sp-fields">{fieldLoading('date')}{fieldLoading('kind')}</div>
 					{fieldLoading('status')}
@@ -245,7 +249,7 @@ export function OrderLoading({ region = false, form = false }) {
 					<div className="sp-fields">{fieldLoading('discount')}{fieldLoading('shipping')}</div>
 				</Card>
 				<Card aria-hidden="true" footer={[control('leave', true), control('save', true)]} footerLayout="split" footerCommits>
-					<div className="sp-stack">{sum('Total', 'total')}</div>
+					<div className="sp-stack">{sum(phrase('order.total'), 'total')}</div>
 					<span className="sp-row-flex">{strut('sp-meta')}<Skeleton shape="line" data-w="130" data-h="11" /></span>
 					<span className="sp-row-flex">{strut('sp-stat__delta')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
 				</Card>
@@ -255,13 +259,13 @@ export function OrderLoading({ region = false, form = false }) {
 		rail = (
 			<>
 				<Card aria-hidden="true">
-					<CardHeader name="Order details" />
-					<div className="sp-stack">{['Vendor', 'Date', 'Kind', 'Categories', 'Reference'].map(k => sum(k))}</div>
+					<CardHeader name={phrase('order.details')} />
+					<div className="sp-stack">{['field.vendor', 'field.date', 'field.kind', 'field.categories', 'field.reference'].map(k => sum(phrase(k)))}</div>
 				</Card>
 				<Card aria-hidden="true" footer={[control('copy', true), control('edit', true)]} footerLayout="split" footerCommits
 					after={control('delete', true)}>
-					<CardHeader name="Totals" />
-					<div className="sp-stack">{['Items', 'Discount', 'Shipping'].map(k => sum(k))}{sum('Total', 'total')}</div>
+					<CardHeader name={phrase('order.totals')} />
+					<div className="sp-stack">{['order.items', 'field.discount', 'field.shipping'].map(k => sum(phrase(k)))}{sum(phrase('order.total'), 'total')}</div>
 					<span className="sp-row-flex">{strut('sp-stat__delta')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
 				</Card>
 			</>
@@ -272,6 +276,7 @@ export function OrderLoading({ region = false, form = false }) {
 	return region ? <div className="sp-shell__body--split">{split}</div> : split
 }
 
-export function OrderFailed({ what = 'This order', error, retry }) {
-	return <Failed what={what} error={error} onRetry={retry} back={{ to: '/orders', label: 'Open the order list' }} />
+export function OrderFailed({ what, error, retry }) {
+	const phrase = usePhrase()
+	return <Failed what={what ?? phrase('order.this')} error={error} onRetry={retry} back={{ to: '/orders', label: phrase('order.openList') }} />
 }

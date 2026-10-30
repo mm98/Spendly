@@ -11,7 +11,7 @@ import { Strip, Viewer } from '../components/Attachments.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Alert, Leaving } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
-import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
+import { attachmentDownloadUrl, attachmentThumbnailUrl, getOrder, kindName } from '../api/client.js'
 import { dot, plural, shortDate } from '../api/format.js'
 import { useStacked } from './OrderForm.jsx'
 import { useListReturn } from '../app/listMemory.js'
@@ -23,6 +23,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
    rail, and the rail ends with what can be done to the order. */
@@ -46,6 +47,7 @@ export default function Order() {
 export const draftAddress = d => (d.draft.file ? `/orders/new?source=scan&doc=${d.draft.file.key}` : `/orders/new?draft=${d.id}`)
 
 function OrderView({ order, touch, onGone }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
@@ -67,7 +69,7 @@ function OrderView({ order, touch, onGone }) {
 
 	const items = (
 		<Card>
-			<CardHeader name={`Items${dot}${order.items.length}`} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} />
+			<CardHeader name={phrase('order.items') + dot + order.items.length} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} />
 			<div className="sp-stack sp-gap-8">
 				{order.items.map(item => {
 					const photo = itemPhoto(order.id, item)
@@ -76,7 +78,7 @@ function OrderView({ order, touch, onGone }) {
 					if (touch && photo)
 						return (
 							<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} />} onClick={() => open(fileKey)}
-								aria-label={`Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}`}>
+								aria-label={phrase('order.openPhoto', { name: `${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}` })}>
 								<LineText line={item} compact />
 								<LineAmount line={item} compact />
 							</ListItem>
@@ -90,7 +92,7 @@ function OrderView({ order, touch, onGone }) {
 				})}
 			</div>
 			<Totals>
-				<span className="sp-strong">{itemsWord(order.items.length)}{dot}{money(order.subtotal)} paid</span>
+				<span className="sp-strong">{itemsWord(order.items.length)}{dot}{phrase('order.paid', { amount: money(order.subtotal) })}</span>
 				<span className="sp-grow" />
 				<Saving value={order.saved} />
 			</Totals>
@@ -100,7 +102,7 @@ function OrderView({ order, touch, onGone }) {
 	const attachments = order.attachments.length
 		? (
 			<Card>
-				<CardHeader name={`Attachments${dot}${order.attachments.length}`} actions={[{ label: 'Download all', onClick: () => downloadAll(order) }]} />
+				<CardHeader name={phrase('order.attachments') + dot + order.attachments.length} actions={[{ label: phrase('order.downloadAll'), onClick: () => downloadAll(order) }]} />
 				<Strip>
 					{order.attachments.map(a => (
 						<AttachmentTile key={a.id} name={a.name} kind={a.kind} bare={touch}
@@ -114,16 +116,16 @@ function OrderView({ order, touch, onGone }) {
 
 	const sums = (
 		<div className="sp-stack">
-			<Sum value={order.vendor ? <Link to={`/orders?vendor=${order.vendor.id}`}>{order.vendor.name}</Link> : undefined}>Vendor</Sum>
-			<Sum value={shortDate(order.date)}>Date</Sum>
-			<Sum value={order.kind}>Kind</Sum>
-			<Sum value={status.name}>Status</Sum>
+			<Sum value={order.vendor ? <Link to={`/orders?vendor=${order.vendor.id}`}>{order.vendor.name}</Link> : undefined}>{phrase('field.vendor')}</Sum>
+			<Sum value={shortDate(order.date)}>{phrase('field.date')}</Sum>
+			<Sum value={kindName(order.kind)}>{phrase('field.kind')}</Sum>
+			<Sum value={status.name}>{phrase('field.status')}</Sum>
 			{stamped ? <Sum value={shortDate(stamped.date)}>{status.name}</Sum> : null}
-			{order.validated ? <Sum value={shortDate(order.validated.date)}>Validated</Sum> : null}
-			<Sum value={<OrderCategories order={order} />}>Categories</Sum>
-			{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
-			{order.excludeFromStats ? <Sum value="Left out">Statistics</Sum> : null}
-			{order.note ? <Sum variant="stacked" value={<Well>{order.note.split('\n').map((line, i) => <Fragment key={i}>{i ? <br /> : null}{line}</Fragment>)}</Well>}>Note</Sum> : null}
+			{order.validated ? <Sum value={shortDate(order.validated.date)}>{phrase('order.validated')}</Sum> : null}
+			<Sum value={<OrderCategories order={order} />}>{phrase('field.categories')}</Sum>
+			{order.reference ? <Sum value={order.reference}>{phrase('field.reference')}</Sum> : null}
+			{order.excludeFromStats ? <Sum value={phrase('order.leftOut')}>{phrase('page.statistics')}</Sum> : null}
+			{order.note ? <Sum variant="stacked" value={<Well>{order.note.split('\n').map((line, i) => <Fragment key={i}>{i ? <br /> : null}{line}</Fragment>)}</Well>}>{phrase('field.note')}</Sum> : null}
 		</div>
 	)
 	// in one column the details fold to a line above the items (18b)
@@ -132,8 +134,8 @@ function OrderView({ order, touch, onGone }) {
 			<Card variant="flush">
 				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
 					<span className="sp-stacked">
-						<span className="sp-title sp-truncate">Order details</span>
-						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), order.kind].filter(Boolean).join(dot)}</span>
+						<span className="sp-title sp-truncate">{phrase('order.details')}</span>
+						<span className="sp-meta sp-truncate">{[order.categories.map(c => c.name).join(', '), kindName(order.kind)].filter(Boolean).join(dot)}</span>
 					</span>
 				</Toolbar>
 				<CardBody open={!folded}>{sums}</CardBody>
@@ -141,7 +143,7 @@ function OrderView({ order, touch, onGone }) {
 		)
 		: (
 			<Card>
-				<CardHeader name="Order details" />
+				<CardHeader name={phrase('order.details')} />
 				{sums}
 			</Card>
 		)
@@ -149,20 +151,20 @@ function OrderView({ order, touch, onGone }) {
 	const totals = (
 		<Card
 			footer={[
-				<Button key="delete" variant="outline" color="danger" onClick={() => setAsking(true)}>Delete order</Button>,
-				<Button key="edit" to={`/orders/${order.id}/edit`}>Edit order</Button>
+				<Button key="delete" variant="outline" color="danger" onClick={() => setAsking(true)}>{phrase('deleteOrder.confirm')}</Button>,
+				<Button key="edit" to={`/orders/${order.id}/edit`}>{phrase('page.editOrder')}</Button>
 			]}
 			footerLayout="split"
 			footerCommits
 		>
-			<CardHeader name="Totals" control={
-				<IconButton variant="outline" icon="copy" aria-label="Duplicate order" data-tip="Duplicate" to={`/orders/new?duplicate=${order.id}`} />
+			<CardHeader name={phrase('order.totals')} control={
+				<IconButton variant="outline" icon="copy" aria-label={phrase('order.duplicate')} data-tip={phrase('order.duplicateTip')} to={`/orders/new?duplicate=${order.id}`} />
 			} />
 			<div className="sp-stack">
-				<Sum value={money(order.subtotal)}>Items ({order.items.length})</Sum>
-				<Sum value={order.discount ? money(-order.discount) : money(0)}>Discount</Sum>
-				<Sum value={money(order.shipping)}>Shipping</Sum>
-				<Sum variant="total" value={money(order.total)}>Total</Sum>
+				<Sum value={money(order.subtotal)}>{phrase('order.itemsCount', { count: order.items.length })}</Sum>
+				<Sum value={order.discount ? money(-order.discount) : money(0)}>{phrase('field.discount')}</Sum>
+				<Sum value={money(order.shipping)}>{phrase('field.shipping')}</Sum>
+				<Sum variant="total" value={money(order.total)}>{phrase('order.total')}</Sum>
 			</div>
 			<Saving value={order.saved} variant="stat" />
 		</Card>
@@ -178,8 +180,8 @@ function OrderView({ order, touch, onGone }) {
 
 	const validatedNotice = validated
 		? (
-			<Alert color="success" mark={<Icon name="check" size={12} />} title={`Validated against ${validated.name}.`}>
-				{validated.changes ? `${plural(validated.changes, 'change')} applied. The receipt is kept as an attachment.` : 'The lines match the receipt. Nothing was changed.'}
+			<Alert color="success" mark={<Icon name="check" size={12} />} title={phrase('order.validatedAgainst', { name: validated.name })}>
+				{validated.changes ? phrase('order.changesApplied', { changes: plural(validated.changes, 'change') }) : phrase('order.noChanges')}
 			</Alert>
 		)
 		: null
@@ -195,8 +197,9 @@ function OrderView({ order, touch, onGone }) {
 /** The order's categories; one over its limit this month carries the problem dot, the mark that
     travels with a category wherever it is named, the order list's rows included (8b). */
 function OrderCategories({ order }) {
+	const phrase = usePhrase()
 	const over = useOverLimitIds(order.date)
-	if (!order.categories.length) return 'None'
+	if (!order.categories.length) return phrase('import.none')
 	const named = c => <Link to={`/orders?category=${c.id}`}>{c.name}</Link>
 	if (!order.categories.some(c => over.has(c.id))) {
 		return order.categories.map((c, i) => <span key={c.id}>{i ? ', ' : ''}{named(c)}</span>)
@@ -204,7 +207,7 @@ function OrderCategories({ order }) {
 	return (
 		<span className="sp-row-flex sp-wrap sp-gap-6 or-chips">
 			{order.categories.map(c => <Chip key={c.id} trail={over.has(c.id) ? <OverLimitDot /> : undefined}>{named(c)}</Chip>)}
-			<span className="sp-meta">over limit</span>
+			<span className="sp-meta">{phrase('order.overLimit')}</span>
 		</span>
 	)
 }

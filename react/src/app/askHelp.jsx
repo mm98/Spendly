@@ -6,8 +6,7 @@ import { Dialog, DialogActions, DialogTitle } from '../components/Overlays.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { useFocusTrap } from '../components/Utilities.jsx'
-
-const TITLE = 'What Ask can do'
+import { phrase } from '../language/phrases.js'
 
 /** What Ask can do (24c, 7a): `onHelp` opens it, `help` draws it. An example replaces the field's text, not
     sent; a computer puts the cursor after it, a phone leaves the keyboard down. */
@@ -44,12 +43,12 @@ const notesOf = makes => makes.map(m => m.note).filter(Boolean)
 function AskHelpDialog({ makes, disabled, onChoose, onClose }) {
 	return (
 		<Dialog onCancel={onClose}>
-			<DialogTitle>{TITLE}</DialogTitle>
+			<DialogTitle>{phrase('chat.help')}</DialogTitle>
 			<ChatHelp makes={makes} disabled={disabled} onChoose={onChoose} />
 			<DialogActions>
 				{notesOf(makes).map(note => <span key={note} className="sp-note">{note}</span>)}
 				<span className="sp-grow" />
-				<Button variant="outline" onClick={onClose}>Close</Button>
+				<Button variant="outline" onClick={onClose}>{phrase('action.close')}</Button>
 			</DialogActions>
 		</Dialog>
 	)
@@ -63,10 +62,10 @@ function AskHelpSheet({ makes, disabled, onChoose, onClose }) {
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
 			<Sheet role="dialog" aria-modal="true" aria-labelledby={title} ref={box} onDismiss={onClose}
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
-				<span className="sp-heading" id={title}>{TITLE}</span>
+				<span className="sp-heading" id={title}>{phrase('chat.help')}</span>
 				<ChatHelp makes={makes} disabled={disabled} onChoose={onChoose} />
 				{notesOf(makes).map(note => <span key={note} className="sp-note">{note}</span>)}
-				<Button variant="outline" fullWidth onClick={onClose}>Close</Button>
+				<Button variant="outline" fullWidth onClick={onClose}>{phrase('action.close')}</Button>
 			</Sheet>
 		</Scrim>,
 		document.body

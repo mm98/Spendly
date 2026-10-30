@@ -5,6 +5,7 @@ import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate, peek } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
 import { noteServerBuild, writeSettled, writeStarted } from './build.js'
+import { languageCode, phrase } from '../language/phrases.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -32,7 +33,7 @@ class NoAnswer extends Error {
 // what the server says reaches the reader only as a refusal written for them: a whole sentence,
 // never a crash's note or a record's internal id; an upload's refusal may open on the file's own name
 const forReader = (status, text, upload = false) => status < 500 && typeof text === 'string'
-	&& (upload ? /^\S.*[.?!]$/s : /^[A-Z0-9"'(].*[.?!]$/s).test(text.trim()) && !/\b[a-z]{1,3}-[0-9a-f]{8,}\b/.test(text)
+	&& (upload ? /^\S.*[.?!]$/s : /^[\p{Lu}0-9"'(].*[.?!]$/su).test(text.trim()) && !/\b[a-z]{1,3}-[0-9a-f]{8,}\b/.test(text)
 
 /** The sentence a failed request shows: the server's own words, or `fallback` for a failure that
     has none (no connection), whose browser message is not about what the reader did. Empty for a
@@ -46,15 +47,13 @@ const THINGS = [
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
-	[/^\/api\/budget\/lines\//, 'budget row'],
-	[/^\/api\/budget\/groups\//, 'budget group'],
+	[/^\/api\/budget\/lines\//, 'budgetRow'],
+	[/^\/api\/budget\/groups\//, 'budgetGroup'],
 	[/^\/api\/budget\/accounts\//, 'account']
 ]
 
 /** What a record that is gone says: a save names the loss, never the record's id. */
-const goneMessage = (thing, method) => (method === 'GET' ? `This ${thing} does not exist. It may have been deleted.`
-	: method === 'DELETE' ? `This ${thing} was already deleted in another window.`
-	: `This ${thing} was deleted in another window. Your changes cannot be saved.`)
+const goneMessage = (thing, method) => phrase(method === 'GET' ? 'gone.missing' : method === 'DELETE' ? 'gone.deleted' : 'gone.lost', { thing })
 
 const qs = params => {
 	const usp = new URLSearchParams()
@@ -85,8 +84,8 @@ function refusal(path, method, status, data, upload = false) {
 	return error
 }
 
-// the reader's own date, which the server takes as today
-const TODAY = 'X-Spendly-Today'
+// the reader's own date, which the server takes as today, and the language the server writes its words in
+const stamps = () => ({ 'X-Spendly-Today': today(), 'X-Spendly-Language': languageCode() ?? 'en' })
 
 async function request(path, { method = 'GET', body, signal, form } = {}) {
 	const json = !form && body !== undefined
@@ -96,7 +95,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 	try {
 		res = await fetch(path, {
 			method, signal, credentials: 'include',
-			headers: { [TODAY]: today(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
+			headers: { ...stamps(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
 			body: form ?? (json ? JSON.stringify(body) : undefined)
 		})
 		noteServerBuild(res.headers.get('Build'))
@@ -188,7 +187,7 @@ export async function deleteAccount(password, code, signal) {
 
 /** A copy of the account's data as one .zip (11g): `{ name, blob }`, named as the server names it. */
 export async function getAccountExport(signal) {
-	const res = await fetch('/api/export', { credentials: 'include', signal, headers: { [TODAY]: today() } })
+	const res = await fetch('/api/export', { credentials: 'include', signal, headers: stamps() })
 	if (!res.ok) {
 		let data = null
 		try { data = await res.json() } catch { /* empty body */ }
@@ -334,7 +333,7 @@ export async function askQuestion({ chatId = null, question = '', retry = null }
 	try {
 		const res = await fetch(path, {
 			method: 'POST', signal, credentials: 'include',
-			headers: { [TODAY]: today(), 'Content-Type': 'application/json' },
+			headers: { ...stamps(), 'Content-Type': 'application/json' },
 			body: JSON.stringify({ chatId, question, retry, ...browserPlace() })
 		})
 		noteServerBuild(res.headers.get('Build'))
@@ -1039,7 +1038,7 @@ function uploadJson(path, body, { signal, onSent, onLine, isResult = o => 'impor
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
 		xhr.setRequestHeader('Content-Type', 'application/json')
-		xhr.setRequestHeader(TODAY, today())
+		for (const [name, value] of Object.entries(stamps())) xhr.setRequestHeader(name, value)
 		xhr.withCredentials = true
 		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
 		const streamed = () => (xhr.getResponseHeader('Content-Type') || '').includes('x-ndjson')
@@ -1246,11 +1245,11 @@ export async function putSummaryAway(month, signal) {
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
     have. A label names the column and the direction; Name has one direction, the one that finds. */
 export const listSorts = [
-	{ id: 'name-asc', label: 'Name, A to Z' },
-	{ id: 'spend-desc', label: 'Spend, highest' },
-	{ id: 'spend-asc', label: 'Spend, lowest' },
-	{ id: 'saved-desc', label: 'Saved, highest' },
-	{ id: 'saved-asc', label: 'Saved, lowest' }
+	{ id: 'name-asc', label: 'sort.nameAsc' },
+	{ id: 'spend-desc', label: 'sort.spendDesc' },
+	{ id: 'spend-asc', label: 'sort.spendAsc' },
+	{ id: 'saved-desc', label: 'sort.savedDesc' },
+	{ id: 'saved-asc', label: 'sort.savedAsc' }
 ]
 
 /* ---- scan ---- */
@@ -1291,7 +1290,7 @@ export async function makeScanDraft(documentKey) {
 
 async function readScan(documentKey, extra, signal) {
 	const path = `/api/scan/draft/${documentKey}?progress=stream${extra}`
-	const res = await fetch(path, { signal, credentials: 'include', headers: { [TODAY]: today() } })
+	const res = await fetch(path, { signal, credentials: 'include', headers: stamps() })
 	if (!res.ok) {
 		let data = null
 		try { data = await res.json() } catch { /* empty body */ }
@@ -1362,7 +1361,7 @@ export async function makeDraft(form, { keepalive = false } = {}) {
 	const body = JSON.stringify({ form })
 	const made = !keepalive || body.length > 60000
 		? await request(path, { method: 'POST', body: { form } })
-		: await fetch(path, { method: 'POST', credentials: 'include', keepalive: true, body, headers: { [TODAY]: today(), 'Content-Type': 'application/json' } })
+		: await fetch(path, { method: 'POST', credentials: 'include', keepalive: true, body, headers: { ...stamps(), 'Content-Type': 'application/json' } })
 			.then(res => (res.ok ? res.json() : Promise.reject(refusal(path, 'POST', res.status, null))))
 	invalidateDraftData()
 	return made
@@ -1375,7 +1374,7 @@ export function keepDraft(id, form, { keepalive = false } = {}) {
 	if (!keepalive || body.length > 60000) return request(path, { method: 'PUT', body: { form } })
 	return fetch(path, {
 		method: 'PUT', credentials: 'include', keepalive: true, body,
-		headers: { [TODAY]: today(), 'Content-Type': 'application/json' }
+		headers: { ...stamps(), 'Content-Type': 'application/json' }
 	}).then(res => (res.ok ? res.json() : Promise.reject(refusal(path, 'PUT', res.status, null))))
 }
 
@@ -1398,7 +1397,7 @@ export function sendFile(file, { signal, onSent, scan = false } = {}) {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
-		xhr.setRequestHeader(TODAY, today())
+		for (const [name, value] of Object.entries(stamps())) xhr.setRequestHeader(name, value)
 		xhr.withCredentials = true
 		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
 		xhr.onerror = () => reject(new TypeError('Network request failed'))
@@ -1429,27 +1428,30 @@ export async function getSearchNames(spans, signal) {
 	return request(`/api/search/names?${usp}`, { signal })
 }
 
-/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */
+/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses).
+   A sort's label is a phrase key. ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+/** A kind in the reader's words; the stored value stays as the server has it. */
+export const kindName = kind => phrase(`kind.${String(kind).toLowerCase()}`)
 
 // a ranking comes in both directions; Vendor groups rather than ranks, so it has one
 export const sorts = [
-	{ id: 'date-desc', label: 'Date, newest' },
-	{ id: 'date-asc', label: 'Date, oldest' },
-	{ id: 'amount-desc', label: 'Amount, highest' },
-	{ id: 'amount-asc', label: 'Amount, lowest' },
-	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
+	{ id: 'date-desc', label: 'sort.dateDesc' },
+	{ id: 'date-asc', label: 'sort.dateAsc' },
+	{ id: 'amount-desc', label: 'sort.amountDesc' },
+	{ id: 'amount-asc', label: 'sort.amountAsc' },
+	{ id: 'vendor-asc', label: 'sort.vendorAsc' }
 ]
 
 /** The two price sorts also narrow: a bookmark with no price is not the cheapest one
     (api/src/routes/bookmarks.js). */
 export const bookmarkSorts = [
-	{ id: 'added-desc', label: 'Added, newest' },
-	{ id: 'added-asc', label: 'Added, oldest' },
-	{ id: 'price-desc', label: 'Price, highest' },
-	{ id: 'price-asc', label: 'Price, lowest' },
-	{ id: 'name-asc', label: 'Name, A to Z' }
+	{ id: 'added-desc', label: 'sort.addedDesc' },
+	{ id: 'added-asc', label: 'sort.addedAsc' },
+	{ id: 'price-desc', label: 'sort.priceDesc' },
+	{ id: 'price-asc', label: 'sort.priceAsc' },
+	{ id: 'name-asc', label: 'sort.nameAsc' }
 ]
 
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),

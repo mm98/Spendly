@@ -2,6 +2,7 @@ import { chartsById, makeChart, sweepCharts } from '../../lib/askCharts.js'
 import { text } from '../schema.js'
 import { CHART_PICTURE_WIDTH } from './drawing.js'
 import { CHART_KINDS, chartKind } from './kinds.js'
+import { words } from '../../lib/phrases.js'
 
 /* The chart maker (Ask 24d): a chart drawn in the answer, of a kind in kinds.js, and a picture of it in the email. */
 
@@ -48,11 +49,11 @@ function attachments(userId, ids, charts, write) {
 
 export const chartMaker = {
 	place: 'chart',
-	name: 'Charts',
+	name: words('ask.maker.charts'),
 	formats: () => CHART_KINDS.map(k => k.name),
-	example: 'Show my spending per month as a chart',
+	example: words('ask.maker.chartsExample'),
 	tool,
-	doing: () => 'Drawing your chart',
+	doing: () => words('ask.maker.chartsDoing'),
 	make,
 	byIds: chartsById,
 	emailBlocks,

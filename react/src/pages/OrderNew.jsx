@@ -15,12 +15,13 @@ import {
 	getOrderDraft, getScanReview, invalidateDraftData, rereadScanDocument, scanThumbnailUrl, sendFile,
 	watchScanProgress
 } from '../api/client.js'
-import { dot, sep, shortDate } from '../api/format.js'
+import { dot, plural, sep, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { OrderForm, discardWords, scanSeed } from './OrderForm.jsx'
 import { CopyPicker } from './CopyPicker.jsx'
 import { OrderFailed, OrderLoading, isPdf } from './OrderParts.jsx'
 import { OrderRepeats, repeatIds, repeatsOf } from './OrderRepeats.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
@@ -78,12 +79,13 @@ export const draftPhotoUrl = line => {
 
 /** A draft made by hand, opened again as it was left: the edit screen, not created yet (3a). */
 function Kept({ id }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const kept = useApi(getDraft, [id])
 	const blank = useApi(getOrderDraft)
 	const form = kept.data?.id === id ? kept.data.form : null
 	const seed = useMemo(() => (form && blank.data ? { ...fromBlank(blank.data), ...form.values, lines: form.lines ?? [], files: form.files ?? [] } : null), [form, blank.data])
-	if (kept.error || blank.error) return <OrderFailed what="This draft" error={kept.error ?? blank.error} retry={kept.error ? kept.refresh : blank.refresh} />
+	if (kept.error || blank.error) return <OrderFailed what={phrase('order.failedDraft')} error={kept.error ?? blank.error} retry={kept.error ? kept.refresh : blank.refresh} />
 	if (kept.data?.file) return <Navigate replace to={`/orders/new?source=scan&doc=${kept.data.file.key}`} state={{ upload: { ...kept.data.file, draftId: id } }} />
 	if (!seed) return <Waiting />
 	const away = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/', { replace: true }))
@@ -98,9 +100,10 @@ const fromBlank = blank => ({
 
 /** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */
 function Blank({ vendor, restored, onDraft }) {
+	const phrase = usePhrase()
 	const blank = useApi(getOrderDraft)
 	if (restored) return <OrderForm mode="new" region seed={restored} onDraft={onDraft} />
-	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
+	if (blank.error) return <OrderFailed what={phrase('order.failedNew')} error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} onDraft={onDraft} />
 }
@@ -108,6 +111,7 @@ function Blank({ vendor, restored, onDraft }) {
 /* A copy carries the vendor, categories, kind, reference, note, Leave out of statistics and priced lines with their photos; the
    date is today, the status the account's default (3b, 8b), and the order's own files stay behind. */
 function Copy({ id, onDraft }) {
+	const phrase = usePhrase()
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
 	const navigate = useNavigate()
@@ -130,12 +134,12 @@ function Copy({ id, onDraft }) {
 			})
 		}
 	}, [order.data, blank.data, id])
-	if (order.error || blank.error) return <OrderFailed what="The order to copy" error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
+	if (order.error || blank.error) return <OrderFailed what={phrase('order.failedCopy')} error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
 	if (!seed) return <Waiting />
 	return (
 		<OrderForm mode="new" region seed={seed}
 			photoUrl={draftPhotoUrl}
-			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
+			origin={{ copy: { id, vendor: order.data.vendor?.name ?? phrase('copy.theOrder'), date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
 			onLeave={() => navigate(`/orders/${id}`)} onDraft={onDraft} />
 	)
 }
@@ -145,6 +149,7 @@ function Copy({ id, onDraft }) {
     An order it repeats is asked about first (3c): one holding the same file at once, over step 1, and a
     look-alike once the reading is ready, over step 2. */
 function Scanned({ documentKey, upload, from }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const seen = upload?.seen ?? null
@@ -187,7 +192,7 @@ function Scanned({ documentKey, upload, from }) {
 		const rereads = Boolean(seen.readAt && (seen.draft || seen.orders.some(o => o.readAt)))
 		const again = () => rereadScanDocument(documentKey)
 			.then(() => { invalidate(getScanReview); setShown(s => [...s, ...repeatIds(repeats)]); setAsking(false) })
-			.catch(e => toast({ message: failureMessage(e, 'The receipt was not read again. Try again.'), color: 'danger' }))
+			.catch(e => toast({ message: failureMessage(e, phrase('scan.notReread')), color: 'danger' }))
 		return (
 			<>
 				<Start from={from} />
@@ -199,9 +204,9 @@ function Scanned({ documentKey, upload, from }) {
 	}
 	if (read.error)
 		return (
-			<Alert color="danger" mark="!" title="This receipt could not be opened."
-				action={<Button variant="outline" size="small" onClick={back}>Try another file</Button>}>
-				{failureMessage(read.error, 'Check your connection, then try again.')}
+			<Alert color="danger" mark="!" title={phrase('compare.notOpened')}
+				action={<Button variant="outline" size="small" onClick={back}>{phrase('scan.anotherFile')}</Button>}>
+				{failureMessage(read.error, phrase('failed.connection'))}
 			</Alert>
 		)
 	const reading = <Reading file={upload ?? answer?.file ?? { key: documentKey }} documentKey={documentKey} onDiscard={discard} />
@@ -232,14 +237,15 @@ function readOrder(answer) {
 
 /** Discard on a scan (6d), asked before the draft and its file go. */
 function DiscardScan({ file, onKeep, onDiscard }) {
+	const phrase = usePhrase()
 	return (
-		<Dialog onCancel={onKeep} aria-label="Discard this scan?">
+		<Dialog onCancel={onKeep} aria-label={phrase('scan.discardTitle')}>
 			<div className="sp-stack sp-gap-12">
-				<DialogTitle>Discard this scan?</DialogTitle>
+				<DialogTitle>{phrase('scan.discardTitle')}</DialogTitle>
 				<DialogBody>{discardWords({ file })}</DialogBody>
 				<DialogActions>
-					<Button variant="outline" fullWidth onClick={onKeep}>Keep checking</Button>
-					<Button color="danger" fullWidth onClick={onDiscard}>Discard</Button>
+					<Button variant="outline" fullWidth onClick={onKeep}>{phrase('scan.keepChecking')}</Button>
+					<Button color="danger" fullWidth onClick={onDiscard}>{phrase('action.discard')}</Button>
 				</DialogActions>
 			</div>
 		</Dialog>
@@ -250,6 +256,7 @@ function DiscardScan({ file, onKeep, onDiscard }) {
     gauge counts the steps: sent, vendor and date found, the whole reading in. A scan has Discard,
     which asks first (6d), since the file goes with it; a receipt read for another page has Cancel. */
 export function Reading({ file, documentKey, onCancel, onDiscard }) {
+	const phrase = usePhrase()
 	const [asking, setAsking] = useState(false)
 	const scan = Boolean(onDiscard)
 	const touch = useShellShape() === 'touch'
@@ -260,9 +267,9 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 	const sending = !file.key
 	const found = progress?.found
 	const lines = progress?.lines ?? 0
-	const doing = sending ? 'Sending the receipt…' : !reads ? 'Opening the receipt…' : found ? 'Reading the lines…' : 'Reading the receipt…'
+	const doing = phrase(sending ? 'scan.sending' : !reads ? 'scan.opening' : found ? 'scan.readingLines' : 'scan.reading')
 	const value = sending ? (file.sent ?? 0) * 33 : found ? 67 : 34
-	const meta = [file.meta?.replaceAll(sep, dot), file.pages > 1 ? `${file.pages} pages` : null].filter(Boolean).join(dot)
+	const meta = [file.meta?.replaceAll(sep, dot), file.pages > 1 ? plural(file.pages, 'page') : null].filter(Boolean).join(dot)
 	// a reading still going well past its usual time says so (6e); the server finishes and keeps it either way
 	const [slow, setSlow] = useState(false)
 	useEffect(() => {
@@ -272,7 +279,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 	}, [reads, sending])
 	const done = text => (
 		<div className="sp-row-flex sp-gap-8">
-			<Mark size="small" fill="solid" aria-hidden="true" aria-label="Done"><Icon name="check" size={11} /></Mark>
+			<Mark size="small" fill="solid" aria-hidden="true" aria-label={phrase('action.done')}><Icon name="check" size={11} /></Mark>
 			<span className="sp-data">{text}</span>
 		</div>
 	)
@@ -286,23 +293,23 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 		: null
 	const steps = (
 		<>
-			<Gauge value={value} aria-label={sending ? 'Sending the receipt' : 'Reading the receipt'} />
+			<Gauge value={value} aria-label={phrase(sending ? 'scan.sendingLabel' : 'scan.readingLabel')} />
 			<div className="sp-stack sp-gap-8">
-				{found ? done('Vendor and date found') : null}
-				{lines ? done(lines === 1 ? '1 line found' : `${lines} lines found`) : null}
+				{found ? done(phrase('scan.vendorFound')) : null}
+				{lines ? done(phrase('scan.linesFound', { count: lines })) : null}
 				<div className="sp-row-flex sp-gap-8">
 					<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
 					<strong className="sp-data">{doing}</strong>
 				</div>
 				{reads && file.key
-					? <span className="sp-meta">{scan ? 'Usually 5 - 10 seconds. If you leave, the reading carries on, and adding the same file again picks it up.' : 'Usually 5 - 10 seconds. You can keep working.'}</span>
+					? <span className="sp-meta">{phrase(scan ? 'scan.usuallyScan' : 'scan.usually')}</span>
 					: null}
 			</div>
 		</>
 	)
 	const leave = scan
-		? <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => setAsking(true)}>Discard</Button>
-		: <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={onCancel}>Cancel</Button>
+		? <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => setAsking(true)}>{phrase('action.discard')}</Button>
+		: <Button variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={onCancel}>{phrase('action.cancel')}</Button>
 	return (
 		<div className="oc-narrow">
 			<Card aria-busy="true">
@@ -311,7 +318,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 						// on a phone the receipt is a mark beside its name, so the steps get the card's width (3a, step 2 · phone)
 						<div className="sp-stack sp-gap-12">
 							<div className="sp-row-flex sp-gap-12">
-								<Mark size="large" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label={file.name ?? 'The receipt'}>
+								<Mark size="large" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label={file.name ?? phrase('scan.theReceipt')}>
 									{thumb ? <img src={thumb} alt="" /> : <span>{kindWord(file)}</span>}
 								</Mark>
 								{file.name
@@ -329,7 +336,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 					)
 					: (
 						<div className="oc-row-top">
-							<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
+							<div className="oc-preview" role="img" aria-label={file.name ?? phrase('scan.theReceipt')}>
 								{thumb ? <img src={thumb} alt="" /> : kindWord(file)}
 							</div>
 							<div className="oc-read">
@@ -343,11 +350,11 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 			{slow
 				? (
 					<Card variant="row" role="status">
-						<Mark size="small" aria-hidden="true" aria-label="Slow"><Icon name="wifi" size={15} /></Mark>
+						<Mark size="small" aria-hidden="true" aria-label={phrase('scan.slow')}><Icon name="wifi" size={15} /></Mark>
 						<div className="sp-stack sp-gap-6">
-							<span className="sp-title">Reading is taking longer than usual</span>
+							<span className="sp-title">{phrase('scan.slowTitle')}</span>
 							<span className="sp-subtitle">
-								{scan ? 'You can leave this page. The reading carries on, and adding the same file again picks it up.' : 'You can leave this page - the order appears in the list when it is done.'}
+								{phrase(scan ? 'scan.slowScan' : 'scan.slowOther')}
 							</span>
 						</div>
 					</Card>
@@ -363,6 +370,7 @@ const SLOW_READING_MS = 20000
 /** When the scan fails (6e): never a dead end. What came through is named, the file stays with
     the order, and typing it in is one click away. */
 function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
+	const phrase = usePhrase()
 	const { file, found } = answer
 	const photo = file.kind !== 'pdf'
 	const picker = useRef(null)
@@ -373,13 +381,9 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 		if (chosen) onAnother(chosen)
 	}
 	const why = answer.failure === 'billing'
-		? 'The reading service is not available right now: it reports a problem with its payment.'
-		: answer.failure === 'empty'
-			? `The ${photo ? 'photo' : 'file'} was opened, but no lines could be picked out of it.`
-			: `The ${photo ? 'photo' : 'file'} could not be read.`
-	const kept = found?.vendor || found?.date
-		? `${found.vendor && found.date ? 'The vendor and date came through' : found.vendor ? 'The vendor came through' : 'The date came through'}, so the order is started with ${found.vendor && found.date ? 'those' : 'that'}.`
-		: 'Nothing came through, so you type in the details.'
+		? phrase('scan.billing')
+		: phrase(answer.failure === 'empty' ? 'scan.noLines' : 'scan.notRead', { photo: String(photo) })
+	const kept = phrase(found?.vendor && found?.date ? 'scan.keptBoth' : found?.vendor ? 'scan.keptVendor' : found?.date ? 'scan.keptDate' : 'scan.keptNothing')
 	return (
 		<div className="oc-narrow">
 			<Card>
@@ -387,7 +391,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 					<Mark size="xlarge" fill="none" danger={kindWord(file)} aria-label={file.name}><Icon name="file" size={18} /></Mark>
 					<div className="sp-stack sp-gap-12 sp-grow">
 						<div className="sp-row-flex sp-gap-12 sp-baseline sp-wrap">
-							<span className="sp-heading">Could not read this receipt</span>
+							<span className="sp-heading">{phrase('scan.failedTitle')}</span>
 							<span className="sp-meta">{[file.name, file.meta?.replace(/^.*?•\s*/, '')].filter(Boolean).join(dot)}</span>
 						</div>
 						<span className="sp-data">{why} {kept}</span>
@@ -396,25 +400,25 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 								? (
 									<div className="sp-row-flex sp-gap-8 sp-data">
 										<span className="sp-ink-success"><Icon name="check" size={14} /></span>
-										{[found.vendor ? `Vendor: ${found.vendor}` : null, found.date ? `Date: ${shortDate(found.date)}` : null].filter(Boolean).join(dot)}
+										{[found.vendor ? phrase('scan.foundVendor', { name: found.vendor }) : null, found.date ? phrase('scan.foundDate', { date: shortDate(found.date) }) : null].filter(Boolean).join(dot)}
 									</div>
 								)
 								: null}
 							<div className="sp-row-flex sp-gap-8 sp-data sp-ink-danger sp-strong">
 								<Icon name="x" size={14} />
-								No lines and no total could be read
+								{phrase('scan.noLinesNoTotal')}
 							</div>
 						</div>
 						<ListItem>
 							{answer.failure === 'billing'
-								? 'You can try again later. If you continue, the file is kept with the order.'
-								: `${photo ? 'A flatter photo in better light usually works' : 'A clearer copy of the file usually works'}. If you continue, the file is kept with the order.`}
+								? phrase('scan.tryLater')
+								: phrase('scan.tryBetter', { photo: String(photo) })}
 						</ListItem>
 						<div className="sp-row-flex sp-gap-8 sp-wrap">
-							<Button size="small" onClick={onManual}>Continue manually</Button>
-							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{photo ? 'Try another photo' : 'Try another file'}</Button>
+							<Button size="small" onClick={onManual}>{phrase('scan.manual')}</Button>
+							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{phrase(photo ? 'scan.anotherPhoto' : 'scan.anotherFile')}</Button>
 							<input ref={picker} type="file" name="receipt" accept={FILE_TYPES} hidden tabIndex={-1} onChange={take} />
-							<Button variant="outline" size="small" onClick={() => setAsking(true)}>Discard</Button>
+							<Button variant="outline" size="small" onClick={() => setAsking(true)}>{phrase('action.discard')}</Button>
 						</div>
 					</div>
 				</div>
@@ -426,6 +430,7 @@ function ReadFailed({ answer, onManual, onAnother, onDiscard }) {
 
 /** Step 1 (3a): the receipt zone, then an empty order or a copy. */
 function Start({ scanOnly, file, from, picking }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const counts = useApi(getCounts)
 	// a phone cannot drop a file: its zone is a tap that opens the picker (3a, step 1 · phone)
@@ -442,17 +447,17 @@ function Start({ scanOnly, file, from, picking }) {
 		const kind = f.name.split('.').pop()
 		const named = fileProblem(f, FILE_TYPES)
 		const problem = named ?? await sniffedProblem(f, FILE_TYPES)
-		if (problem === 'Not a supported type')
-			return setRefused({ title: named ? `.${kind} is not supported` : 'Not a supported type', note: 'Images and PDF only. The file was not sent.' })
-		if (problem === 'Too large')
+		if (problem === phrase('file.unsupported'))
+			return setRefused({ title: named ? phrase('scan.kindNotSupported', { kind }) : phrase('file.unsupported'), note: phrase('scan.notSent') })
+		if (problem === phrase('file.tooLarge'))
 			return setRefused({
-				title: `File is ${Math.ceil(f.size / 1024 / 1024)} MB - too large`,
-				note: `Up to ${MAX_FILE_MB} MB per file. A PDF export or a smaller photo will go through.`
+				title: phrase('scan.tooLarge', { size: Math.ceil(f.size / 1024 / 1024) }),
+				note: phrase('scan.tooLargeNote', { most: MAX_FILE_MB })
 			})
 		setRefused(null)
 		cancelled.current = false
 		const pdf = isPdf(f)
-		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
+		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : phrase('scan.image')}${dot}${sizeLabel(f.size)}` })
 		sendFile(f, { scan: true, onSent: sent => setSending(s => (s ? { ...s, sent } : s)) })
 			.then(upload => {
 				// a scan discarded while it was sent goes as it arrives
@@ -465,8 +470,8 @@ function Start({ scanOnly, file, from, picking }) {
 				setSending(null)
 				// said on the zone, as the checks above are; a refusal gives the server's own reason
 				const refusal = e?.status >= 400 && e?.status < 500
-				const note = failureMessage(e, refusal ? 'Images and PDF only. Nothing was added.' : 'Check your connection, then try again.')
-				if (note) setRefused({ title: refusal ? `${f.name} was not accepted` : 'The receipt was not sent', note })
+				const note = failureMessage(e, refusal ? phrase('scan.nothingAdded') : phrase('failed.connection'))
+				if (note) setRefused({ title: refusal ? phrase('scan.notAccepted', { name: f.name }) : phrase('scan.receiptNotSent'), note })
 			})
 	}
 
@@ -482,28 +487,28 @@ function Start({ scanOnly, file, from, picking }) {
 	const copyable = (counts.data?.orders ?? 0) > 0
 	return (
 		<Empty>
-			<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
+			<EmptyTitle>{phrase(scanOnly ? 'scan.start' : 'scan.startOrScratch')}</EmptyTitle>
 			<EmptyBody>
 				{reads
-					? `${touch ? 'Add' : 'Drop'} a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.`
-					: `${touch ? 'Add' : 'Drop'} a PDF or a photo and it is attached to a new order. You type in the details.`}
+					? phrase('scan.introRead', { touch: String(touch) })
+					: phrase('scan.introAttach', { touch: String(touch) })}
 			</EmptyBody>
 			<div className="oc-narrow">
-				<FileDrop accept={FILE_TYPES} onFiles={send} action={touch ? undefined : 'Select a receipt'}>
-					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
-					<span className="sp-title">{touch ? 'Add a receipt' : 'Drop receipt here'}</span>
-					<span className="sp-meta">PDF, JPG, PNG, WebP or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
+				<FileDrop accept={FILE_TYPES} onFiles={send} action={touch ? undefined : phrase('scan.select')}>
+					<Mark size="large" aria-label={phrase('repeats.receipt')} aria-hidden="true"><Icon name="upload" size={24} /></Mark>
+					<span className="sp-title">{phrase(touch ? 'scan.add' : 'scan.drop')}</span>
+					<span className="sp-meta">{phrase('scan.types', { dot, most: MAX_FILE_MB })}</span>
 				</FileDrop>
 				{refused ? <div className="oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
 				{scanOnly
 					? null
 					: (
 						<>
-							<div className="sp-divider">or</div>
+							<div className="sp-divider">{phrase('scan.or')}</div>
 							<div className={touch ? 'oc-choices oc-choices--stack' : 'oc-choices'}>
-								<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
+								<StartChoice to="/orders/new?source=empty" icon="file-text" title={phrase('orders.empty')} body={phrase('scan.emptyBody')} />
 								{copyable
-									? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy an order" body="Same vendor, same lines, new date." />
+									? <StartChoice to="/orders/new?pick=copy" icon="copy" title={phrase('copy.title')} body={phrase('scan.copyBody')} />
 									: null}
 							</div>
 						</>

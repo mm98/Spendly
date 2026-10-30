@@ -6,22 +6,26 @@ import { publicLink, sendMail } from './mail.js'
 import { initialsOf } from './names.js'
 import { schemeTokens } from './schemes.js'
 import { usableLocale, writerFor } from './statusEmail.js'
+import { emailLanguageOf, words } from './phrases.js'
 
 /* What Ask keeps beside the conversation (24b, 24c): the reader's saved questions, and the
    conversation sent to the reader's own address. The conversation itself is never stored. */
 
 export const SAVED_MOST = 8
 
-const selectSaved = db.prepare('SELECT id, question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid')
+const selectSaved = db.prepare('SELECT id, question, builtin_question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid')
 const insertSaved = db.prepare('INSERT OR IGNORE INTO user_ask_questions (id, user_id, question) VALUES (?, ?, ?)')
 const deleteSaved = db.prepare('DELETE FROM user_ask_questions WHERE id = ? AND user_id = ?')
 
 /** The reader's saved questions, oldest first. */
-export const savedQuestions = userId => selectSaved.all(userId)
+// an example question shows in the reader's language; the reader cannot change one, only remove it
+export const savedQuestions = userId => selectSaved.all(userId).map(({ id, question, builtin_question: builtin }) => ({
+	id, question: builtin ? String(words(`builtin.question.${builtin}`)) : question
+}))
 
 /** Saves `question` as typed; the same wording twice is kept once. False when SAVED_MOST are saved. */
 export const saveQuestion = db.transaction((userId, question) => {
-	const saved = selectSaved.all(userId)
+	const saved = savedQuestions(userId)
 	if (saved.some(s => s.question === question)) return true
 	if (saved.length >= SAVED_MOST) return false
 	insertSaved.run(newId('aq'), userId, question)
@@ -117,9 +121,9 @@ export function answerBlocks(text, write, { made, attached, scheme }) {
 	return blocks.filter(Boolean)
 }
 
-// the currency's English name as an amount says it: "Danish kroner"
-const currencyName = code => {
-	try { return new Intl.NumberFormat('en', { style: 'currency', currency: code, currencyDisplay: 'name' }).formatToParts(2).find(p => p.type === 'currency').value } catch { return code }
+// the currency's name in `language` as an amount says it: "Danish kroner", "danske kroner"
+const currencyName = (code, language) => {
+	try { return new Intl.NumberFormat(language, { style: 'currency', currency: code, currencyDisplay: 'name' }).formatToParts(2).find(p => p.type === 'currency').value } catch { return code }
 }
 
 // the most the attachments of one emailed conversation hold, so it stays under a mail server's 25 MB once encoded
@@ -150,16 +154,16 @@ export async function emailConversation(userId, { chatId, turns, day, locale }) 
 		room -= a.content.length
 	}
 	const outputs = { made, attached, scheme: account.colour_scheme }
+	const language = emailLanguageOf(userId)
 	const message = emailMessage('ask-chat', account.email, {
-		subject: `Your Spendly conversation, ${date}`,
 		preheader: questions.slice(0, 2).join(' '),
 		date,
-		currency_name: currencyName(currency),
+		currency_name: currencyName(currency, language),
 		email: account.email,
 		initials: initialsOf(account.name || account.email.split('@')[0]),
 		chat_url: publicLink(`/ask/${chatId}`),
 		messages: turns.map(t => (t.role === 'user' ? { mine: true, question: t.text } : { mine: false, blocks: answerBlocks(t.text, write, outputs) }))
-	}, { scheme: account.colour_scheme })
+	}, { scheme: account.colour_scheme, language })
 	await sendMail({ ...message, attachments: attachments.map(({ id, inline, ...a }) => a) })
 	return account.email
 }

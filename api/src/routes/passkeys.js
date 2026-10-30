@@ -11,13 +11,14 @@ import { forgetReads } from '../lib/readCache.js'
 import { limitPerVisitor } from '../lib/rateLimit.js'
 import { securityLog } from '../lib/securityLog.js'
 import { MAX_NAME, checkPassword, cleanName, locked } from './auth.js'
+import { words } from '../lib/phrases.js'
 
 /* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
    account's own list, behind it. A passkey sits beside the password, never instead of it. */
 export const signInRouter = Router()
 export const router = Router()
 
-const NOT_SET_UP = 'Passkeys are not set up on this server.'
+const NOT_SET_UP = words('passkey.notSetUp')
 // the vague sign-in error (20a): a passkey this server does not know reads like one that failed
 const DID_NOT_WORK = "That passkey didn't work. Try again, or use your password."
 
@@ -86,7 +87,7 @@ router.post('/start', async (req, res) => {
 	if (!site) return notSetUp(res)
 	const { user: known, wait } = await checkPassword(req, req.user.email, String(req.body?.password ?? ''))
 	if (wait) return locked(res, wait)
-	if (!known) return res.status(400).json({ error: 'That is not your password.', fields: { password: 'That is not your password.' } })
+	if (!known) return res.status(400).json({ error: words('passkey.wrongPassword'), fields: { password: words('passkey.wrongPassword') } })
 	const user = selectUser.get(req.user.id)
 	const options = await generateRegistrationOptions({
 		rpName: 'Spendly', rpID: site.rpID,
@@ -104,14 +105,14 @@ router.post('/', async (req, res) => {
 	const site = passkeySite()
 	if (!site) return notSetUp(res)
 	const challenge = takeChallenge(`add:${req.user.id}`)
-	if (!challenge) return res.status(400).json({ error: 'That took too long. Try again.' })
+	if (!challenge) return res.status(400).json({ error: words('passkey.tooLong') })
 	const result = await verifyRegistrationResponse({
 		response: req.body?.response, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		requireUserVerification: false
 	}).catch(() => null)
 	if (!result?.verified) {
 		securityLog(req, 'passkey-add-refused', { reason: 'did not prove itself' })
-		return res.status(400).json({ error: 'The passkey could not be added. Try again.' })
+		return res.status(400).json({ error: words('passkey.notAdded') })
 	}
 	const { credential, aaguid } = result.registrationInfo
 	const name = passkeyName(aaguid, req.get('user-agent'))
@@ -120,7 +121,7 @@ router.post('/', async (req, res) => {
 		insertPasskey.run(credential.id, req.user.id, Buffer.from(credential.publicKey), credential.counter,
 			JSON.stringify(credential.transports ?? []), name, at)
 	} catch (e) {
-		if (e.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') return res.status(409).json({ error: 'That passkey is already added.' })
+		if (e.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') return res.status(409).json({ error: words('passkey.alreadyAdded') })
 		throw e
 	}
 	securityLog(req, 'passkey-added', { passkeyId: credential.id, name })
@@ -130,15 +131,15 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', (req, res) => {
 	const name = cleanName(req.body?.name)
-	if (!name) return res.status(400).json({ error: 'Give the passkey a name.' })
-	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
-	if (!renamePasskey.run(name, req.params.id, req.user.id).changes) return res.status(404).json({ error: 'That passkey is not on this account.' })
+	if (!name) return res.status(400).json({ error: words('passkey.nameMissing') })
+	if (name.length > MAX_NAME) return res.status(400).json({ error: words('account.nameLong', { most: MAX_NAME }) })
+	if (!renamePasskey.run(name, req.params.id, req.user.id).changes) return res.status(404).json({ error: words('passkey.notHere') })
 	res.json({ id: req.params.id, name })
 })
 
 /** Removing one sends nothing, and the password keeps working, so removing the last one locks nobody out. */
 router.delete('/:id', (req, res) => {
-	if (!deletePasskey.run(req.params.id, req.user.id).changes) return res.status(404).json({ error: 'That passkey is not on this account.' })
+	if (!deletePasskey.run(req.params.id, req.user.id).changes) return res.status(404).json({ error: words('passkey.notHere') })
 	securityLog(req, 'passkey-removed', { passkeyId: req.params.id })
 	res.status(204).end()
 })

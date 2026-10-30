@@ -1,136 +1,77 @@
-# One dialog when an order repeats one you have
+# Emails in Danish
 
-Brief: a scan of a file you already have, or a scan that matches an existing order, opened the review (the unsaved order) instead of asking. Make it one flow: one dialog, used the same way everywhere.
+## Fixed from handoff_emails_in_danish
 
-## Added since handoff_one_duplicate_dialog_fixed
+**The problem.** The package still called the email files send-ready. Once their words move to the phrase files, the .html and .txt files are templates the server fills in, not finished emails.
 
-**The problem.** Open that order in the dialog opened the matched order in the same window, taking him away from the scan or form he was deciding about.
+**What changed.** `emails/README.md` opens by saying each file is a template: the server fills in the phrases in the email's language, then the values, and sends the two as multipart/alternative. The templates and the phrase files are what the server keeps a copy of. In Auth and first run 20f, the note "Send-ready files" is now "Templates, not finished emails".
 
-**What changed.** Open that order and Open that draft always open in a new window, on desktop and phone. The dialog and the scan or form stay as they were behind it, so he can look and come back to Create anyway or Discard. Opening one creates and discards nothing. No icon is added; the button looks as drawn.
-
-**Where.** `Order create 3c`, the note on Open that order. App: `react/src/pages/OrderNew.jsx` and the dialog's use in `react/src/pages/OrderForm.jsx`, the row's Open link (`target="_blank"`, `rel="noopener"`).
+**Where.** `emails/README.md`, the opening paragraph. Auth and first run 20f, the first note.
 
 **What is still open.** Nothing.
 
-## Fixed from handoff_one_duplicate_dialog
+Answers `Brief-emails-in-danish.md`: a Danish version of every email, where the files live, and the Danish status subject. The words themselves are not in this package. They are taken out of the layouts and written in English and Danish by Claude Code, to the rules below.
 
-**The problem.** In the 3c dialog for a same-file scan, the first record row was wider than the 420px dialog: its middle column could not shrink below its two buttons, so the amount ran past the row's padding and did not line up with the draft row's amount.
+## 1. One layout per email, its words in a phrase file per language
 
-**What changed.** Every record row in the 3c dialogs uses the app's `SeenBefore` row markup: the middle column is `sp-stack sp-gap-8 sp-grow`, its buttons `sp-row-flex sp-gap-8 sp-wrap`, the amount `sp-stacked sp-cell-amount sp-flex-none`, with no spacer. No style values changed.
+**The problem.** Every email is in English only. The server sends `design/emails` as they are, and `design:check` holds them equal to the drawn files, so the app cannot change a word. A copy of every email per language would mean two layouts to keep equal, and one more for each language added later.
 
-**Where.** `Order create 3c`, both desktop dialogs. App: none; `react/src/pages/OrderNew.jsx` already draws it so.
+**What changed.** Each email keeps the one layout drawn in 20f for every language. Its words move to one phrase file per language, in the ICU message format the app already uses:
+
+- `design/emails/language/en.json` and `design/emails/language/da.json`, one file per language code. The server keeps its copy beside its copy of the emails (`api/src/emails/`), as now.
+- Every class, inline style and Outlook detail stays in the layout. Words that are bold or linked inside a sentence (the address, the passkey name, "Change it in Settings", "Files in Ask") are a tag in the phrase, and the tag's markup is in the layout.
+- The subject is a phrase too, on the first line of each `.txt`, the status and conversation emails included. `<html lang>` is the email's language.
+- The merge fields and Mustache sections stay as they are. The question and the answer in a conversation email are the reader's and Spendly's own words, not phrases.
+- The layout does not change with the language: a longer Danish line wraps inside the same card, button and tile, as a long name does.
+- A further language is one new file, `emails/language/<code>.json`, and nothing in the layouts.
+
+**Where.** `emails/README.md`, Languages. Auth and first run 20f, notes "Every email is in the account's language" and "The layout does not change with the language". App: `api/src/emails/`, `api/src/lib/emails.js`, and the senders named in the brief.
 
 **What is still open.** Nothing.
 
-## 1. One dialog, "You already have this order"
+## 2. The words the server writes today move into the phrase files
 
-**The problem.** The same warning was said three ways. A same-file scan replaced step 2 with a full 3c screen; a reading that matched an order by vendor, date and total opened the review with only an amber row in the Totals card, easy to miss; orders typed, copied or edited showed the same amber row. In the app the 3c screen also listed a draft holding the file before the order, so "Open that draft" came first.
+**The problem.** The status and conversation emails get English sentences from the server: your_label, compare, saved_sub, count_sub, limits_heading, scope, over, last_label, difference, next_label, next_rows, orders_link, saving, bookmarks_label, the Needs a look text and action, frequency_line, quiet_heading, quiet_line, subject and preheader (`api/src/lib/statusEmail.js`), and the conversation's subject (`api/src/lib/askChat.js`). The README said "the sentences stay English".
 
-**What changed.** One dialog (`sp-dialog`, a sheet on a phone), heading "You already have this order", for both kinds of match, on every way of making an order:
-- It opens the first moment the order's vendor, date and total are known: a scan when its reading is ready (a same-file match on upload, since its reading is saved), an order typed or copied on Create, an edit on Save.
-- One list: orders holding the same file first, newest first, then look-alike orders (same vendor, date up to 3 days away, total within 10%), then a draft holding the file. Up to three orders, "and 2 more" in the body. Each row: mark, vendor, facts line, why it matched ("Same file - scanned 12 Aug, 14:32", "Same file", "Same vendor - 2 days earlier"), amount.
-- The first row's Open that order is the one primary; other rows outline; a draft's reads Open that draft. Compare the files on same-file rows only.
-- Foot: Create anyway and Discard, outline. On an edit: Save anyway and Discard changes. Read it again on the left only when a listed same-file record has a saved reading.
-- Create anyway on a scan opens the review from the saved reading, or reads the file first; on a typed or copied order it creates the order. Discard on a scan deletes the upload and returns to step 1; on a new order it throws it away. Escape returns to where he was (the form, or step 1 with the upload kept 24 hours).
-- Asked once per scan or form for the same orders; asked again only when a change makes it match a different order.
-- No draft is made by the dialog; a scan still becomes a draft at the first change or Create in the review.
+**What changed.** These sentences become phrases, so every word of an email is in one place. The server sends only what the words need: weekly or monthly, the week numbers, month names in the email's language (mid-sentence, and with a capital where a phrase starts with one), the dates and amounts written as now, the counts, which way a comparison went (less, more, the same, no orders before), whether the budget came in under, over or as expected, and which kind each Needs a look row is (drafts, late orders, possible duplicate vendors, orders without a receipt). The README's line "the sentences stay English" is removed.
 
-**Where.**
-- `Order create 3c`: section retitled "You already have this order", the flow table, two desktop dialogs and the phone sheet, the notes. The old stage-2 screen and its never-read state are gone.
-- `Order create 3a`: the amber row specimens (Totals card, phone) and their notes are replaced by one note pointing to 3c. The limits notice (8b) is unchanged. The draft note's 24-hour sentence now points to the dialog.
-- `Mobile screens 7a`: the 3c phone frame is the sheet.
-- App: `react/src/pages/OrderNew.jsx` (`SeenBefore` becomes the dialog over step 1 or step 2; `Scanned` asks it when the reading is ready, from `seen` plus the look-alike), `react/src/pages/OrderForm.jsx` (`lookalikeNotice` removed; Create and Save ask the dialog), `api/src/routes/scan.js` (`seenBefore` also returns the look-alike once read), `api/src/routes/orders.js` (`GET /lookalike`).
+In the conversation email, `currency_name` is the currency's name in the email's language: "danske kroner" in Danish.
 
-**What is still open.** No new component: the dialog, sheet, list row and buttons are the existing c13, c23 and button markup.
+**Where.** `emails/README.md`, Languages, "Words the server writes today", and Ask conversation. Auth and first run 20f. App: `api/src/lib/statusEmail.js`, `api/src/lib/askChat.js` (`currencyName`, the subject).
 
-## 2. Every order that holds the file is found
+**What is still open.** Nothing.
 
-**The problem.** `selectOrdersWithFile` in `api/src/routes/scan.js` joins `vendors` with an inner join and matches only `a.order_id`, so an order with no vendor, and a file attached to one of an order's lines, are never found: that scan went straight to the review.
+## 3. The Danish subjects
 
-**What changed.** Both count as holding the file and open the dialog. An order with no vendor is named by its reference.
+**The problem.** The brief asks for the Danish wording of the status subject, weekly and monthly, with and without orders.
 
-**Where.** `Order create 3c`, note "Every order that holds the file is found". App: `api/src/routes/scan.js` (`selectOrdersWithFile`: left join vendors, and attachments reached through `order_items`).
+**What changed.**
 
-**What is still open.** Naming a vendorless order by its reference: please confirm.
+- status, weekly: "Uge 42 i Spendly: 9.870 kr. brugt"
+- status, monthly: "September i Spendly: 61.480 kr. brugt"
+- status-quiet: "Uge 43 i Spendly: intet brugt", "September i Spendly: intet brugt"
+- ask-chat: "Din samtale i Spendly, 21. okt. 2026"
+
+The Danish words follow the app's own Danish: Indstillinger, Spørg, Filer, Statusmail, Ugentlig, Månedlig, Kræver opmærksomhed, Sparet, adgangsnøgle, totrinslogin, gendannelseskode, e-mail.
+
+**Where.** `emails/README.md`, Languages, "Subjects in Danish". Auth and first run 20f, the captions under specimens 5, 6, 7 and 11.
+
+**What is still open.** Nothing.
 
 ## later.md
 
-Read on main before this task. Its one entry, a deleted record kept for a while, is an idea for later and is not a design fix.
+Read on main before the task. Its one entry, Recently deleted, is an idea kept for later and is not part of this change.
 
 ## Files
 
-- `Order create.dc.html` - a page that changed (3a, 3c).
-- `Mobile screens.dc.html` - a page that changed (7a, the 3c frame).
 - `README.md` - the design's overview, unchanged.
-- `support.js`, `components.js`, `icons.js`, `view.js` - loaded by the pages.
-- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css` - loaded by the pages, unchanged.
-- `styles/pages/order-create.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - linked by the two pages, unchanged.
+- `CHANGES.md` - this note.
+- `Auth and first run.dc.html` - 20f: the two language notes and the Danish subjects in the captions.
+- `emails/README.md` - the Languages section, the field notes it changes.
+- `emails/*` - the other email files, unchanged, which 20f loads to draw its specimens.
+- `support.js`, `components.js`, `icons.js`, `view.js` - what the page loads to open from the folder.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/auth-and-first-run.css` - the stylesheets the page links.
 
 ## styles/check.js
 
 0 finding(s) across 28 pages
-
-## Also: The vendor field is drawn as the searchable combobox
-
-## Fixed from handoff_vendor_field_chevron_fixed
-
-**The problem.** `handoff_vendor_field_chevron_fixed` was built from `design/` on main before the merge of the shop offers removal (`handoff_remove_shop_offers`). It put back `.sp-mark--logo`, `.sp-link-out` with its `.sp-stacked:has(> a.sp-link-out)` rule, `.sp-chat__file > .sp-chat__price`, their specimens and notes in `Components.dc.html`, and `assets/shop-logo.svg`. That removal is now on main, so those parts were taken out on purpose and must not come back.
-
-**What changed.** This package is built again from `design/` on main as pulled at 2026-10-30T06:21:42Z, with the removal and the combobox list width change merged. The three parts and `assets/shop-logo.svg` are not in it. Only the five vendor fields and the c5 chevron below are applied on top; every other file is main's, unchanged.
-
-**What is still open.** Nothing.
-
-## 1. A chevron on the vendor field
-
-**The problem.** The order form's vendor field is the searchable combobox (mode 2, Components c5), whose list offers Favourites, Recent and the other vendors. Five drawings showed it as a plain text input with no chevron, so it read as a field you can only type in.
-
-**What changed.** Each of the five is now drawn as the closed searchable combobox from c5: `.sp-combobox` around `.sp-field__wrap`, the input `.sp-input--trail` with `role="combobox"`, `aria-expanded="false"`, `aria-autocomplete="list"`, and the `.sp-field__chevron` at its right end, pointing down. No style values or components changed; this is the existing c5 markup.
-
-**Where.**
-- `Order create`, the vendor field in the screen at the top of the page (`oc-fv`) and the one further down (`oc-f5`).
-- `Order editing layouts`, the vendor field (`oe-lbl5`).
-- `Responsive reference`, the vendor field (`rr-f1`).
-- `States and confirmations`, the vendor field in its "A vendor is required" error state (`sc-f3`).
-- App: none. The order form's vendor field is already a searchable `Combobox` with the down chevron (`react/src/pages/OrderForm.jsx`, `VendorPicker`).
-
-**What is still open.** Nothing.
-
-## 2. The c5 searchable specimen's chevron points down
-
-**The problem.** The c5 specimen "Combobox - mode 2, searchable" was drawn closed with its chevron pointing up. The rule beside it says a closed chevron points down and turns up only for a list placed above.
-
-**What changed.** The chevron points down, as on every closed dropdown.
-
-**Where.** `Components c5`, the "Combobox - mode 2, searchable" specimen. App: none; the component already draws it down.
-
-**What is still open.** Nothing.
-
-## later.md
-
-Read on main before this task. Its one entry, a deleted record kept for a while, is an idea for later and is not a design fix.
-
-## Files
-
-- `Order create.dc.html` - a page that changed.
-- `Order editing layouts.dc.html` - a page that changed.
-- `README.md` - the design's overview, unchanged.
-- `Responsive reference.dc.html` - a page that changed.
-- `States and confirmations.dc.html` - a page that changed.
-- `components.js` - loaded by the changed pages.
-- `icons.js` - loaded by the changed pages.
-- `styles/components.css` - loaded by the changed pages.
-- `styles/doc.css` - loaded by the changed pages.
-- `styles/pages/order-create.css` - loaded by the changed pages.
-- `styles/pages/order-editing.css` - loaded by the changed pages.
-- `styles/pages/responsive-reference.css` - loaded by the changed pages.
-- `styles/pages/states.css` - loaded by the changed pages.
-- `styles/schemes.css` - loaded by the changed pages.
-- `styles/tokens.css` - loaded by the changed pages.
-- `support.js` - loaded by the changed pages.
-- `view.js` - loaded by the changed pages.
-- `Components.dc.html` - the c5 specimen's chevron, on main's copy.
-- `CHANGES.md` - this note.
-
-## styles/check.js
-
-0 finding(s) across 28 pages, run in the design project with these same changes applied.

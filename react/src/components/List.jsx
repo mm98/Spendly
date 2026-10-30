@@ -10,7 +10,8 @@ import { Button, IconButton } from './Button.jsx'
 import { Cards, ListFooter, useLongPress } from './Card.jsx'
 import { Icon } from './Icon.jsx'
 import { ShellHead } from './Shell.jsx'
-import { formatNumber, singular } from './format.js'
+import { formatNumber } from './format.js'
+import { usePhrase } from '../language/phrases.js'
 
 const WIDTH = {
 	title: 'sp-col-title',
@@ -138,12 +139,14 @@ const partsOf = children => {
     @param {string} props.noun What the records are, plural, as in Select all 5 orders.
     @param {(checked: boolean) => void} props.onToggleAll */
 export function SelectAllBox({ selectedCount, total, noun, onToggleAll }) {
+	const phrase = usePhrase()
 	const all = total > 0 && selectedCount === total
+	const words = { noun, count: total, shown: formatNumber(total, { decimals: 0 }) }
 	return (
 		<Check
 			checked={all}
 			indeterminate={selectedCount > 0 && !all}
-			aria-label={all ? `Clear the ${total} selected ${noun}` : `Select all ${total} ${noun} on this page`}
+			aria-label={phrase(all ? 'list.clearSelected' : 'list.selectAll', words)}
 			onChange={ev => onToggleAll(ev.target.checked)}
 		/>
 	)
@@ -224,6 +227,7 @@ function ListTable({
 	...rest
 }) {
 	reject(rest, 'List')
+	const phrase = usePhrase()
 	const counted = n => formatNumber(n, { locale, decimals: 0 })
 	if (rowTo && onRowClick) console.error('<List> a row either goes somewhere (rowTo) or acts (onRowClick), not both')
 	const navigate = useNavigate()
@@ -315,14 +319,13 @@ function ListTable({
 		navigate(to)
 	}
 
-	const one = singular(noun)
 	const chosen = data.filter(r => picked.includes(recordKey(r)))
 
 	const slot = (given, arg, fallback) =>
 		given === null || given === undefined ? fallback : typeof given === 'function' ? given(arg) : given
-	const captionContent = slot(caption, data, <strong className="sp-data">{counted(count)} {count === 1 ? one : noun}</strong>)
+	const captionContent = slot(caption, data, <strong className="sp-data">{phrase('list.count', { noun, count, shown: counted(count) })}</strong>)
 	const selectedContent = slot(selected, chosen,
-		<span className="sp-bulkbar__count">{chosen.length === 1 ? `1 ${one} picked` : `${chosen.length} ${noun} picked`}</span>)
+		<span className="sp-bulkbar__count">{phrase('list.picked', { noun, count: chosen.length, shown: counted(chosen.length) })}</span>)
 
 	return (
 		<Arrival.Provider value={pending}>
@@ -361,8 +364,8 @@ function ListTable({
 							<th scope={c.children || c.width === 'menu' ? 'col' : undefined} className={pick(WIDTH, c.width, 'width', 'ListCell')} key={n}>
 								{/* the menu column draws no words, but its head is still named for a screen reader */}
 								{headless
-									? <span className="sp-announce">{c.children ?? (c.width === 'menu' ? 'Actions' : null)}</span>
-									: c.children ?? (c.width === 'menu' ? <span className="sp-announce">Actions</span> : null)}
+									? <span className="sp-announce">{c.children ?? (c.width === 'menu' ? phrase('list.actions') : null)}</span>
+									: c.children ?? (c.width === 'menu' ? <span className="sp-announce">{phrase('list.actions')}</span> : null)}
 							</th>
 						))}
 					</tr>
@@ -405,6 +408,7 @@ function ListTable({
     @param {import('react').ReactNode} [props.children] A part beside the count. */
 export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, locale, children, ...rest }) {
 	reject(rest, 'ListMore')
+	const phrase = usePhrase()
 	const line = useRef(null)
 	const asked = useRef(null)
 	const still = useStill()
@@ -444,12 +448,12 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
 	const more = () => { asked.current = shown; onMore?.() }
 	return (
 		<ListFooter loose={loose} {...rest}>
-			<span className="sp-subtitle" ref={line} tabIndex={-1}>Showing {counted(shown)} of {counted(total)}</span>
+			<span className="sp-subtitle" ref={line} tabIndex={-1}>{phrase('list.showing', { shown: counted(shown), total: counted(total) })}</span>
 			{children}
 			<span className="sp-grow" />
 			{/* gone once everything is loaded, not disabled: a disabled Load more is
 			    a promise of more that will not be kept */}
-			{shown < total ? <Button variant="outline" size="small" onClick={more}>Load more</Button> : null}
+			{shown < total ? <Button variant="outline" size="small" onClick={more}>{phrase('list.loadMore')}</Button> : null}
 		</ListFooter>
 	)
 }
@@ -466,6 +470,7 @@ export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, lo
     @param {import('react').ReactNode} [props.children] What can be done to the picked records: the buttons. */
 export function BulkBar({ loose = false, head = false, count, onClear, selectAll, children, ...rest }) {
 	reject(rest, 'BulkBar')
+	const phrase = usePhrase()
 	const slot = useContext(ShellHead)
 	if (head) {
 		const bar = (
@@ -473,7 +478,7 @@ export function BulkBar({ loose = false, head = false, count, onClear, selectAll
 				<span className="sp-bulkbar__count sp-truncate">{count}</span>
 				<span className="sp-grow" />
 				{children}
-				<IconButton icon="x" aria-label="Clear the selection" onClick={() => onClear?.()} />
+				<IconButton icon="x" aria-label={phrase('list.clearSelection')} onClick={() => onClear?.()} />
 			</div>
 		)
 		// it takes the top bar's slot, edge to edge, rather than sitting inside the page's inset
@@ -481,7 +486,7 @@ export function BulkBar({ loose = false, head = false, count, onClear, selectAll
 	}
 	return (
 		<div className={join('sp-bulkbar', loose && 'sp-bulkbar--loose')} {...rest}>
-			{selectAll ? <SelectAllBox {...selectAll} /> : <Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />}
+			{selectAll ? <SelectAllBox {...selectAll} /> : <Check checked aria-label={phrase('list.clearSelection')} onChange={() => onClear?.()} />}
 			<span className="sp-bulkbar__count">{count}</span>
 			<span className="sp-grow" />
 			<div className="sp-row-flex sp-gap-8">{children}</div>
@@ -519,12 +524,13 @@ export function Controls({ children, ...rest }) {
     @param {import('react').ReactNode} [props.children] One Crumb for each filter now on. */
 export function Filters({ onClear, children, ...rest }) {
 	reject(rest, 'Filters')
+	const phrase = usePhrase()
 	const row = useRef(null)
 	useKeptFocus(row)
 	return (
 		<div className="sp-filters" ref={row} onClickCapture={keepFocus} {...rest}>
 			{children}
-			{onClear ? <Button variant="outline" size="small" onClick={onClear}>Clear all</Button> : null}
+			{onClear ? <Button variant="outline" size="small" onClick={onClear}>{phrase('list.clearAll')}</Button> : null}
 		</div>
 	)
 }
@@ -596,6 +602,7 @@ export function Facets({ children, ...rest }) {
     @param {string | number} [props.children] The filter's words. */
 export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	reject(rest, 'Crumb')
+	const phrase = usePhrase()
 	const backspace = ev => { if (ev.key === 'Backspace' && onRemove) { ev.preventDefault(); onRemove(ev) } }
 	// a crumb is text only, never a mark: most levels (a period, a status, a range) have none (c8)
 	if (Children.toArray(children).some(c => typeof c !== 'string' && typeof c !== 'number')) console.error('<Crumb> is text only')
@@ -604,7 +611,7 @@ export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
 	return (
 		<span className="sp-crumb" {...rest}>
 			{label}
-			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove} onKeyDown={backspace}>×</button>
+			<button type="button" className="sp-crumb__remove" aria-label={phrase('list.removeFilter', { name: name ?? children })} onClick={onRemove} onKeyDown={backspace}>×</button>
 		</span>
 	)
 }
@@ -615,9 +622,10 @@ export function Crumb({ name, onRemove, onOpen, children, ...rest }) {
     @param {import('react').ReactNode} [props.children] One Crumb for each level drilled into. */
 export function Crumbs({ root, children, ...rest }) {
 	reject(rest, 'Crumbs')
+	const phrase = usePhrase()
 	const levels = [].concat(children ?? []).flat().filter(Boolean)
 	return (
-		<nav aria-label="Drill path" {...rest}>
+		<nav aria-label={phrase('list.drillPath')} {...rest}>
 			<ol className="sp-crumbs">
 				{root ? <li><span className="sp-crumbs__root">{root}</span></li> : null}
 				{levels.map((level, i) => <li key={level.key ?? i}>{level}</li>)}

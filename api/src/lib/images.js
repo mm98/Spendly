@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { compressBlob } from './blobCompression.js'
 import { cleanOriginal } from './cleanImage.js'
 import { detectFileType, detectKind } from './fileType.js'
+import { refusal } from './phrases.js'
 
 /* Every image attachment (a manual upload or a scan) is resized on the way in, not stored at
    whatever resolution the source produced — a phone photo is routinely 4000x3000 and several
@@ -135,7 +136,7 @@ export async function processPicture(buffer) {
 }
 
 const refuseUnreadable = name => {
-	throw Object.assign(new Error(`The picture "${name ?? 'attachment'}" could not be opened. Save it as a JPEG or PNG and add it again. Nothing was added.`), { status: 415 })
+	throw name == null ? refusal(415, 'upload.pictureUnreadable') : refusal(415, 'upload.namedPictureUnreadable', { name })
 }
 
 /** { data, dataCompressed, contentType, size, thumbnail, thumbnailCompressed, thumbnailContentType }

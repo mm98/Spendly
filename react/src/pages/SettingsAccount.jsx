@@ -14,16 +14,17 @@ import { invalidate, useApi } from '../api/useApi.js'
 import { plural } from '../api/format.js'
 import { MIN_PASSWORD, PasswordHint } from './AuthParts.jsx'
 import { landing } from './SettingsParts.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const DAY = 24 * 60 * 60
 
 /** "today", "3 days ago", "4 months ago": when the password last changed, as a reader counts it. */
 const ago = epoch => {
 	const days = Math.floor((Date.now() / 1000 - epoch) / DAY)
-	if (days < 1) return 'today'
-	if (days < 31) return `${plural(days, 'day')} ago`
-	if (days < 365) return `${plural(Math.floor(days / 30.44), 'month')} ago`
-	return `${plural(Math.floor(days / 365.25), 'year')} ago`
+	if (days < 1) return phrase('time.today')
+	if (days < 31) return phrase('time.ago', { time: plural(days, 'day') })
+	if (days < 365) return phrase('time.ago', { time: plural(Math.floor(days / 30.44), 'month') })
+	return phrase('time.ago', { time: plural(Math.floor(days / 365.25), 'year') })
 }
 
 // the smallest picture the server keeps, so a picture too small is said at once rather than at Save
@@ -31,14 +32,14 @@ const MIN_PICTURE = 128
 
 /** Whether `file` can be the account's picture: null when it can, else why not. */
 async function pictureProblem(file) {
-	if (!/^image\/(jpeg|png)$/.test(file.type)) return 'That file is not a JPG or PNG picture.'
+	if (!/^image\/(jpeg|png)$/.test(file.type)) return phrase('account.picture.type')
 	try {
 		const bitmap = await createImageBitmap(file)
 		const small = Math.min(bitmap.width, bitmap.height) < MIN_PICTURE
 		bitmap.close()
-		return small ? `That picture is too small. It must be at least ${MIN_PICTURE} by ${MIN_PICTURE}.` : null
+		return small ? phrase('account.picture.small', { size: MIN_PICTURE }) : null
 	} catch {
-		return 'That picture could not be read. Choose a JPG or PNG.'
+		return phrase('account.picture.unread')
 	}
 }
 
@@ -56,8 +57,8 @@ function usePreview(file) {
 
 // the status email's switches (11a), either, both or neither
 const STATUS_EMAILS = [
-	{ key: 'weekly', setting: 'statusEmailWeekly', label: 'Weekly', description: 'Every Monday, for the week just ended.' },
-	{ key: 'monthly', setting: 'statusEmailMonthly', label: 'Monthly', description: 'On the 1st, for the month just ended. On a Monday it comes instead of the weekly one.' }
+	{ key: 'weekly', setting: 'statusEmailWeekly', label: 'statusEmail.weekly', description: 'statusEmail.weeklyHelp' },
+	{ key: 'monthly', setting: 'statusEmailMonthly', label: 'statusEmail.monthly', description: 'statusEmail.monthlyHelp' }
 ]
 
 /** The status email's switches, each saved the moment it is switched. */
@@ -73,7 +74,7 @@ function useStatusEmail() {
 			.then(() => invalidate(getSettings))
 			.catch(e => {
 				setChosen(null)
-				const message = failureMessage(e, 'Your status email was not changed. Try again.')
+				const message = failureMessage(e, phrase('statusEmail.notChanged'))
 				if (message) toast({ message, color: 'danger' })
 			})
 	}
@@ -87,8 +88,8 @@ function useStatusEmailTest() {
 	const send = () => {
 		setSending(true)
 		sendTestStatusEmail()
-			.then(({ email }) => toast({ message: `Test sent to ${email}` }))
-			.catch(() => toast({ message: 'The test could not be sent. Try again.', color: 'danger' }))
+			.then(({ email }) => toast({ message: phrase('statusEmail.testSent', { email }) }))
+			.catch(() => toast({ message: phrase('statusEmail.testFailed'), color: 'danger' }))
 			.finally(() => setSending(false))
 	}
 	return { sending, send }
@@ -97,23 +98,24 @@ function useStatusEmailTest() {
 /** The Status email card (11a), under the account card on a desktop and on its own page on a phone.
     Absent while this server cannot send email, as nothing would arrive. */
 export function StatusEmailCard({ user }) {
+	const phrase = usePhrase()
 	const { ready, value, choose } = useStatusEmail()
 	const { sending, send } = useStatusEmailTest()
 	if (!user?.mail || !ready) return null
 	const button = sending
-		? <Button key="test" variant="outline" fullWidth disabled><Spinner />Sending…</Button>
-		: <Button key="test" variant="outline" fullWidth onClick={send}>Send a test email</Button>
+		? <Button key="test" variant="outline" fullWidth disabled><Spinner />{phrase('links.sending')}</Button>
+		: <Button key="test" variant="outline" fullWidth onClick={send}>{phrase('statusEmail.test')}</Button>
 	return (
 		<Card footerCommits footer={button}>
-			<CardHeader name="Status email" id="status-email-label" />
+			<CardHeader name={phrase('settings.statusEmail')} id="status-email-label" />
 			<span className="sp-data">
-				What you spent and saved, limits passed, your latest orders and bookmarks, sent to <b className="sp-ink sp-break">{user.email}</b>.
+				{phrase('statusEmail.lead', { email: user.email, b: words => <b className="sp-ink sp-break">{words}</b> })}
 			</span>
 			<FieldGroup aria-labelledby="status-email-label">
 				{STATUS_EMAILS.map(s => (
-					<Choice key={s.key} variant="described" description={s.description}
+					<Choice key={s.key} variant="described" description={phrase(s.description)}
 						control={<Switch checked={value[s.key]} onChange={ev => choose(s.key, ev.target.checked)} />}>
-						{s.label}
+						{phrase(s.label)}
 					</Choice>
 				))}
 			</FieldGroup>
@@ -124,6 +126,7 @@ export function StatusEmailCard({ user }) {
 /** The account's own card (11a): picture, name, the email it signs in with, and the password. The
     picture applies with the card's Save, like the name (16a): `picture` holds a new file, or null to remove. */
 export function AccountCard({ user, value, change, touch }) {
+	const phrase = usePhrase()
 	const toast = useToast()
 	const input = useRef(null)
 	const [problem, setProblem] = useState(null)
@@ -156,12 +159,12 @@ export function AccountCard({ user, value, change, touch }) {
 
 	const fields = (
 		<>
-			<Field label="Name" id="account-name">
+			<Field label={phrase('field.name')} id="account-name">
 				<TextField autoComplete="name" value={name} maxLength={80} onChange={v => change('name', v)} />
 			</Field>
 			{/* read-only, so not a field to type in: the address kept whole on one line (11a) */}
 			<div className="sp-field">
-				<span className="sp-field__label" id="account-email-label">Email</span>
+				<span className="sp-field__label" id="account-email-label">{phrase('field.email')}</span>
 				<div className="sp-input sp-input--readonly" id="account-email" role="textbox" aria-readonly="true" aria-labelledby="account-email-label">
 					<EmailLine email={user?.email ?? ''} />
 				</div>
@@ -171,30 +174,30 @@ export function AccountCard({ user, value, change, touch }) {
 
 	return (
 		<Card>
-			<CardHeader name="Account and profile" {...landing('account')} />
+			<CardHeader name={phrase('settings.section.account')} {...landing('account')} />
 			<div className="sp-row-flex sp-gap-16">
 				{avatar}
 				<div className="sp-stack sp-gap-6">
 					<div className="sp-row-flex sp-gap-8">
 						<input ref={input} id="account-picture" type="file" accept="image/jpeg,image/png" hidden
 							onChange={ev => choose(ev.target.files?.[0])} />
-						<Button variant="outline" size="small" onClick={() => input.current?.click()}>Upload a photo</Button>
-						{shown ? <Button variant="outline" size="small" onClick={remove}>Remove</Button> : null}
+						<Button variant="outline" size="small" onClick={() => input.current?.click()}>{phrase('account.upload')}</Button>
+						{shown ? <Button variant="outline" size="small" onClick={remove}>{phrase('action.remove')}</Button> : null}
 					</div>
 					<span className={problem ? 'sp-meta sp-ink-danger' : 'sp-meta'} role={problem ? 'alert' : undefined}>
-						{problem ?? 'JPG or PNG, at least 128×128.'}
+						{problem ?? phrase('account.picture.hint', { size: MIN_PICTURE })}
 					</span>
 				</div>
 			</div>
 			{touch ? fields : <Halves>{fields}</Halves>}
 			<CardFooter>
 				<span className="sp-data">
-					{user?.passwordChangedAt ? `Password last changed ${ago(user.passwordChangedAt)}.` : 'Your password has not been changed here.'}
+					{user?.passwordChangedAt ? phrase('account.passwordChanged', { when: ago(user.passwordChangedAt) }) : phrase('account.passwordNever')}
 				</span>
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" onClick={() => setAsking(true)}>Change password</Button>
+				<Button variant="outline" size="small" onClick={() => setAsking(true)}>{phrase('account.changePassword')}</Button>
 			</CardFooter>
-			<Leaving>{asking ? <PasswordDialog onClose={() => setAsking(false)} onSaved={() => { setAsking(false); toast({ message: 'Your password is changed.' }) }} /> : null}</Leaving>
+			<Leaving>{asking ? <PasswordDialog onClose={() => setAsking(false)} onSaved={() => { setAsking(false); toast({ message: phrase('account.passwordSaved') }) }} /> : null}</Leaving>
 		</Card>
 	)
 }
@@ -202,6 +205,7 @@ export function AccountCard({ user, value, change, touch }) {
 /** Change password (Actions inventory, Input types 14a): the current one, then the new one with its
     meter. No second copy to type: the reveal does that job. Every other session is signed out. */
 function PasswordDialog({ onClose, onSaved }) {
+	const phrase = usePhrase()
 	const [current, setCurrent] = useState('')
 	const [next, setNext] = useState('')
 	const [problems, setProblems] = useState({})
@@ -209,8 +213,8 @@ function PasswordDialog({ onClose, onSaved }) {
 	const [busy, setBusy] = useState(false)
 	const save = () => {
 		const found = {}
-		if (!current) found.current = 'Enter your current password.'
-		if (next.length < MIN_PASSWORD) found.password = `Use at least ${MIN_PASSWORD} characters.`
+		if (!current) found.current = phrase('account.currentMissing')
+		if (next.length < MIN_PASSWORD) found.password = phrase('auth.passwordTooShort', { count: MIN_PASSWORD })
 		setProblems(found)
 		if (Object.keys(found).length) return document.getElementById(found.current ? 'password-current' : 'password-new')?.focus()
 		setBusy(true)
@@ -222,20 +226,20 @@ function PasswordDialog({ onClose, onSaved }) {
 				if (e?.fields) {
 					setProblems(e.fields)
 					document.getElementById(e.fields.current ? 'password-current' : 'password-new')?.focus()
-				} else setAlert(failureMessage(e, 'Your password was not changed. Try again.'))
+				} else setAlert(failureMessage(e, phrase('account.passwordNotSaved')))
 			})
 	}
 	return (
 		<Dialog onCancel={busy ? undefined : onClose}>
-			<DialogTitle>Change password</DialogTitle>
-			<DialogBody>Your other devices are signed out. This one stays signed in.</DialogBody>
+			<DialogTitle>{phrase('account.changePassword')}</DialogTitle>
+			<DialogBody>{phrase('account.passwordDialog')}</DialogBody>
 			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (!busy) save() }}>
-				<Field label="Current password" id="password-current" message={problems.current} messageType={problems.current ? 'danger' : 'hint'}>
+				<Field label={phrase('field.currentPassword')} id="password-current" message={problems.current} messageType={problems.current ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="current-password" autoFocus value={current}
 						onChange={v => { setCurrent(v); setProblems(p => ({ ...p, current: undefined })) }} />
 				</Field>
-				<Field label="New password" id="password-new"
-					message={problems.password ?? <PasswordHint password={next} hint={`At least ${MIN_PASSWORD} characters. Longer beats complicated.`} />}
+				<Field label={phrase('field.newPassword')} id="password-new"
+					message={problems.password ?? <PasswordHint password={next} hint={phrase('register.passwordHint', { count: MIN_PASSWORD })} />}
 					messageType={problems.password ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="new-password" value={next}
 						onChange={v => { setNext(v); setProblems(p => ({ ...p, password: undefined })) }} />
@@ -244,8 +248,8 @@ function PasswordDialog({ onClose, onSaved }) {
 				<button type="submit" hidden />
 			</form>
 			<DialogActions>
-				<Button variant="outline" disabled={busy} onClick={onClose}>Cancel</Button>
-				<Button disabled={busy} onClick={save}>{busy ? 'Saving…' : 'Change password'}</Button>
+				<Button variant="outline" disabled={busy} onClick={onClose}>{phrase('action.cancel')}</Button>
+				<Button disabled={busy} onClick={save}>{phrase(busy ? 'action.saving' : 'account.changePassword')}</Button>
 			</DialogActions>
 		</Dialog>
 	)

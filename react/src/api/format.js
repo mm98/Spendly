@@ -1,6 +1,8 @@
 /* Numbers follow the reader's chosen locale, as dates do: "24.418,57 kr." in Danish, "24,418.57 kr."
    in English. Ore where a figure can be checked against a receipt, whole kroner in a summary. */
 
+import { phrase } from '../language/phrases.js'
+
 const browserLocale = () => new Intl.NumberFormat().resolvedOptions().locale
 
 /** The locale every figure is written in, for a library control that formats or reads numbers itself. */
@@ -47,12 +49,12 @@ export const isSaving = (n, decimals = 2) => Math.round((Number(n) || 0) * 10 **
 /* The currencies an account can keep, in step with the server's CURRENCIES
    (api/src/lib/constants.js). The symbol does not always follow the figure: "$1.187,25". */
 export const CURRENCIES = [
-	{ code: 'DKK', symbol: 'kr.', before: false, label: 'Danish krone' },
-	{ code: 'SEK', symbol: 'kr', before: false, label: 'Swedish krona' },
-	{ code: 'NOK', symbol: 'kr', before: false, label: 'Norwegian krone' },
-	{ code: 'EUR', symbol: '€', before: true, label: 'Euro' },
-	{ code: 'USD', symbol: '$', before: true, label: 'US dollar' },
-	{ code: 'GBP', symbol: '£', before: true, label: 'Pound sterling' }
+	{ code: 'DKK', symbol: 'kr.', before: false, label: 'currency.dkk' },
+	{ code: 'SEK', symbol: 'kr', before: false, label: 'currency.sek' },
+	{ code: 'NOK', symbol: 'kr', before: false, label: 'currency.nok' },
+	{ code: 'EUR', symbol: '€', before: true, label: 'currency.eur' },
+	{ code: 'USD', symbol: '$', before: true, label: 'currency.usd' },
+	{ code: 'GBP', symbol: '£', before: true, label: 'currency.gbp' }
 ]
 
 // one value for the whole session, set where the settings arrive (routes.jsx) and where they are saved
@@ -100,13 +102,13 @@ export const parseAmount = v => {
 /* The locales an account can choose, in step with the server's LOCALES (api/src/lib/constants.js).
    'auto' keeps asking the browser; a label names the region whose way of writing dates it is. */
 export const LOCALES = [
-	{ code: 'auto', label: 'Match my browser' },
-	{ code: 'da-DK', label: 'Danish' },
-	{ code: 'sv-SE', label: 'Swedish' },
-	{ code: 'nb-NO', label: 'Norwegian' },
-	{ code: 'de-DE', label: 'German' },
-	{ code: 'en-GB', label: 'English (UK)' },
-	{ code: 'en-US', label: 'English (US)' }
+	{ code: 'auto', label: 'dateFormat.auto' },
+	{ code: 'da-DK', label: 'dateFormat.danish' },
+	{ code: 'sv-SE', label: 'dateFormat.swedish' },
+	{ code: 'nb-NO', label: 'dateFormat.norwegian' },
+	{ code: 'de-DE', label: 'dateFormat.german' },
+	{ code: 'en-GB', label: 'dateFormat.englishUk' },
+	{ code: 'en-US', label: 'dateFormat.englishUs' }
 ]
 
 // undefined is what Intl reads as the browser's own; set where the settings arrive and are saved
@@ -209,18 +211,17 @@ export const isToday = seconds => localDayOf(seconds) === today()
     once it is not this one (Ask 24a). */
 export const dayWords = seconds => {
 	const day = localDayOf(seconds)
-	if (day === today()) return 'Today'
+	if (day === today()) return phrase('calendar.today')
 	const before = new Date()
 	before.setDate(before.getDate() - 1)
-	if (day === localDayOf(before.getTime() / 1000)) return 'Yesterday'
+	if (day === localDayOf(before.getTime() / 1000)) return phrase('calendar.yesterday')
 	return dayShortMonth(day)
 }
 
 /** When a message was sent: "14:32" today, and its day in front before today ("Yesterday 20:40", "12 Oct 20:40"). */
 export const messageTime = seconds => {
 	const clock = clockFormat().format(new Date(seconds * 1000))
-	const day = dayWords(seconds)
-	return day === 'Today' ? clock : `${day} ${clock}`
+	return isToday(seconds) ? clock : `${dayWords(seconds)} ${clock}`
 }
 
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */
@@ -241,7 +242,7 @@ export const localeSample = code => {
 	const was = activeLocale
 	setLocale(code)
 	const shown = sampleFormat().format(SAMPLE_AT)
-	activeLocale = was
+	setLocale(was)
 	return shown
 }
 
@@ -258,5 +259,6 @@ export const sep = ' • '
 /** The separator between facts on one line of the interface: "3 items · 1.240,00 kr.". */
 export const dot = ' · '
 
-/** "1 item", "3 items", "1.500 orders": singular below 2, thousands grouped as every figure is. */
-export const plural = (n, noun, pluralNoun = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : pluralNoun}`
+/** "1 item", "3 items", "1.500 orders" in the language in use, thousands grouped as every figure is.
+    `noun` names its phrase under count.*: 'order', 'item line'. */
+export const plural = (n, noun) => phrase(`count.${noun.replace(/ (\w)/g, (_, c) => c.toUpperCase())}`, { count: n, shown: amount(n, 0) })

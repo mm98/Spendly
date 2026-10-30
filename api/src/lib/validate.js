@@ -1,5 +1,6 @@
 import { SPEND_KINDS, ORDER_STATUSES } from './constants.js'
 import { todayIso } from './dates.js'
+import { words } from './phrases.js'
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -13,100 +14,100 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 /** What is wrong with an optional text value, or null: it must be text of at most `max` characters. */
 export const textProblem = (value, label, max) =>
 	value == null ? null
-		: typeof value !== 'string' ? `${label} must be text.`
-			: value.length > max ? `${label} is ${max} characters at most.` : null
+		: typeof value !== 'string' ? words('text.notText', { label: words(label) })
+			: value.length > max ? words('text.tooLong', { label: words(label), most: max }) : null
 
 // a name a row shows, cut when long; past this it is not a name
 export const MAX_RECORD_NAME = 200
 
 export function validateOrderDraft(draft, today = todayIso(), statuses = ORDER_STATUSES) {
 	const errors = {}
-	const note = textProblem(draft.note, 'A note', 10000)
+	const note = textProblem(draft.note, 'text.label.note', 10000)
 	if (note) errors.note = note
-	const reference = textProblem(draft.reference, 'A reference', 200)
+	const reference = textProblem(draft.reference, 'text.label.reference', 200)
 	if (reference) errors.reference = reference
 
 	const vendor = String(draft.vendor ?? '').trim()
-	if (!vendor) errors.vendor = 'Who did you buy from?'
-	else if (vendor.length > 80) errors.vendor = '80 characters at most.'
+	if (!vendor) errors.vendor = words('order.vendorMissing')
+	else if (vendor.length > 80) errors.vendor = words('text.most80')
 
 	// a date in the future is kept: an order can be booked ahead (6c), so the form only warns
 	const date = String(draft.date ?? '')
-	if (!ISO_DATE.test(date)) errors.date = 'When was the order placed?'
+	if (!ISO_DATE.test(date)) errors.date = words('order.dateMissing')
 
 	const kind = String(draft.kind ?? '')
-	if (!kind) errors.kind = 'Pick a kind.'
+	if (!kind) errors.kind = words('order.kindMissing')
 	else if (!SPEND_KINDS.some(k => k.toLowerCase() === kind.toLowerCase()))
-		errors.kind = 'Kind is one of: ' + SPEND_KINDS.join(', ') + '.'
+		errors.kind = words('order.kindList', { kinds: SPEND_KINDS.join(', ') })
 
 	if (draft.status && !statuses.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
-		errors.status = 'That status does not exist. Pick one from the list.'
+		errors.status = words('order.statusMissing')
 
 	// Optional here, like most fields an import can omit (status itself defaults to Delivered)
 	// -- the create/edit/scan forms are what make these required, only once status warrants them.
 	if (draft.deliveredDate) {
 		const deliveredDate = String(draft.deliveredDate)
-		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = 'That is not a valid date.'
-		else if (deliveredDate > today && deliveredDate > date) errors.deliveredDate = 'A delivery cannot be dated in the future.'
-		else if (deliveredDate < date) errors.deliveredDate = 'That is before the order date.'
+		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = words('date.invalid')
+		else if (deliveredDate > today && deliveredDate > date) errors.deliveredDate = words('order.deliveryFuture')
+		else if (deliveredDate < date) errors.deliveredDate = words('order.beforeOrderDate')
 	}
 	if (draft.returnedDate) {
 		const returnedDate = String(draft.returnedDate)
-		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = 'That is not a valid date.'
-		else if (returnedDate > today && returnedDate > String(draft.deliveredDate || date)) errors.returnedDate = 'A return cannot be dated in the future.'
+		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = words('date.invalid')
+		else if (returnedDate > today && returnedDate > String(draft.deliveredDate || date)) errors.returnedDate = words('order.returnFuture')
 		else if (draft.deliveredDate && !errors.deliveredDate && returnedDate < String(draft.deliveredDate))
-			errors.returnedDate = 'That is before the delivery date.'
+			errors.returnedDate = words('order.beforeDelivery')
 	}
 
 	if (draft.statusDates != null) {
-		if (typeof draft.statusDates !== 'object' || Array.isArray(draft.statusDates)) errors.statusDates = 'Send each status date as a status and a date.'
+		if (typeof draft.statusDates !== 'object' || Array.isArray(draft.statusDates)) errors.statusDates = words('order.statusDatesShape')
 		else for (const value of Object.values(draft.statusDates)) {
-			if (value && !ISO_DATE.test(String(value))) errors.statusDates = 'That is not a valid date.'
-			else if (value && String(value) < date) errors.statusDates = 'That is before the order date.'
+			if (value && !ISO_DATE.test(String(value))) errors.statusDates = words('date.invalid')
+			else if (value && String(value) < date) errors.statusDates = words('order.beforeOrderDate')
 		}
 	}
 
 	if (draft.shipping != null && (!Number.isFinite(Number(draft.shipping)) || Number(draft.shipping) < 0))
-		errors.shipping = 'Shipping must be a non-negative amount.'
+		errors.shipping = words('order.shippingNegative')
 
 	/* The order's rabat, and the only field here that subtracts. It is entered as the amount
 	   taken off -- the sign is what the column means, not something a value carries -- so a
 	   negative discount is a surcharge, which this app has no concept of. */
 	if (draft.discount != null && (!Number.isFinite(Number(draft.discount)) || Number(draft.discount) < 0))
-		errors.discount = 'Discount must be a non-negative amount.'
+		errors.discount = words('order.discountNegative')
 
 	// a Draft keeps what was read or typed so far (16a): no line yet, or one with no name, waits for later
 	const drafting = String(draft.status ?? '').toLowerCase() === 'draft'
 	const items = Array.isArray(draft.items) ? draft.items : []
-	if (!items.length && !drafting) errors.items = 'An order needs at least one item.'
+	if (!items.length && !drafting) errors.items = words('order.noItems')
 	items.forEach((item, i) => {
 		const title = String(item.title ?? '').trim()
-		if (!title && !drafting) errors[`items.${i}.title`] = 'Describe the item.'
-		else if (title.length > 120) errors[`items.${i}.title`] = '120 characters at most.'
+		if (!title && !drafting) errors[`items.${i}.title`] = words('order.itemTitleMissing')
+		else if (title.length > 120) errors[`items.${i}.title`] = words('text.most120')
 
 		/* Rounded and compared back, not `quantity * 100` tested for wholeness: 1.1 * 100 is
 		   110.00000000000001, and that test refuses a one-decimal quantity. */
 		const quantity = Number(item.quantity)
 		if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 9999
 			|| Math.round(quantity * 100) / 100 !== quantity)
-			errors[`items.${i}.quantity`] = 'Quantity must be more than 0 and at most 9999, with at most two decimals.'
+			errors[`items.${i}.quantity`] = words('order.quantityRange')
 
 		/* No money field is signed: a discount is the order's own `discount` column
 		   (migrations/009), so price joins retail and shipping at zero or above. */
 		const price = Number(item.price)
 		if (!Number.isFinite(price))
-			errors[`items.${i}.price`] = 'What did you pay?'
+			errors[`items.${i}.price`] = words('order.priceMissing')
 		else if (price < 0)
-			errors[`items.${i}.price`] = 'Price cannot go below zero. Put a discount on the order instead.'
+			errors[`items.${i}.price`] = words('order.priceNegative')
 
 		if (item.retail != null && (!Number.isFinite(Number(item.retail)) || Number(item.retail) < 0))
-			errors[`items.${i}.retail`] = 'Retail price must be a non-negative amount.'
+			errors[`items.${i}.retail`] = words('order.retailNegative')
 
 		if (item.note != null && String(item.note).trim().length > 120)
-			errors[`items.${i}.note`] = '120 characters at most.'
+			errors[`items.${i}.note`] = words('text.most120')
 
 		const url = String(item.url ?? '').trim()
-		if (url && !normaliseUrl(url)) errors[`items.${i}.url`] = 'Not a link.'
+		if (url && !normaliseUrl(url)) errors[`items.${i}.url`] = words('order.notLink')
 	})
 
 	return errors
@@ -173,21 +174,21 @@ export function validateBookmarkDraft(draft) {
 	const errors = {}
 
 	const name = String(draft.name ?? '').trim()
-	if (!name) errors.name = 'What is it called?'
-	else if (name.length > 120) errors.name = '120 characters at most.'
+	if (!name) errors.name = words('bookmark.nameMissing')
+	else if (name.length > 120) errors.name = words('text.most120')
 
 	const url = String(draft.url ?? '').trim()
-	if (!url) errors.url = 'Where can you buy it?'
-	else if (!normaliseUrl(url)) errors.url = 'That is not a web address. One looks like this: shop.dk/product'
+	if (!url) errors.url = words('bookmark.urlMissing')
+	else if (!normaliseUrl(url)) errors.url = words('bookmark.notUrl')
 
 	// A price the reader has not looked up yet is left out; a price that is present is money,
 	// so it follows every other amount in the app and never goes below zero.
 	if (draft.price != null && draft.price !== '' &&
 		(!Number.isFinite(Number(draft.price)) || Number(draft.price) < 0))
-		errors.price = 'Price must be a non-negative amount.'
+		errors.price = words('bookmark.priceNegative')
 
 	if (draft.categories != null && !Array.isArray(draft.categories))
-		errors.categories = 'Categories are a list of names.'
+		errors.categories = words('bookmark.categoriesList')
 
 	return errors
 }
@@ -208,16 +209,16 @@ export function assertValidBookmarkDraft(draft) {
 const refuse = message => Object.assign(new Error(message), { status: 400 })
 
 export const BUDGET_TEXT = {
-	row: { max: 80, missing: 'Give the row a name.' },
-	group: { max: 60, missing: 'Give the group a name.' },
-	account: { max: 40, missing: 'Give the account a name.' },
-	payment: { max: 200, missing: 'The payment has no text to remember it by.' }
+	row: { max: 80, missing: words('budget.rowNameMissing') },
+	group: { max: 60, missing: words('budget.groupNameMissing') },
+	account: { max: 40, missing: words('budget.accountNameMissing') },
+	payment: { max: 200, missing: words('budget.paymentNoText') }
 }
 
 export function budgetText(value, { max, missing }) {
 	const text = String(value ?? '').trim()
 	if (!text && missing) throw refuse(missing)
-	if (text.length > max) throw refuse(`${max} characters at most.`)
+	if (text.length > max) throw refuse(words('text.most', { most: max }))
 	return text
 }
 
@@ -225,29 +226,29 @@ export function budgetText(value, { max, missing }) {
 export function budgetAmount(value) {
 	if (value == null || value === '') return null
 	const n = Number(value)
-	if (!Number.isFinite(n) || n < 0 || n >= 1e9) throw refuse('An amount is zero or more, like 1.234,56.')
+	if (!Number.isFinite(n) || n < 0 || n >= 1e9) throw refuse(words('budget.amountShape'))
 	return Math.round(Number((n * 100).toPrecision(15))) / 100
 }
 
 export function budgetMonths(months) {
-	if (!Array.isArray(months) || months.length !== 12) throw refuse('A row has one amount for each of the twelve months.')
+	if (!Array.isArray(months) || months.length !== 12) throw refuse(words('budget.twelveMonths'))
 	return months.map(m => ({ expected: budgetAmount(m?.expected), real: budgetAmount(m?.real) }))
 }
 
 export function budgetMonth(value) {
 	const month = Number(value)
-	if (!Number.isInteger(month) || month < 1 || month > 12) throw refuse('A month is 1 to 12.')
+	if (!Number.isInteger(month) || month < 1 || month > 12) throw refuse(words('budget.monthRange'))
 	return month
 }
 
 export function budgetYear(value) {
 	const year = Number(value)
-	if (!Number.isInteger(year) || year < 1900 || year > 2200) throw refuse('A year is four digits, like 2027.')
+	if (!Number.isInteger(year) || year < 1900 || year > 2200) throw refuse(words('budget.yearShape'))
 	return year
 }
 
 export function budgetKind(value) {
-	if (value !== 'income' && value !== 'expense') throw refuse('A group holds income or costs.')
+	if (value !== 'income' && value !== 'expense') throw refuse(words('budget.groupKind'))
 	return value
 }
 
@@ -262,19 +263,19 @@ export const budgetAccountId = value => (value == null || value === '' ? null : 
 
 export function budgetAccountNames(names) {
 	if (names == null) return []
-	if (!Array.isArray(names)) throw refuse('Accounts are a list of names.')
+	if (!Array.isArray(names)) throw refuse(words('budget.accountsList'))
 	return names.map(name => budgetText(name, BUDGET_TEXT.account))
 }
 
 /** A whole file's worth of years, checked before any of it is written. */
 export function budgetYears(years) {
-	if (!Array.isArray(years) || !years.length) throw refuse('There is no year to import.')
+	if (!Array.isArray(years) || !years.length) throw refuse(words('budget.noYearToImport'))
 	const seen = new Set()
 	return years.map(y => {
 		const year = budgetYear(y?.year)
-		if (seen.has(year)) throw refuse(`The year ${year} is in the file twice.`)
+		if (seen.has(year)) throw refuse(words('budget.yearTwice', { year }))
 		seen.add(year)
-		if (!Array.isArray(y.groups)) throw refuse(`The year ${year} has no groups.`)
+		if (!Array.isArray(y.groups)) throw refuse(words('budget.yearNoGroups', { year }))
 		return {
 			year,
 			groups: y.groups.map(g => ({

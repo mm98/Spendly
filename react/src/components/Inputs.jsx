@@ -4,6 +4,7 @@ import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber } from './format.js'
 import { Spinner } from './Utilities.jsx'
 import { pace, useStill } from './motion.js'
+import { usePhrase } from '../language/phrases.js'
 
 const TEXT = {
 	default: null,
@@ -92,6 +93,7 @@ export function TextField({ type = 'text', multiline = false, rows = 3, variant 
     @param {boolean} [props.danger] The value is wrong: the field is drawn in red.
     @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
 export function PasswordField({ fullWidth = false, ...rest }) {
+	const phrase = usePhrase()
 	const [shown, setShown] = useState(false)
 	// while it turns, the field's letters shuffle into place (or back into dots) over an
 	// overlay the reader sees and a screen reader does not; the field keeps its value
@@ -128,7 +130,7 @@ export function PasswordField({ fullWidth = false, ...rest }) {
 			fullWidth={fullWidth}
 			trail={
 				<Trail
-					label="Show password"
+					label={phrase('field.showPassword')}
 					pressed={shown}
 					onClick={toggle}
 				>
@@ -192,6 +194,7 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
     @param {import('react').ReactNode} [props.ends] Controls at the end of the field, such as Ask.
     @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. */
 export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', icon = 'search', clear = true, ends, fullWidth = false, ...rest }) {
+	const phrase = usePhrase()
 	const clearable = clear && !!value
 	const own = useRef(null)
 	const bind = el => {
@@ -201,7 +204,7 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
 	}
 	// clearing hands focus back to the field, where the reader types the next search
 	const clearing = clearable
-		? <Trail label="Clear the search" onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
+		? <Trail label={phrase('field.clearSearch')} onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
 		: null
 	return (
 		<span className={join('sp-picker__search', fullWidth && 'sp-grow')}>
@@ -231,23 +234,24 @@ export function SearchInput({ value, onChange, kbd, inputRef, name = 'search', i
     @param {() => void} [props.onToggle]
     @param {() => void} [props.onStop] */
 export function AskTrail({ on, busy, spent, onToggle, onStop }) {
+	const phrase = usePhrase()
 	if (spent) return (
-		<span data-tip="No questions left today. Resets at midnight.">
-			<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label="Ask" disabled>
+		<span data-tip={phrase('askTrail.spent')}>
+			<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="false" aria-label={phrase('chat.ask')} disabled>
 				<Icon name="message-circle" />
 			</button>
 		</span>
 	)
 	if (busy) return (
-		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-busy="true" aria-label="Stop"
-			data-tip="Stop (Esc)" onClick={onStop}>
+		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed="true" aria-busy="true" aria-label={phrase('chat.stop')}
+			data-tip={phrase('askTrail.stop')} onClick={onStop}>
 			<Spinner />
 			<span className="sp-field__stop"><Icon name="x" /></span>
 		</button>
 	)
 	return (
-		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed={on ? 'true' : 'false'} aria-label="Ask"
-			data-tip={on ? 'Back to search (Alt+A)' : 'Ask (Alt+A)'} onClick={onToggle}>
+		<button type="button" className="sp-field__trail sp-field__trail--ask" aria-pressed={on ? 'true' : 'false'} aria-label={phrase('chat.ask')}
+			data-tip={phrase(on ? 'askTrail.backToSearch' : 'askTrail.ask')} onClick={onToggle}>
 			<Icon name="message-circle" />
 		</button>
 	)
@@ -268,6 +272,7 @@ export function AskTrail({ on, busy, spent, onToggle, onStop }) {
     @param {string} [props.locale] How numbers are written, such as da-DK. */
 export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
+	const phrase = usePhrase()
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
 	const [typing, setTyping] = useState({})
 	// the boxes read text back in the grammar `format` writes it in, unless a locale is named
@@ -365,7 +370,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 			className="sp-track__handle"
 			style={{ '--p': pct(n) }}
 			role="slider"
-			aria-label={`${label}, ${which === 'low' ? 'from' : 'to'}`}
+			aria-label={phrase(which === 'low' ? 'rangeSlider.from' : 'rangeSlider.to', { label })}
 			aria-valuemin={which === 'low' ? least : low}
 			aria-valuemax={which === 'low' ? high : most}
 			aria-valuenow={n}
@@ -407,14 +412,14 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 					classes="sp-number"
 					component="RangeSlider"
 					inputMode="decimal"
-					aria-label={`${label}, from`}
+					aria-label={phrase('rangeSlider.from', { label })}
 					{...bound('low', low)}
 				/>
 				<Box
 					classes="sp-number"
 					component="RangeSlider"
 					inputMode="decimal"
-					aria-label={`${label}, to`}
+					aria-label={phrase('rangeSlider.to', { label })}
 					{...bound('high', high)}
 				/>
 			</span>

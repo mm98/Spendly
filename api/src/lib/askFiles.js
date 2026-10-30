@@ -6,6 +6,7 @@ import { FILE_FORMATS, fileFormat, optionsFor } from '../format/file/formats.js'
 import { usableLocale, writerFor } from './statusEmail.js'
 import { readStoredFile, removeStoredFile, storeFile } from './storage.js'
 import { escapeLike } from './textSearch.js'
+import { words } from './phrases.js'
 
 /* The files Ask Spendly makes from the reader's own data (Ask 24d, 24e): kept 30 days for the signed-in
    owner only, listed on Files, and a limited number a day. The bytes are on disk (lib/storage.js), not in the database. */
@@ -23,9 +24,9 @@ const DAY = 86400
 
 // why a file could not be made, after "Could not be made: "
 export const FILE_REFUSALS = {
-	tooMany: 'too many orders for one file. Ask for one year at a time.',
-	usedUp: 'today\'s files are used up. Ask again tomorrow.',
-	failed: 'something went wrong while it was made. Ask again.'
+	tooMany: 'tooMany',
+	usedUp: 'usedUp',
+	failed: 'failed'
 }
 
 const insertFile = db.prepare(`INSERT INTO user_ask_files (id, user_id, chat_id, title, download_name, type, asked_at, size, stored_name, failed_reason, kept_until, expires_at)
@@ -88,7 +89,7 @@ function fileName(row) {
 /** What the reader's row shows about one file (ChatFile in react/src/components/Chat.jsx): its name is the downloaded file's, without the time. */
 export function fileMeta(row, now = nowEpoch()) {
 	const base = { id: row.id, title: `${fileName(row)}.${row.type}`, type: row.type, kind: fileFormat(row.type)?.name ?? row.type.toUpperCase(), chatId: row.chat_id ?? null }
-	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason }
+	if (row.failed_reason) return { ...base, state: 'failed', reason: row.failed_reason in FILE_REFUSALS ? words('askFile.refusal', { why: row.failed_reason }) : row.failed_reason }
 	if (row.deleted_at) return { ...base, state: 'gone', gone: 'deleted' }
 	if (row.expires_at <= now) return { ...base, state: 'gone', gone: 'expired' }
 	return { ...base, state: 'ready', size: fileSizeLabel(row.size), keptUntil: row.kept_until, href: `/api/ask/files/${row.id}/download` }

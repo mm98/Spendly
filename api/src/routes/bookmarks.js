@@ -11,6 +11,7 @@ import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { MATCHERS, asciiNeedle, escapeLike } from '../lib/textSearch.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -285,13 +286,13 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 		return res.status(201).json(decorateOne(selectOne.get(bookmark.id, req.user.id)))
 	}
 
-	if (!req.file) return res.status(400).json({ error: 'No picture was sent.' })
+	if (!req.file) return res.status(400).json({ error: words('profile.noPictureSent') })
 	// Stricter than the attachment pipeline, which files anything unrecognised under 'image':
 	// here the frame draws the picture, so an unclaimed file would store and then not render.
 	if (detectFileType(req.file.buffer)?.kind !== 'image')
-		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
+		return res.status(400).json({ error: words('bookmark.notPicture') })
 	const processed = await processPicture(req.file.buffer)
-	if (!processed) return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF and TIFF all work.' })
+	if (!processed) return res.status(400).json({ error: words('bookmark.notPicture') })
 	savePhoto({
 		id: bookmark.id, userId: req.user.id, photoId: newId('p'),
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
@@ -312,7 +313,7 @@ router.delete('/:id/photo', (req, res) => {
 
 router.get('/:id/photo/:photoId/thumbnail', (req, res) => {
 	const photo = selectPhotoThumbnail.get(req.params.id, req.user.id, req.params.photoId)
-	if (!photo?.photo_thumbnail) return res.status(404).json({ error: 'No picture stored for that bookmark.' })
+	if (!photo?.photo_thumbnail) return res.status(404).json({ error: words('bookmark.noPicture') })
 	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // the id in the path changes when the picture does
 	res.send(decompressBlob(photo.photo_thumbnail, photo.photo_thumbnail_is_compressed))
@@ -320,7 +321,7 @@ router.get('/:id/photo/:photoId/thumbnail', (req, res) => {
 
 router.get('/:id/photo/:photoId/wide', (req, res) => {
 	const photo = selectPhotoWide.get(req.params.id, req.user.id, req.params.photoId)
-	if (!photo?.image) return res.status(404).json({ error: 'No picture stored for that bookmark.' })
+	if (!photo?.image) return res.status(404).json({ error: words('bookmark.noPicture') })
 	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(decompressBlob(photo.image, photo.compressed))
@@ -328,7 +329,7 @@ router.get('/:id/photo/:photoId/wide', (req, res) => {
 
 router.get('/:id/photo/:photoId/light', async (req, res) => {
 	const photo = selectPhotoWide.get(req.params.id, req.user.id, req.params.photoId)
-	if (!photo?.image) return res.status(404).json({ error: 'No picture stored for that bookmark.' })
+	if (!photo?.image) return res.status(404).json({ error: words('bookmark.noPicture') })
 	const { image, contentType } = await toLight(decompressBlob(photo.image, photo.compressed), photo.photo_thumbnail_content_type || 'image/webp')
 	res.set('Content-Type', contentType)
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')

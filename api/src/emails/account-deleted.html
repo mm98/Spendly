@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<html lang="{{language}}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,7 @@
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Your Spendly account was deleted</title>
+<title>{{@accountDeleted.subject}}</title>
 <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 <style>
   body { margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; }
@@ -34,7 +34,7 @@
 </style>
 </head>
 <body class="sp-bg" style="margin: 0; padding: 0; background: #eceae4;">
-<div style="display: none; max-height: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: #eceae4;">The Spendly account for {{email}} was deleted on {{changed_at}}.&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<div style="display: none; max-height: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: #eceae4;">{{@accountDeleted.preheader}}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
 <table role="presentation" class="sp-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #eceae4;">
   <tr>
     <td class="sp-outer" align="center" style="padding: 48px 16px;">
@@ -50,16 +50,16 @@
           </td>
         </tr>
         <tr>
-          <td align="center" class="sp-ink" style="padding: 12px 16px 0; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; line-height: 22px; mso-line-height-rule: exactly; color: #1b1a17;">Your account was deleted</td>
+          <td align="center" class="sp-ink" style="padding: 12px 16px 0; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; line-height: 22px; mso-line-height-rule: exactly; color: #1b1a17;">{{@accountDeleted.heading}}</td>
         </tr>
         <tr>
-          <td align="center" class="sp-ink-2" style="padding: 6px 16px 0; overflow-wrap: anywhere; word-break: break-word; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; mso-line-height-rule: exactly; color: #3d3c36;">The Spendly account for <b class="sp-ink" style="color: #1b1a17;"><a class="sp-ink" style="color: #1b1a17; text-decoration: none;"><span class="sp-ink" style="color: #1b1a17; text-decoration: none;">{{email}}</span></a></b> was deleted on {{changed_at}}, with its orders, receipts and everything else in it.</td>
+          <td align="center" class="sp-ink-2" style="padding: 6px 16px 0; overflow-wrap: anywhere; word-break: break-word; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; mso-line-height-rule: exactly; color: #3d3c36;">{{@accountDeleted.body|address=<b class="sp-ink" style="color: #1b1a17;"><a class="sp-ink" style="color: #1b1a17; text-decoration: none;"><span class="sp-ink" style="color: #1b1a17; text-decoration: none;">}}</td>
         </tr>
         <tr>
-          <td align="center" class="sp-ink-2" style="padding: 12px 16px 16px; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; mso-line-height-rule: exactly; color: #3d3c36;">If this was not you, ask the person who runs this Spendly server.</td>
+          <td align="center" class="sp-ink-2" style="padding: 12px 16px 16px; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; mso-line-height-rule: exactly; color: #3d3c36;">{{@accountDeleted.note}}</td>
         </tr>
         <tr>
-          <td align="center" class="sp-meta sp-rule" style="padding: 12px 16px; border-top: 1px solid #e6e4dc; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 17px; mso-line-height-rule: exactly; color: #8b8a82;">This is the last email this account gets from Spendly.</td>
+          <td align="center" class="sp-meta sp-rule" style="padding: 12px 16px; border-top: 1px solid #e6e4dc; font-family: Poppins, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 17px; mso-line-height-rule: exactly; color: #8b8a82;">{{@accountDeleted.footer}}</td>
         </tr>
       </table>
     </td>

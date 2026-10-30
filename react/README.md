@@ -120,6 +120,15 @@ answer to fetch again, so a sidebar count follows a write on another page. Signi
 the cache without asking the readers on screen to fetch again. A request refused because the
 session has ended opens the "You've been signed out" dialog.
 
+## Words
+
+Every word on screen comes from `src/language/{code}.json`, one file per language, read by
+`phrase()` and `usePhrase()` in `src/language/phrases.js`. Only the chosen language's file is
+downloaded. Every request carries the language in the `X-Spendly-Language` header, and the server
+writes its own messages from `api/src/language/{code}.json` in that language. `npm run language:check`
+holds the files of each set to the same keys and places, and fails on a key the code does not use,
+or on words written in the code itself.
+
 ## The build
 
 Every page is its own chunk, loaded when its route is first opened. React, the DOM renderer and

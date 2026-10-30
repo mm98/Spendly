@@ -24,7 +24,9 @@ import {
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, today } from '../api/format.js'
 import { CopyPicker } from './CopyPicker.jsx'
+import { names } from './orderSave.js'
 import { alertsOf, looksIn, monthOf } from './needsLook.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 // how many orders Recent orders shows when the settings did not load
 const RECENT = 5
@@ -105,7 +107,7 @@ const localDay = seconds => { const at = new Date(seconds * 1000); return new Da
 function daysAgo(iso) {
 	const days = Math.round((dateOf(today()) - dateOf(iso)) / 86400000)
 	if (days < 0) return null
-	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
+	return phrase('home.ago', { days })
 }
 
 /** The last eight calendar months, ending with this one: each month's spend and orders, as the chart draws them. */
@@ -119,7 +121,7 @@ function lastMonths(rows) {
 		return {
 			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
 			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend,
-			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)} note={`${plural(orders, 'order')}${dot}click to open`} />
+			tip: <ChartTip title={`${long[m]} ${y}`} value={currency(spend, 0)} note={phrase('home.months.note', { orders: plural(orders, 'order'), dot })} />
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
@@ -128,7 +130,7 @@ function lastMonths(rows) {
 
 function greeting(name) {
 	const hour = new Date().getHours()
-	const words = hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
+	const words = phrase('home.greeting', { part: hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 18 ? 'afternoon' : 'evening' })
 	return name ? <>{words}, <span className="sp-break">{name}</span></> : words
 }
 
@@ -138,6 +140,7 @@ const firstName = user => String(user?.name ?? '').trim().split(/\s+/)[0] || nul
 /* ---- the page ---- */
 
 export default function Home() {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [thisMonthSlice()])
 	const categories = useApi(getLimitedCategories)
@@ -175,7 +178,7 @@ export default function Home() {
 			await putSummaryAway(month)
 		} catch (error) {
 			setPutAway(null)
-			toast({ message: failureMessage(error, 'The summary was not hidden. Try again.'), color: 'danger' })
+			toast({ message: failureMessage(error, phrase('home.summaryNotHidden')), color: 'danger' })
 		}
 	}
 	const due = summary.data
@@ -211,7 +214,7 @@ function DesktopHome({ month, compared, categories, counts, view, recent, rows, 
 				{month.error
 					? (
 						<Hold shape={<MonthCard />}>
-							<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={month.refresh} />
+							<Failed variant="card" label={phrase('categories.thisMonth')} what={phrase('categories.thisMonth')} error={month.error} onRetry={month.refresh} />
 						</Hold>
 					)
 					: <MonthCard w={month.data?.window} compared={compared} lastAdded={attention?.lastAdded} />}
@@ -227,7 +230,7 @@ function DesktopHome({ month, compared, categories, counts, view, recent, rows, 
 					{lost
 						? (
 							<Hold shape={<CategoriesCard />}>
-								<Failed variant="card" label="Categories this month" what="This month's categories" error={lost} onRetry={retrying(month, categories, counts)} />
+								<Failed variant="card" label={phrase('home.categoriesMonth')} what={phrase('home.monthCategories')} error={lost} onRetry={retrying(month, categories, counts)} />
 							</Hold>
 						)
 						: <CategoriesCard view={view} />}
@@ -252,12 +255,12 @@ function MonthCard({ w, compared, lastAdded }) {
 	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
 		<Card variant="shell" spread>
-			<CardHeader name={w ? `${capital(monthOf(w))} ${w.from.slice(0, 4)}${dot}day ${w.pace.daysIn} of ${w.pace.unitDays}` : <Skeleton shape="line" data-w="130" data-h="11" />}
-				aside={ago ? `last added ${ago}` : undefined} />
+			<CardHeader name={w ? `${capital(monthOf(w))} ${w.from.slice(0, 4)}${dot}${phrase('home.dayOf', { day: w.pace.daysIn, days: w.pace.unitDays })}` : <Skeleton shape="line" data-w="130" data-h="11" />}
+				aside={ago ? phrase('home.lastAdded', { ago }) : undefined} />
 			<div className="sp-stats sp-stats--line">
-				<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
-				<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
-				<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
+				<Stat label={phrase('home.spentThisMonth')} large figure={w ? currency(w.spent, 0) : figure('130')} />
+				<Stat label={phrase('vendor.saved')} color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
+				<Stat label={phrase('page.orders')} figure={w ? amount(w.orders, 0) : figure('44')} />
 			</div>
 			<Limits w={w} compared={compared} />
 		</Card>
@@ -269,9 +272,9 @@ function Limits({ w, compared }) {
 	const lost = !!compared?.error && !compared.data
 	if (!w || !compared?.data) return (
 		<div className="sp-stack sp-gap-8">
-			<Gauge value={0} untargeted={lost} aria-label="This month against an earlier month" />
+			<Gauge value={0} untargeted={lost} aria-label={phrase('home.againstEarlier')} />
 			{lost
-				? <span className="sp-meta">The comparison did not load.</span>
+				? <span className="sp-meta">{phrase('home.comparisonFailed')}</span>
 				: <span className="sp-meta hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
 		</div>
 	)
@@ -279,8 +282,8 @@ function Limits({ w, compared }) {
 	const name = comparedName(earlier, w)
 	if (!earlier.orders) return (
 		<div className="sp-stack sp-gap-8">
-			<Gauge value={0} untargeted aria-label="This month against an earlier month" />
-			<span className="sp-meta">Nothing from {name} to compare with yet.</span>
+			<Gauge value={0} untargeted aria-label={phrase('home.againstEarlier')} />
+			<span className="sp-meta">{phrase('home.nothingFrom', { name })}</span>
 		</div>
 	)
 	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
@@ -288,12 +291,12 @@ function Limits({ w, compared }) {
 	const ahead = used > pace + 10
 	return (
 		<div className="sp-stack sp-gap-8">
-			<Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={`This month against ${name}`} />
+			<Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={phrase('home.againstMonth', { name })} />
 			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-meta">{amount(Math.round(used), 0)}% of {currency(earlier.spent, 0)} in {name}</span>
+				<span className="sp-meta">{phrase('home.share', { share: amount(Math.round(used), 0), amount: currency(earlier.spent, 0), name })}</span>
 				<span className="sp-grow" />
 				<span className={ahead ? 'sp-meta sp-meta--over sp-row-flex sp-gap-6' : 'sp-meta sp-row-flex sp-gap-6'}>
-					<GaugeKey aria-hidden="true" />{ahead ? 'ahead of pace' : 'below pace'}
+					<GaugeKey aria-hidden="true" />{phrase(ahead ? 'categories.aheadOfPace' : 'home.belowPace')}
 				</span>
 			</div>
 		</div>
@@ -314,16 +317,16 @@ function AlertsCard({ view, attention, looks }) {
 	const all = alerts ? alerts.rows : []
 	if (alerts && !all.length) return null
 	const shown = all.slice(0, ALERTS)
-	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? `${shown.length} of ${amount(all.length, 0)} things` : plural(all.length, 'thing')}</span> : null
+	const counted = alerts ? <span className="sp-meta">{all.length > ALERTS ? phrase('home.thingsOf', { shown: shown.length, total: amount(all.length, 0) }) : plural(all.length, 'thing')}</span> : null
 	// past the cap the true total of a rule's rows rides on a link, as Recent orders' does
 	const more = alerts?.all && alerts.all.count > ALERTS
 	return (
 		<Card variant="flush">
 			<Toolbar>
-				<span className="sp-section-label">Needs a look</span>
+				<span className="sp-section-label">{phrase('settings.section.looks')}</span>
 				{more ? counted : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="outline" size="small" to={alerts.all.to}>All {amount(alerts.all.count, 0)}</Button> : counted}
+				{more ? <Button variant="outline" size="small" to={alerts.all.to}>{phrase('home.all', { count: amount(alerts.all.count, 0) })}</Button> : counted}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
@@ -340,21 +343,18 @@ function AlertsCard({ view, attention, looks }) {
 	)
 }
 
-const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
-const ORDINALS = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh']
-const countWord = n => COUNT_WORDS[n] ?? amount(n, 0)
+const countWord = n => phrase('home.countWord', { n: String(n), amount: amount(n, 0) })
 // the summary says three things at most; the sentence above them counts every category
 const SUMMARY_ROWS = 3
 
 /** "One category went over, one finished close, and Textiles has room to spare." */
 function summarySentence(over, close, room) {
 	const parts = [
-		over.length ? `${countWord(over.length)} ${over.length === 1 ? 'category' : 'categories'} went over` : 'every category stayed under its limit',
-		close.length ? `${countWord(close.length)} finished close` : null,
-		room ? `${room.name} has room to spare` : null
+		over.length ? phrase('home.summary.over', { count: over.length, word: countWord(over.length) }) : phrase('home.summary.under'),
+		close.length ? phrase('home.summary.close', { word: countWord(close.length) }) : null,
+		room ? phrase('home.summary.room', { name: room.name }) : null
 	].filter(Boolean)
-	const said = parts.length > 2 ? `${parts.slice(0, -1).join(', ')}, and ${parts.at(-1)}` : parts.join(' and ')
-	return `${capital(said)}.`
+	return `${capital(names(parts))}.`
 }
 
 /** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
@@ -372,34 +372,35 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const earlier = summary.compared
 	const gap = earlier?.orders ? summary.spent - earlier.spent : 0
 	const than = earlier ? comparedName(earlier, { from: summary.from }) : ''
-	const heading = !earlier?.orders ? `You spent ${currency(summary.spent, 0)} in ${month}`
-		: !gap ? `You spent ${currency(summary.spent, 0)}, the same as in ${than}`
-		: `You spent ${currency(summary.spent, 0)}, ${currency(Math.abs(gap), 0)} ${gap < 0 ? 'less' : 'more'} than in ${than}`
-	const of = c => `${amount(c.spend, 0)} of ${currency(c.budget, 0)}`
+	const spent = currency(summary.spent, 0)
+	const heading = !earlier?.orders ? phrase('home.summary.spent', { amount: spent, month })
+		: !gap ? phrase('home.summary.same', { amount: spent, than })
+		: phrase('home.summary.diff', { amount: spent, gap: currency(Math.abs(gap), 0), less: String(gap < 0), than })
+	const of = c => phrase('home.of', { spent: amount(c.spend, 0), budget: currency(c.budget, 0) })
 	const link = c => `/orders?category=${c.id}&from=${summary.from}&to=${summary.to}`
 	const lines = [
 		...over.map(c => ({
 			c, color: 'danger', mark: <Mark size="medium" fill="solid" swatch={swatchOf(c.colour)} aria-hidden="true" aria-label={c.name}><CategoryIcon name={c.icon} size={18} /></Mark>,
-			said: `went ${currency(c.spend - c.budget, 0)} over`,
-			meta: c.overs >= 12 ? 'Over in all twelve months. The limit may be too low.'
-				: c.overs >= 2 ? `${ORDINALS[c.overs]} time in twelve months.${c.overs >= 3 ? ' The limit may be too low.' : ''}` : of(c),
+			said: phrase('home.line.over', { amount: currency(c.spend - c.budget, 0) }),
+			meta: c.overs >= 12 ? phrase('home.line.allYear')
+				: c.overs >= 2 ? phrase('home.line.nth', { n: String(c.overs), low: c.overs >= 3 ? 'yes' : 'no' }) : of(c),
 			adjust: true
 		})),
 		...close.map(c => ({
-			c, mark: <Mark size="medium" fill="solid" swatch="primary-3" aria-hidden="true" aria-label="Close to its limit"><Icon name="alert-triangle" size={18} /></Mark>,
-			said: `finished at ${Math.floor(c.used)}%`, meta: of(c)
+			c, mark: <Mark size="medium" fill="solid" swatch="primary-3" aria-hidden="true" aria-label={phrase('home.closeToLimit')}><Icon name="alert-triangle" size={18} /></Mark>,
+			said: phrase('home.line.finished', { share: Math.floor(c.used) }), meta: of(c)
 		})),
-		...(room ? [{ c: room, mark: <Mark size="medium" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={18} /></Mark>, said: `used ${Math.round(room.used)}%`, meta: of(room) }] : [])
+		...(room ? [{ c: room, mark: <Mark size="medium" aria-hidden="true" aria-label={room.name}><CategoryIcon name={room.icon} size={18} /></Mark>, said: phrase('home.line.used', { share: Math.round(room.used) }), meta: of(room) }] : [])
 	].slice(0, SUMMARY_ROWS)
 	return (
 		<Card footer={[
 			<div className="sp-stack sp-grow" key="saved">
-				<span className="sp-section-label">Saved in {month}</span>
+				<span className="sp-section-label">{phrase('home.savedIn', { month })}</span>
 				<span className={isSaving(summary.saved, 0) ? 'sp-stat__figure sp-ink-accent' : 'sp-stat__figure sp-ink-5'}>{currency(summary.saved, 0)}</span>
 			</div>,
-			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>Open statistics</Button>
+			<Button key="open" size="small" to={`/statistics?range=month&period=${summary.month}`}>{phrase('home.openStatistics')}</Button>
 		]}>
-			<CardHeader name={`${month} ${summary.month.slice(0, 4)}`} onDismiss={onHide} dismissLabel={`Hide the ${month} summary`} />
+			<CardHeader name={`${month} ${summary.month.slice(0, 4)}`} onDismiss={onHide} dismissLabel={phrase('home.hideSummary', { month })} />
 			<div className="sp-stack sp-gap-6">
 				<span className="sp-heading">
 					{heading}
@@ -411,7 +412,7 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 					<div className="sp-stack sp-gap-12">
 						{lines.map(line => (
 							<ListItem key={line.c.id} color={line.color} mark={line.mark}
-								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>Adjust</Button> : undefined}>
+								actions={line.adjust ? <Button variant="outline" size="small" to={`/categories/${line.c.id}/edit`}>{phrase('home.adjust')}</Button> : undefined}>
 								<Link className="sp-stacked sp-grow hm-link" to={link(line.c)}>
 									<span className="sp-title hm-said"><span className="sp-truncate">{line.c.name}</span><span>{line.said}</span></span>
 									<span className="sp-meta">{line.meta}</span>
@@ -430,16 +431,16 @@ function RecentCard({ recent, rows, held }) {
 	const total = held ? undefined : recent.data?.total
 	const caption = (
 		<>
-			<span className="sp-section-label">Recent orders</span>
-			{total ? <span className="sp-meta">newest {orders.length}</span> : null}
+			<span className="sp-section-label">{phrase('library.recentOrders')}</span>
+			{total ? <span className="sp-meta">{phrase('home.newest', { count: orders.length })}</span> : null}
 			<span className="sp-grow" />
-			{total ? <Button variant="outline" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
+			{total ? <Button variant="outline" size="small" to="/orders">{phrase('home.all', { count: amount(total, 0) })}</Button> : null}
 		</>
 	)
 	const loading = <RecentList caption={caption} rows={rows} />
 	if (recent.error) return (
 		<Hold shape={loading}>
-			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+			<Failed variant="card" label={phrase('library.recentOrders')} what={phrase('home.yourRecent')} error={recent.error} onRetry={recent.refresh} />
 		</Hold>
 	)
 	if (orders && !orders.length) return (
@@ -448,9 +449,9 @@ function RecentCard({ recent, rows, held }) {
 				<Toolbar>{caption}</Toolbar>
 				<div className="sp-stack sp-grow hm-fill">
 					<Empty>
-						<span className="sp-heading">No orders yet</span>
-						<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
-						<Button size="small" to="/orders/new?source=empty">Empty order</Button>
+						<span className="sp-heading">{phrase('home.noOrders')}</span>
+						<span className="sp-meta">{phrase('home.noOrdersBody')}</span>
+						<Button size="small" to="/orders/new?source=empty">{phrase('orders.empty')}</Button>
 					</Empty>
 				</div>
 			</Card>
@@ -466,10 +467,10 @@ function RecentList({ caption, orders, rows }) {
 			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
-				<ListCell width="title">Vendor</ListCell>
-				<ListCell width="date">Date</ListCell>
-				<ListCell width="status">Status</ListCell>
-				<ListCell width="amount">Amount</ListCell>
+				<ListCell width="title">{phrase('field.vendor')}</ListCell>
+				<ListCell width="date">{phrase('field.date')}</ListCell>
+				<ListCell width="status">{phrase('field.status')}</ListCell>
+				<ListCell width="amount">{phrase('field.amount')}</ListCell>
 			</ListHead>
 			<ListRow>{o => (orders ? (
 				<>
@@ -512,7 +513,7 @@ function DraftFile({ file }) {
 }
 
 /** What is left on a draft, then a copy's source day, then a scan's file name: a long name is the part cut. */
-const draftLine = d => [d.draft.left, d.draft.copiedFrom ? `Copied from ${rowDate(d.draft.copiedFrom)}` : null, d.draft.file?.name].filter(Boolean).join(dot)
+const draftLine = d => [d.draft.left, d.draft.copiedFrom ? phrase('home.copiedFrom', { date: rowDate(d.draft.copiedFrom) }) : null, d.draft.file?.name].filter(Boolean).join(dot)
 
 /** A draft's picture and words: a scan's file, else the order row's picture; an order with status Draft as an order row shows it. */
 function DraftHead({ order }) {
@@ -533,20 +534,20 @@ function DraftsCard({ drafts }) {
 	const rows = drafts.data?.drafts
 	const total = drafts.data?.total
 	// absent while there are none, and until it is known that there are some
-	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (drafts.error) return <Failed variant="card" label={phrase('palette.drafts')} what={phrase('home.yourDrafts')} error={drafts.error} onRetry={drafts.refresh} />
 	if (!rows?.length) return null
 	return (
 		<List data={rows} recordKey={o => o.id} noun="drafts" headless locale={NUMBER_LOCALE} rowTo={o => `/orders/${o.id}`}>
 			<Caption>
-				<span className="sp-section-label">Drafts</span>
-				<span className="sp-meta">newest {rows.length}</span>
+				<span className="sp-section-label">{phrase('palette.drafts')}</span>
+				<span className="sp-meta">{phrase('home.newest', { count: rows.length })}</span>
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" to={all}>All {amount(total, 0)}</Button>
+				<Button variant="outline" size="small" to={all}>{phrase('home.all', { count: amount(total, 0) })}</Button>
 			</Caption>
 			<ListHead>
-				<ListCell width="title">Vendor</ListCell>
-				<ListCell width="date">Date</ListCell>
-				<ListCell width="amount">Amount</ListCell>
+				<ListCell width="title">{phrase('field.vendor')}</ListCell>
+				<ListCell width="date">{phrase('field.date')}</ListCell>
+				<ListCell width="amount">{phrase('field.amount')}</ListCell>
 			</ListHead>
 			<ListRow>{o => (
 				<>
@@ -580,32 +581,32 @@ function CaptureCard({ newest, loading }) {
 	const take = files => { if (files?.[0]) navigate('/orders/new?source=scan', { state: { file: files[0], from: '/' } }) }
 	const [picking, setPicking] = useState(false)
 	const copy = newest
-		? <Button variant="outline" size="small" onClick={() => setPicking(true)}>Copy an order</Button>
-		: loading ? <ButtonSkeleton label="Copy an order" /> : null
+		? <Button variant="outline" size="small" onClick={() => setPicking(true)}>{phrase('copy.title')}</Button>
+		: loading ? <ButtonSkeleton label={phrase('copy.title')} /> : null
 	return (
 		<Card>
-			<CardHeader name="Add an order" />
+			<CardHeader name={phrase('home.addOrder')} />
 			{held
 				? (
 					<FileDrop disabled row>
-						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
-						<span className="sp-title sp-ink-2">Capture a receipt</span>
-						<span className="sp-meta">Available once your email is confirmed</span>
+						<Mark size="medium" fill="solid" aria-hidden="true" aria-label={phrase('home.receipt')}><Icon name="camera" size={19} /></Mark>
+						<span className="sp-title sp-ink-2">{phrase('home.capture')}</span>
+						<span className="sp-meta">{phrase('home.afterConfirm')}</span>
 					</FileDrop>
 				)
 				: (
 					<FileDrop accept={FILE_TYPES} onFiles={take} row>
-						<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
-						<span className="sp-title">Drop a receipt here</span>
+						<Mark size="medium" fill="solid" aria-hidden="true" aria-label={phrase('home.receipt')}><Icon name="camera" size={19} /></Mark>
+						<span className="sp-title">{phrase('home.dropHere')}</span>
 						<span className="sp-subtitle">
 							{reads === false
-								? 'Image or PDF. It is attached to a new order, and you type in the details.'
-								: 'Image or PDF. The vendor, date and lines are read for you.'}
+								? phrase('home.dropManual')
+								: phrase('home.dropRead')}
 						</span>
 					</FileDrop>
 				)}
 			<div className="sp-fields">
-				<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
+				<Button variant="outline" size="small" to="/orders/new?source=empty">{phrase('orders.empty')}</Button>
 				{copy}
 			</div>
 			<Leaving>{picking ? <CopyPicker onClose={() => setPicking(false)} /> : null}</Leaving>
@@ -617,7 +618,7 @@ function CategoriesCard({ view }) {
 	const top = view?.top
 	const loading = (
 		<Card>
-			<CardHeader name="Categories this month" />
+			<CardHeader name={phrase('home.categoriesMonth')} />
 			{['96', '76', '88', '64'].map(width => (
 				<div className="sp-stack sp-gap-6" key={width}>
 					<div className="sp-row-flex sp-gap-8">
@@ -626,15 +627,15 @@ function CategoriesCard({ view }) {
 						<span className="sp-grow" />
 						<span className="sp-meta hm-line"><Skeleton shape="line" data-w="76" data-h="11" /></span>
 					</div>
-					<Gauge value={0} untargeted aria-label="Loading" />
+					<Gauge value={0} untargeted aria-label={phrase('home.loading')} />
 				</div>
 			))}
 		</Card>
 	)
 	if (!view) return loading
 	const header = (
-		<CardHeader name="Categories this month" meta={top.length ? `top ${top.length} by spend` : undefined}
-			actions={view.withSpend ? [{ label: `All ${amount(view.withSpend, 0)}`, to: `/categories?month=${view.window.from.slice(0, 7)}` }] : undefined} />
+		<CardHeader name={phrase('home.categoriesMonth')} meta={top.length ? phrase('home.topBySpend', { count: top.length }) : undefined}
+			actions={view.withSpend ? [{ label: phrase('home.all', { count: amount(view.withSpend, 0) }), to: `/categories?month=${view.window.from.slice(0, 7)}` }] : undefined} />
 	)
 	if (top.length) return (
 		<Card>
@@ -650,15 +651,15 @@ function CategoriesCard({ view }) {
 					{view.count
 						? (
 							<Empty>
-								<span className="sp-heading">Nothing spent in {monthOf(view.window)} yet</span>
-								<span className="sp-meta">Add an order and its categories show here, against their limits.</span>
+								<span className="sp-heading">{phrase('home.nothingSpent', { month: monthOf(view.window) })}</span>
+								<span className="sp-meta">{phrase('home.nothingSpentBody')}</span>
 							</Empty>
 						)
 						: (
 							<Empty>
-								<span className="sp-heading">No categories yet</span>
-								<span className="sp-meta">Categories group your spend and carry the monthly limit.</span>
-								<Button size="small" to="/categories/new">New category</Button>
+								<span className="sp-heading">{phrase('categories.empty.none')}</span>
+								<span className="sp-meta">{phrase('home.categoriesBody')}</span>
+								<Button size="small" to="/categories/new">{phrase('categories.new')}</Button>
 							</Empty>
 						)}
 				</div>
@@ -682,8 +683,8 @@ function CategoryLine({ category: c, early }) {
 				</span>
 			</div>
 			{limited
-				? <Gauge {...against(c.monthSpend, c.budget)} aria-label={`${c.name} against its limit`} />
-				: <Gauge value={0} untargeted aria-label="No limit set" />}
+				? <Gauge {...against(c.monthSpend, c.budget)} aria-label={phrase('home.againstLimit', { name: c.name })} />
+				: <Gauge value={0} untargeted aria-label={phrase('categories.noLimitSet')} />}
 		</Link>
 	)
 }
@@ -695,19 +696,19 @@ function MonthsCard() {
 	const average = months ? months.reduce((sum, c) => sum + c.spend, 0) / months.length : null
 	const card = (
 		<Card footer={[
-			<span className="sp-subtitle sp-grow" key="label">Monthly average</span>,
+			<span className="sp-subtitle sp-grow" key="label">{phrase('home.monthlyAverage')}</span>,
 			average === null
 				? <span className="sp-amount hm-line" key="value"><Skeleton shape="line" data-w="76" data-h="13" /></span>
 				: <span className="sp-amount" key="value">{currency(average, 0)}</span>
 		]}>
-			<CardHeader name={`Last ${MONTHS} months`} actions={[{ label: 'Statistics', to: '/statistics' }]} />
+			<CardHeader name={phrase('home.lastMonths', { count: MONTHS })} actions={[{ label: phrase('page.statistics'), to: '/statistics' }]} />
 			<Bars variant="card" columns={months ?? []} loading={!months} selected={today().slice(0, 7)}
 				onSelect={key => navigate(`/statistics?period=${key.slice(0, 4)}&crumbs=month:${key}`)} />
 		</Card>
 	)
 	if (totals.error) return (
 		<Hold shape={card}>
-			<Failed variant="card" label={`Last ${MONTHS} months`} what="The last months" error={totals.error} onRetry={totals.refresh} />
+			<Failed variant="card" label={phrase('home.lastMonths', { count: MONTHS })} what={phrase('home.theLastMonths')} error={totals.error} onRetry={totals.refresh} />
 		</Hold>
 	)
 	return card
@@ -722,13 +723,13 @@ function PhoneHome({ month, compared, categories, counts, view, recent, rows, dr
 			<div className="sp-stacked">
 				<span className="sp-stat__figure">{greeting(name)}</span>
 				{w
-					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
+					? <span className="sp-data">{capital(monthOf(w))}, {phrase('home.dayOf', { day: w.pace.daysIn, days: w.pace.unitDays })}</span>
 					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
 			</div>
 			{month.error
 				? (
 					<Hold shape={<PhoneMonth />}>
-						<Failed variant="card" label="This month" what="This month" error={month.error} onRetry={retrying(month, categories, counts)} />
+						<Failed variant="card" label={phrase('categories.thisMonth')} what={phrase('categories.thisMonth')} error={month.error} onRetry={retrying(month, categories, counts)} />
 					</Hold>
 				)
 				: <PhoneMonth w={w} compared={compared} />}
@@ -744,21 +745,21 @@ function PhoneMonth({ w, compared }) {
 	const earlier = compared?.data
 	if (!w) return (
 		<Card>
-			<CardHeader name="This month" />
+			<CardHeader name={phrase('categories.thisMonth')} />
 			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
-			<Gauge value={0} aria-label="This month against an earlier month" />
+			<Gauge value={0} aria-label={phrase('home.againstEarlier')} />
 		</Card>
 	)
 	if (!earlier) return (
 		<Card>
-			<CardHeader name="This month" />
+			<CardHeader name={phrase('categories.thisMonth')} />
 			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
-			<Gauge value={0} untargeted={!!compared?.error} aria-label="This month against an earlier month" />
+			<Gauge value={0} untargeted={!!compared?.error} aria-label={phrase('home.againstEarlier')} />
 			{compared?.error
 				? (
 					<div className="sp-row-flex sp-gap-8">
-						<span className="sp-meta sp-grow">The comparison did not load.</span>
-						<Button variant="text" size="small" onClick={compared.refresh}>Try again</Button>
+						<span className="sp-meta sp-grow">{phrase('home.comparisonFailed')}</span>
+						<Button variant="text" size="small" onClick={compared.refresh}>{phrase('action.tryAgain')}</Button>
 					</div>
 				)
 				: null}
@@ -768,21 +769,21 @@ function PhoneMonth({ w, compared }) {
 	const pace = w.pace.unitDays ? (w.pace.daysIn / w.pace.unitDays) * 100 : 100
 	return (
 		<Card>
-			<CardHeader name="This month" />
+			<CardHeader name={phrase('categories.thisMonth')} />
 			{earlier.orders
 				? (
 					<div className="sp-row-flex sp-gap-8 sp-baseline">
 						<span className="sp-stat__figure sp-stat__figure--large">{amount(w.spent, 0)}</span>
-						<span className="sp-data sp-ink-5">of {currency(earlier.spent, 0)} in {name}</span>
+						<span className="sp-data sp-ink-5">{phrase('home.ofIn', { amount: currency(earlier.spent, 0), name })}</span>
 					</div>
 				)
 				: <span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>}
 			{earlier.orders
-				? <Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={`This month against ${name}`} />
+				? <Gauge {...againstMonth(w.spent, earlier.spent, pace)} aria-label={phrase('home.againstMonth', { name })} />
 				: (
 					<div className="sp-stack sp-gap-8">
-						<Gauge value={0} untargeted aria-label="This month against an earlier month" />
-						<span className="sp-meta">Nothing from {name} to compare with yet.</span>
+						<Gauge value={0} untargeted aria-label={phrase('home.againstEarlier')} />
+						<span className="sp-meta">{phrase('home.nothingFrom', { name })}</span>
 					</div>
 				)}
 		</Card>
@@ -795,7 +796,7 @@ function PhoneAlerts({ view, attention, looks }) {
 	const chevron = <Icon name="chevron-right" size={13} />
 	return (
 		<Card>
-			<CardHeader name="Needs a look" />
+			<CardHeader name={phrase('settings.section.looks')} />
 			{alerts
 				? alerts.phone.map(a => (
 					<ListItem key={a.key} to={a.to} color={a.color} chevron={chevron} count={a.count}>
@@ -811,7 +812,7 @@ function PhoneRecent({ recent, rows }) {
 	const orders = recent.data?.orders
 	const loading = (
 		<Card>
-			<CardHeader name="Recent orders" />
+			<CardHeader name={phrase('library.recentOrders')} />
 			{Array.from({ length: rows }, (_, i) => (
 				<div className="sp-row-flex sp-gap-12" key={i}>
 					<Skeleton shape="mark" />
@@ -823,23 +824,23 @@ function PhoneRecent({ recent, rows }) {
 	)
 	if (recent.error) return (
 		<Hold shape={loading}>
-			<Failed variant="card" label="Recent orders" what="Your recent orders" error={recent.error} onRetry={recent.refresh} />
+			<Failed variant="card" label={phrase('library.recentOrders')} what={phrase('home.yourRecent')} error={recent.error} onRetry={recent.refresh} />
 		</Hold>
 	)
 	if (!orders) return loading
 	if (!orders.length) return (
 		<Hold shape={loading}>
 			<Card>
-				<CardHeader name="Recent orders" />
+				<CardHeader name={phrase('library.recentOrders')} />
 				<div className="sp-stack sp-grow hm-fill">
-					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
+					<span className="sp-meta">{phrase('home.noOrdersPhone')}</span>
 				</div>
 			</Card>
 		</Hold>
 	)
 	return (
 		<Card>
-			<CardHeader name="Recent orders" meta={`newest ${orders.length}`} actions={[{ label: `All ${amount(recent.data.total, 0)}`, to: '/orders' }]} />
+			<CardHeader name={phrase('library.recentOrders')} meta={phrase('home.newest', { count: orders.length })} actions={[{ label: phrase('home.all', { count: amount(recent.data.total, 0) }), to: '/orders' }]} />
 			{orders.map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)
@@ -861,18 +862,18 @@ function PhoneOrder({ order }) {
 function PhoneDrafts({ drafts }) {
 	const all = useDraftsAddress()
 	const rows = drafts.data?.drafts
-	if (drafts.error) return <Failed variant="card" label="Drafts" what="Your drafts" error={drafts.error} onRetry={drafts.refresh} />
+	if (drafts.error) return <Failed variant="card" label={phrase('palette.drafts')} what={phrase('home.yourDrafts')} error={drafts.error} onRetry={drafts.refresh} />
 	if (!rows?.length) return null
 	return (
 		<Card>
-			<CardHeader name="Drafts" meta={`newest ${rows.length}`} actions={[{ label: `All ${amount(drafts.data.total, 0)}`, to: all }]} />
+			<CardHeader name={phrase('palette.drafts')} meta={phrase('home.newest', { count: rows.length })} actions={[{ label: phrase('home.all', { count: amount(drafts.data.total, 0) }), to: all }]} />
 			{rows.map(o => (o.draft
 				? (
 					<Link key={o.id} className="sp-row-flex sp-gap-12 sp-row-opens" to={`/orders/${o.id}`}>
 						{o.draft.file ? <DraftFile file={o.draft.file} /> : <OrderPhoto order={o} />}
 						<div className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{vendorName(o)}</span>
-							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}{o.draft.copiedFrom ? `${dot}Copied from ${rowDate(o.draft.copiedFrom)}` : ''}</span>
+							<span className="sp-meta">{rowDate(draftDay(o))}{dot}{o.draft.left}{o.draft.copiedFrom ? <>{dot}{phrase('home.copiedFrom', { date: rowDate(o.draft.copiedFrom) })}</> : ''}</span>
 						</div>
 						{o.total == null ? null : <span className="sp-title sp-nowrap">{amount(o.total)}</span>}
 					</Link>
@@ -896,47 +897,47 @@ function DayOne({ name, touch }) {
 			<Card>
 				<div className="sp-stack">
 					<span className="sp-stat__figure sp-stat__figure--large">{greeting(name)}</span>
-					<span className="sp-data">{capital(monthNames('long')[Number(today().slice(5, 7)) - 1])}{dot}nothing recorded yet</span>
+					<span className="sp-data">{capital(monthNames('long')[Number(today().slice(5, 7)) - 1])}{dot}{phrase('home.nothingYet')}</span>
 				</div>
 				{user?.emailConfirmed === false
 					? (
 						<>
 							<FileDrop disabled icon="camera">
-								<span className="sp-title sp-ink-2">Capture a receipt</span>
-								<span className="sp-meta">Available once your email is confirmed</span>
+								<span className="sp-title sp-ink-2">{phrase('home.capture')}</span>
+								<span className="sp-meta">{phrase('home.afterConfirm')}</span>
 							</FileDrop>
-							<Button variant="outline" to="/orders/new?source=empty">Enter one by hand</Button>
+							<Button variant="outline" to="/orders/new?source=empty">{phrase('home.byHand')}</Button>
 						</>
 					)
 					: (
 						<FileDrop accept={FILE_TYPES} onFiles={take} icon="camera">
-							<span className="sp-heading">Start with a receipt</span>
+							<span className="sp-heading">{phrase('home.startReceipt')}</span>
 							<span className="sp-data hm-w300">
 								{reads === false
-									? 'Drop a photo or a PDF. It is attached to a new order, and you type in the details.'
-									: 'Drop a photo or a PDF and the lines are read for you to check.'}
+									? phrase('home.dayOne.manual')
+									: phrase('home.dayOne.read')}
 							</span>
-							<span className="sp-btn">Capture a receipt</span>
-							<Button variant="outline" to="/orders/new?source=empty">Enter one by hand</Button>
+							<span className="sp-btn">{phrase('home.capture')}</span>
+							<Button variant="outline" to="/orders/new?source=empty">{phrase('home.byHand')}</Button>
 						</FileDrop>
 					)}
 				<div className={touch ? 'sp-stack sp-gap-12' : 'hm-wells'}>
 					<Well>
-						<span className="sp-section-label">This month</span>
+						<span className="sp-section-label">{phrase('categories.thisMonth')}</span>
 						<span className="sp-stat__figure sp-ink-5">{currency(0)}</span>
-						<Gauge thin value={0} untargeted aria-label="No limit set" />
-						<span className="sp-meta">Set a monthly limit once you have recorded a few orders.</span>
+						<Gauge thin value={0} untargeted aria-label={phrase('categories.noLimitSet')} />
+						<span className="sp-meta">{phrase('home.dayOne.limit')}</span>
 					</Well>
 					<Well>
-						<span className="sp-section-label">Your categories</span>
+						<span className="sp-section-label">{phrase('home.yourCategories')}</span>
 						{first.map(c => (
 							<span className="sp-row-flex sp-gap-10" key={c.id}>
 								<CategoryMark category={c} size="small" />
 								<span className="sp-title">{c.name}</span>
 							</span>
 						))}
-						{page && !page.matched ? <span className="sp-meta">No categories yet.</span> : null}
-						<Button variant="outline" size="small" to="/categories/new">{page?.matched ? 'Add another' : 'Add one'}</Button>
+						{page && !page.matched ? <span className="sp-meta">{phrase('home.noCategories')}</span> : null}
+						<Button variant="outline" size="small" to="/categories/new">{phrase(page?.matched ? 'home.addAnother' : 'home.addOne')}</Button>
 					</Well>
 				</div>
 			</Card>

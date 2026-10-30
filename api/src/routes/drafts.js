@@ -4,6 +4,7 @@ import { decorateOrderListRows } from '../lib/decorate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { keyOfType } from '../lib/statuses.js'
 import { discardDraft, draftCount, draftListRow, draftRow, draftsAsOrders, keepForm, makeDraft } from '../lib/orderDrafts.js'
+import { words } from '../lib/phrases.js'
 
 /* Orders not created yet (lib/orderDrafts.js): the form kept as it is edited, Discard, and Home's
    Drafts card, which counts the orders whose status is Draft as drafts too (10a). */
@@ -35,7 +36,7 @@ const MAX_DRAFTS = 200
 /** A draft made by hand, at the form's first change (3a): `{ id }`. Past the limit the form is
     simply not kept, as when the draft cannot be made. */
 router.post('/', (req, res) => {
-	if (draftCount(req.user.id) >= MAX_DRAFTS) return res.status(409).json({ error: `You have ${MAX_DRAFTS} unfinished orders. Finish or discard some first.` })
+	if (draftCount(req.user.id) >= MAX_DRAFTS) return res.status(409).json({ error: words('draft.full', { most: MAX_DRAFTS }) })
 	res.status(201).json({ id: makeDraft(req.user.id, req.body?.form) })
 })
 

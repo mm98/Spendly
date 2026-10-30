@@ -14,6 +14,7 @@ import { seedAccountDefaults } from '../seed.js'
 import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 import { openTicket, twoStepOn } from '../lib/twoStep.js'
 import { securityLog } from '../lib/securityLog.js'
+import { emailLanguageOf, words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -46,7 +47,7 @@ function lockedFor(email, ip, now = nowEpoch()) {
 	const { n, last } = recentFailures.get(email, ip, now - LOCK_WINDOW_SECONDS)
 	return n >= LOCK_AFTER ? Math.max(0, last + LOCK_SECONDS - now) : 0
 }
-export const locked = (res, wait) => res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+export const locked = (res, wait) => res.status(429).json({ error: words('auth.tooManyAttempts'), retryAfter: wait })
 
 /** A password checked under the lock-out, wherever one is asked for: `{ user }` when it is right,
     `{ wait }` in seconds while locked, `{}` when it is wrong. */
@@ -81,7 +82,7 @@ async function sendLink(req, user, kind, email) {
 	// a name is optional; the part before the @ stands in for it, as everywhere else in the app
 	const values = { name: user.name || email.split('@')[0], email, action_url: linkTo(req, `/${kind}/${token}`) }
 	try {
-		await sendMail(emailMessage(LINK_EMAILS[kind], email, values, { scheme: selectScheme.get(user.id)?.colour_scheme }))
+		await sendMail(emailMessage(LINK_EMAILS[kind], email, values, { scheme: selectScheme.get(user.id)?.colour_scheme, language: emailLanguageOf(user.id) }))
 	} catch (e) {
 		settleToken(user.id, kind, token, false)
 		throw e
@@ -99,11 +100,11 @@ const resetEmailWait = windowCounter({ most: 5, perSeconds: 24 * 60 * 60 })
 router.post('/register', registerLimit, async (req, res) => {
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
 	const password = String(req.body?.password ?? '')
-	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
-	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
+	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: words('auth.emailInvalid') })
+	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: words('auth.passwordShort', { least: MIN_PASSWORD }) })
 	const name = cleanName(req.body?.name)
-	if (name.length > MAX_NAME) return res.status(400).json({ error: `A name is ${MAX_NAME} characters at most.` })
-	if (findUserByEmail.get(email)) return res.status(409).json({ error: 'An account with that email already exists.' })
+	if (name.length > MAX_NAME) return res.status(400).json({ error: words('account.nameLong', { most: MAX_NAME }) })
+	if (findUserByEmail.get(email)) return res.status(409).json({ error: words('auth.emailTaken') })
 
 	/* Where the reader is, as their browser worked it out -- see the client's detectLocale
 	   (react/src/api/format.js). It is a guess from a timezone, so it is offered rather than
@@ -127,7 +128,7 @@ router.post('/register', registerLimit, async (req, res) => {
 		})()
 	} catch (e) {
 		if (e.code === 'SQLITE_CONSTRAINT_UNIQUE')
-			return res.status(409).json({ error: 'An account with that email already exists.' })
+			return res.status(409).json({ error: words('auth.emailTaken') })
 		throw e
 	}
 
@@ -142,7 +143,7 @@ router.post('/login', signInLimit, async (req, res) => {
 	const password = String(req.body?.password ?? '')
 	const { user, wait } = await checkPassword(req, email, password)
 	if (wait) return locked(res, wait)
-	if (!user) return res.status(401).json({ error: 'Wrong email or password.' })
+	if (!user) return res.status(401).json({ error: words('auth.wrongLogin') })
 	const remember = req.body?.remember !== false
 	// no session yet: the code step (POST /api/auth/two-step) opens it with this ticket
 	if (twoStepOn(user.id)) {
@@ -205,19 +206,19 @@ const setPassword = db.prepare('UPDATE users SET password_hash = ?, password_cha
 const endSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ?')
 // a reset proves only the email address, so a passkey someone else added must not outlive it
 const removePasskeys = db.prepare('DELETE FROM user_passkeys WHERE user_id = ?')
-const noMail = res => res.status(409).json({ error: 'This server cannot send email.' })
+const noMail = res => res.status(409).json({ error: words('mail.unavailable') })
 const notSent = (res, e) => {
 	console.error(`[mail] could not send: ${e.message}`)
-	return res.status(409).json({ error: 'The email could not be sent. Try again in a few minutes.' })
+	return res.status(409).json({ error: words('mail.failed') })
 }
 
 /** Sends the confirming link again, at most once a minute; the earlier link stops working. */
 router.post('/confirm/resend', requireAuth, async (req, res) => {
 	if (!mailAvailable()) return noMail(res)
 	const user = selectUser.get(req.user.id)
-	if (user.email_confirmed) return res.status(409).json({ error: 'Your email is already confirmed.' })
+	if (user.email_confirmed) return res.status(409).json({ error: words('auth.alreadyConfirmed') })
 	const wait = resendWait(user.id, 'confirm')
-	if (wait) return res.status(429).json({ error: 'A link was sent a moment ago.', retryAfter: wait })
+	if (wait) return res.status(429).json({ error: words('auth.linkJustSent'), retryAfter: wait })
 	try { await sendLink(req, user, 'confirm', user.email) } catch (e) { return notSent(res, e) }
 	res.json({ email: user.email, retryAfter: resendWait(user.id, 'confirm') })
 })
@@ -251,7 +252,7 @@ router.post('/status-email/stop/:token', (req, res) => res.json(stopStatusEmail(
 router.post('/reset', resetLimit, (req, res) => {
 	if (!mailAvailable()) return noMail(res)
 	const email = String(req.body?.email ?? '').trim().toLowerCase()
-	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' })
+	if (!EMAIL_PATTERN.test(email)) return res.status(400).json({ error: words('auth.emailInvalid') })
 	const user = findUserByEmail.get(email)
 	// never awaited: how long the send takes, or whether it fails, must not tell which addresses have accounts
 	const sending = Boolean(user && !resendWait(user.id, 'reset') && !resetEmailWait(user.id))
@@ -271,10 +272,10 @@ router.post('/reset/:token', async (req, res) => {
 	const { state, row } = readToken(req.params.token, 'reset')
 	if (state !== 'valid') {
 		securityLog(req, 'email-link-refused', { kind: 'reset', state, email: row?.email ?? null })
-		return res.status(410).json({ error: 'That link has expired.', state })
+		return res.status(410).json({ error: words('auth.linkExpired'), state })
 	}
 	const password = String(req.body?.password ?? '')
-	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
+	if (password.length < MIN_PASSWORD) return res.status(400).json({ error: words('auth.passwordShort', { least: MIN_PASSWORD }) })
 	const hash = await hashPassword(password)
 	db.transaction(() => {
 		setPassword.run(hash, row.user_id)

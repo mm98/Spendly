@@ -15,6 +15,7 @@ import isChromatic from 'chromatic/isChromatic'
 import { drawnArgTypes, lookArgTypes, typeArgTypes } from './types.js'
 import { shownArgTypes, variantArgTypes } from './variants.js'
 import { holdEverythingStill } from './held.js'
+import { LANGUAGES, setLanguage } from '../../react/src/language/phrases.js'
 
 // The app's own switch: tokens.css draws each theme from the root's data-theme, on a body of class sp.
 const withTheme = (Story, { globals }) => {
@@ -75,13 +76,19 @@ export default {
 		return holdEverythingStill()
 	},
 	afterEach: failOnConsoleError,
+	// the language the components' own words are in: English unless the toolbar picks another, never the machine's
+	loaders: [({ globals }) => setLanguage(globals.language ?? 'en')],
 	globalTypes: {
 		theme: {
 			description: 'Light or dark',
 			toolbar: { title: 'Theme', icon: 'mirror', items: ['light', 'dark'], dynamicTitle: true }
+		},
+		language: {
+			description: 'The language of the words the components write themselves',
+			toolbar: { title: 'Language', icon: 'globe', items: LANGUAGES.map(l => ({ value: l.code, title: l.name })), dynamicTitle: true }
 		}
 	},
-	initialGlobals: { theme: 'light', viewport: { value: 'desktop', isRotated: false } },
+	initialGlobals: { theme: 'light', language: 'en', viewport: { value: 'desktop', isRotated: false } },
 	parameters: {
 		layout: 'padded',
 		backgrounds: { disable: true },

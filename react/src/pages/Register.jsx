@@ -5,8 +5,7 @@ import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { failureMessage, register } from '../api/client.js'
 import { useShellShape } from '../app/useMedia.js'
 import { AuthCard, EMAIL_PATTERN, EMAIL_PROBLEM, MIN_PASSWORD, PasswordHint, useFocusField, landing, onward, useAuthOptions, useSignedOut } from './AuthParts.jsx'
-
-const HINT = `At least ${MIN_PASSWORD} characters. Longer beats complicated.`
+import { usePhrase } from '../language/phrases.js'
 
 // a new tab, so what is typed here is still here after reading; the operator's own page when set
 function NoticeLink({ to, page, children }) {
@@ -14,6 +13,7 @@ function NoticeLink({ to, page, children }) {
 }
 
 export default function Register() {
+	const phrase = usePhrase()
 	const focusField = useFocusField()
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
@@ -32,15 +32,15 @@ export default function Register() {
 
 	const checkEmail = () => {
 		const ok = !email.trim() || EMAIL_PATTERN.test(email.trim())
-		setEmailProblem(ok ? null : EMAIL_PROBLEM)
+		setEmailProblem(ok ? null : phrase(EMAIL_PROBLEM))
 		return ok
 	}
 
 	const submit = () => {
 		const emailOk = checkEmail() && EMAIL_PATTERN.test(email.trim())
-		if (!emailOk) setEmailProblem(EMAIL_PROBLEM)
+		if (!emailOk) setEmailProblem(phrase(EMAIL_PROBLEM))
 		const passwordOk = password.length >= MIN_PASSWORD
-		setPasswordProblem(passwordOk ? null : `Use at least ${MIN_PASSWORD} characters.`)
+		setPasswordProblem(passwordOk ? null : phrase('auth.passwordTooShort', { count: MIN_PASSWORD }))
 		if (!emailOk || !passwordOk) return focusField(emailOk ? 'register-password' : 'register-email')
 		setBusy(true)
 		setAlert(null)
@@ -54,35 +54,38 @@ export default function Register() {
 				if (e?.status === 409) { setTaken(address); focusField('register-email') }
 				else if (e?.status === 400 && /password/i.test(said)) { setPasswordProblem(said); focusField('register-password') }
 				else if (e?.status === 400 && said) { setEmailProblem(said); focusField('register-email') }
-				else setAlert(failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
+				else setAlert(failureMessage(e, phrase('failed.unreachable')))
 			})
 	}
 
 	const isTaken = taken !== null && taken === email.trim().toLowerCase()
 	const emailMessage = isTaken
-		? <>There's already an account with this email. <Link className="sp-strong au-across" to="/signin">Sign in instead?</Link></>
-		: emailProblem ?? (mail ? "We'll send a link here to confirm it's yours." : undefined)
+		? phrase('register.taken', { signIn: words => <Link className="sp-strong au-across" to="/signin">{words}</Link> })
+		: emailProblem ?? (mail ? phrase('register.emailHint') : undefined)
 
 	if (!signedOut) return null
 	return (
-		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
-			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
+		<AuthCard title={phrase('page.createYourAccount')} lead={isTaken || alert ? null : phrase('register.lead')}
+			alert={alert} onSubmit={submit} submit={phrase('register.submit')} busy={busy} busyLabel={phrase('register.busy')}
 			disabled={isTaken}
-			terms={isTaken ? null : <>By creating an account you accept the <NoticeLink to={options?.terms} page="/terms">terms</NoticeLink> and <NoticeLink to={options?.privacy} page="/privacy">privacy notice</NoticeLink>.</>}
-			across={isTaken ? null : <>Already have one? <Link className="sp-strong au-across" to="/signin">Sign in</Link></>}>
+			terms={isTaken ? null : phrase('register.terms', {
+				terms: words => <NoticeLink to={options?.terms} page="/terms">{words}</NoticeLink>,
+				privacy: words => <NoticeLink to={options?.privacy} page="/privacy">{words}</NoticeLink>
+			})}
+			across={isTaken ? null : phrase('register.haveOne', { signIn: words => <Link className="sp-strong au-across" to="/signin">{words}</Link> })}>
 			{isTaken ? null : (
-				<Field label="Name" id="register-name">
+				<Field label={phrase('field.name')} id="register-name">
 					<TextField autoComplete="name" value={name} maxLength={80} onChange={setName} />
 				</Field>
 			)}
-			<Field label="Email" id="register-email" message={emailMessage}
+			<Field label={phrase('field.email')} id="register-email" message={emailMessage}
 				messageType={isTaken || emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus={!touch} value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
 			{isTaken ? null : (
-				<Field label="Password" id="register-password"
-					message={passwordProblem ?? <PasswordHint password={password} hint={HINT} />}
+				<Field label={phrase('field.password')} id="register-password"
+					message={passwordProblem ?? <PasswordHint password={password} hint={phrase('register.passwordHint', { count: MIN_PASSWORD })} />}
 					messageType={passwordProblem ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="new-password" value={password}
 						onChange={v => { setPassword(v); setPasswordProblem(null) }} />

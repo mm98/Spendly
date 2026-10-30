@@ -8,6 +8,7 @@ import { deleteFile, fileDownload, fileStates, keptFiles, restoreFile } from '..
 import { askMakes, madeIn, madeOf, placesIn } from '../format/index.js'
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
+import { words } from '../lib/phrases.js'
 
 /* Ask (lib/ask.js): whether it is there with the questions left today, one question
    answered, the chats kept (Chats, 24f), the saved questions, the files it made (Files, 24e), and a
@@ -28,7 +29,7 @@ router.get('/', (req, res) => {
 
 // the earlier questions and answers a question is sent with, in pairs, beside the question itself
 const PAIRS_MOST = Math.floor((TURNS_MOST - 1) / 2)
-const GONE = 'That chat is no longer kept.'
+const GONE = words('ask.chatGone')
 const idOf = value => (typeof value === 'string' && /^[\w-]{1,64}$/.test(value) ? value : null)
 
 /* One question answered, in the chat `chatId` or a new one, or a failed question asked again in its
@@ -37,19 +38,19 @@ router.post('/', async (req, res) => {
 	// the answer's time runs from the question arriving to the answer sent
 	const received = performance.now()
 	const state = stateOf(req)
-	if (!state.ready) return res.status(404).json({ error: 'Ask is not set up on this server.' })
-	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
+	if (!state.ready) return res.status(404).json({ error: words('ask.notSetUp') })
+	if (state.left === 0) return res.status(429).json({ error: words('ask.noneLeft'), left: 0 })
 	const chatId = idOf(req.body?.chatId)
 	const retry = Number.isInteger(req.body?.retry) ? req.body.retry : null
 	const question = typeof req.body?.question === 'string' ? req.body.question.trim() : ''
-	if (retry === null && (!question || question.length > TEXT_MOST)) return res.status(400).json({ error: `Ask a question of at most ${TEXT_MOST} characters.` })
-	if (retry !== null && !chatId) return res.status(400).json({ error: 'There is no question to ask again.' })
+	if (retry === null && (!question || question.length > TEXT_MOST)) return res.status(400).json({ error: words('ask.questionLong', { most: TEXT_MOST }) })
+	if (retry !== null && !chatId) return res.status(400).json({ error: words('ask.nothingToRetry') })
 
-	if (asking.has(req.user.id)) return res.status(409).json({ error: 'Wait for the answer to the last question.' })
+	if (asking.has(req.user.id)) return res.status(409).json({ error: words('ask.waitForAnswer') })
 	const turn = retry === null
 		? startTurn({ userId: req.user.id, chatId, question, day: req.today, pairsMost: PAIRS_MOST })
 		: restartFailedTurn({ userId: req.user.id, chatId, turnId: retry, day: req.today, pairsMost: PAIRS_MOST })
-	if (!turn) return res.status(404).json({ error: retry === null ? GONE : 'There is no question to ask again.', gone: retry === null })
+	if (!turn) return res.status(404).json({ error: retry === null ? GONE : words('ask.nothingToRetry'), gone: retry === null })
 	asking.add(req.user.id)
 	res.on('close', () => asking.delete(req.user.id))
 
@@ -77,7 +78,7 @@ router.post('/', async (req, res) => {
 		})
 		if (!out) {
 			endTurn(turn.turnId, 'failed')
-			return res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
+			return res.end(JSON.stringify({ error: words('ask.noAnswer'), status: 502 }) + '\n')
 		}
 		const answerMs = Math.round(performance.now() - received)
 		endTurn(turn.turnId, 'answered', out.answer, { answerMs, answerTokens: out.tokens, answerRounds: out.rounds })
@@ -89,7 +90,7 @@ router.post('/', async (req, res) => {
 		if (stop.signal.aborted) return
 		// the log is the one place a bad key, a timeout or a refused account is told apart
 		console.error('Ask answer failed:', isBillingRefusal(error) ? 'billing' : error.message)
-		res.end(JSON.stringify({ error: 'Spendly could not answer that just now.', status: 502 }) + '\n')
+		res.end(JSON.stringify({ error: words('ask.noAnswer'), status: 502 }) + '\n')
 	}
 })
 
@@ -97,13 +98,13 @@ router.post('/', async (req, res) => {
    the day's, counted only when filters come back. 422 is a sentence that names no filter. */
 router.post('/filters', async (req, res) => {
 	const state = stateOf(req)
-	if (!state.ready) return res.status(404).json({ error: 'Ask is not set up on this server.' })
-	if (state.left === 0) return res.status(429).json({ error: 'No questions left today.', left: 0 })
+	if (!state.ready) return res.status(404).json({ error: words('ask.notSetUp') })
+	if (state.left === 0) return res.status(429).json({ error: words('ask.noneLeft'), left: 0 })
 	const list = Object.hasOwn(FILTER_LISTS, req.body?.list) ? req.body.list : null
 	const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
-	if (!list) return res.status(400).json({ error: 'There is no such list.' })
-	if (!text || text.length > TEXT_MOST) return res.status(400).json({ error: `Write at most ${TEXT_MOST} characters.` })
-	if (asking.has(req.user.id)) return res.status(409).json({ error: 'Wait for the answer to the last question.' })
+	if (!list) return res.status(400).json({ error: words('ask.noList') })
+	if (!text || text.length > TEXT_MOST) return res.status(400).json({ error: words('ask.textLong', { most: TEXT_MOST }) })
+	if (asking.has(req.user.id)) return res.status(409).json({ error: words('ask.waitForAnswer') })
 	asking.add(req.user.id)
 	const stop = new AbortController()
 	res.on('close', () => { asking.delete(req.user.id); if (!res.writableEnded) stop.abort() })
@@ -111,13 +112,13 @@ router.post('/filters', async (req, res) => {
 		const filters = await filtersFor({
 			list, text, token: sessionToken(req), self: `http://127.0.0.1:${req.socket.localPort}`, today: req.today, signal: stop.signal
 		})
-		if (!filters) return res.status(422).json({ error: 'Couldn\'t turn that into filters.' })
+		if (!filters) return res.status(422).json({ error: words('ask.noFilters') })
 		noteAnswered(req.user.id, req.today)
 		res.json({ filters, left: state.left === null ? null : state.left - 1 })
 	} catch (error) {
 		if (stop.signal.aborted) return
 		console.error('Ask filters failed:', isBillingRefusal(error) ? 'billing' : error.message)
-		res.status(502).json({ error: 'Spendly could not answer that just now.' })
+		res.status(502).json({ error: words('ask.noAnswer') })
 	}
 })
 
@@ -139,12 +140,12 @@ router.get('/chats/:id', (req, res) => {
 
 router.delete('/chats/:id', (req, res) => {
 	const gone = deleteChat(req.user.id, req.params.id)
-	if (!gone) return res.status(404).json({ error: 'This chat was already deleted.' })
+	if (!gone) return res.status(404).json({ error: words('ask.chatDeleted') })
 	res.json({ ok: true, files: gone.files })
 })
 
 router.post('/chats/:id/restore', (req, res) => {
-	if (!restoreChat(req.user.id, req.params.id)) return res.status(404).json({ error: 'This chat cannot be brought back any more.' })
+	if (!restoreChat(req.user.id, req.params.id)) return res.status(404).json({ error: words('ask.chatLost') })
 	res.json({ ok: true })
 })
 
@@ -163,12 +164,12 @@ router.get('/files/states', (req, res) => {
 })
 
 router.delete('/files/:id', (req, res) => {
-	if (!deleteFile(req.user.id, req.params.id)) return res.status(404).json({ error: 'This file was already deleted.' })
+	if (!deleteFile(req.user.id, req.params.id)) return res.status(404).json({ error: words('ask.fileDeleted') })
 	res.json({ ok: true })
 })
 
 router.post('/files/:id/restore', (req, res) => {
-	if (!restoreFile(req.user.id, req.params.id)) return res.status(404).json({ error: 'This file cannot be brought back any more.' })
+	if (!restoreFile(req.user.id, req.params.id)) return res.status(404).json({ error: words('ask.fileLost') })
 	res.json({ ok: true })
 })
 
@@ -189,8 +190,8 @@ router.get('/questions', (req, res) => res.json({ questions: savedQuestions(req.
 
 router.post('/questions', (req, res) => {
 	const question = typeof req.body?.question === 'string' ? req.body.question.trim() : ''
-	if (!question || question.length > TEXT_MOST) return res.status(400).json({ error: `Save a question of at most ${TEXT_MOST} characters.` })
-	if (!saveQuestion(req.user.id, question)) return res.status(409).json({ error: `${SAVED_MOST} saved. Remove one to save another.` })
+	if (!question || question.length > TEXT_MOST) return res.status(400).json({ error: words('ask.savedLong', { most: TEXT_MOST }) })
+	if (!saveQuestion(req.user.id, question)) return res.status(409).json({ error: words('ask.savedFull', { most: SAVED_MOST }) })
 	res.json({ questions: savedQuestions(req.user.id), most: SAVED_MOST })
 })
 
@@ -204,19 +205,19 @@ const EMAIL_EVERY_MS = 60 * 1000
 const lastEmail = new Map()
 
 router.post('/email', async (req, res) => {
-	if (!mailAvailable()) return res.status(503).json({ error: 'This server cannot send email.' })
+	if (!mailAvailable()) return res.status(503).json({ error: words('mail.unavailable') })
 	const chatId = idOf(req.body?.chatId)
 	const turns = chatId && answeredTurnsOf(req.user.id, chatId)
 	if (!turns) return res.status(404).json({ error: GONE, gone: true })
-	if (!turns.length) return res.status(400).json({ error: 'There is no answered question in this chat to send.' })
+	if (!turns.length) return res.status(400).json({ error: words('ask.nothingToSend') })
 	const wait = (lastEmail.get(req.user.id) ?? 0) + EMAIL_EVERY_MS - Date.now()
-	if (wait > 0) return res.status(429).json({ error: 'Wait a minute before emailing this chat again.', retryAfter: Math.ceil(wait / 1000) })
+	if (wait > 0) return res.status(429).json({ error: words('ask.emailWait'), retryAfter: Math.ceil(wait / 1000) })
 	lastEmail.set(req.user.id, Date.now())
 	try {
 		res.json({ email: await emailConversation(req.user.id, { chatId, turns, day: req.today, locale: String(req.body?.locale ?? '') }) })
 	} catch (e) {
 		console.error(`[mail] conversation email: ${e.message}`)
 		lastEmail.delete(req.user.id)
-		res.status(502).json({ error: 'The email could not be sent. Try again.' })
+		res.status(502).json({ error: words('mail.failedRetry') })
 	}
 })

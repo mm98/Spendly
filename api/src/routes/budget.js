@@ -7,6 +7,7 @@ import {
 	BUDGET_TEXT, budgetAccountId, budgetAccountNames, budgetAmount, budgetKind, budgetMonth,
 	budgetMonths, budgetText, budgetYear, budgetYears
 } from '../lib/validate.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -14,7 +15,7 @@ const refuse = (status, message) => Object.assign(new Error(message), { status }
 
 const position = value => {
 	const n = Number(value)
-	if (!Number.isInteger(n) || n < 0) throw refuse(400, 'A place in the list is 0 or more.')
+	if (!Number.isInteger(n) || n < 0) throw refuse(400, words('list.placeLow'))
 	return n
 }
 
@@ -35,7 +36,7 @@ const accounts = req => ({ accounts: listAccountsInUse(req.user.id) })
 
 const greyFlag = value => {
 	if (value === undefined) return null
-	if (typeof value !== 'boolean') throw refuse(400, 'Grey is yes or no.')
+	if (typeof value !== 'boolean') throw refuse(400, words('budget.greyYesNo'))
 	return value
 }
 
@@ -72,7 +73,7 @@ router.get('/links', (req, res) => res.json(links(req)))
 
 router.put('/links', (req, res) => {
 	// a page still open from an earlier version sends the row's name and no lineId: refused, not stored as left out
-	if (!req.body || !('lineId' in req.body)) throw refuse(400, 'Spendly has changed. Reload the page and place the payment again.')
+	if (!req.body || !('lineId' in req.body)) throw refuse(400, words('budget.reloadToPlace'))
 	const lineId = req.body.lineId == null ? null : String(req.body.lineId)
 	saveLink(req.user.id, { ...linkKey(req.body), lineId })
 	res.json(links(req))
@@ -88,7 +89,7 @@ router.post('/', (req, res) => {
 	const from = req.body?.from == null ? null : budgetYear(req.body.from)
 	const amounts = req.body?.amounts ?? 'same'
 	if (!['same', 'expected', 'none'].includes(amounts))
-		throw refuse(400, 'Amounts are copied as they are, as expected amounts, or not at all.')
+		throw refuse(400, words('budget.copyChoice'))
 	createYear(req.user.id, year, { from, amounts })
 	res.status(201).json(sheet(req, year))
 })
@@ -99,13 +100,13 @@ router.get('/due', (req, res) => res.json({ due: countDue(req.user.id, budgetYea
 router.get('/:year', (req, res) => {
 	const year = budgetYear(req.params.year)
 	const found = sheet(req, year)
-	if (!found) throw refuse(404, `There is no budget for ${year}.`)
+	if (!found) throw refuse(404, words('budget.noYear', { year }))
 	res.json(found)
 })
 
 router.delete('/:year', (req, res) => {
 	const year = budgetYear(req.params.year)
-	if (!deleteYear(req.user.id, year)) throw refuse(404, `There is no budget for ${year}.`)
+	if (!deleteYear(req.user.id, year)) throw refuse(404, words('budget.noYear', { year }))
 	res.json({ year })
 })
 

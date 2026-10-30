@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs'
+import { IntlMessageFormat } from 'intl-messageformat'
+import { LANGUAGES } from './constants.js'
+import { currentLanguage } from './phrases.js'
 import { DEFAULT_SCHEME, SCHEME_IDS, WARNING_AND_PROBLEM_TOKENS, schemeTokens } from './schemes.js'
 
-/* The account, status and conversation emails (20f): byte copies of design/emails, which design:check holds equal.
-   Each .txt opens with its subject line, "Subject: ..." or the status email's {{subject}}. */
+/* The account, status and conversation emails (20f): byte copies of design/emails and their words in
+   design/emails/language, which design:check holds equal. Each .txt opens with its subject line. */
 
 const dir = new URL('../emails/', import.meta.url)
 
@@ -15,6 +18,29 @@ function load(name) {
 
 const TEMPLATES = Object.fromEntries(['confirm-email', 'reset-password', 'password-changed', 'passkey-added', 'two-step-on', 'two-step-off', 'recovery-code-used', 'account-deleted', 'status', 'status-quiet', 'ask-chat']
 	.map(n => [n, load(n)]))
+
+// one file of words per language; a phrase a file lacks is taken from en.json
+const CODES = LANGUAGES.filter(code => code !== 'auto')
+const PHRASES = Object.fromEntries(CODES.map(code => [code, JSON.parse(readFileSync(new URL(`language/${code}.json`, dir), 'utf8'))]))
+const formats = new Map()
+
+/** The email phrase `key` in `language`, with `values` in its places; a tag in it is drawn by `tags`
+    (tag name to its opening markup), and as its words alone when `tags` has none for it. */
+export function emailPhrase(language, key, values, { tags = {}, write = String } = {}) {
+	const code = PHRASES[language] ? language : 'en'
+	const message = PHRASES[code][key] ?? PHRASES.en[key]
+	if (message === undefined) throw new Error(`no email phrase ${key}`)
+	const id = `${code} ${key}`
+	let format = formats.get(id)
+	if (!format) formats.set(id, (format = new IntlMessageFormat(message, code)))
+	const args = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, typeof v === 'string' ? write(v) : v]))
+	for (const [, tag] of message.matchAll(/<(\w+)>/g)) {
+		const open = tags[tag] ?? ''
+		const close = [...open.matchAll(/<(\w+)/g)].map(m => `</${m[1]}>`).reverse().join('')
+		args[tag] = chunks => open + chunks.join('') + close
+	}
+	return [].concat(format.format(args)).join('')
+}
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
@@ -31,7 +57,12 @@ function merge(template, values, write) {
 			if (!value) return ''
 			return merge(inner, typeof value === 'object' ? { ...values, ...value } : values, write)
 		})
-		.replace(/\{\{(\w+)\}\}/g, (field, key) => {
+		// "{{@confirm.body|address=<b ...>}}" is a phrase in the email's language, each tag in it drawn with the markup the layout gives
+		.replace(/\{\{@([\w.]+)((?:\|\w+=(?:[^|{}]|\{\{\w+\}\})*)*)\}\}|\{\{(\w+)\}\}/g, (field, phrase, spec, key) => {
+			if (phrase) {
+				const tags = Object.fromEntries(spec.split('|').slice(1).map(part => [part.slice(0, part.indexOf('=')), merge(part.slice(part.indexOf('=') + 1), values, write)]))
+				return emailPhrase(values.language, phrase, values, { tags, write })
+			}
 			if (values[key] == null) throw new Error(`no value for ${field}`)
 			return write(values[key])
 		})
@@ -82,9 +113,10 @@ const htmlIn = (name, scheme) => {
 	return recoloured.get(key)
 }
 
-/** The message `name` to `to`, ready for sendMail: the HTML version and the plain one, with `values` merged in,
-    drawn in the account's colour `scheme` (Emerald when none is given). */
-export function emailMessage(name, to, values, { scheme } = {}) {
+/** The message `name` to `to`, ready for sendMail: the HTML version and the plain one, in `language` (the
+    request's when it is not one Spendly has), with `values` merged in, drawn in the account's colour `scheme`. */
+export function emailMessage(name, to, given, { scheme, language } = {}) {
 	const t = TEMPLATES[name]
+	const values = { ...given, language: PHRASES[language] ? language : currentLanguage() }
 	return { to, subject: merge(t.subject, values, String), text: merge(t.text, values, String), html: merge(htmlIn(name, scheme), values, escapeHtml) }
 }

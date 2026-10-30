@@ -3,6 +3,7 @@ import http from 'node:http'
 import https from 'node:https'
 import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
+import { words } from '../lib/phrases.js'
 
 const FILL_WORKER = new URL('../lib/demoFill.worker.js', import.meta.url)
 
@@ -61,9 +62,9 @@ router.post('/demo-data', (req, res) => {
 	}
 	const failed = () => {
 		if (ended) return
-		if (landed == null) return end({ error: 'The demo data could not be written. Nothing was changed.' })
+		if (landed == null) return end({ error: words('demo.notWritten') })
 		refreshStatistics()
-		end({ error: 'The demo data stopped partway.', landed })
+		end({ error: words('demo.stopped'), landed })
 	}
 	worker.on('message', message => {
 		if ('landed' in message) landed = message.landed
@@ -130,8 +131,8 @@ function askUpdater(url) {
 }
 
 router.post('/version/update', async (req, res) => {
-	if (!updaterAvailable()) return res.status(409).json({ error: 'This copy of Spendly cannot install an update by itself.' })
-	if (!ownsServer(req.user)) return res.status(403).json({ error: 'Only the person who manages this Spendly can install an update.' })
+	if (!updaterAvailable()) return res.status(409).json({ error: words('update.notHere') })
+	if (!ownsServer(req.user)) return res.status(403).json({ error: words('update.notOwner') })
 	const url = new URL(process.env.SPENDLY_UPDATER_URL)
 	url.searchParams.set('async', 'true')
 	const answer = await askUpdater(url)
@@ -141,5 +142,5 @@ router.post('/version/update', async (req, res) => {
 		: `The updater at ${url.host} refused the update with status ${answer.status}.`
 			+ (answer.status === 401 ? ' SPENDLY_UPDATER_TOKEN must match WATCHTOWER_HTTP_API_TOKEN.' : '')
 			+ (answer.status === 429 ? ' Another update was already running.' : ''))
-	res.status(502).json({ error: 'The update could not be started.' })
+	res.status(502).json({ error: words('update.notStarted') })
 })

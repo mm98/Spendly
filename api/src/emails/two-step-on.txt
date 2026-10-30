@@ -1,13 +1,13 @@
-Subject: Two-step sign-in is on for your Spendly account
+Subject: {{@twoStepOn.subject}}
 
-Two-step sign-in is on
+{{@twoStepOn.heading}}
 
-Two-step sign-in was turned on for {{email}} on {{changed_at}}. Signing in now asks for a code from an authenticator app.
+{{@twoStepOn.body}}
 
-Open Settings:
+{{@email.openSettings}}:
 {{action_url}}
 
-If this was not you, reset your password and ask the person who runs this Spendly server.
+{{@email.notYou}}
 
 --
-We write to you whenever two-step sign-in is turned on or off.
+{{@email.twoStepFooter}}

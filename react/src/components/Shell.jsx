@@ -11,6 +11,7 @@ import { Kbd } from './Utilities.jsx'
 import { PRESENCE, animate, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { Button } from './Button.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* The current row's ground, by kind (the dark sidebar, the light lists): the row it was last drawn on and
    where on that row, kept as it leaves so the next ground starts there. Both rows are read at one moment,
@@ -183,11 +184,12 @@ export function SidebarGroup({ children, ...rest }) {
     @param {() => void} [props.onClick] */
 export function SidebarGrip({ expanded = true, onClick, ...rest }) {
 	reject(rest, 'SidebarGrip')
+	const phrase = usePhrase()
 	return (
 		<button
 			type="button"
 			className="sp-sidebar__grip"
-			aria-label={expanded ? 'Collapse the menu' : 'Expand the menu'}
+			aria-label={phrase(expanded ? 'shell.collapseMenu' : 'shell.expandMenu')}
 			aria-expanded={expanded ? 'true' : 'false'}
 			onClick={onClick}
 			{...rest}
@@ -250,8 +252,9 @@ const NAV = {
     @param {import('react').ReactNode} [props.control] A Switch at the end. The row is then its label.
     @param {import('react').Ref<HTMLElement>} [props.ref] The row's own element: its button, link or label.
     @param {import('react').ReactNode} [props.children] The row's label. */
-export function NavItem({ variant = 'default', icon, mark, handle, handleLabel = 'Reorder', count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
+export function NavItem({ variant = 'default', icon, mark, handle, handleLabel, count, countColor, trail, sub, current = false, to, onClick, tip, control, ref, children, ...rest }) {
 	reject(rest, 'NavItem')
+	const phrase = usePhrase()
 	/* A row with words is named by what it draws, its words and its count, and carries no name of its
 	   own: a given name never matches the drawn text exactly ("All orders 441" against "All orders441").
 	   The rail hides the words, so only there the row carries them as its name. */
@@ -270,7 +273,7 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 	const body = (
 		<>
 			{handle
-				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button></span>
+				? <span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel ?? phrase('listItem.reorder')} {...grip}>{handle}</button></span>
 				: mark ?? (icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null)}
 			{/* a long name ends in an ellipsis on one line (9f); an empty box would push the sub text away */}
 			{children != null ? <span className="sp-grow sp-truncate">{children}</span> : null}
@@ -306,7 +309,7 @@ export function NavItem({ variant = 'default', icon, mark, handle, handleLabel =
 		return row(
 			<>
 				{here}
-				<span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel} {...grip}>{handle}</button></span>
+				<span className="sp-nav-item__icon"><button type="button" className="sp-list-item__handle" aria-label={handleLabel ?? phrase('listItem.reorder')} {...grip}>{handle}</button></span>
 				{to
 					? <Link className="sp-list-item__open" to={to} data-go={to} onClick={onClick} {...page}>{inside}</Link>
 					: <button type="button" className="sp-list-item__open" onClick={onClick}>{inside}</button>}
@@ -481,6 +484,7 @@ const PaletteScreen = createContext(false)
     @param {import('react').ReactNode} [props.children] The groups of results. */
 export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
+	const phrase = usePhrase()
 	const list = useId()
 	const term = {
 		role: 'combobox',
@@ -497,7 +501,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						? (
 							<>
 								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
-								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+								{onCancel ? <Button variant="text" onClick={onCancel}>{phrase('action.cancel')}</Button> : null}
 							</>
 						)
 						: (
@@ -509,7 +513,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 							</>
 						)}
 				</div>
-				<div className="sp-palette__body" id={list} role="listbox" aria-label="Results">{children}</div>
+				<div className="sp-palette__body" id={list} role="listbox" aria-label={phrase('shell.results')}>{children}</div>
 				{!screen && foot?.length
 					? <div className="sp-palette__foot">{foot.map(key => <span key={key}>{key}</span>)}</div>
 					: null}

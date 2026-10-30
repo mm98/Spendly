@@ -1,3 +1,4 @@
+import { refusal } from './phrases.js'
 /* What a file actually is, read from its own first bytes -- never decided from what the caller
    said (`file.mimetype` or the filename), because both are the caller's to write. A browser
    fills the mimetype in from the operating system's own extension mapping, so a renamed file
@@ -68,7 +69,7 @@ export function detectKind(buffer, declaredType, name) {
     own bytes -- before anything is stored, so a refused upload adds nothing. */
 export function assertImageOrPdf(files) {
 	const other = files.find(file => !detectFileType(file.buffer))
-	if (other) throw Object.assign(new Error(`The file "${other.originalname}" is not an image or a PDF. Nothing was added.`), { status: 415 })
+	if (other) throw refusal(415, 'upload.notImageOrPdf', { name: other.originalname })
 }
 
 // the types detectFileType names; a stored file of any other type is never shown on this site's own address

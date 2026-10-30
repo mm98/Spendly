@@ -7,15 +7,14 @@ import { Check, Choice } from '../components/Choice.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { cancelTwoStepSignIn, failureMessage, finishTwoStepSignIn, login } from '../api/client.js'
 import {
-	ActionLink, CODE_KINDS, LOST_BOTH, cleanCode, EMAIL_PATTERN, EMAIL_PROBLEM, useFocusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
+	ActionLink, CODE_KINDS, LOST_BOTH, bold, cleanCode, EMAIL_PATTERN, EMAIL_PROBLEM, useFocusField, waitWords, useCountdown, AuthCard, landing, onward, useAuthOptions, useSignedOut, useMail
 } from './AuthParts.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { closedPrompt, deviceFailed, passkeysHere, signInWithPasskey, stopPasskeyOffer } from '../app/passkeys.js'
-
-const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
-const PASSKEY_FAILED = "That passkey didn't work. Try again, or use your password."
+import { usePhrase } from '../language/phrases.js'
 
 export default function SignIn() {
+	const phrase = usePhrase()
 	const focusField = useFocusField()
 	const navigate = useNavigate()
 	const [params] = useSearchParams()
@@ -47,7 +46,7 @@ export default function SignIn() {
 
 	const checkEmail = () => {
 		const ok = !email.trim() || EMAIL_PATTERN.test(email.trim())
-		setEmailProblem(ok ? null : EMAIL_PROBLEM)
+		setEmailProblem(ok ? null : phrase(EMAIL_PROBLEM))
 		return ok
 	}
 
@@ -55,9 +54,9 @@ export default function SignIn() {
 	const submit = () => {
 		if (locked) return mail ? navigate(resetTo) : null
 		const emailOk = checkEmail() && EMAIL_PATTERN.test(email.trim())
-		if (!emailOk) setEmailProblem(EMAIL_PROBLEM)
+		if (!emailOk) setEmailProblem(phrase(EMAIL_PROBLEM))
 		const passwordOk = password !== ''
-		setPasswordProblem(passwordOk ? null : 'Enter your password.')
+		setPasswordProblem(passwordOk ? null : phrase('signIn.passwordMissing'))
 		if (!emailOk || !passwordOk) return focusField(emailOk ? 'signin-password' : 'signin-email')
 		setBusy(true)
 		setAlert(null)
@@ -79,8 +78,8 @@ export default function SignIn() {
 					return
 				}
 				setAlert(e?.status === 401
-					? "That email and password don't match. Check both and try again."
-					: failureMessage(e, UNREACHABLE))
+					? phrase('signIn.wrong')
+					: failureMessage(e, phrase('failed.unreachable')))
 				document.getElementById('signin-password')?.focus()
 			})
 	}
@@ -104,7 +103,7 @@ export default function SignIn() {
 	const sendCode = () => {
 		if (codeWait > 0 || timedOut) return leaveCodeStep()
 		if (!code) {
-			setCodeProblem('Enter the code.')
+			setCodeProblem(phrase('signIn.codeMissing'))
 			return focusField('signin-code')
 		}
 		setBusy(true)
@@ -116,11 +115,11 @@ export default function SignIn() {
 				if (e?.status === 429 && e.body?.retryAfter) return setCodeWait(e.body.retryAfter)
 				if (e?.status === 410) return setTimedOut(true)
 				if (e?.status === 401) {
-					setCodeProblem(CODE_KINDS[kind].wrong)
+					setCodeProblem(phrase(CODE_KINDS[kind].wrong))
 					// the code is kept and selected, so the next one types over it
 					return requestAnimationFrame(() => document.getElementById('signin-code')?.select())
 				}
-				setAlert(failureMessage(e, UNREACHABLE))
+				setAlert(failureMessage(e, phrase('failed.unreachable')))
 			})
 	}
 
@@ -132,7 +131,7 @@ export default function SignIn() {
 			.then(user => { if (user) navigate(onward(user, landing(params)), { replace: true }) })
 			.catch(e => {
 				if (closedPrompt(e)) return
-				setAlert(deviceFailed(e) ? PASSKEY_FAILED : failureMessage(e, UNREACHABLE))
+				setAlert(deviceFailed(e) ? phrase('signIn.passkeyFailed') : failureMessage(e, phrase('failed.unreachable')))
 			})
 			.finally(() => { if (!autofill) setAsking(false) })
 	}
@@ -145,9 +144,9 @@ export default function SignIn() {
 	const passkeyButton = passkeys
 		? (
 			<>
-				<span className="sp-divider">or</span>
+				<span className="sp-divider">{phrase('signIn.or')}</span>
 				<Button variant="outline" size="small" fullWidth disabled={asking} onClick={() => withPasskey(false)}>
-					<Icon name="key" size={14} />Sign in with a passkey
+					<Icon name="key" size={14} />{phrase('signIn.withPasskey')}
 				</Button>
 			</>
 		)
@@ -160,20 +159,20 @@ export default function SignIn() {
 	if (ticket) {
 		const words = CODE_KINDS[kind]
 		const waiting = codeWait > 0
-		const back = <ActionLink onClick={leaveCodeStep}>Back</ActionLink>
+		const back = <ActionLink onClick={leaveCodeStep}>{phrase('action.back')}</ActionLink>
 		if (timedOut) return (
-			<AuthCard title="Two-step sign-in" alertColor="warning" alertIcon="clock" alertTitle="This step timed out"
-				alert="The code has to be typed within 5 minutes of the password. Sign in again from the start."
-				onSubmit={leaveCodeStep} submit="Start again" across={back} note={LOST_BOTH} />
+			<AuthCard title={phrase('signIn.twoStep')} alertColor="warning" alertIcon="clock" alertTitle={phrase('signIn.timedOut')}
+				alert={phrase('signIn.timedOutBody')}
+				onSubmit={leaveCodeStep} submit={phrase('signIn.startAgain')} across={back} note={phrase(LOST_BOTH)} />
 		)
 		return (
-			<AuthCard title="Two-step sign-in" lead={waiting ? null : words.line}
-				alert={waiting ? <>Sign in is paused for <b>{waitWords(codeWait)}</b>. Then sign in again from the start.</> : alert}
-				alertColor={waiting ? 'warning' : 'danger'} alertIcon={waiting ? 'lock' : 'alert-circle'} alertTitle="Too many tries"
-				onSubmit={sendCode} submit={waiting ? 'Back to sign in' : 'Sign in'} busy={busy} busyLabel="Signing in…"
-				secondary={waiting ? null : <span className="sp-data sp-center"><ActionLink onClick={switchKind}>{words.other}</ActionLink></span>}
-				across={back} note={LOST_BOTH}>
-				<Field label={words.label} id="signin-code" message={codeProblem ?? undefined} messageType={codeProblem ? 'danger' : 'hint'}>
+			<AuthCard title={phrase('signIn.twoStep')} lead={waiting ? null : phrase(words.line)}
+				alert={waiting ? phrase('signIn.pausedStartAgain', { wait: waitWords(codeWait), b: bold }) : alert}
+				alertColor={waiting ? 'warning' : 'danger'} alertIcon={waiting ? 'lock' : 'alert-circle'} alertTitle={phrase('signIn.tooManyTries')}
+				onSubmit={sendCode} submit={phrase(waiting ? 'signIn.backToSignIn' : 'page.signIn')} busy={busy} busyLabel={phrase('signIn.busy')}
+				secondary={waiting ? null : <span className="sp-data sp-center"><ActionLink onClick={switchKind}>{phrase(words.other)}</ActionLink></span>}
+				across={back} note={phrase(LOST_BOTH)}>
+				<Field label={phrase(words.label)} id="signin-code" message={codeProblem ?? undefined} messageType={codeProblem ? 'danger' : 'hint'}>
 					<TextField {...words.field} code value={code} disabled={waiting || busy}
 						onChange={v => { setCode(cleanCode(v)); setCodeProblem(null) }} />
 				</Field>
@@ -181,37 +180,37 @@ export default function SignIn() {
 		)
 	}
 	if (locked) return (
-		<AuthCard title="Sign in to Spendly" alertColor="warning" alertIcon="lock" alertTitle="Too many attempts"
-			alert={<>Sign in is paused for <b>{waitWords(lockedFor)}</b>.{mail ? ' You can reset your password instead - that works straight away.' : ''}</>}
-			onSubmit={submit} submit={mail ? 'Reset my password' : 'Sign in'} disabled={!mail} gap={12}
-			note={alert ?? (mail ? `Or wait ${waitWords(lockedFor)} and try again.` : `Wait ${waitWords(lockedFor)} and try again.`)}
+		<AuthCard title={phrase('signIn.title')} alertColor="warning" alertIcon="lock" alertTitle={phrase('signIn.tooManyAttempts')}
+			alert={phrase(mail ? 'signIn.pausedReset' : 'signIn.paused', { wait: waitWords(lockedFor), b: bold })}
+			onSubmit={submit} submit={phrase(mail ? 'signIn.resetMine' : 'page.signIn')} disabled={!mail} gap={12}
+			note={alert ?? phrase(mail ? 'signIn.orWait' : 'signIn.wait', { wait: waitWords(lockedFor) })}
 			secondary={passkeyButton}>
-			<Field label="Email" id="signin-email">
+			<Field label={phrase('field.email')} id="signin-email">
 				<TextField type="email" autoComplete="username webauthn" value={email} disabled onChange={() => {}} />
 			</Field>
-			<Field label="Password" id="signin-password">
+			<Field label={phrase('field.password')} id="signin-password">
 				<PasswordField autoComplete="current-password" value={password} disabled onChange={() => {}} />
 			</Field>
 		</AuthCard>
 	)
 	return (
-		<AuthCard title="Sign in to Spendly" lead={alert ? null : 'Your orders, receipts and monthly limits.'} alert={alert}
-			onSubmit={submit} submit="Sign in" busy={busy} busyLabel="Signing in…" secondary={passkeyButton}
-			across={alert ? null : <>New here? <Link className="sp-strong au-across" to="/register">Create an account</Link></>}>
-			<Field label="Email" id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
+		<AuthCard title={phrase('signIn.title')} lead={alert ? null : phrase('signIn.lead')} alert={alert}
+			onSubmit={submit} submit={phrase('page.signIn')} busy={busy} busyLabel={phrase('signIn.busy')} secondary={passkeyButton}
+			across={alert ? null : phrase('signIn.newHere', { register: words => <Link className="sp-strong au-across" to="/register">{words}</Link> })}>
+			<Field label={phrase('field.email')} id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="username webauthn" inputMode="email" autoFocus={!given && !touch} value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
-			<Field label="Password" id="signin-password"
-				labelAction={canReset && !touch ? <Button variant="outline" size="xsmall" to={resetTo}>Forgot it?</Button> : null}
+			<Field label={phrase('field.password')} id="signin-password"
+				labelAction={canReset && !touch ? <Button variant="outline" size="xsmall" to={resetTo}>{phrase('signIn.forgot')}</Button> : null}
 				message={passwordProblem ?? undefined} messageType={passwordProblem ? 'danger' : 'hint'}>
 				<PasswordField autoComplete="current-password" autoFocus={given && !touch} value={password}
 					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
 			</Field>
-			{canReset && touch ? <Button variant="outline" fullWidth to={resetTo}>Forgot it?</Button> : null}
+			{canReset && touch ? <Button variant="outline" fullWidth to={resetTo}>{phrase('signIn.forgot')}</Button> : null}
 			{alert ? null : (
 				<Choice control={<Check checked={remember} onChange={ev => setRemember(ev.target.checked)} />}>
-					Stay signed in for 30 days
+					{phrase('signIn.stay')}
 				</Choice>
 			)}
 		</AuthCard>

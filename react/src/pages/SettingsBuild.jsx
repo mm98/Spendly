@@ -10,6 +10,7 @@ import { useApi } from '../api/useApi.js'
 import { checkVersion, failureMessage, getReleaseNotes, getVersion, startUpdate } from '../api/client.js'
 import { activeLocaleCode } from '../api/format.js'
 import { landing } from './SettingsParts.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 // a check that answers at once still shows Checking for this long, or it reads as nothing happening
 const HOLD_MS = 2000
@@ -29,7 +30,7 @@ async function reloadOnNew(commit) {
 		const now = await fetch('/api/version', { cache: 'no-store', signal: AbortSignal.timeout(ASK_LIMIT_MS) }).then(r => (r.ok ? r.json() : null)).catch(() => null)
 		if (now?.commit && now.commit !== commit) return window.location.reload()
 	}
-	throw new Error('The update did not finish.')
+	throw new Error(phrase('build.notFinished'))
 }
 
 // the card holds the running version and the two before it; Show earlier versions opens all of them,
@@ -57,6 +58,7 @@ const stampOf = iso => {
 /* This build, through the five states of 11d. An answer holds until the card leaves the
    screen, then the card is back at rest: a stale "up to date" is worse than none. */
 export function BuildCard() {
+	const phrase = usePhrase()
 	const version = useApi(getVersion)
 	const releaseNotes = useApi(getReleaseNotes)
 	const [state, setState] = useState('rest')
@@ -92,18 +94,18 @@ export function BuildCard() {
 		setWhy(null)
 		const failed = fallback => e => { setWhy(failureMessage(e, fallback)); setState('update-failed') }
 		startUpdate(AbortSignal.timeout(START_LIMIT_MS)).then(
-			() => reloadOnNew(version.data.commit).catch(failed('The update did not finish.')),
-			failed('The update could not be started.'))
+			() => reloadOnNew(version.data.commit).catch(failed(phrase('build.notFinished'))),
+			failed(phrase('build.notStarted')))
 	}
 
-	const heading = <CardHeader name="This build" {...landing('build')} />
+	const heading = <CardHeader name={phrase('settings.section.build')} {...landing('build')} />
 	const { version: versionNumber, builtAt, commit, canUpdate } = version.data ?? {}
 
 	if (!version.data) return (
 		<Card ref={card} aria-busy={version.error ? undefined : 'true'}>
 			{heading}
 			{version.error
-				? <span className="sp-data">Couldn't read which version is running.</span>
+				? <span className="sp-data">{phrase('build.unknown')}</span>
 				: <Skeleton shape="line" />}
 		</Card>
 	)
@@ -111,7 +113,7 @@ export function BuildCard() {
 	if (!commit) return (
 		<Card ref={card}>
 			{heading}
-			<span className="sp-data">This copy of Spendly was not installed from a published version, so there is nothing to check.</span>
+			<span className="sp-data">{phrase('build.notPublished')}</span>
 		</Card>
 	)
 
@@ -121,13 +123,13 @@ export function BuildCard() {
 	const earlier = versions.filter(v => v.version !== versionNumber).length
 	const shown = versions.slice(0, VERSIONS_AT_FIRST)
 	const whatChanged = versions.length > 0 && (
-		<div className="sp-stack sp-gap-12" aria-label="What changed">
-			<span className="sp-section-label">WHAT CHANGED</span>
+		<div className="sp-stack sp-gap-12" aria-label={phrase('update.whatChanged')}>
+			<span className="sp-section-label">{phrase('update.whatChanged')}</span>
 			{shown.map(v => <VersionNotes key={v.version} {...v} />)}
 			{shown.length < versions.length
 				? (
 					<div className="sp-row-flex">
-						<Button variant="outline" size="small" onClick={() => setAllOpen(true)}>{`Show ${earlier} earlier versions`}</Button>
+						<Button variant="outline" size="small" onClick={() => setAllOpen(true)}>{phrase('build.earlier', { count: earlier })}</Button>
 					</div>
 				)
 				: null}
@@ -135,12 +137,12 @@ export function BuildCard() {
 				{allOpen
 					? (
 						<Dialog onCancel={() => setAllOpen(false)}>
-							<DialogTitle>What changed</DialogTitle>
-							<div className="sp-dialog__scroll" aria-label="What changed">
+							<DialogTitle>{phrase('update.whatChanged')}</DialogTitle>
+							<div className="sp-dialog__scroll" aria-label={phrase('update.whatChanged')}>
 								{versions.map(v => <VersionNotes key={v.version} {...v} />)}
 							</div>
 							<DialogActions>
-								<Button variant="outline" onClick={() => setAllOpen(false)}>Close</Button>
+								<Button variant="outline" onClick={() => setAllOpen(false)}>{phrase('action.close')}</Button>
 							</DialogActions>
 						</Dialog>
 					)
@@ -150,40 +152,40 @@ export function BuildCard() {
 	)
 	const running = (
 		<span className="sp-data">
-			{versionNumber
-				? <>You're running version <b className="sp-ink">{versionNumber}</b>, installed on </>
-				: "You're running the version installed on "}
-			<b className="sp-ink">{stamp ?? 'an unknown date'}</b> <span className="sp-ink-5">({commit.slice(0, 7)})</span>.
+			{phrase(versionNumber ? 'build.running' : 'build.runningUnnamed', {
+				version: versionNumber, date: stamp ?? phrase('build.unknownDate'), commit: commit.slice(0, 7),
+				b: words => <b className="sp-ink">{words}</b>, quiet: words => <span className="sp-ink-5">{words}</span>
+			})}
 		</span>
 	)
 	const installs = canUpdate && (state === 'behind' || state === 'updating' || state === 'update-failed')
 	// only an update on offer has a primary button: it is the one press here with a consequence
 	const button = installs
 		? state === 'updating'
-			? <Button key="update" fullWidth disabled><Spinner />Updating…</Button>
-			: <Button key="update" fullWidth onClick={update}>{state === 'update-failed' ? 'Try again' : 'Update and reload'}</Button>
+			? <Button key="update" fullWidth disabled><Spinner />{phrase('build.updating')}</Button>
+			: <Button key="update" fullWidth onClick={update}>{phrase(state === 'update-failed' ? 'action.tryAgain' : 'build.update')}</Button>
 		: state === 'checking'
-			? <Button key="check" variant="outline" fullWidth disabled><Spinner />Checking…</Button>
-			: <Button key="check" variant="outline" fullWidth onClick={check}>{state === 'failed' ? 'Try again' : 'Check for updates'}</Button>
+			? <Button key="check" variant="outline" fullWidth disabled><Spinner />{phrase('twoStep.checking')}</Button>
+			: <Button key="check" variant="outline" fullWidth onClick={check}>{phrase(state === 'failed' ? 'action.tryAgain' : 'build.check')}</Button>
 
 	return (
 		<Card ref={card} footerCommits footer={button}>
 			{heading}
 			{running}
 			{state === 'rest' || state === 'checking'
-				? <span className="sp-meta">Press the button below to check online for a newer version.</span>
+				? <span className="sp-meta">{phrase('build.press')}</span>
 				: null}
 			{state === 'current'
-				? <ListItem color="success"><Icon name="check" />This is the newest version.</ListItem>
+				? <ListItem color="success"><Icon name="check" />{phrase('build.newest')}</ListItem>
 				: null}
 			{state === 'behind'
 				? (
 					<Well color="warning">
-						<span className="sp-title sp-ink-warning">{newestVersion ? `Version ${newestVersion} is available.` : 'A newer version is available.'}</span>
+						<span className="sp-title sp-ink-warning">{newestVersion ? phrase('build.available', { version: newestVersion }) : phrase('build.newerAvailable')}</span>
 						<span className="sp-meta sp-ink-warning">
 							{canUpdate
-								? `${newest ? `Installed ${newest}. ` : ''}Updating reloads the app; nothing you have saved is affected.`
-								: 'The person who manages your Spendly can install it. Nothing you have saved is affected.'}
+								? [newest ? phrase('build.installed', { date: newest }) : null, phrase('build.reloads')].filter(Boolean).join(' ')
+								: phrase('build.manager')}
 						</span>
 						{newerNotes.map(v => <VersionNotes key={v.version} {...v} ink="sp-ink-warning" />)}
 					</Well>
@@ -192,8 +194,8 @@ export function BuildCard() {
 			{state === 'updating'
 				? (
 					<Well color="warning">
-						<span className="sp-title sp-ink-warning">Installing the newer version.</span>
-						<span className="sp-meta sp-ink-warning">Spendly restarts on it, and this page reloads by itself when it is back. This can take up to two minutes.</span>
+						<span className="sp-title sp-ink-warning">{phrase('build.installing')}</span>
+						<span className="sp-meta sp-ink-warning">{phrase('build.installingBody')}</span>
 					</Well>
 				)
 				: null}
@@ -201,23 +203,23 @@ export function BuildCard() {
 				? (
 					<Well color="danger">
 						<span className="sp-title sp-ink-danger">{why}</span>
-						<span className="sp-meta sp-ink-danger">You can keep using the version you have.</span>
+						<span className="sp-meta sp-ink-danger">{phrase('build.keepUsing')}</span>
 					</Well>
 				)
 				: null}
 			{state === 'unpublished'
 				? (
 					<Well>
-						<span className="sp-title">There is nothing to compare this version with.</span>
-						<span className="sp-meta">It was built on its own and never published.</span>
+						<span className="sp-title">{phrase('build.nothingToCompare')}</span>
+						<span className="sp-meta">{phrase('build.ownBuild')}</span>
 					</Well>
 				)
 				: null}
 			{state === 'failed'
 				? (
 					<Well color="danger">
-						<span className="sp-title sp-ink-danger">Couldn't reach the update server.</span>
-						<span className="sp-meta sp-ink-danger">You can keep using the version you have.</span>
+						<span className="sp-title sp-ink-danger">{phrase('build.unreachable')}</span>
+						<span className="sp-meta sp-ink-danger">{phrase('build.keepUsing')}</span>
 					</Well>
 				)
 				: null}

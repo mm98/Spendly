@@ -4335,7 +4335,7 @@ a.sp-chat__file-name { text-decoration: none; }
    rail's column: it runs from the page's edge, taking in the body's 16 inset, to where the rail
    ends, so its rows start where the rail's cards start and the pane beside it, 12 on, starts where
    the order list does. Wide enough that
-   the longest label, Money, dates and times, does not wrap. The divider is the boundary
+   the longest label, Language and formats, does not wrap. The divider is the boundary
    between the two columns, so it runs the pane's whole height rather than stopping at the
    last row, and the column does not scroll with the pane: in the app it is the window's
    height below the top bar, so the divider never moves. A window shorter than the nav scrolls it

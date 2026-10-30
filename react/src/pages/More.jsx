@@ -10,21 +10,23 @@ import { getAsk, getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { useShellShape } from '../app/useMedia.js'
 import { AccountMenu } from '../app/AppShell.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 const ROWS = [
-	{ to: '/budget', label: 'Budget' },
-	{ to: '/vendors', label: 'Vendors' },
-	{ to: '/categories', label: 'Categories' },
-	{ to: '/bookmarks', label: 'Bookmarks' },
-	{ to: '/more/views', label: 'Saved views' },
+	{ to: '/budget', label: 'page.budget' },
+	{ to: '/vendors', label: 'page.vendors' },
+	{ to: '/categories', label: 'page.categories' },
+	{ to: '/bookmarks', label: 'page.bookmarks' },
+	{ to: '/more/views', label: 'page.savedViews' },
 	// only while the server has Ask set up (7a)
-	{ to: '/ask', label: 'Ask', asks: true },
-	{ to: '/settings', label: 'Settings' }
+	{ to: '/ask', label: 'page.ask', asks: true },
+	{ to: '/settings', label: 'page.settings' }
 ]
 
 /** Below 640, what the sidebar holds beyond the four tabs, in sidebar order (9h). Wider, the
     sidebar holds them itself, so the page gives way to Settings. */
 export default function More() {
+	const phrase = usePhrase()
 	const user = useApi(getCurrentUser)
 	const touch = useShellShape() === 'touch'
 	const email = user.data?.email
@@ -38,7 +40,7 @@ export default function More() {
 			{email ? <Account name={name} picture={picture} email={email} chevron={chevron} /> : null}
 			{ROWS.filter(row => asks || !row.asks).map(row => (
 				<ListItem key={row.to} variant="card" chevron={chevron} to={row.to}>
-					<span className="sp-data sp-grow">{row.label}</span>
+					<span className="sp-data sp-grow">{phrase(row.label)}</span>
 				</ListItem>
 			))}
 		</>

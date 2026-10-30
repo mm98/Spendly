@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Button, IconButton } from './Button.jsx'
 import { Fold } from './motion.js'
+import { usePhrase } from '../language/phrases.js'
 
 const VARIANT = {
 	default: null,
@@ -147,11 +148,12 @@ export function CardHeader({
 	actions,
 	actionSize = 'small',
 	onDismiss,
-	dismissLabel = 'Close',
+	dismissLabel,
 	...rest
 }) {
 	const placed = useContext(HeadSlot)
 	reject(rest, 'CardHeader')
+	const phrase = usePhrase()
 	if (!placed) { console.error('<CardHeader> is only a child of <Card>'); return null }
 	if ('children' in rest) { console.error('<CardHeader> takes no children: every view is a named slot'); delete rest.children }
 	if (!name) console.error('<CardHeader> needs a name')
@@ -171,7 +173,7 @@ export function CardHeader({
 				const button = <Button key={a.label} variant="outline" size={size} to={a.to} href={a.href} onClick={a.onClick}>{a.label}</Button>
 				return a.held ? <span key={a.label} className="sp-held">{button}</span> : button
 			})}
-			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel} onClick={onDismiss} /> : null}
+			{onDismiss ? <IconButton icon="x" aria-label={dismissLabel ?? phrase('action.close')} onClick={onDismiss} /> : null}
 		</div>
 	)
 }

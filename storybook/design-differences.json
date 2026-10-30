@@ -1,5 +1,54 @@
 {
-	"files": {},
+	"files": {
+		"Attachments.jsx": {
+			"hash": "b0ec18a4c9d2a99e"
+		},
+		"Card.jsx": {
+			"hash": "b745e9aeea1182e0"
+		},
+		"Chat.jsx": {
+			"hash": "dfdcc71030404f7c"
+		},
+		"Choice.jsx": {
+			"hash": "3775a3d4c0c697da"
+		},
+		"Combobox.jsx": {
+			"hash": "40dd98323c561e40"
+		},
+		"DatePickers.jsx": {
+			"hash": "6c25a96ad2459336"
+		},
+		"FileDrop.jsx": {
+			"hash": "2b7272568fc932b9"
+		},
+		"Inputs.jsx": {
+			"hash": "3f7b785a2c890cd7"
+		},
+		"LineEditor.jsx": {
+			"hash": "aa06e577614db090"
+		},
+		"List.jsx": {
+			"hash": "dfa74ffd61954a5a"
+		},
+		"ListItem.jsx": {
+			"hash": "cb6292102829f829"
+		},
+		"Overlays.jsx": {
+			"hash": "1866ee03507aa3e2"
+		},
+		"Reorder.jsx": {
+			"hash": "d39d1c2d706a9618"
+		},
+		"Shell.jsx": {
+			"hash": "3b388c2912a6bbab"
+		},
+		"Stepper.jsx": {
+			"hash": "7ce76e1cc0e90c83"
+		},
+		"Utilities.jsx": {
+			"hash": "85f5fbdb3837ee59"
+		}
+	},
 	"appOnly": [
 		"Failed.jsx",
 		"Icon.jsx",

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber, round } from './format.js'
+import { usePhrase } from '../language/phrases.js'
 
 /** `step` is what minus and plus move by; `decimals` how many places a typed value keeps, the step's
     own when absent (14a). A value with places is typed and read in `locale`, always shown with all its places:
@@ -33,6 +34,7 @@ export function Stepper({
 	...rest
 }) {
 	reject(rest, 'Stepper')
+	const phrase = usePhrase()
 	const name = fieldLabel ?? rest['aria-label']
 	if (!name) console.error('<Stepper> needs a name: put it in a Field with a text label, or pass aria-label')
 	// what Field hands the control belongs on the value, the element that takes focus
@@ -74,7 +76,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step fewer ${name}`}
+				aria-label={phrase('stepper.fewer', { name })}
 				disabled={noFewer}
 				onClick={() => {
 					setTyping(null)
@@ -124,7 +126,7 @@ export function Stepper({
 			<button
 				type="button"
 				className="sp-stepper__btn"
-				aria-label={`One step more ${name}`}
+				aria-label={phrase('stepper.more', { name })}
 				disabled={noMore}
 				onClick={() => {
 					setTyping(null)

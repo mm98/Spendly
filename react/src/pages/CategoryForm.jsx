@@ -24,9 +24,11 @@ import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** A category, created (5e) or edited (5f): one page, one form, one rail. */
 export default function CategoryForm() {
+	const phrase = usePhrase()
 	const { id } = useParams()
 	// once deleted or merged, that record is not read again (the page is on its way out); another one is
 	const [gone, setGone] = useState(null)
@@ -37,8 +39,8 @@ export default function CategoryForm() {
 	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed what="This category" error={record.error} onRetry={record.refresh}
-					back={{ to: list, label: 'Open Categories' }} />
+				<Failed what={phrase('category.this')} error={record.error} onRetry={record.refresh}
+					back={{ to: list, label: phrase('category.openList') }} />
 			</div>
 		)
 		return <CategoryFields key="loading" category={LOADING} loading loadingId={id} onGone={going} />
@@ -50,6 +52,7 @@ export default function CategoryForm() {
 const LOADING = { id: null, name: '', icon: 'tag', colour: null, budget: 0, favourite: false, orders: 0, bookmarks: 0 }
 
 function CategoryFields({ category, loading = false, loadingId, onGone }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -107,15 +110,15 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		.then(() => {
 			invalidateOrderData()
 			toast({
-				message: made ? `${saved.name} is created and added to the order.` : `${saved.name} is added to the order.`,
+				message: phrase(made ? 'category.createdAdded' : 'category.added', { name: saved.name }),
 				undo: {
 					onClick: () => changeOrders({ ids: [forOrder], removeCategories: [saved.id] })
-						.then(invalidateOrderData, e => sayFailure(toast, e, 'The category was not taken off. Try again.'))
+						.then(invalidateOrderData, e => sayFailure(toast, e, phrase('category.notTakenOff')))
 				}
 			})
 		}, e => sayFailure(toast, e, made
-			? `${saved.name} is created, but it was not added to the order. Add it from the order's menu.`
-			: `${saved.name} was not added to the order. Add it from the order's menu.`))
+			? phrase('category.createdNotAdded', { name: saved.name })
+			: phrase('category.notAdded', { name: saved.name })))
 		.finally(back)
 
 	// a new category's name that is already taken (6c): the existing one can be used in its place
@@ -127,16 +130,16 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	}
 
 	const nameProblem = async name => {
-		if (!name.trim()) return 'Give the category a name.'
+		if (!name.trim()) return phrase('category.nameMissing')
 		const same = await sameAs(name.trim())
-		return same ? `"${same.name}" already exists, with ${plural(same.orders ?? 0, 'order')}. Use it, or choose another name.` : null
+		return same ? phrase('category.nameTaken', { name: same.name, orders: plural(same.orders ?? 0, 'order') }) : null
 	}
-	const budgetProblem = budget => (budget === 0 ? 'Use an amount above zero, or leave it empty for no limit.' : null)
+	const budgetProblem = budget => (budget === 0 ? phrase('category.limitZero') : null)
 	// a limit most of the last twelve months went past (6c): said in amber on leaving the field, and saving is not stopped
 	const [checkedBudget, setCheckedBudget] = useState(start.budget)
 	const passedMonths = checkedBudget > 0 ? (category?.monthSpends ?? []).filter(spend => spend > checkedBudget).length : 0
 	const limitWarning = passedMonths > 6
-		? `${values.name.trim() || category.name} averaged ${currency(category.monthAverage, 0)} a month over the last 12 months. This limit will be passed most months.`
+		? phrase('category.limitLow', { name: values.name.trim() || category.name, amount: currency(category.monthAverage, 0) })
 		: null
 
 	const save = async () => {
@@ -162,7 +165,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 				writing.current = false
 				setSaving(false)
 				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
-				const message = failureMessage(e, 'The category was not saved. Check the connection and try again.')
+				const message = failureMessage(e, phrase('category.notSaved'))
 				if (!message) return
 				if (e?.status === 409 || e?.status === 400) {
 					setErrors(err => ({ ...err, name: message }))
@@ -185,7 +188,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			.catch(e => {
 				setBusy(false)
 				onGone(false)
-				sayFailure(toast, e, 'The category was not deleted. Try again.')
+				sayFailure(toast, e, phrase('categories.notDeleted'))
 			})
 	}
 
@@ -196,64 +199,64 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			.then(() => {
 				invalidateCategoryData()
 				invalidateVendorData()
-				toast({ message: `${category.name} is merged into ${target.name}.` })
+				toast({ message: phrase('library.merged', { source: category.name, target: target.name }) })
 				leave()
 			})
 			.catch(e => {
 				setBusy(false)
 				onGone(false)
-				sayFailure(toast, e, 'The categories were not merged. Try again.')
+				sayFailure(toast, e, phrase('categories.notMerged'))
 			})
 	}
 
-	const preview = { name: values.name.trim() || 'New category', icon: values.icon, colour: storedColour(colour) }
+	const preview = { name: values.name.trim() || phrase('categories.new'), icon: values.icon, colour: storedColour(colour) }
 
 	const cards = (
 		<>
 			<Card>
-				<CardHeader name="The category" />
-				<Field id="category-name" label="Name"
-					message={errors.name ?? (editing ? undefined : 'Appears on chips, filters and charts, so short wins - "Decor", not "Home decoration items".')}
+				<CardHeader name={phrase('category.card.category')} />
+				<Field id="category-name" label={phrase('field.name')}
+					message={errors.name ?? (editing ? undefined : phrase('category.nameHelp'))}
 					messageType={errors.name ? 'danger' : 'hint'}>
 					{h(<TextField value={values.name} autoFocus={!touch} onChange={v => set('name', v)}
 						onBlur={() => { const asked = values.name; nameProblem(asked).then(problem => setErrors(e => ({ ...e, name: problem }))) }}
-						placeholder={editing ? undefined : 'What you spent it on'} />)}
+						placeholder={editing ? undefined : phrase('category.namePlaceholder')} />)}
 				</Field>
 				{errors.name && taken
 					? (
 						<div className="sp-row-flex sp-gap-8">
-							<Button size="small" onClick={takeExisting}>Use {taken.name}</Button>
+							<Button size="small" onClick={takeExisting}>{phrase('category.use', { name: taken.name })}</Button>
 						</div>
 					)
 					: null}
 			</Card>
 
 			<Card>
-				<CardHeader name="Mark" />
+				<CardHeader name={phrase('category.mark')} />
 				<div className="sp-stack sp-gap-12">
-					<Field label="Icon">
+					<Field label={phrase('field.icon')}>
 						{h(<CategoryIconPicker value={values.icon} onChange={v => set('icon', v)} />)}
 					</Field>
-					<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
+					<Field label={phrase('vendor.colour')} message={phrase('vendor.colourHelp')}>
 						{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 							value={colour} onChange={v => set('colour', v)} />)}
 					</Field>
-					<Choice variant="described" description="Leads the list in every category picker."
+					<Choice variant="described" description={phrase('category.favouriteHelp')}
 						control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
-						Favourite
+						{phrase('vendor.favourite')}
 					</Choice>
 				</div>
 			</Card>
 
 			<Card>
-				<CardHeader name="Monthly limit" />
+				<CardHeader name={phrase('categories.limit')} />
 				{/* the field's own blur formats the amount, so the check listens from around it */}
 				<div onBlur={() => { setErrors(e => ({ ...e, budget: budgetProblem(values.budget) })); setCheckedBudget(values.budget) }}>
-					<Field id="category-limit" label="Limit"
-						message={errors.budget ?? limitWarning ?? (editing ? 'One amount for every month. Statistics reads this.' : 'One amount that applies to every month. Leave empty for no limit.')}
+					<Field id="category-limit" label={phrase('category.limit')}
+						message={errors.budget ?? limitWarning ?? phrase(editing ? 'category.limitHelp' : 'category.limitHelpNew')}
 						messageType={errors.budget ? 'danger' : limitWarning ? 'warning' : 'hint'}>
 						{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
-						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale={NUMBER_LOCALE} placeholder="no limit" />)}
+						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale={NUMBER_LOCALE} placeholder={phrase('categories.noLimit')} />)}
 					</Field>
 				</div>
 			</Card>
@@ -263,9 +266,9 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
 	const bar = touch || !editing || changed
 		? (
-			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
+			<CommitBar status={!editing ? phrase('form.state.nothingYet') : changed ? phrase('form.state.unsaved') : null} quiet={!editing}
 				onCancel={() => (forOrder ? returnToOrder() : navigate(list))} onSave={lost ? null : save}
-				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save category' : 'Create'} saving={saving} disabled={loading} />
+				commit={phrase(touch ? (editing ? 'action.save' : 'action.create') : editing ? 'category.save' : 'action.create')} saving={saving} disabled={loading} />
 		)
 		: null
 
@@ -286,7 +289,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 			)
 			: (
 				<Card>
-					<CardHeader name="Category summary" />
+					<CardHeader name={phrase('category.summary')} />
 					<div className="sp-row-flex sp-gap-12">
 						<CategoryMark category={preview} />
 						<Stacked>
@@ -294,15 +297,15 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 						</Stacked>
 					</div>
 					<div className="sp-stack">
-						<Sum value={values.name.trim() || '-'}>Name</Sum>
-						<Sum value={values.budget ? currency(values.budget, 0) : 'none'}>Monthly limit</Sum>
+						<Sum value={values.name.trim() || '-'}>{phrase('field.name')}</Sum>
+						<Sum value={values.budget ? currency(values.budget, 0) : phrase('vendors.none')}>{phrase('categories.limit')}</Sum>
 					</div>
 				</Card>
 			)
 
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Categories' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: phrase('category.openList') }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			<Leaving>{guard.prompt}</Leaving>
 			<Leaving>{deleting
@@ -318,6 +321,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 /** This month against the limit, and what the category has carried (5f). The limit is the
     form's own value, so the bar answers the number being typed. */
 function CategorySummary({ category, preview, budget }) {
+	const phrase = usePhrase()
 	const month = useApi(getCategoryPage, [{ ids: category.id, with: 'month', pageSize: 1 }])
 	const spend = month.data?.categories[0]?.monthSpend
 	const pace = monthPace()
@@ -325,13 +329,13 @@ function CategorySummary({ category, preview, budget }) {
 	const over = limit !== null && spend > limit
 	return (
 		<Card>
-			<CardHeader name="Category summary" />
+			<CardHeader name={phrase('category.summary')} />
 			<div className="sp-row-flex sp-gap-12">
 				<CategoryMark category={preview} />
 				<Stacked>
 					<span className="sp-title sp-truncate">{preview.name}</span>
 					<span className="sp-meta">
-						{plural(category.orders, 'order')}{spend === undefined ? null : <>{dot}{currency(spend, 0)} this month</>}
+						{plural(category.orders, 'order')}{spend === undefined ? null : <>{dot}{phrase('category.thisMonth', { amount: currency(spend, 0) })}</>}
 					</span>
 				</Stacked>
 			</div>
@@ -341,21 +345,21 @@ function CategorySummary({ category, preview, budget }) {
 					<>
 						<div className="sp-row-flex sp-gap-12 sp-baseline">
 							<Stat bare large figure={over ? <span className="sp-ink-warning">{currency(spend, 0)}</span> : currency(spend, 0)} />
-							{limit !== null ? <span className="sp-data sp-ink-5">of {currency(limit, 0)}</span> : null}
+							{limit !== null ? <span className="sp-data sp-ink-5">{phrase('category.of', { amount: currency(limit, 0) })}</span> : null}
 						</div>
 						{limit !== null
-							? <Gauge value={Math.min(100, (spend / limit) * 100)} passed={over} marker={pace.at} aria-label="Share of the limit used" />
-							: <Gauge untargeted value={0} aria-label="No limit set" />}
+							? <Gauge value={Math.min(100, (spend / limit) * 100)} passed={over} marker={pace.at} aria-label={phrase('categories.shareUsed')} />
+							: <Gauge untargeted value={0} aria-label={phrase('categories.noLimitSet')} />}
 						{over
-							? <span className="sp-meta sp-ink-warning">{currency(spend - limit, 0)} over the limit, on day {pace.day} of {pace.days}.</span>
+							? <span className="sp-meta sp-ink-warning">{phrase('category.overOnDay', { amount: currency(spend - limit, 0), day: pace.day, days: pace.days })}</span>
 							: null}
 					</>
 				)}
 			<div className="sp-stack">
-				<Sum value={currency(category.monthAverage ?? 0, 0)}>12-month average</Sum>
-				<Sum value={amount(category.orders, 0)}>Orders</Sum>
+				<Sum value={currency(category.monthAverage ?? 0, 0)}>{phrase('category.average')}</Sum>
+				<Sum value={amount(category.orders, 0)}>{phrase('page.orders')}</Sum>
 			</div>
-			<Button variant="outline" size="small" to={`/statistics?crumbs=category:${category.id}`}>See more in statistics</Button>
+			<Button variant="outline" size="small" to={`/statistics?crumbs=category:${category.id}`}>{phrase('library.seeMoreStatistics')}</Button>
 		</Card>
 	)
 }
@@ -363,19 +367,20 @@ function CategorySummary({ category, preview, budget }) {
 /** The rail while the category loads. The list answer, when in hand, gives each card the shape
     the loaded one takes: the over-the-limit line, the recent orders, the words of the way out. */
 function RailLoading({ id }) {
+	const phrase = usePhrase()
 	const month = useApi(getCategoryPage, [{ ids: id, with: 'month', pageSize: 1 }], { enabled: Boolean(id) })
 	const known = month.data?.categories[0]
 	const over = known ? overBudget(known) : false
 	const end = removingWords(known ?? { orders: 10 })
 	return (
 		<>
-			<SummaryLoading label="Category summary" sums={[['12-month average', '76'], ['Orders', '44']]} action="See more in statistics">
+			<SummaryLoading label={phrase('category.summary')} sums={[[phrase('category.average'), '76'], [phrase('page.orders'), '44']]} action={phrase('library.seeMoreStatistics')}>
 				<Held shape={<Stat large figure="0 kr." />}><Skeleton shape="line" data-w="130" data-h="22" /></Held>
-				<Held shape={<Gauge value={0} aria-label="Share of the limit used" />} />
-				{over ? <Held shape={<span className="sp-meta">0 kr. over the limit, on day 1 of 30.</span>} /> : null}
+				<Held shape={<Gauge value={0} aria-label={phrase('categories.shareUsed')} />} />
+				{over ? <Held shape={<span className="sp-meta">{phrase('category.overOnDay', { amount: currency(0, 0), day: 1, days: 30 })}</span>} /> : null}
 			</SummaryLoading>
 			{!known || known.orders ? <RecentLoading /> : null}
-			<EndLoading label="Removing it" title={end.title} body={end.body} action={<Button color="danger">Delete</Button>} />
+			<EndLoading label={phrase('category.removing')} title={end.title} body={end.body} action={<Button color="danger">{phrase('action.delete')}</Button>} />
 		</>
 	)
 }
@@ -384,19 +389,20 @@ function RailLoading({ id }) {
     optional on an order. */
 const removingWords = category => (category.orders || category.bookmarks
 	? {
-		title: 'Merge it into another category, or delete it',
-		body: `Merging hands its ${plural(category.orders, 'order')} to the category you pick. Deleting takes the label off them; any other categories they carry stay. To keep the grouping under a different name, rename it instead.`
+		title: phrase('category.removing.carried'),
+		body: phrase('category.removing.carriedBody', { orders: plural(category.orders, 'order') })
 	}
-	: { title: 'Nothing carries this category', body: 'Merging or deleting it changes no order. To keep it under a different name, rename it instead.' })
+	: { title: phrase('category.removing.free'), body: phrase('category.removing.freeBody') })
 
 function Removing({ category, merge, onDelete }) {
+	const phrase = usePhrase()
 	const { title, body } = removingWords(category)
 	return (
 		<Card footer={[
-			<MergeButton key="merge" merge={merge}>Merge…</MergeButton>,
-			<Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
+			<MergeButton key="merge" merge={merge}>{phrase('category.merge')}</MergeButton>,
+			<Button key="delete" color="danger" onClick={onDelete}>{phrase('action.delete')}</Button>
 		]} footerLayout="split" footerCommits>
-			<CardHeader name="Removing it" />
+			<CardHeader name={phrase('category.removing')} />
 			<Well>
 				<span className="sp-title">{title}</span>
 				<span className="sp-subtitle">{body}</span>

@@ -5,6 +5,7 @@ import { fromEpoch, nowEpoch, toEpoch } from './dates.js'
 import { findVendorIdByAnyName, findVendorIdForReceipt, resolveVendor } from './findOrCreate.js'
 import { describe } from './categorySuggest.js'
 import { sep, fileSizeLabel } from './copy.js'
+import { refusal, words } from './phrases.js'
 
 /* An order not created yet (migrations/236): the form as it was left, and its scan when it has one.
    The API shows a draft as an order with status Draft; Create makes the order. */
@@ -58,10 +59,10 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 			failure: read ? 'empty' : failure === 'billing' ? 'billing' : process.env.ANTHROPIC_API_KEY ? 'failed' : 'unread',
 			found: read ? { vendor: read.vendor, date: read.date } : null,
 			reconciled: failure === 'billing'
-				? 'This document was not read: the reading service reports a billing problem, such as no credits left. Add the line items and totals below yourself, or upload it again once that is fixed.'
+				? words('scan.billing')
 				: process.env.ANTHROPIC_API_KEY
-					? 'This document could not be read automatically. Add the line items and totals below yourself.'
-					: 'This document has not been read automatically. Add the line items and totals below yourself.',
+					? words('scan.failed')
+					: words('scan.unread'),
 			checks: [], unclear: [], suggestions: []
 		}
 	}
@@ -85,45 +86,45 @@ export function answerOf({ userId, today }, upload, read, failure, { look = fals
 		lines: read.lines.map((l, i) => ({
 			id: lineKey(upload.id, i), title: l.title, quantity: l.quantity, price: l.price, retail: l.retail ?? null,
 			uncertain: l.uncertain, unclearPart: l.unclearPart ?? null,
-			meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
+			meta: l.uncertain ? words('scan.lineUnclear') : undefined
 		})),
 		// The printed total or null, never the lines' own sum: the review checks the lines against it.
 		remainder: null, total: read.total,
 		reconciled: read.total != null
-			? 'Matched against the document’s own printed total.'
-			: 'No printed total was found on the document to check the lines against.',
+			? words('scan.totalMatched')
+			: words('scan.noTotal'),
 		checks: [
 			{
 				id: 'vendor', warning: !vendorMatched,
-				title: vendorMatched ? `Matched to ${vendorName}` : 'New vendor — will be created',
+				title: vendorMatched ? words('scan.vendorMatched', { name: vendorName }) : words('scan.vendorNew'),
 				// all three things a receipt is matched by (5h), as it printed them
 				meta: [read.vendor, read.vatNumber ? `CVR ${read.vatNumber}` : null, read.website].filter(Boolean).join(sep)
 			},
 			{
 				id: 'total', warning: read.total == null,
-				title: read.total != null ? 'Printed total found' : 'No printed total found',
-				meta: read.total != null ? undefined : 'The lines below are all that was read.'
+				title: words('scan.totalFound', { found: String(read.total != null) }),
+				meta: read.total != null ? undefined : words('scan.linesOnly')
 			},
 			// pricesAsPrintedIncludeVat is a fact about the source document; null means it could not
 			// tell either way, which is worth a warning: nothing converted a figure that may have needed it.
 			read.pricesAsPrintedIncludeVat === null
-				? { id: 'vat', warning: true, title: 'Could not tell if VAT was included', meta: 'Check the line prices against the document.' }
+				? { id: 'vat', warning: true, title: words('scan.vatUnknown'), meta: words('scan.vatCheck') }
 				: {
 					id: 'vat', warning: false,
 					title: read.pricesAsPrintedIncludeVat
-						? 'Prices already included VAT'
-						: `Converted from ex-VAT prices${read.vatRate != null ? ` at ${read.vatRate}%` : ''}`
+						? words('scan.vatIncluded')
+						: read.vatRate != null ? words('scan.vatConvertedAt', { rate: read.vatRate }) : words('scan.vatConverted')
 				},
 			...(read.converted
 				? [read.converted.rate
-					? { id: 'currency', warning: false, from: read.converted.from, to: read.converted.to, title: `Changed from ${read.converted.from} to ${read.converted.to}`,
-						meta: `1 ${read.converted.from} = ${read.converted.rate} ${read.converted.to}, the rate on the date of the document. Check the amounts.` }
-					: { id: 'currency', warning: true, from: read.converted.from, to: read.converted.to, title: `The document is in ${read.converted.from}`,
-						meta: `The amounts below are not changed. Change them to ${read.converted.to} yourself.` }]
+					? { id: 'currency', warning: false, from: read.converted.from, to: read.converted.to, title: words('scan.currencyChanged', { from: read.converted.from, to: read.converted.to }),
+						meta: words('scan.currencyRate', { from: read.converted.from, rate: read.converted.rate, to: read.converted.to }) }
+					: { id: 'currency', warning: true, from: read.converted.from, to: read.converted.to, title: words('scan.currencyOther', { from: read.converted.from }),
+						meta: words('scan.currencyUnchanged', { to: read.converted.to }) }]
 				: []),
 			...(read.linesFromTotals
-				? [{ id: 'lineTotals', warning: false, title: 'Price per item worked out from the line amount',
-					meta: `${read.linesFromTotals === 1 ? 'One line' : `${read.linesFromTotals} lines`} showed the amount for all items. It is divided by the quantity.` }]
+				? [{ id: 'lineTotals', warning: false, title: words('scan.perItem'),
+					meta: words('scan.perItemNote', { count: read.linesFromTotals }) }]
 				: [])
 		]
 	}
@@ -184,17 +185,15 @@ export function stillToLook(answer, form) {
 	return looks + unsure + fields
 }
 
-const words = (n, one, many) => `${n} ${n === 1 ? one : many}`
-
 /** What is left to check on a draft (Home 10a): "2 values need a look", "4 lines", "Still reading", "Nothing read";
     for one made by hand its lines, "4 lines" or "No lines yet". */
 function leftOf(answer, form, reading, scanned) {
-	if (reading) return 'Still reading'
+	if (reading) return words('draft.left.reading')
 	const kept = form.lines.filter(l => l.include !== false).length
-	if (!scanned) return kept ? words(kept, 'line', 'lines') : 'No lines yet'
-	if (!answer?.linesRead) return kept ? words(kept, 'line', 'lines') : 'Nothing read'
+	if (!scanned) return kept ? words('draft.left.lines', { count: kept }) : words('draft.left.noLines')
+	if (!answer?.linesRead) return kept ? words('draft.left.lines', { count: kept }) : words('draft.left.nothingRead')
 	const looks = stillToLook(answer, form)
-	return looks ? `${looks} ${looks === 1 ? 'value needs' : 'values need'} a look` : words(kept, 'line', 'lines')
+	return looks ? words('draft.left.looks', { count: looks }) : words('draft.left.lines', { count: kept })
 }
 
 /** The order's sums from the form, as the orders table keeps them (migrations/001). */
@@ -285,7 +284,7 @@ export const keepForm = db.transaction((userId, id, form) => {
 	const row = selectDraft.get(id, userId)
 	if (!row) return false
 	const text = JSON.stringify({ values: form?.values ?? {}, lines: form?.lines ?? [], files: form?.files ?? [], origin: form?.origin ?? null })
-	if (text.length > MAX_FORM) throw Object.assign(new Error('The draft is too large to keep.'), { status: 413 })
+	if (text.length > MAX_FORM) throw refusal(413, 'draft.tooLarge')
 	updateForm.run(text, id, userId)
 	deleteDraftFiles.run(id)
 	const held = [...(form?.files ?? []).map(f => f?.key), ...(form?.lines ?? []).map(l => l?.photo?.key)]

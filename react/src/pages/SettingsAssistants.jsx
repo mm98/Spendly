@@ -12,23 +12,23 @@ import { createMcpToken, failureMessage, getMcpTokens, removeMcpToken } from '..
 import { dayShortMonthYear, dot, isToday } from '../api/format.js'
 import { useApi } from '../api/useApi.js'
 import { landing } from './SettingsParts.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
-const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
 // the server refuses a 21st token with the same number
 const MOST = 20
 const COPIED_MS = 2000
 
-const used = seconds => (seconds == null ? 'never used' : `last used ${isToday(seconds) ? 'today' : dayShortMonthYear(seconds)}`)
+const used = seconds => (seconds == null ? phrase('assistants.neverUsed') : phrase('passkey.lastUsed', { when: isToday(seconds) ? phrase('time.today') : dayShortMonthYear(seconds) }))
 
 /* Each program's one line and its setup text, with the token filled in (11e). Claude Code first. */
 const SETUPS = [
-	{ value: 'claude', label: 'Claude', line: 'In Claude, on the web or the desktop app, open Settings, Connectors, Add custom connector, and paste this address:',
+	{ value: 'claude', label: 'Claude', line: 'assistants.setup.claude',
 		text: ({ withToken }) => withToken },
-	{ value: 'claude-code', label: 'Claude Code', line: 'Run this in a terminal:',
+	{ value: 'claude-code', label: 'Claude Code', line: 'assistants.setup.claudeCode',
 		text: ({ address, token }) => `claude mcp add --transport http spendly ${address} --header "Authorization: Bearer ${token}"` },
-	{ value: 'cursor', label: 'Cursor', line: 'Add this to ~/.cursor/mcp.json:',
+	{ value: 'cursor', label: 'Cursor', line: 'assistants.setup.cursor',
 		text: ({ address, token }) => `{\n  "mcpServers": {\n    "spendly": {\n      "url": ${JSON.stringify(address)},\n      "headers": { "Authorization": ${JSON.stringify(`Bearer ${token}`)} }\n    }\n  }\n}` },
-	{ value: 'chatgpt', label: 'ChatGPT', line: 'In ChatGPT, open Settings, Connectors, Create, and paste this address:',
+	{ value: 'chatgpt', label: 'ChatGPT', line: 'assistants.setup.chatgpt',
 		text: ({ withToken }) => withToken }
 ]
 
@@ -58,27 +58,28 @@ export function useCopy() {
 			setCopied(key)
 			clearTimeout(timer.current)
 			timer.current = setTimeout(() => setCopied(null), COPIED_MS)
-			toast({ message: 'Copied.' })
+			toast({ message: phrase('copy.done') })
 		})
-		.catch(() => toast({ message: 'Spendly could not copy it. Select the text and copy it yourself.', color: 'danger' }))
+		.catch(() => toast({ message: phrase('copy.failed'), color: 'danger' }))
 	return { copied, copy }
 }
 
 /* AI assistants (11e): the tokens an assistant program reads this account with, in the Passkeys
    family. A pane of its own on a wide screen, and a page of its own on a phone (7a). */
 export function AssistantsCard({ state, touch }) {
+	const phrase = usePhrase()
 	const list = useApi(getMcpTokens)
 	const { naming, setNaming, made, setMade } = state
 	const [removing, setRemoving] = useState(null)
 	const rows = list.data?.tokens
 	const full = (rows?.length ?? 0) >= MOST
 	return (
-		<Card footerCommits footer={made ? <Button fullWidth onClick={() => setMade(null)}>Done</Button> : undefined}>
-			<CardHeader name="AI assistants" {...landing('assistants')}
-				control={<Button variant="outline" size="small" disabled={naming || made != null || full || !rows} onClick={() => setNaming(true)}><Icon name="plus" size={14} />New token</Button>} />
-			<span className="sp-data">Let an assistant such as Claude look up your orders, vendors and budget. A token gives it read-only access to this account: it can read, never change or delete.</span>
-			{full ? <span className="sp-meta">{MOST} of {MOST} tokens. Remove one to make another.</span> : null}
-			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
+		<Card footerCommits footer={made ? <Button fullWidth onClick={() => setMade(null)}>{phrase('action.done')}</Button> : undefined}>
+			<CardHeader name={phrase('settings.section.assistants')} {...landing('assistants')}
+				control={<Button variant="outline" size="small" disabled={naming || made != null || full || !rows} onClick={() => setNaming(true)}><Icon name="plus" size={14} />{phrase('assistants.new')}</Button>} />
+			<span className="sp-data">{phrase('assistants.lead')}</span>
+			{full ? <span className="sp-meta">{phrase('assistants.full', { count: MOST })}</span> : null}
+			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, phrase('failed.unreachable'))}</span> : null}
 			{!rows && !list.error ? <Skeleton shape="line" /> : null}
 			{naming ? <NameToken onCancel={() => setNaming(false)} onMade={token => { setNaming(false); setMade(token) }} /> : null}
 			{made ? <MadeToken token={made} touch={touch} /> : null}
@@ -88,9 +89,9 @@ export function AssistantsCard({ state, touch }) {
 					<div className="sp-row-flex sp-gap-12 st-pk-row">
 						<Stacked>
 							<span className="sp-title sp-truncate">{t.name}</span>
-							<span className="sp-meta">Made {dayShortMonthYear(t.createdAt)}{dot}{used(t.lastUsedAt)}</span>
+							<span className="sp-meta">{phrase('assistants.made', { date: dayShortMonthYear(t.createdAt) })}{dot}{used(t.lastUsedAt)}</span>
 						</Stacked>
-						<Button variant="outline" size="small" onClick={() => setRemoving(t)}>Remove</Button>
+						<Button variant="outline" size="small" onClick={() => setRemoving(t)}>{phrase('action.remove')}</Button>
 					</div>
 				</Fragment>
 			))}
@@ -110,6 +111,7 @@ export function useAssistantsState() {
 
 /** The naming row, the passkey rename row's shape: Enter creates, Escape cancels. */
 function NameToken({ onCancel, onMade }) {
+	const phrase = usePhrase()
 	const [name, setName] = useState('')
 	const [problem, setProblem] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -119,24 +121,24 @@ function NameToken({ onCancel, onMade }) {
 	const create = () => {
 		if (busy) return
 		if (!name.trim()) {
-			setProblem('Give the token a name.')
+			setProblem(phrase('assistants.nameMissing'))
 			return field.current?.focus()
 		}
 		setBusy(true)
 		createMcpToken(name.trim())
 			.then(onMade)
-			.catch(e => { setBusy(false); setProblem(failureMessage(e, UNREACHABLE)) })
+			.catch(e => { setBusy(false); setProblem(failureMessage(e, phrase('failed.unreachable'))) })
 	}
 	return (
 		<div className="sp-field">
 			<div className="sp-row-flex sp-gap-12 st-pk-row">
-				<TextField inputRef={field} value={name} maxLength={80} placeholder="Claude on my laptop" aria-label="Token name"
+				<TextField inputRef={field} value={name} maxLength={80} placeholder={phrase('assistants.namePlaceholder')} aria-label={phrase('assistants.name')}
 					danger={problem != null} aria-describedby={problem ? help : undefined}
 					onChange={v => { setName(v); setProblem(null) }}
 					onKeyDown={ev => { if (ev.key === 'Enter') create(); if (ev.key === 'Escape') onCancel() }} />
 				<div className="sp-row-flex sp-gap-8 sp-flex-none">
-					<Button variant="outline" disabled={busy} onClick={onCancel}>Cancel</Button>
-					<Button disabled={busy} onClick={create}>Create</Button>
+					<Button variant="outline" disabled={busy} onClick={onCancel}>{phrase('action.cancel')}</Button>
+					<Button disabled={busy} onClick={create}>{phrase('action.create')}</Button>
 				</div>
 			</div>
 			{problem ? <span className="sp-field__help" data-color="danger" id={help}>{problem}</span> : null}
@@ -146,6 +148,7 @@ function NameToken({ onCancel, onMade }) {
 
 /** The one time a token is shown: the token, both addresses and, off a phone, each program's setup. */
 function MadeToken({ token, touch }) {
+	const phrase = usePhrase()
 	const { copied, copy } = useCopy()
 	const [setup, setSetup] = useState('claude-code')
 	// the address this Spendly is opened on is the one the assistant reaches it at
@@ -160,30 +163,30 @@ function MadeToken({ token, touch }) {
 	)
 	const readOnly = (key, label, text, message) => (
 		<Field label={label} message={message}>
-			<TextField variant="readonly" readOnly code value={text} action={{ icon: copied === key ? 'check' : 'copy', label: `Copy the ${label.toLowerCase()}`, onClick: () => copy(key, text) }} />
+			<TextField variant="readonly" readOnly code value={text} action={{ icon: copied === key ? 'check' : 'copy', label: phrase('assistants.copyThe', { what: label }), onClick: () => copy(key, text) }} />
 		</Field>
 	)
 	return (
 		<>
 			<span className="sp-title">{token.name}</span>
 			<Well color="warning">
-				<span className="sp-title sp-ink-warning">Copy the token now. It won't be shown again.</span>
-				<span className="sp-meta sp-ink-warning">If you lose it, remove it and make a new one.</span>
+				<span className="sp-title sp-ink-warning">{phrase('assistants.copyNow')}</span>
+				<span className="sp-meta sp-ink-warning">{phrase('assistants.lost')}</span>
 			</Well>
-			{readOnly('token', 'Token', values.token)}
-			{readOnly('address', 'Address', values.address, <>Send the token with it, as the header <span className="sp-code">Authorization: Bearer</span> and the token.</>)}
-			{readOnly('with-token', 'Address with the token in it', values.withToken, 'For a program that takes only an address.')}
+			{readOnly('token', phrase('assistants.token'), values.token)}
+			{readOnly('address', phrase('assistants.address'), values.address, phrase('assistants.addressHelp', { code: words => <span className="sp-code">{words}</span> }))}
+			{readOnly('with-token', phrase('assistants.addressWithToken'), values.withToken, phrase('assistants.addressWithTokenHelp'))}
 			{touch
 				? null
 				: (
 					<>
-						<span className="sp-field__label" id="assistants-setup-label">Set up in</span>
+						<span className="sp-field__label" id="assistants-setup-label">{phrase('assistants.setUpIn')}</span>
 						<Segmented name="assistants-setup" fullWidth role="radiogroup" aria-labelledby="assistants-setup-label"
 							options={SETUPS} value={setup} onChange={setSetup} />
-						<span className="sp-meta">{chosen.line}</span>
+						<span className="sp-meta">{phrase(chosen.line)}</span>
 						<Well variant="snippet">
 							<span className="sp-data">{chosen.text(values)}</span>
-							{button(`setup-${chosen.value}`, chosen.text(values), `Copy the setup for ${chosen.label}`)}
+							{button(`setup-${chosen.value}`, chosen.text(values), phrase('assistants.copySetup', { name: chosen.label }))}
 						</Well>
 					</>
 				)}
@@ -193,22 +196,23 @@ function MadeToken({ token, touch }) {
 
 /** Remove asks first (11e): the program using the token stops at once, and there is no undo. */
 function Remove({ token, onDone, onRemoved }) {
+	const phrase = usePhrase()
 	const toast = useToast()
 	const [busy, setBusy] = useState(false)
 	const [problem, setProblem] = useState(null)
 	const remove = () => {
 		setBusy(true)
 		removeMcpToken(token.id)
-			.then(() => { onRemoved(); toast({ message: 'Token removed.' }) })
-			.catch(e => { setBusy(false); setProblem(failureMessage(e, UNREACHABLE)) })
+			.then(() => { onRemoved(); toast({ message: phrase('assistants.removed') }) })
+			.catch(e => { setBusy(false); setProblem(failureMessage(e, phrase('failed.unreachable'))) })
 	}
 	return (
 		<Dialog onCancel={busy ? undefined : onDone}>
-			<DialogTitle>Remove <span className="sp-break">{token.name}</span>?</DialogTitle>
-			<DialogBody>{problem ?? "An assistant using this token stops reading Spendly at once. This can't be undone."}</DialogBody>
+			<DialogTitle>{phrase('passkey.removeTitle', { name: token.name, span: words => <span className="sp-break">{words}</span> })}</DialogTitle>
+			<DialogBody>{problem ?? phrase('assistants.removeBody')}</DialogBody>
 			<DialogActions>
-				<Button variant="outline" fullWidth disabled={busy} onClick={onDone}>Keep the token</Button>
-				<Button color="danger" fullWidth disabled={busy} onClick={remove}>Remove token</Button>
+				<Button variant="outline" fullWidth disabled={busy} onClick={onDone}>{phrase('assistants.keep')}</Button>
+				<Button color="danger" fullWidth disabled={busy} onClick={remove}>{phrase('assistants.remove')}</Button>
 			</DialogActions>
 		</Dialog>
 	)

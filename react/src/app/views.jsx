@@ -4,6 +4,7 @@ import { getCategoryPage, getViews } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { countBadge } from '../api/format.js'
 import { CategoryMark } from './categoryMark.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* What a saved view holds (2g): the order list's address, without the view it was opened from. */
 export const VIEW_KEYS = ['q', 'vendor', 'category', 'status', 'receipt', 'files', 'discounted', 'period', 'from', 'to', 'kind', 'min', 'max', 'sort', 'view']
@@ -54,6 +55,7 @@ export function AfterSidebarViews({ rail, children }) {
 }
 
 export function SidebarViews({ rail, savedId }) {
+	const phrase = usePhrase()
 	const answer = useViews().data
 	if (rail || !answer) return null
 	// always the first chosen number of views; a view past it is open inside the "more" row (9e)
@@ -66,7 +68,7 @@ export function SidebarViews({ rail, savedId }) {
 				<NavItem key={view.id} to={viewLink(view)} mark={<ViewMark query={view.query} />} current={savedId === view.id}
 					count={countBadge(view.count)} countColor={viewCountColor(view)}>{view.name}</NavItem>
 			))}
-			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={`${more} more in Orders`} current={openPast} /> : null}
+			{more > 0 ? <NavItem mark={<span className="sp-nav-item__icon" />} sub={phrase('views.moreInOrders', { count: more })} current={openPast} /> : null}
 		</>
 	)
 }

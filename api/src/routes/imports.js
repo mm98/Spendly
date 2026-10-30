@@ -3,6 +3,7 @@ import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { nowEpoch, toEpoch } from '../lib/dates.js'
 import { vendorResolver } from '../lib/findOrCreate.js'
+import { words } from '../lib/phrases.js'
 
 /* The imports an account has run (Settings 11b): the list under the file picker, the record an
    import's orders are tagged with, its undo and what the undo deletes, a line removed from the list,
@@ -34,14 +35,14 @@ router.get('/', (req, res) => {
 // one import by id, for the order list's chip (2b): its date, however old it is, and hidden or not
 router.get('/:id', (req, res) => {
 	const row = selectOne.get(req.params.id, req.user.id)
-	if (!row) return res.status(404).json({ error: 'That import is not in this account.' })
+	if (!row) return res.status(404).json({ error: words('import.notHere') })
 	res.json({ id: row.id, createdAt: row.created_at })
 })
 
 router.post('/', (req, res) => {
 	const fileName = String(req.body?.fileName ?? '').trim().slice(0, 200) || 'Imported file'
 	const mapping = req.body?.mapping != null ? JSON.stringify(req.body.mapping) : null
-	if (mapping && mapping.length > MAX_MAPPING) return res.status(400).json({ error: 'That column mapping is too large to keep.' })
+	if (mapping && mapping.length > MAX_MAPPING) return res.status(400).json({ error: words('import.mappingLarge') })
 	// rows the page could not read at all; the ones the server refuses are added as they come
 	const skipped = Math.max(0, Math.floor(Number(req.body?.skipped) || 0))
 	const id = newId('im')
@@ -54,9 +55,9 @@ router.post('/', (req, res) => {
 const setHidden = db.prepare('UPDATE order_imports SET hidden_at = ? WHERE id = ?')
 router.patch('/:id', (req, res) => {
 	const row = selectOne.get(req.params.id, req.user.id)
-	if (!row) return res.status(404).json({ error: 'That import is not in this account.' })
-	if (typeof req.body?.hidden !== 'boolean') return res.status(400).json({ error: 'Say whether the import is hidden.' })
-	if (req.body.hidden && undoable(row)) return res.status(409).json({ error: 'That import can still be undone. It can be removed from the list after 24 hours.' })
+	if (!row) return res.status(404).json({ error: words('import.notHere') })
+	if (typeof req.body?.hidden !== 'boolean') return res.status(400).json({ error: words('import.hiddenChoice') })
+	if (req.body.hidden && undoable(row)) return res.status(409).json({ error: words('import.stillUndoable') })
 	setHidden.run(req.body.hidden ? nowEpoch() : null, row.id)
 	res.status(204).end()
 })
@@ -74,7 +75,7 @@ const countUndoCategories = db.prepare(`SELECT COUNT(*) FROM categories WHERE us
 	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.category_id = categories.id)`).pluck()
 router.get('/:id/undo', (req, res) => {
 	const row = selectOne.get(req.params.id, req.user.id)
-	if (!row) return res.status(404).json({ error: 'That import is not in this account.' })
+	if (!row) return res.status(404).json({ error: words('import.notHere') })
 	const counts = countUndoOrders.get(req.user.id, row.id)
 	const vendors = countUndoVendors.get({ userId: req.user.id, id: row.id })
 	const categories = countUndoCategories.get({ userId: req.user.id, id: row.id })
@@ -100,10 +101,10 @@ const undo = db.transaction((userId, id) => {
 
 router.delete('/:id', (req, res) => {
 	const row = selectOne.get(req.params.id, req.user.id)
-	if (!row) return res.status(404).json({ error: 'That import is not in this account.' })
-	if (row.undone_at) return res.status(409).json({ error: 'That import was already undone.' })
+	if (!row) return res.status(404).json({ error: words('import.notHere') })
+	if (row.undone_at) return res.status(409).json({ error: words('import.alreadyUndone') })
 	if (nowEpoch() - row.created_at >= UNDO_SECONDS)
-		return res.status(409).json({ error: 'That import is more than 24 hours old. Its orders are now ordinary orders.' })
+		return res.status(409).json({ error: words('import.tooOld') })
 	res.json(undo(req.user.id, row.id))
 })
 

@@ -51,6 +51,21 @@ export const jsxInComponentJs = () => ({
 	}
 })
 
+/* A language file other than en.json is filled in with every English phrase it lacks as it is
+   loaded, so a reader downloads only their own language's file. Storybook imports this plugin too. */
+export const languageFiles = () => ({
+	name: 'language-files',
+	enforce: 'pre',
+	transform(code, id) {
+		const file = id.split('?')[0]
+		const match = /[\\/]src[\\/]language[\\/]([a-z]+)\.json$/.exec(file)
+		if (!match || match[1] === 'en') return null
+		const english = path.join(path.dirname(file), 'en.json')
+		this.addWatchFile(english)
+		return { code: JSON.stringify({ ...JSON.parse(fs.readFileSync(english, 'utf8')), ...JSON.parse(code) }), map: null }
+	}
+})
+
 // the scan for packages to bundle ahead does not run plugins: it reads the same files as markup
 export const componentJsScan = { rolldownOptions: { moduleTypes: { '.js': 'jsx' } } }
 
@@ -59,7 +74,7 @@ const api = { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', ch
 
 export default defineConfig({
 	base: './',
-	plugins: [jsxInComponentJs(), react(), stripHtmlComments(), minifyPublicScripts()],
+	plugins: [jsxInComponentJs(), languageFiles(), react(), stripHtmlComments(), minifyPublicScripts()],
 	optimizeDeps: componentJsScan,
 	// the commit and version this bundle was built from (the Dockerfile passes GIT_SHA and VERSION);
 	// null anywhere else, which the update notice reads as "nothing to be out of date with"
