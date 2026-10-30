@@ -34,6 +34,7 @@ import { readTodayHeader } from './lib/dates.js'
 import { MAX_UPLOAD_MB } from './lib/constants.js'
 import { MAX_UPLOAD_FILES } from './lib/upload.js'
 import { fileSizeLabel } from './lib/copy.js'
+import { inReadersLanguage, words } from './lib/phrases.js'
 
 export const app = express()
 
@@ -60,6 +61,7 @@ app.disable('x-powered-by')
 // req.ip trusts the forwarded address only from a proxy on this machine or a private network (caddy),
 // so a visitor cannot choose their own address
 app.set('trust proxy', 'loopback, linklocal, uniquelocal')
+app.use(inReadersLanguage)
 app.use((req, res, next) => {
 	res.setHeader('Content-Security-Policy', CSP)
 	res.setHeader('Referrer-Policy', 'no-referrer')
@@ -82,7 +84,7 @@ app.use('/api', (req, res, next) => {
 	const from = req.headers['sec-fetch-site']
 	if (from && from !== 'same-origin' && from !== 'none') {
 		securityLog(req, 'request-from-another-site', { fetchSite: from, origin: req.headers.origin ?? null })
-		return res.status(403).json({ error: 'This request did not come from Spendly.' })
+		return res.status(403).json({ error: words('request.otherSite') })
 	}
 	next()
 })
@@ -252,7 +254,7 @@ async function buildStampOf(base, digest, token, signal) {
    nothing is cached: a check is a question about right now, asked by one button press at a time. */
 app.get('/api/version/check', requireAuth, async (req, res) => {
 	const commit = process.env.SPENDLY_BUILD_SHA || null
-	if (!commit) return res.status(409).json({ error: 'No build stamp: this server is not running from the Docker image.' })
+	if (!commit) return res.status(409).json({ error: words('update.noStamp') })
 	try {
 		const { latest, mine, latestBuiltAt, latestVersion, latestNotes } = await publishedDigests(commit)
 		// only what this one does not have yet; without a version of its own nothing can be told apart
@@ -266,7 +268,7 @@ app.get('/api/version/check', requireAuth, async (req, res) => {
 		// fetch's own message is only "fetch failed"; the reason is in its cause
 		const error = `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}${e.cause ? ` (${e.cause.message ?? e.cause})` : ''}`
 		console.error(error)
-		res.status(502).json({ error: 'Spendly could not check for a newer version. Try again later.' })
+		res.status(502).json({ error: words('update.checkFailed') })
 	}
 })
 
@@ -453,11 +455,11 @@ if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST, {
 /* What the body parsers refuse before a route runs, in words the reader can act on. Their own
    messages ("File too large", "request entity too large") are written for a programmer. */
 function parserRefusal(err) {
-	if (err.code === 'LIMIT_FILE_SIZE') return { status: 413, message: `A file is too large. Each file can be up to ${MAX_UPLOAD_MB} MB.` }
-	if (err.code === 'LIMIT_FILE_COUNT') return { status: 413, message: `That is too many files at once. Send at most ${MAX_UPLOAD_FILES}.` }
-	if (err.name === 'MulterError') return { status: 400, message: 'The files could not be read. Add them again.' }
-	if (err.type === 'entity.too.large') return { status: 413, message: `That is too much to send at once. The most is ${fileSizeLabel(err.limit)}.` }
-	if (err.type === 'entity.parse.failed') return { status: 400, message: 'What was sent could not be read.' }
+	if (err.code === 'LIMIT_FILE_SIZE') return { status: 413, message: words('upload.fileTooLarge', { most: MAX_UPLOAD_MB }) }
+	if (err.code === 'LIMIT_FILE_COUNT') return { status: 413, message: words('upload.tooManyFiles', { most: MAX_UPLOAD_FILES }) }
+	if (err.name === 'MulterError') return { status: 400, message: words('upload.unreadable') }
+	if (err.type === 'entity.too.large') return { status: 413, message: words('request.tooLarge', { most: fileSizeLabel(err.limit) }) }
+	if (err.type === 'entity.parse.failed') return { status: 400, message: words('request.unreadable') }
 	return null
 }
 
@@ -469,5 +471,5 @@ app.use((err, req, res, next) => {
 	if (refusal) return res.status(refusal.status).json({ error: refusal.message })
 	const status = err.status ?? 500
 	if (status === 500) console.error(err)
-	res.status(status).json({ error: status === 500 ? 'Something went wrong.' : err.message })
+	res.status(status).json({ error: status === 500 ? words('error.unknown') : err.words ?? err.message })
 })

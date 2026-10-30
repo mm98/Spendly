@@ -8,18 +8,19 @@ import {
 } from '../lib/twoStep.js'
 import { db } from '../db.js'
 import { checkPassword, locked } from './auth.js'
+import { words } from '../lib/phrases.js'
 
 /* Two-step sign-in: the code step after a right password, before the auth gate, and the account's
    own card (Settings), behind it. */
 export const signInRouter = Router()
 export const router = Router()
 
-const WRONG_CODE = 'That code is not right. Check the time on your phone, and try the newest code.'
-const WRONG_PASSWORD = "That password isn't right."
+const WRONG_CODE = words('twoStep.wrongCode')
+const WRONG_PASSWORD = words('account.wrongPassword')
 // off answers a wrong pair vaguely, as sign-in does, so it does not say which half was wrong (11f)
-const WRONG_PAIR = 'That password and code do not match. Check both and try again.'
+const WRONG_PAIR = words('account.wrongPair')
 const refused = (res, field, message) => res.status(400).json({ error: message, fields: { [field]: message } })
-const TIMED_OUT = 'Signing in took too long. Start again.'
+const TIMED_OUT = words('twoStep.timedOut')
 
 const selectUser = db.prepare('SELECT id, email, needs_setup FROM users WHERE id = ?')
 // what was typed, by its shape only: never the code itself
@@ -67,8 +68,8 @@ router.get('/', (req, res) => res.json(twoStepState(req.user.id)))
 
 /** A new key for the app, once the password is given. Nothing is on until /confirm. */
 router.post('/start', async (req, res) => {
-	if (!twoStepState(req.user.id).available) return res.status(409).json({ error: 'Two-step sign-in is not available on this server.' })
-	if (twoStepOn(req.user.id)) return res.status(409).json({ error: 'Two-step sign-in is already on.' })
+	if (!twoStepState(req.user.id).available) return res.status(409).json({ error: words('twoStep.unavailable') })
+	if (twoStepOn(req.user.id)) return res.status(409).json({ error: words('twoStep.alreadyOn') })
 	const { user, wait } = await checkPassword(req, req.user.email, String(req.body?.password ?? ''))
 	if (wait) return locked(res, wait)
 	if (!user) return refused(res, 'password', WRONG_PASSWORD)
@@ -80,7 +81,7 @@ router.post('/start', async (req, res) => {
     session ends, since it was opened with the password alone. */
 router.post('/confirm', (req, res) => {
 	const { ok, wait, missing, recoveryCodes } = confirmTwoStep(req.user.id, req.body?.code)
-	if (missing) return res.status(409).json({ error: 'Start again: there is no new key waiting.' })
+	if (missing) return res.status(409).json({ error: words('twoStep.noKey') })
 	if (wait) {
 		securityLog(req, 'code-locked', { at: 'turning on', waitSeconds: wait })
 		return locked(res, wait)
@@ -98,7 +99,7 @@ router.post('/confirm', (req, res) => {
 /** New recovery codes for a right code; the earlier ones stop working. */
 router.post('/recovery-codes', (req, res) => {
 	const { ok, wait, missing } = checkCode(req.user.id, req.body?.code)
-	if (missing) return res.status(409).json({ error: 'Two-step sign-in is off.' })
+	if (missing) return res.status(409).json({ error: words('twoStep.off') })
 	if (wait) {
 		securityLog(req, 'code-locked', { at: 'new recovery codes', waitSeconds: wait })
 		return locked(res, wait)
@@ -113,7 +114,7 @@ router.post('/recovery-codes', (req, res) => {
 
 /** Off, with the password and a code. */
 router.post('/off', async (req, res) => {
-	if (!twoStepOn(req.user.id)) return res.status(409).json({ error: 'Two-step sign-in is off.' })
+	if (!twoStepOn(req.user.id)) return res.status(409).json({ error: words('twoStep.off') })
 	const { user, wait } = await checkPassword(req, req.user.email, String(req.body?.password ?? ''))
 	if (wait) return locked(res, wait)
 	if (!user) return refused(res, 'code', WRONG_PAIR)

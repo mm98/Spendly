@@ -220,10 +220,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 				const message = failureMessage(e, phrase('vendor.notSaved'))
 				if (!message) return
-				const about = !e?.status || e.status >= 500 ? null
-					: message.startsWith(`You already have a vendor called ${name}.`) || message.endsWith('Pick a different name.')
-						|| /needs a name/.test(message) ? 'name'
-						: /alias|vendor called|already matches|already find/.test(message) ? 'aliases' : null
+				// the server names the field a refusal is about
+				const about = !e?.status || e.status >= 500 ? null : e.fields?.name ? 'name' : e.fields?.aliases ? 'aliases' : null
 				if (!about) return toast({ message, color: 'danger' })
 				setErrors(err => ({ ...err, [about]: message }))
 				focusFirst([about === 'name' ? 'vendor-name' : 'vendor-aliases'])

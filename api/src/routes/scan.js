@@ -17,6 +17,7 @@ import { assertImageOrPdf, fileDisposition } from '../lib/fileType.js'
 import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, draftsAsOrders, heldBy, readings } from '../lib/orderDrafts.js'
 import { forgetReads } from '../lib/readCache.js'
 import { paidReadWait } from '../lib/rateLimit.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -108,7 +109,7 @@ const saveAiRead = db.prepare('UPDATE uploads SET ai_read_json = @json, read_at 
     file not seen before is read whether or not anyone waits. It becomes a draft only at the review's first change. */
 router.post('/documents', requireConfirmed, upload.single('file'), async (req, res) => {
 	const file = req.file
-	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
+	if (!file) return res.status(400).json({ error: words('scan.noFile') })
 	assertImageOrPdf([file])
 
 	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
@@ -172,7 +173,7 @@ router.get('/documents/:key/pages', async (req, res) => {
 })
 router.get('/documents/:key/pages/:page', async (req, res) => {
 	const page = await pageImage('upload', ownUpload(req), Number(req.params.page))
-	if (!page) return res.status(404).json({ error: 'No such page.' })
+	if (!page) return res.status(404).json({ error: words('scan.noPage') })
 	res.set('Content-Type', page.contentType)
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(page.image)
@@ -214,7 +215,7 @@ router.delete('/documents/:key', (req, res) => {
 		discardDraft(req.user.id, holder)
 		return res.json({ key: req.params.key })
 	}
-	if (heldAsFile.get(req.user.id, req.params.key)) return res.status(409).json({ error: 'This file belongs to a draft. Discard the draft to remove it.' })
+	if (heldAsFile.get(req.user.id, req.params.key)) return res.status(409).json({ error: words('scan.heldByDraft') })
 	deleteUpload.run(req.params.key, req.user.id)
 	res.json({ key: req.params.key })
 })
@@ -330,7 +331,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 
 router.get('/documents/:key/thumbnail', (req, res) => {
 	const upload = selectUploadThumbnail.get(req.params.key, req.user.id)
-	if (!upload || !upload.thumbnail) return res.status(404).json({ error: 'No thumbnail for that document.' })
+	if (!upload || !upload.thumbnail) return res.status(404).json({ error: words('scan.noThumbnail') })
 	res.set('Content-Type', upload.thumbnail_content_type || 'image/webp')
 	res.send(decompressBlob(upload.thumbnail, upload.thumbnail_is_compressed))
 })

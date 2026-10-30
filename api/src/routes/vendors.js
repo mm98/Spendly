@@ -14,6 +14,7 @@ import { knownVendorNames, vendorPage } from '../lib/vendorList.js'
 import { ordersCarrying, recentVendorNames } from '../lib/latestOrders.js'
 import { vendorYear } from '../lib/stats.js'
 import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -74,13 +75,13 @@ const defaultCategoriesFor = (userId, vendorId) =>
 /** Trims, drops empties, folds case-insensitive duplicates. Names, not ids: an unknown one is
     created on write (lib/findOrCreate.js), as saving an order does with the same field. */
 function cleanDefaultCategories(raw) {
-	if (!Array.isArray(raw)) return { error: 'Default categories must be a list of names.' }
+	if (!Array.isArray(raw)) return { error: words('vendor.defaultsList') }
 	const seen = new Set()
 	const names = []
 	for (const value of raw) {
 		const name = String(value ?? '').trim()
 		if (!name) continue
-		if (name.length > 80) return { error: '80 characters at most for a category name.' }
+		if (name.length > 80) return { error: words('vendor.defaultLong') }
 		if (seen.has(name.toLowerCase())) continue
 		seen.add(name.toLowerCase())
 		names.push(name)
@@ -101,7 +102,7 @@ const writeDefaultCategories = db.transaction((userId, vendorId, names) => {
     vendor's own name, and may not be another vendor's name or alias, because resolution
     reads each string back to exactly one vendor. */
 function cleanAliases(userId, vendorId, vendorName, raw, move = []) {
-	if (!Array.isArray(raw)) return { status: 400, error: 'Aliases must be a list of names.' }
+	if (!Array.isArray(raw)) return { status: 400, error: words('vendor.aliasList') }
 	const moving = new Set((Array.isArray(move) ? move : []).map(m => vendorKey(m)))
 	const seen = new Set()
 	const aliases = []
@@ -109,17 +110,17 @@ function cleanAliases(userId, vendorId, vendorName, raw, move = []) {
 	for (const value of raw) {
 		const name = String(value ?? '').trim()
 		if (!name) continue
-		if (name.length > 80) return { status: 400, error: '80 characters at most for an alias.' }
+		if (name.length > 80) return { status: 400, error: words('vendor.aliasLong') }
 		const key = vendorKey(name)
 		if (key === vendorKey(vendorName))
-			return { status: 400, error: `"${name}" already matches ${vendorName}. Capitals, punctuation and endings like Inc or ApS do not count.` }
+			return { status: 400, error: words('vendor.aliasIsName', { alias: name, name: vendorName }) }
 		if (seen.has(key)) continue
 		seen.add(key)
 		const holder = holderOf(userId, vendorId, name)
 		if (holder && !holder.alias)
-			return { status: 409, error: `You already have a vendor called ${holder.name}.` }
+			return { status: 409, error: words('vendor.twin', { name: holder.name }) }
 		if (holder && !moving.has(key))
-			return { status: 409, error: `Another vendor, ${holder.name}, already matches "${name}". Pick a different one.` }
+			return { status: 409, error: words('vendor.aliasTaken', { owner: holder.name, alias: name }) }
 		if (holder) moves.push(holder)
 		aliases.push(name)
 	}
@@ -201,27 +202,27 @@ router.get('/', (req, res) => {
 /** Which of the names sent a vendor already files under: `{ known }`, the ones an import would not create. */
 router.post('/known', (req, res) => {
 	const names = Array.isArray(req.body?.names) ? req.body.names.map(n => String(n ?? '').trim()).filter(Boolean) : []
-	if (names.length > 5000) return res.status(400).json({ error: 'Too many names at once.' })
+	if (names.length > 5000) return res.status(400).json({ error: words('category.tooManyNames') })
 	res.json({ known: knownVendorNames(req.user.id, [...new Set(names)]) })
 })
 
-const vendorProblem = v => textProblem(v.name, 'A name', MAX_RECORD_NAME) ?? textProblem(v.initials, 'Initials', 8)
-	?? textProblem(v.colour, 'A colour', 40) ?? textProblem(v.lead, 'A lead', 200)
+const vendorProblem = v => textProblem(v.name, 'text.label.name', MAX_RECORD_NAME) ?? textProblem(v.initials, 'text.label.initials', 8)
+	?? textProblem(v.colour, 'text.label.colour', 40) ?? textProblem(v.lead, 'text.label.lead', 200)
 
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
-	if (!name) return res.status(400).json({ error: 'A vendor needs a name.' })
+	if (!name) return res.status(400).json({ error: words('vendor.nameMissing'), fields: { name: words('vendor.nameMissing') } })
 	if (selectByNameExists.get(req.user.id, name))
-		return res.status(409).json({ error: `You already have a vendor called ${name}.` })
+		return res.status(409).json({ error: words('vendor.twin', { name: name }), fields: { name: words('vendor.twin', { name: name }) } })
 	const nameAsAlias = holderOf(req.user.id, null, name)
 	if (nameAsAlias?.alias)
-		return res.status(409).json({ error: `Another vendor, ${nameAsAlias.name}, already matches "${name}". Pick a different name.` })
+		return res.status(409).json({ error: words('vendor.nameIsAlias', { owner: nameAsAlias.name, name: name }), fields: { name: words('vendor.nameIsAlias', { owner: nameAsAlias.name, name: name }) } })
 
 	const look = req.body?.look ?? {}
 	const problem = vendorProblem({ name, ...look })
 	if (problem) return res.status(400).json({ error: problem })
 	const cleaned = cleanAliases(req.user.id, null, name, look.aliases ?? [], look.move)
-	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
+	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error, fields: { aliases: cleaned.error } })
 	const defaults = cleanDefaultCategories(look.defaultCategories ?? [])
 	if (defaults.error) return res.status(400).json({ error: defaults.error })
 
@@ -272,7 +273,7 @@ router.patch('/:id', (req, res) => {
 	   empty string is not nullish, so a whitespace rename stored an empty vendor name that
 	   rendered blank in every list -- and a non-string patch.name threw at .trim into a 500. */
 	const nextName = patch.name !== undefined ? String(patch.name).trim() : vendor.name
-	if (!nextName) return res.status(400).json({ error: 'A vendor needs a name.' })
+	if (!nextName) return res.status(400).json({ error: words('vendor.nameMissing'), fields: { name: words('vendor.nameMissing') } })
 	const currentAliases = aliasesFor(req.user.id, vendor.id)
 	/* Renaming a vendor to one of its own aliases swaps the two: the alias becomes the name,
 	   and the name it had until now is kept as an alias -- the receipts that carry it should
@@ -282,10 +283,10 @@ router.patch('/:id', (req, res) => {
 		&& currentAliases.some(a => a.toLowerCase() === nextName.toLowerCase())
 	if (nextName.toLowerCase() !== vendor.name.toLowerCase()) {
 		const clash = selectByNameExists.get(req.user.id, nextName)
-		if (clash) return res.status(409).json({ error: `You already have a vendor called ${nextName}.` })
+		if (clash) return res.status(409).json({ error: words('vendor.twin', { name: nextName }), fields: { name: words('vendor.twin', { name: nextName }) } })
 		const owner = holderOf(req.user.id, vendor.id, nextName)
 		if (owner?.alias)
-			return res.status(409).json({ error: `Another vendor, ${owner.name}, already matches "${nextName}". Pick a different name.` })
+			return res.status(409).json({ error: words('vendor.nameIsAlias', { owner: owner.name, name: nextName }), fields: { name: words('vendor.nameIsAlias', { owner: owner.name, name: nextName }) } })
 	}
 
 	/* The submitted set replaces the stored one; absent, the stored one stands. Either way
@@ -300,7 +301,7 @@ router.patch('/:id', (req, res) => {
 	const problem = vendorProblem({ ...patch, name: nextName })
 	if (problem) return res.status(400).json({ error: problem })
 	const cleaned = cleanAliases(req.user.id, vendor.id, nextName, submitted, patch.move)
-	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
+	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error, fields: { aliases: cleaned.error } })
 	// Same rule as the aliases above: the submitted set replaces the stored one, absent it stands.
 	const defaults = cleanDefaultCategories(patch.defaultCategories !== undefined
 		? patch.defaultCategories : defaultCategoriesFor(req.user.id, vendor.id))
@@ -331,12 +332,12 @@ router.post('/aliases', (req, res) => {
 	const vendor = selectOne.get(vendorId, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + vendorId })
 	const name = String(req.body?.name ?? '').trim()
-	if (!name) return res.status(400).json({ error: 'An alias needs a name.' })
+	if (!name) return res.status(400).json({ error: words('vendor.aliasMissing') })
 	const existing = aliasesFor(req.user.id, vendor.id)
 	if (existing.some(a => a.toLowerCase() === name.toLowerCase()))
 		return res.json({ id: vendor.id, aliases: existing })
 	const cleaned = cleanAliases(req.user.id, vendor.id, vendor.name, [...existing, name])
-	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
+	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error, fields: { aliases: cleaned.error } })
 	writeAliases(req.user.id, vendor.id, cleaned.aliases)
 	res.status(201).json({ id: vendor.id, aliases: aliasesFor(req.user.id, vendor.id) })
 })
@@ -345,7 +346,7 @@ router.delete('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
 	if (countOrders.get(vendor.id, req.user.id).c > 0)
-		return res.status(409).json({ error: 'That vendor still has orders.' })
+		return res.status(409).json({ error: words('vendor.hasOrders') })
 	deleteOne.run(vendor.id, req.user.id)
 	res.json({ id: vendor.id })
 })
@@ -384,8 +385,8 @@ router.post('/:id/merge', (req, res) => {
 	const source = selectOne.get(req.params.id, req.user.id)
 	if (!source) return res.status(404).json({ error: 'No vendor ' + req.params.id })
 	const target = selectOne.get(String(req.body?.into ?? ''), req.user.id)
-	if (!target) return res.status(400).json({ error: 'Pick the vendor to merge into.' })
-	if (target.id === source.id) return res.status(400).json({ error: 'A vendor cannot be merged into itself.' })
+	if (!target) return res.status(400).json({ error: words('vendor.pickTarget') })
+	if (target.id === source.id) return res.status(400).json({ error: words('vendor.mergeSelf') })
 	mergeVendors(req.user.id, source, target)
 	res.json(fullRecord(req.user.id, selectOne.get(target.id, req.user.id)))
 })
@@ -406,13 +407,13 @@ router.put('/:id/image', (req, res, next) => imageUpload(req, res, async error =
 	try {
 		const vendor = selectOne.get(req.params.id, req.user.id)
 		if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
-		if (error?.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ reason: 'large', error: 'The image is over 5 MB.' })
-		if (error || !req.file) return res.status(400).json({ reason: 'failed', error: 'The image could not be read.' })
+		if (error?.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ reason: 'large', error: words('vendor.imageLarge') })
+		if (error || !req.file) return res.status(400).json({ reason: 'failed', error: words('vendor.imageUnreadable') })
 		const image = await processVendorImage(req.file.buffer)
 		upsertImage.run({ vendorId: vendor.id, userId: req.user.id, createdAt: Date.now(), ...image })
 		res.json(fullRecord(req.user.id, vendor))
 	} catch (e) {
-		if (e instanceof VendorImageRefusal) return res.status(400).json({ reason: e.reason, error: 'The image was refused.' })
+		if (e instanceof VendorImageRefusal) return res.status(400).json({ reason: e.reason, error: words('vendor.imageRefused') })
 		next(e)
 	}
 }))
@@ -427,7 +428,7 @@ router.delete('/:id/image', (req, res) => {
 router.get('/:id/image/:rendition', (req, res) => {
 	const select = Object.hasOwn(selectRendition, req.params.rendition) ? selectRendition[req.params.rendition] : null
 	const row = select?.get(req.params.id, req.user.id)
-	if (!row) return res.status(404).json({ error: 'No image.' })
+	if (!row) return res.status(404).json({ error: words('vendor.noImage') })
 	res.set('Content-Type', 'image/webp')
 	// the address carries the hash, so an image asked for by its hash never changes
 	res.set('Cache-Control', req.query.v === row.hash ? 'private, max-age=31536000, immutable' : 'private, no-cache')

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { FLOWS, STEPS, comparedMonth, filterOf, getStats, homeAttention, markSummarySeen, monthTotals, monthlySummary, sliceOrders } from '../lib/stats.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -33,6 +34,6 @@ router.get('/summary', (req, res) => {
 })
 
 router.put('/summary/seen', (req, res) => {
-	if (!markSummarySeen(req.user.id, req.body?.month)) return res.status(400).json({ error: 'Which month?' })
+	if (!markSummarySeen(req.user.id, req.body?.month)) return res.status(400).json({ error: words('stats.whichMonth') })
 	res.status(204).end()
 })

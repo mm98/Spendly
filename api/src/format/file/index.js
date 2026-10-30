@@ -3,6 +3,7 @@ import { publicLink } from '../../lib/mail.js'
 import { day, text } from '../schema.js'
 import { COLUMN_KINDS } from './document.js'
 import { FILE_FORMATS, fileFormat } from './formats.js'
+import { words } from '../../lib/phrases.js'
 
 /* The file maker (Ask 24d, 24e): a file the reader downloads, in one of the formats in formats.js, kept on Files. */
 
@@ -68,8 +69,8 @@ const tool = {
 }
 
 const ORDER_COLUMNS = [
-	{ name: 'Date', kind: 'date' }, { name: 'Shop', kind: 'text' }, { name: 'Categories', kind: 'text' }, { name: 'Status', kind: 'text' },
-	{ name: 'Reference', kind: 'text' }, { name: 'Lines', kind: 'number' }, { name: 'Saved', kind: 'amount' }, { name: 'Total', kind: 'amount' }
+	{ name: 'file.column.date', kind: 'date' }, { name: 'file.column.shop', kind: 'text' }, { name: 'file.column.categories', kind: 'text' }, { name: 'file.column.status', kind: 'text' },
+	{ name: 'file.column.reference', kind: 'text' }, { name: 'file.column.lines', kind: 'number' }, { name: 'file.column.saved', kind: 'amount' }, { name: 'file.column.total', kind: 'amount' }
 ]
 const ORDERS_PAGE = 1000
 const ORDER_FILTERS = ['from', 'to', 'vendorId', 'categoryId', 'status', 'query']
@@ -92,7 +93,7 @@ async function ordersTable(filter, { token, self, signal }) {
 		if (page >= out.pages) break
 	}
 	return {
-		columns: ORDER_COLUMNS,
+		columns: ORDER_COLUMNS.map(c => ({ ...c, name: String(words(c.name)) })),
 		rows: rows.map(o => [o.date, o.vendor?.name ?? '', (o.categories ?? []).map(c => c.name).join(', '), o.status ?? '', o.reference ?? '', o.itemCount ?? 0, o.saved ?? 0, o.total ?? 0])
 	}
 }
@@ -122,7 +123,7 @@ async function make(input, making) {
 	let refusal = null
 	if (input?.orders && typeof input.orders === 'object') {
 		const table = await ordersTable(input.orders, making)
-		if (table) sections.push({ heading: 'Orders', table })
+		if (table) sections.push({ heading: String(words('file.orders')), table })
 		else refusal = FILE_REFUSALS.tooMany
 	}
 	const file = makeFile({
@@ -157,13 +158,13 @@ function attachments(userId, ids, files) {
 
 export const fileMaker = {
 	place: 'file',
-	name: 'Files',
+	name: words('ask.maker.files'),
 	formats: () => FILE_FORMATS.map(f => f.name),
-	example: 'Make an Excel file of my orders in October',
-	note: `Files are kept for ${FILE_KEPT_DAYS} days`,
-	off: unlimited => (makesFiles(unlimited) ? null : 'Ask cannot make files on this Spendly.'),
+	example: words('ask.maker.filesExample'),
+	note: words('ask.maker.filesKept', { days: FILE_KEPT_DAYS }),
+	off: unlimited => (makesFiles(unlimited) ? null : words('ask.maker.filesOff')),
 	tool,
-	doing: input => `Making your ${formatOf(input?.type).word}`,
+	doing: input => words('ask.maker.filesDoing', { kind: formatOf(input?.type).type }),
 	make,
 	byIds: fileStates,
 	emailBlocks,

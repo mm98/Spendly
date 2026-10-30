@@ -1,4 +1,5 @@
 import { securityLog } from './securityLog.js'
+import { words } from './phrases.js'
 
 /* Counts in memory: a restart forgets every count, which only lets a visitor start again. */
 
@@ -31,7 +32,7 @@ export function limitPerVisitor({ most, perSeconds }) {
 		const wait = take(req.ip)
 		if (wait) {
 			securityLog(req, 'rate-limited', { waitSeconds: wait })
-			return res.status(429).json({ error: 'Too many attempts.', retryAfter: wait })
+			return res.status(429).json({ error: words('auth.tooManyAttempts'), retryAfter: wait })
 		}
 		next()
 	}

@@ -11,6 +11,7 @@ import {
 import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames, limitedCategories } from '../lib/categoryList.js'
 import { recentCategoryNames } from '../lib/latestOrders.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -89,7 +90,7 @@ const nonNegative = n => (Number.isFinite(n) && n >= 0 ? n : 0)
 /** Which of the names sent a category already has: `{ known }`, the ones an import would not create. */
 router.post('/known', (req, res) => {
 	const names = Array.isArray(req.body?.names) ? req.body.names.map(n => String(n ?? '').trim()).filter(Boolean) : []
-	if (names.length > 5000) return res.status(400).json({ error: 'Too many names at once.' })
+	if (names.length > 5000) return res.status(400).json({ error: words('category.tooManyNames') })
 	res.json({ known: knownCategoryNames(req.user.id, [...new Set(names)]) })
 })
 
@@ -97,21 +98,21 @@ router.post('/known', (req, res) => {
     `model` set, from a model, which can also offer a category that does not exist yet. */
 router.post('/suggestions', async (req, res) => {
 	const { items, vendor, exclude, model } = req.body ?? {}
-	if (!Array.isArray(items) || items.length > 100) return res.status(400).json({ error: 'Send the item names as a list of up to 100.' })
+	if (!Array.isArray(items) || items.length > 100) return res.status(400).json({ error: words('category.itemList') })
 	const asked = { items, exclude, vendor: String(vendor ?? '').trim().slice(0, 80) }
 	// the model is paid for, so it waits for a confirmed email, as scanning does
 	if (model) return res.json(req.user.email_confirmed ? await fromModel(req.user.id, asked) : { suggestions: [], failure: 'failed' })
 	res.json({ suggestions: describe(req.user.id, await suggestFromHistory(req.user.id, asked)), failure: null })
 })
 
-const categoryProblem = c => textProblem(c.name, 'A name', MAX_RECORD_NAME) ?? textProblem(c.icon, 'An icon', 60)
-	?? textProblem(c.iconPath, 'An icon drawing', 20000) ?? textProblem(c.colour, 'A colour', 40)
+const categoryProblem = c => textProblem(c.name, 'text.label.name', MAX_RECORD_NAME) ?? textProblem(c.icon, 'text.label.icon', 60)
+	?? textProblem(c.iconPath, 'text.label.iconDrawing', 20000) ?? textProblem(c.colour, 'text.label.colour', 40)
 
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
-	if (!name) return res.status(400).json({ error: 'A category needs a name.' })
+	if (!name) return res.status(400).json({ error: words('category.nameMissing') })
 	const taken = selectByNameExists.get(req.user.id, name) ? { name } : findCategoryByFold(req.user.id, name)
-	if (taken) return res.status(409).json({ error: `You already have a category called ${taken.name}.` })
+	if (taken) return res.status(409).json({ error: words('category.twin', { name: taken.name }) })
 
 	const look = req.body?.look ?? {}
 	const problem = categoryProblem({ name, ...look })
@@ -143,10 +144,10 @@ router.patch('/:id', (req, res) => {
 	// stored an empty category name -- and it slipped past the clash check, whose `patch.name &&`
 	// guard reads '' as "no rename asked".
 	const nextName = patch.name !== undefined ? String(patch.name).trim() : category.name
-	if (!nextName) return res.status(400).json({ error: 'A category needs a name.' })
+	if (!nextName) return res.status(400).json({ error: words('category.nameMissing') })
 	if (nextName.toLowerCase() !== category.name.toLowerCase()) {
 		const clash = findCategoryByFold(req.user.id, nextName)
-		if (clash && clash.id !== category.id) return res.status(409).json({ error: `You already have a category called ${clash.name}.` })
+		if (clash && clash.id !== category.id) return res.status(409).json({ error: words('category.twin', { name: clash.name }) })
 	}
 	const problem = categoryProblem({ ...patch, name: nextName })
 	if (problem) return res.status(400).json({ error: problem })
@@ -203,8 +204,8 @@ router.post('/:id/merge', (req, res) => {
 	const source = selectOne.get(req.params.id, req.user.id)
 	if (!source) return res.status(404).json({ error: 'No category ' + req.params.id })
 	const target = selectOne.get(String(req.body?.into ?? ''), req.user.id)
-	if (!target) return res.status(400).json({ error: 'Pick the category to merge into.' })
-	if (target.id === source.id) return res.status(400).json({ error: 'A category cannot be merged into itself.' })
+	if (!target) return res.status(400).json({ error: words('category.pickTarget') })
+	if (target.id === source.id) return res.status(400).json({ error: words('category.mergeSelf') })
 	mergeCategories(req.user.id, source, target)
 	res.json(fullRecord(req.user.id, selectOne.get(target.id, req.user.id), req))
 })

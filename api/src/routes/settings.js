@@ -6,6 +6,7 @@ import { looksOf, setLooks } from '../lib/looks.js'
 import { mailAvailable } from '../lib/mail.js'
 import { DEFAULT_SCHEME, SCHEME_IDS } from '../lib/schemes.js'
 import { STATUS_EMAILS, chooseStatusEmail, sendTestStatusEmail } from '../lib/statusEmail.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -70,7 +71,7 @@ router.get('/', (req, res) => {
     The browser's time zone and locale come with it, since the email is written and sent with no browser to ask. */
 router.put('/status-email', (req, res) => {
 	const chosen = Object.fromEntries(STATUS_EMAILS.map(f => [f, req.body?.[f]]))
-	if (!Object.values(chosen).every(v => typeof v === 'boolean')) return res.status(400).json({ error: 'Turn Weekly and Monthly on or off.' })
+	if (!Object.values(chosen).every(v => typeof v === 'boolean')) return res.status(400).json({ error: words('settings.statusEmailChoice') })
 	chooseStatusEmail(req.user.id, { ...chosen, zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') })
 	res.json({ ...toApi(selectSettings.get(req.user.id)), looks: looksOf(req.user.id) })
 })
@@ -81,15 +82,15 @@ const lastTest = new Map()
 
 /** Send a test email (11a): answers the address it went to. */
 router.post('/status-email/test', async (req, res) => {
-	if (!mailAvailable()) return res.status(503).json({ error: 'This server cannot send email.' })
+	if (!mailAvailable()) return res.status(503).json({ error: words('mail.unavailable') })
 	const wait = (lastTest.get(req.user.id) ?? 0) + TEST_EVERY_MS - Date.now()
-	if (wait > 0) return res.status(429).json({ error: 'The test could not be sent. Try again.', retryAfter: Math.ceil(wait / 1000) })
+	if (wait > 0) return res.status(429).json({ error: words('settings.testFailed'), retryAfter: Math.ceil(wait / 1000) })
 	lastTest.set(req.user.id, Date.now())
 	try {
 		res.json({ email: await sendTestStatusEmail(req.user.id, { zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') }) })
 	} catch (e) {
 		console.error(`[mail] test status email: ${e.message}`)
-		res.status(502).json({ error: 'The test could not be sent. Try again.' })
+		res.status(502).json({ error: words('settings.testFailed') })
 	}
 })
 

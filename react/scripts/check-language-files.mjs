@@ -1,6 +1,6 @@
 // Usage: node scripts/check-language-files.mjs
 //
-// The language files in src/language against each other and against the code. Every file holds the
+// The language files in src/language and api/src/language, each set against itself and its code. Every file holds the
 // same keys as en.json, and in each phrase only the places English has. A folder in TEXT_FREE holds
 // no words of its own: no text between tags, and no written words in a name, tip or hint attribute
 // or a default prop.
@@ -15,7 +15,6 @@ import { parseAst } from 'rolldown/parseAst'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = join(root, 'src')
-const folder = join(src, 'language')
 // the folders whose every word comes from the language files; a folder joins once its words have moved
 const TEXT_FREE = ['components', 'app', 'api']
 // a name, a symbol, or words the server sends and the code compares: not words to translate
@@ -30,49 +29,61 @@ const placesOf = elements => elements.flatMap(e => {
 		? [e.value, ...inner] : inner
 })
 
-const files = Object.fromEntries(readdirSync(folder).filter(n => n.endsWith('.json')).map(n => [n, JSON.parse(readFileSync(join(folder, n), 'utf8'))]))
-const english = files['en.json']
-const placesIn = (name, key, message) => {
-	try { return new Set(placesOf(parse(message))) } catch (e) { fail(name, `${key} does not parse: ${e.message}`); return null }
-}
-const places = Object.fromEntries(Object.entries(english).map(([key, message]) => [key, placesIn('en.json', key, message)]))
-for (const [name, phrases] of Object.entries(files)) {
-	if (name === 'en.json') continue
-	for (const key of Object.keys(english)) if (!(key in phrases)) fail(name, `${key} is missing`)
-	for (const [key, message] of Object.entries(phrases)) {
-		if (!(key in english)) { fail(name, `${key} is not in en.json`); continue }
-		const found = placesIn(name, key, message)
-		for (const place of found ?? []) if (places[key] && !places[key].has(place)) fail(name, `${key} has a place {${place}} English does not`)
-	}
-}
-
 const walk = dir => readdirSync(dir).flatMap(n => {
 	const p = join(dir, n)
 	return statSync(p).isDirectory() ? walk(p) : /\.(jsx?|mjs)$/.test(n) ? [p] : []
 })
-const code = walk(src).filter(p => !p.includes('/components/tabler/')).map(p => [p, readFileSync(p, 'utf8')])
-const named = new Set()
-for (const [p, text] of code) {
-	for (const [, key] of text.matchAll(/phrase\('([^']+)'/g)) {
-		named.add(key)
-		if (!(key in english)) fail(relative(root, p), `phrase('${key}') is not in en.json`)
+
+/* One set of language files against each other and against the code that names their keys: the app's,
+   and the server's, which writes its own words in the reader's language (api/src/lib/phrases.js). */
+function checkFiles(folder, codeRoot, naming) {
+	const where = name => relative(root, join(folder, name))
+	const files = Object.fromEntries(readdirSync(folder).filter(n => n.endsWith('.json')).map(n => [n, JSON.parse(readFileSync(join(folder, n), 'utf8'))]))
+	const english = files['en.json']
+	const placesIn = (name, key, message) => {
+		try { return new Set(placesOf(parse(message))) } catch (e) { fail(where(name), `${key} does not parse: ${e.message}`); return null }
 	}
-	for (const [, noun] of text.matchAll(/plural\([^()]*?, '([a-z ]+)'\)/g)) {
-		const key = 'count.' + noun.replace(/ (\w)/g, (_, c) => c.toUpperCase())
-		if (!(key in english)) fail(relative(root, p), `plural(…, '${noun}') has no ${key} in en.json`)
+	const places = Object.fromEntries(Object.entries(english).map(([key, message]) => [key, placesIn('en.json', key, message)]))
+	for (const [name, phrases] of Object.entries(files)) {
+		if (name === 'en.json') continue
+		for (const key of Object.keys(english)) if (!(key in phrases)) fail(where(name), `${key} is missing`)
+		for (const [key, message] of Object.entries(phrases)) {
+			if (!(key in english)) { fail(where(name), `${key} is not in en.json`); continue }
+			const found = placesIn(name, key, message)
+			for (const place of found ?? []) if (places[key] && !places[key].has(place)) fail(where(name), `${key} has a place {${place}} English does not`)
+		}
 	}
+
+	const code = walk(codeRoot).filter(p => !p.includes('/components/tabler/')).map(p => [p, readFileSync(p, 'utf8')])
+	const named = new Set()
+	for (const [p, text] of code) {
+		for (const [, key] of text.matchAll(naming)) {
+			named.add(key)
+			if (!(key in english)) fail(relative(root, p), `'${key}' is not in ${where('en.json')}`)
+		}
+		for (const [, noun] of text.matchAll(/plural\([^()]*?, '([a-z ]+)'\)/g)) {
+			const key = 'count.' + noun.replace(/ (\w)/g, (_, c) => c.toUpperCase())
+			if (!(key in english)) fail(relative(root, p), `plural(…, '${noun}') has no ${key} in ${where('en.json')}`)
+		}
+	}
+	// a key the code holds in a list, rather than passing straight to phrase(), is named as a string
+	const all = code.map(([, text]) => text).join('\n')
+	// plural(n, 'item line') names count.itemLine
+	const nounOf = key => `'${key.slice('count.'.length).replace(/[A-Z]/g, c => ' ' + c.toLowerCase())}'`
+	// phrase(`kind.${kind}`) names every key in kind. that is one word longer
+	const built = [...all.matchAll(/phrase\(`([\w.]+\.)\$\{/g)].map(([, prefix]) => prefix)
+	const builtFrom = key => built.some(prefix => key.startsWith(prefix) && !key.slice(prefix.length).includes('.'))
+	for (const key of Object.keys(english)) {
+		if (named.has(key) || all.includes(`'${key}'`) || builtFrom(key) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue
+		fail(where('en.json'), `${key} is not used anywhere`)
+	}
+	return { files, english, code }
 }
-// a key the code holds in a list, rather than passing straight to phrase(), is named as a string
-const all = code.map(([, text]) => text).join('\n')
-// plural(n, 'item line') names count.itemLine
-const nounOf = key => `'${key.slice('count.'.length).replace(/[A-Z]/g, c => ' ' + c.toLowerCase())}'`
-// phrase(`kind.${kind}`) names every key in kind. that is one word longer
-const built = [...all.matchAll(/phrase\(`([\w.]+\.)\$\{/g)].map(([, prefix]) => prefix)
-const builtFrom = key => built.some(prefix => key.startsWith(prefix) && !key.slice(prefix.length).includes('.'))
-for (const key of Object.keys(english)) {
-	if (named.has(key) || all.includes(`'${key}'`) || builtFrom(key) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue
-	fail('en.json', `${key} is not used anywhere`)
-}
+
+const app = checkFiles(join(src, 'language'), src, /phrase\('([^']+)'/g)
+const server = join(root, '..', 'api', 'src')
+const api = checkFiles(join(server, 'language'), server, /(?:\bwords\(|new Words\(|refusal\(\d+, )'([^']+)'/g)
+const code = app.code
 
 // what a reader would read: a word of two letters or more, never a name from NAMES
 const words = text => /[A-Za-z]{2,}/.test(text) && !NAMES.has(text.trim())
@@ -130,4 +141,4 @@ if (findings.length) {
 	console.error(`\n${findings.length} finding${findings.length === 1 ? '' : 's'}`)
 	process.exit(1)
 }
-console.log(`language files: ${Object.keys(files).length} files, ${Object.keys(english).length} phrases, no findings`)
+console.log(`language files: ${Object.keys(app.files).length} languages, ${Object.keys(app.english).length} phrases in the app and ${Object.keys(api.english).length} on the server, no findings`)

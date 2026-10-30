@@ -3,6 +3,7 @@ import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { countMatching } from './orders.js'
 import { draftCount } from '../lib/orderDrafts.js'
+import { words } from '../lib/phrases.js'
 
 /* Saved order views (Order list 2g, Navigation shell 9e): one list, read by the sidebar and the
    order list's rail alike, each view with its live count. */
@@ -81,7 +82,7 @@ router.get('/', (req, res) => res.json(list(req.user.id, req.today)))
 // a new view lands directly under All orders, so it is seen in both lists at once
 router.post('/', (req, res) => {
 	const name = cleanName(req.body?.name)
-	if (!name) return refuse(res, 'A view needs a name.')
+	if (!name) return refuse(res, words('view.nameMissing'))
 	const id = newId('sv')
 	insertView.run(id, req.user.id, name, cleanQuery(req.body?.query), (selectFirst.get(req.user.id).p ?? 1) - 1, req.body?.attention === true ? 1 : 0)
 	res.status(201).json({ id, ...list(req.user.id, req.today) })
@@ -95,11 +96,11 @@ router.put('/shown', (req, res) => {
 })
 
 router.patch('/:id', (req, res) => {
-	if (!selectView.get(req.params.id, req.user.id)) return refuse(res, 'That view does not exist.', 404)
+	if (!selectView.get(req.params.id, req.user.id)) return refuse(res, words('view.missing'), 404)
 	const body = req.body ?? {}
 	if ('name' in body) {
 		const name = cleanName(body.name)
-		if (!name) return refuse(res, 'A view needs a name.')
+		if (!name) return refuse(res, words('view.nameMissing'))
 		renameView.run(name, req.params.id, req.user.id)
 	}
 	if ('query' in body) requeryView.run(cleanQuery(body.query), req.params.id, req.user.id)
@@ -117,12 +118,12 @@ const reorder = db.transaction((userId, ids) => ids.forEach((id, at) => placeVie
 router.put('/order', (req, res) => {
 	const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : []
 	const known = selectViews.all(req.user.id).map(v => v.id)
-	if (ids.length !== known.length || !known.every(id => ids.includes(id))) return refuse(res, 'Send every view once, in the new order.')
+	if (ids.length !== known.length || !known.every(id => ids.includes(id))) return refuse(res, words('view.orderAll'))
 	reorder(req.user.id, ids)
 	res.json(list(req.user.id, req.today))
 })
 
 router.delete('/:id', (req, res) => {
-	if (!deleteView.run(req.params.id, req.user.id).changes) return refuse(res, 'That view does not exist.', 404)
+	if (!deleteView.run(req.params.id, req.user.id).changes) return refuse(res, words('view.missing'), 404)
 	res.json(list(req.user.id, req.today))
 })

@@ -7,6 +7,7 @@ import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js
 import { mcpMayRead, mcpReadWait, mcpTokenUser } from './mcpTokens.js'
 import { windowCounter } from './rateLimit.js'
 import { securityLog } from './securityLog.js'
+import { words } from './phrases.js'
 
 const scryptAsync = promisify(scrypt)
 
@@ -118,11 +119,11 @@ export function requireAuth(req, res, next) {
 		if (!reader) {
 			// once per token in a while: a tab left open on an ended session asks again and again
 			if (token && !refusedLately(token)) securityLog(req, 'session-refused', { reason: 'ended, unknown or removed' })
-			return res.status(401).json({ error: 'Not signed in.' })
+			return res.status(401).json({ error: words('auth.signedOut') })
 		}
 		const wait = mcpReadWait(token)
 		if (wait) securityLog(req, 'assistant-token-rate-limited', { userId: reader.id, email: reader.email, waitSeconds: wait })
-		if (wait) return res.status(429).set('Retry-After', String(wait)).json({ error: `Too many requests with this token. Try again in ${wait} seconds.`, retryAfter: wait })
+		if (wait) return res.status(429).set('Retry-After', String(wait)).json({ error: words('token.tooMany', { wait }), retryAfter: wait })
 		req.user = reader
 		return next()
 	}
@@ -137,6 +138,6 @@ export function requireAuth(req, res, next) {
 
 /** Scanning and importing wait until the account's email is confirmed (20b). */
 export function requireConfirmed(req, res, next) {
-	if (!req.user.email_confirmed) return res.status(403).json({ error: 'Confirm your email first. Then you can scan receipts and import orders.' })
+	if (!req.user.email_confirmed) return res.status(403).json({ error: words('auth.confirmFirst') })
 	next()
 }

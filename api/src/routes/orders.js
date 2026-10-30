@@ -22,6 +22,7 @@ import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
 import { findLookalikeOrders } from '../lib/orderLookalike.js'
+import { words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -64,7 +65,7 @@ export const sourceHash = buffer => createHash('sha256').update(buffer).digest('
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM order_attachments WHERE order_item_id = ?')
 // deleting an order reads all its files into memory to undo from, so a line holds a bounded number
 const MAX_ITEM_FILES = 20
-const tooManyItemFiles = () => Object.assign(new Error(`A line can hold at most ${MAX_ITEM_FILES} files.`), { status: 409 })
+const tooManyItemFiles = () => Object.assign(new Error(words('order.lineFilesFull', { most: MAX_ITEM_FILES })), { status: 409 })
 const deleteAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM order_attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM order_attachments WHERE id = ? AND order_id = ?')
@@ -485,7 +486,7 @@ const selectCategoryMonthSpend = db.prepare(`
 		AND ${moneyPaid('ot.')} AND ot.exclude_from_stats = 0`).pluck()
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'A date is needed, as YYYY-MM-DD.' })
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: words('order.dateNeeded') })
 	const [year, month] = day.split('-').map(Number)
 	const from = Date.UTC(year, month - 1, 1) / 1000, to = Date.UTC(year, month, 1) / 1000
 	const names = [req.query.categories ?? []].flat().map(String).filter(Boolean).slice(0, 50)
@@ -645,7 +646,7 @@ router.put('/:id', (req, res) => {
 	if (clientKey && row.client_key === clientKey) return res.json(getDecoratedOrder(req.user.id, req.params.id))
 	const asked = Number(req.body?.revision)
 	if (Number.isInteger(asked) && asked > 0 && asked !== row.revision)
-		return res.status(409).json({ error: 'This order was changed somewhere else.', order: getDecoratedOrder(req.user.id, req.params.id) })
+		return res.status(409).json({ error: words('order.changedElsewhere'), order: getDecoratedOrder(req.user.id, req.params.id) })
 	const draft = fillDraftGaps(keyed(req.user.id, req.body ?? {}))
 	assertValidOrderDraft(draft, req.today, statusKeys(req.user.id))
 
@@ -743,12 +744,12 @@ router.post('/bulk', (req, res) => {
 				.filter(e => Number.isFinite(e.date))
 		}))
 		if (orders.some(o => !isStatus(req.user.id, o.status) || o.events.some(e => !isStatus(req.user.id, e.status))))
-			return res.status(400).json({ error: 'That status does not exist.' })
+			return res.status(400).json({ error: words('status.missing') })
 		return res.json({ changed: applyRestore(req.user.id, orders) })
 	}
 	const ids = [...new Set(Array.isArray(body.ids) ? body.ids.map(String) : [])]
-	if (!ids.length) return res.status(400).json({ error: 'Choose at least one order.' })
-	if (ids.length > MAX_PAGE_SIZE * 10) return res.status(400).json({ error: 'Too many orders at once. Choose fewer orders.' })
+	if (!ids.length) return res.status(400).json({ error: words('order.chooseOne') })
+	if (ids.length > MAX_PAGE_SIZE * 10) return res.status(400).json({ error: words('order.tooMany') })
 	const change = {
 		delete: body.delete === true,
 		status: body.status ? String(body.status) : null,
@@ -756,7 +757,7 @@ router.post('/bulk', (req, res) => {
 		addCategories: Array.isArray(body.addCategories) ? body.addCategories.map(n => String(n).trim()).filter(Boolean) : [],
 		removeCategories: Array.isArray(body.removeCategories) ? body.removeCategories.map(String) : []
 	}
-	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: 'That status does not exist.' })
+	if (change.status && !isStatus(req.user.id, change.status)) return res.status(400).json({ error: words('status.missing') })
 	// a draft is deleted by discarding it; it takes no other change, as Create is what makes it an order
 	const discarded = change.delete ? ids.filter(id => discardDraft(req.user.id, id)).length : 0
 	const { changed, kept, added } = applyBulk(req.user.id, ids, change, req.today)
@@ -818,7 +819,7 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 		return res.send(decompressBlob(full.original, full.original_is_compressed))
 	}
 	const attachment = selectAttachment.get(req.params.attachmentId, req.params.id)
-	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
+	if (!attachment || !attachment.data) return res.status(404).json({ error: words('attachment.noFile') })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', fileDisposition(attachment.name, attachment.content_type))
 	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
@@ -827,7 +828,7 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const attachment = selectAttachmentThumbnail.get(req.params.attachmentId, req.params.id)
-	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
+	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: words('attachment.noThumbnail') })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
 	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
@@ -850,7 +851,7 @@ router.get('/:id/attachments/:attachmentId/pages', async (req, res) => {
 
 router.get('/:id/attachments/:attachmentId/pages/:page', async (req, res) => {
 	const page = await pageImage('attachment', ownedAttachment(req), Number(req.params.page))
-	if (!page) return res.status(404).json({ error: 'No such page.' })
+	if (!page) return res.status(404).json({ error: words('scan.noPage') })
 	res.set('Content-Type', page.contentType)
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(page.image)
@@ -888,7 +889,7 @@ router.post('/:id/items/:itemId/attachments/copy', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const { fromOrderId, attachmentId } = req.body ?? {}
-	if (typeof fromOrderId !== 'string' || typeof attachmentId !== 'string') return res.status(400).json({ error: 'Say which photo to copy.' })
+	if (typeof fromOrderId !== 'string' || typeof attachmentId !== 'string') return res.status(400).json({ error: words('attachment.whichPhoto') })
 	if (selectExistingItemAttachmentNames.all(req.params.itemId).length >= MAX_ITEM_FILES) throw tooManyItemFiles()
 	const made = copyItemAttachment.run({ newId: newId('a'), itemId: req.params.itemId, attachmentId, fromOrderId, userId: req.user.id })
 	if (!made.changes) throw notFound(attachmentId)
@@ -906,7 +907,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const attachment = selectItemAttachment.get(req.params.attachmentId, req.params.itemId)
-	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
+	if (!attachment || !attachment.data) return res.status(404).json({ error: words('attachment.noFile') })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', fileDisposition(attachment.name, attachment.content_type))
 	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
@@ -916,7 +917,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const attachment = selectItemAttachmentThumbnail.get(req.params.attachmentId, req.params.itemId)
-	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
+	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: words('attachment.noThumbnail') })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/webp')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
@@ -969,11 +970,11 @@ const countImport = db.prepare(`UPDATE order_imports SET orders = orders + @orde
 
 router.post('/import', requireConfirmed, async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
-	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
+	if (!orders.length) return res.status(400).json({ error: words('import.noOrders') })
 	// ?importId= tags what this batch writes with an import record, so the import can be undone
 	const importId = req.query.importId ? String(req.query.importId) : null
 	const importRow = importId ? selectImport.get(importId, req.user.id) : null
-	if (importId && (!importRow || importRow.undone_at)) return res.status(400).json({ error: 'That import is not open any more. Start it again.' })
+	if (importId && (!importRow || importRow.undone_at)) return res.status(400).json({ error: words('import.closed') })
 
 	/* ?progress=stream turns the response into NDJSON: a {done, total} line as rows land --
 	   at most ~100 of them however big the batch, so a 25k-row import is not spent writing

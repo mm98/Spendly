@@ -1,10 +1,11 @@
 import { CHART_EMPTY, numberOf, textOf } from './fields.js'
 import { GREY, W, canvas, rgb } from './drawing.js'
 import { text } from '../schema.js'
+import { Words } from '../../lib/phrases.js'
 
 const CHART_COLUMNS_MOST = 12
 const CHART_SERIES_MOST = 2
-const TOO_MANY = `This chart could not be made: it has too many steps to draw. Ask for at most ${CHART_COLUMNS_MOST}, for example one a month.`
+const TOO_MANY = new Words('chart.tooMany', { most: CHART_COLUMNS_MOST })
 
 const properties = {
 	series: { type: 'array', maxItems: CHART_SERIES_MOST, description: 'With bars: what each bar of a step is, for example [{"name": "2026"}, {"name": "2025"}]. One series when left out.', items: { type: 'object', properties: { name: text('The series\' name.') } } },
@@ -82,4 +83,4 @@ function words(chart, money) {
 		: `${c.label} ${money(c.values[0])}`)).join(', ')
 }
 
-export const bars = { kind: 'bars', name: 'Bar chart', use: `over time (at most ${CHART_COLUMNS_MOST} steps, for example months)`, properties, shape, picture, words }
+export const bars = { kind: 'bars', name: new Words('chart.kind.bars'), use: `over time (at most ${CHART_COLUMNS_MOST} steps, for example months)`, properties, shape, picture, words }

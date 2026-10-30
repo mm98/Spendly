@@ -1,11 +1,12 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
+import { refusal, words } from './phrases.js'
 
 export const MONTHS = 12
 
 const emptyMonths = () => Array.from({ length: MONTHS }, () => ({ expected: null, real: null }))
 
-const notFound = what => Object.assign(new Error(`No such ${what}.`), { status: 404 })
+const notFound = what => refusal(404, 'budget.notFound', { what })
 
 /* ---- statements ---- */
 
@@ -176,9 +177,9 @@ const COPY = {
 /** A new year, copied from another, or with no groups: each side already carries its own heading,
     so a starter group would only repeat it. Refuses a year that is already there. */
 export const createYear = db.transaction((userId, year, { from, amounts = 'same' } = {}) => {
-	if (selectYear.get(userId, year)) throw Object.assign(new Error(`There is already a budget for ${year}.`), { status: 409 })
+	if (selectYear.get(userId, year)) throw refusal(409, 'budget.yearExists', { year })
 	const source = from == null ? null : readYear(userId, from)
-	if (from != null && !source) throw notFound('year to copy from')
+	if (from != null && !source) throw notFound('copyFrom')
 	const yearId = newId('by')
 	insertYear.run(yearId, userId, year)
 	const groups = source
@@ -250,7 +251,7 @@ export const updateLine = db.transaction((userId, lineId, patch) => {
 	if (patch.groupId != null || patch.index != null) {
 		const groupId = patch.groupId ?? line.group_id
 		const target = selectGroup.get(groupId, userId)
-		if (!target || target.year_id !== line.year_id) throw notFound('group in this year')
+		if (!target || target.year_id !== line.year_id) throw notFound('groupInYear')
 		place(selectSiblingLines.all(userId, groupId), lineId, patch.index,
 			(l, p) => setLinePlace.run(groupId, p, l, userId))
 	}
@@ -275,7 +276,7 @@ function checkAccount(userId, id) {
 
 const refuseTwin = (userId, name, id) => {
 	const twin = listAccounts(userId).find(a => a.id !== id && accountKey(a.name) === accountKey(name))
-	if (twin) throw refuse(`You already have an account called ${twin.name}.`)
+	if (twin) throw refuse(words('budget.accountTwin', { name: twin.name }))
 }
 
 /** Finds each name in the list, adding the ones it does not hold to the end of it. */
