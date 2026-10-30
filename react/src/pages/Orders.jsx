@@ -405,7 +405,7 @@ export default function OrderList() {
 		<Controls>
 			<OrderSearch key={searchKey} q={typed} onSearch={search} ask={ask} touch={touch} />
 			{railed ? null : filtersButton}
-			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
+			<Combobox variant="sort" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
 			{narrow
 				? null
 				: <Segmented name="order-view" role="group" aria-label="Show orders as" value={view}
