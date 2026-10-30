@@ -12,15 +12,16 @@ import { wantsPage } from '../lib/listPage.js'
 import { categoryPage, knownCategoryNames, limitedCategories } from '../lib/categoryList.js'
 import { recentCategoryNames } from '../lib/latestOrders.js'
 import { words } from '../lib/phrases.js'
+import { CATEGORY_BUDGET_PERIODS } from '../lib/constants.js'
 
 export const router = Router()
 
-const CATEGORY_COLUMNS = 'id, name, icon, icon_path, colour, budget, favourite'
+const CATEGORY_COLUMNS = 'id, name, icon, icon_path, colour, budget, budget_period, favourite'
 const selectAll = db.prepare(`SELECT ${CATEGORY_COLUMNS}, order_count FROM categories WHERE user_id = ? ORDER BY name`)
 const selectOne = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, favourite)
-	VALUES (@id, @userId, @name, @icon, @iconPath, @colour, @budget, @favourite)`)
+const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, budget_period, favourite)
+	VALUES (@id, @userId, @name, @icon, @iconPath, @colour, @budget, @budgetPeriod, @favourite)`)
 /* CROSS JOIN so the count is driven from the category's own covering link index
    (idx_order_categories_cat) with an ownership probe per link -- a plain JOIN let the planner
    start from the orders side and read all 50,000 of an account's rows to count one category's
@@ -29,14 +30,14 @@ const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon
 // reaches SQLite's foreign key and answers 500 instead of a sentence.
 const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc CROSS JOIN bookmarks b ON b.id = bc.bookmark_id WHERE bc.category_id = ? AND b.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
-const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
+const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, budget_period=@budgetPeriod, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
 const ZERO_STATS = { orders: 0, spend: 0, saved: 0 }
 
 // The single record, in full: its form and rail read it.
 const withStats = (category, stats = ZERO_STATS, bookmarks = 0, extra = {}) => ({
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
-	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
+	colour: category.colour, budget: category.budget, budgetPeriod: category.budget_period ?? category.budgetPeriod, favourite: Boolean(category.favourite),
 	spend: stats.spend, saved: stats.saved, orders: stats.orders, bookmarks,
 	monthAverage: extra.monthAverage ?? 0, monthSpends: extra.monthSpends ?? [], alone: extra.alone ?? 0
 })
@@ -57,7 +58,7 @@ function fullRecord(userId, category, req) {
 
 // A list row: what the lists, filters and pickers read; the counts say whether a filter is worth offering.
 const listRow = (category, orders = 0, bookmarks = 0) => ({
-	id: category.id, name: category.name, icon: category.icon, colour: category.colour, budget: category.budget, orders, bookmarks
+	id: category.id, name: category.name, icon: category.icon, colour: category.colour, budget: category.budget, budgetPeriod: category.budget_period, orders, bookmarks
 })
 
 /* `?average=1` adds each category's 12-month average: only the Categories page reads it, so the
@@ -72,9 +73,12 @@ router.get('/', (req, res) => {
 	}))
 })
 
-// every category with a limit, or only those over it this month (`over=yes`); registered before /:id
+// every category with a limit, or only those over it in their own period (`over=yes`), with this month's
+// and this year's spend when `with=spend`; registered before /:id
 router.get('/limited', (req, res) => res.json({
-	categories: limitedCategories(req.user.id, req.today ?? todayIso(), { over: req.query.over === 'yes', languages: req.acceptsLanguages() })
+	categories: limitedCategories(req.user.id, req.today ?? todayIso(), {
+		over: req.query.over === 'yes', spend: req.query.with === 'spend', languages: req.acceptsLanguages()
+	})
 }))
 
 // the colour a new category's form starts on; registered before /:id, or that route would answer it
@@ -86,6 +90,8 @@ router.get('/colour', (req, res) => res.json({ colour: nextCategoryColour(req.us
 // and an inverted share in the against-budget meter. Same non-negative rule, checked again here
 // rather than trusted from the form that happens to enforce it today.
 const nonNegative = n => (Number.isFinite(n) && n >= 0 ? n : 0)
+
+const budgetPeriodProblem = period => (period === undefined || CATEGORY_BUDGET_PERIODS.includes(period) ? null : words('category.budgetPeriod'))
 
 /** Which of the names sent a category already has: `{ known }`, the ones an import would not create. */
 router.post('/known', (req, res) => {
@@ -115,12 +121,13 @@ router.post('/', (req, res) => {
 	if (taken) return res.status(409).json({ error: words('category.twin', { name: taken.name }) })
 
 	const look = req.body?.look ?? {}
-	const problem = categoryProblem({ name, ...look })
+	const problem = categoryProblem({ name, ...look }) ?? budgetPeriodProblem(look.budgetPeriod)
 	if (problem) return res.status(400).json({ error: problem })
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
 		colour: look.colour ?? nextCategoryColour(req.user.id), budget: nonNegative(Number(look.budget)),
+		budgetPeriod: look.budgetPeriod ?? CATEGORY_BUDGET_PERIODS[0],
 		favourite: look.favourite ? 1 : 0
 	}
 	insert.run(category)
@@ -149,7 +156,7 @@ router.patch('/:id', (req, res) => {
 		const clash = findCategoryByFold(req.user.id, nextName)
 		if (clash && clash.id !== category.id) return res.status(409).json({ error: words('category.twin', { name: clash.name }) })
 	}
-	const problem = categoryProblem({ ...patch, name: nextName })
+	const problem = categoryProblem({ ...patch, name: nextName }) ?? budgetPeriodProblem(patch.budgetPeriod)
 	if (problem) return res.status(400).json({ error: problem })
 	const next = {
 		name: nextName,
@@ -157,6 +164,7 @@ router.patch('/:id', (req, res) => {
 		iconPath: patch.iconPath !== undefined ? patch.iconPath : category.icon_path,
 		colour: patch.colour ?? category.colour,
 		budget: patch.budget != null ? nonNegative(Number(patch.budget)) : category.budget,
+		budgetPeriod: patch.budgetPeriod ?? category.budget_period,
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : category.favourite
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })

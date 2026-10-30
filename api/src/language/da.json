@@ -81,6 +81,7 @@
 	"builtin.status.returned": "Returneret",
 	"builtin.view.awaiting": "Venter på levering",
 	"builtin.view.receipt": "Mangler kvittering",
+	"category.budgetPeriod": "En grænse gælder for en måned eller for et år.",
 	"category.itemList": "Send varenavnene som en liste med højst 100.",
 	"category.mergeSelf": "En kategori kan ikke flettes ind i sig selv.",
 	"category.nameMissing": "En kategori skal have et navn.",

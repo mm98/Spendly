@@ -570,7 +570,7 @@ const countWithoutReceipt = db.prepare(`
 const selectOrderedKey = db.prepare("SELECT key FROM statuses WHERE user_id = ? AND type = 'ordered'").pluck()
 const countNotDelivered = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ? AND status = ? AND date <= ?')
 
-const selectLimited = db.prepare('SELECT id, budget FROM categories WHERE user_id = ? AND budget > 0')
+const selectLimited = db.prepare('SELECT id, budget, budget_period FROM categories WHERE user_id = ? AND budget > 0')
 // what each limited category came to in each month, as Home's figures count it: what was paid
 const selectLimitedMonths = db.prepare(`
 	SELECT oc.category_id AS id, strftime('%Y-%m', ot.date, 'unixepoch') AS month,
@@ -604,7 +604,9 @@ export function comparedMonth(userId, month) {
 }
 
 /** Home's summary of the month before the reader's own (8b): what it came to, and each limited
-    category's spend in it with how many of the twelve months up to it went over. */
+    category's spend in it with how many of the twelve months up to it went over. A yearly limit is
+    its year's spend up to the month's end instead, with whether the month is the one that passed it
+    and whether the month is December, the end of its year. */
 export function monthlySummary(userId, day = todayIso()) {
 	const [y, m] = day.split('-').map(Number)
 	const from = Date.UTC(y, m - 2, 1) / 1000
@@ -615,16 +617,29 @@ export function monthlySummary(userId, day = todayIso()) {
 	const budgetOf = new Map(limited.map(c => [c.id, c.budget]))
 	const spendOf = new Map()
 	const overs = new Map()
+	// the year the month is in, up to and before the month itself
+	const yearStart = `${month.slice(0, 4)}-01`
+	const yearSpend = new Map()
+	const yearBefore = new Map()
 	for (const row of selectLimitedMonths.all({ userId, from: Date.UTC(y, m - 13, 1) / 1000, to })) {
 		if (row.month === month) spendOf.set(row.id, row.spend)
 		if (row.spend > budgetOf.get(row.id)) overs.set(row.id, (overs.get(row.id) ?? 0) + 1)
+		if (row.month < yearStart) continue
+		yearSpend.set(row.id, (yearSpend.get(row.id) ?? 0) + row.spend)
+		if (row.month < month) yearBefore.set(row.id, (yearBefore.get(row.id) ?? 0) + row.spend)
 	}
+	const limitOf = c => c.budget_period === 'year'
+		? {
+			id: c.id, period: 'year', spend: yearSpend.get(c.id) ?? 0,
+			passed: (yearSpend.get(c.id) ?? 0) > c.budget && (yearBefore.get(c.id) ?? 0) <= c.budget, yearEnd: month.endsWith('-12')
+		}
+		: { id: c.id, period: 'month', spend: spendOf.get(c.id) ?? 0, overs: overs.get(c.id) ?? 0 }
 	return {
 		month, from: fromEpoch(from), to: fromEpoch(to - DAY),
 		spent: totals.spent, saved: totals.saved, orders: totals.orders,
 		compared: comparedMonth(userId, month),
 		seen: selectSummarySeen.get(userId)?.month === month,
-		limits: limited.map(c => ({ id: c.id, spend: spendOf.get(c.id) ?? 0, overs: overs.get(c.id) ?? 0 }))
+		limits: limited.map(limitOf)
 	}
 }
 
@@ -684,13 +699,23 @@ export function periodSummary(userId, from, to, latest = 5) {
 	}
 }
 
-const selectLimitedNamed = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND budget > 0 ORDER BY name')
+const selectLimitedNamed = db.prepare('SELECT id, name, budget, budget_period FROM categories WHERE user_id = ? AND budget > 0 ORDER BY name')
 
-/** The categories whose monthly limit the days [from, to) of one month went past, with their spend. */
+/** The categories whose limit was past at the end of the days [from, to) of one month, with their
+    spend: a monthly limit on those days, a yearly one on its year up to `to`. */
 export function limitsPassed(userId, from, to) {
-	const spendOf = new Map(selectLimitedMonths.all({ userId, from, to }).map(r => [r.id, r.spend]))
+	const yearFrom = Date.UTC(new Date((to - DAY) * 1000).getUTCFullYear(), 0, 1) / 1000
+	const monthSpend = new Map()
+	const yearSpend = new Map()
+	for (const r of selectLimitedMonths.all({ userId, from: Math.min(from, yearFrom), to })) {
+		if (r.month >= fromEpoch(from).slice(0, 7)) monthSpend.set(r.id, (monthSpend.get(r.id) ?? 0) + r.spend)
+		yearSpend.set(r.id, (yearSpend.get(r.id) ?? 0) + r.spend)
+	}
 	return selectLimitedNamed.all(userId)
-		.map(c => ({ id: c.id, name: c.name, budget: c.budget, spend: spendOf.get(c.id) ?? 0 }))
+		.map(c => ({
+			id: c.id, name: c.name, budget: c.budget, budgetPeriod: c.budget_period,
+			spend: (c.budget_period === 'year' ? yearSpend : monthSpend).get(c.id) ?? 0
+		}))
 		.filter(c => c.spend > c.budget)
 }
 

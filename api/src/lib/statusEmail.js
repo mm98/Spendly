@@ -201,7 +201,7 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 	const month = monthIn(language, period.from)
 	const now = periodSummary(userId, from, to, LIST_ROWS)
 
-	// limits are monthly, so a week is measured as the calendar month so far
+	// a week measures a monthly limit on its calendar month so far, and a yearly one on its year so far
 	const monthFrom = weekly ? toEpoch(firstOfMonth(last)) : from
 	const limits = limitsPassed(userId, monthFrom, to)
 
@@ -220,7 +220,7 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 		limits_count: limits.length,
 		limits_shown: write.count(limits.length),
 		limits: firstFlagged(limits.map(c => ({
-			name: c.name, spent: write.money(c.spend), limit: write.money(c.budget),
+			name: c.name, spent: write.money(c.spend), limit: write.money(c.budget), limit_period: c.budgetPeriod, limit_year: last.slice(0, 4),
 			over_pct: String(Math.round((c.spend / c.budget - 1) * 100)), fill_pct: Math.round(c.budget / c.spend * 100)
 		}))),
 		...(weekly ? { budget: false } : budgetOf(userId, period, write, language)),

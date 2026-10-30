@@ -74,7 +74,7 @@
 	"status.lastSpent": "{last_real} af {last_expected} forventet",
 	"status.latestOrders": "Seneste ordrer",
 	"status.limitOver": "+{over_pct} % over grænsen",
-	"status.limitSpent": "{spent} af {limit}{period_kind, select, week { i {scope_month} indtil nu} other {}}",
+	"status.limitSpent": "{spent} af {limit}{limit_period, select, year { i {limit_year} indtil nu} other {{period_kind, select, week { i {scope_month} indtil nu} other {}}}}",
 	"status.limitsHeading": "{limits_count, plural, one {{limits_shown} grænse overskredet} other {{limits_shown} grænser overskredet}}",
 	"status.needAction": "{kind, select, drafts {{need_count, plural, one {Åbn kladde} other {Åbn kladder}}} late {{need_count, plural, one {Se ordre} other {Se ordrer}}} other {Gennemse}}",
 	"status.needText": "{kind, select, drafts {{need_count, plural, one {{need_shown} kladde} other {{need_shown} kladder}} at gøre færdig} late {{need_count, plural, one {{need_shown} ordre} other {{need_shown} ordrer}} ikke leveret efter 2 uger} vendors {{need_count, plural, one {{need_shown} leverandør ligner en dublet} other {{need_shown} leverandører ligner dubletter}}} other {{need_count, plural, one {{need_shown} ordre} other {{need_shown} ordrer}} uden kvittering}}",

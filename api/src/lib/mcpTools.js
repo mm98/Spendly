@@ -55,14 +55,14 @@ export const MCP_TOOLS = [
 	},
 	{
 		name: 'list_categories',
-		description: 'The account\'s categories with their monthly limit, how many orders each has, whether it is a favourite, the spend in one month and the monthly average over the last twelve months. Spend is money paid: returned and sold orders are left out of it.',
+		description: 'The account\'s categories with their limit and the period it is for (budgetPeriod: "month" for each calendar month, "year" for the calendar year), how many orders each has, whether it is a favourite, the spend in one month (monthSpend), the spend in its year up to the end of that month (yearSpend) and the monthly average over the last twelve months. Spend is money paid: returned and sold orders are left out of it.',
 		inputSchema: {
 			type: 'object',
 			properties: {
 				query: text('Text to find in the category name.'),
 				month: text('The month the spend is counted in, as YYYY-MM. This month when left out. When given, only categories with spend in that month are listed.', { pattern: '^\\d{4}-\\d{2}$' }),
-				sort: text('The order of the rows. By name when left out. "month-desc" is the most spent in the month first, "limit-desc" the highest monthly limit first.', { enum: ['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'] }),
-				flag: text('Only some categories: "limited" those with a monthly limit, "over-limit" those past it in the month, "near-limit" those close to it but not past, from the warning level the account has chosen in Settings.', { enum: ['limited', 'over-limit', 'near-limit'] }),
+				sort: text('The order of the rows. By name when left out. "month-desc" is the most spent in each category\'s own period first, "limit-desc" the highest limit first.', { enum: ['name-asc', 'month-desc', 'month-asc', 'limit-desc', 'orders-desc'] }),
+				flag: text('Only some categories: "limited" those with a limit, "over-limit" those past it in its own period, "near-limit" those close to it but not past, from the warning level the account has chosen in Settings.', { enum: ['limited', 'over-limit', 'near-limit'] }),
 				...page,
 				...pageSize(100)
 			}
