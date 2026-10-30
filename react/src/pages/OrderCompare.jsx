@@ -20,6 +20,7 @@ import { OrderFailed, OrderLoading, LinePhoto, itemPhoto, lineTotal, money, tota
 import { apiDraft, draftOf, useStacked } from './OrderForm.jsx'
 import { newSaveKey, shortened } from './orderSave.js'
 import { changesOrder, compareLines, defaultPicks, resultingLines } from './compareLines.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 // Nothing changes until Apply; the receipt is already one of the order's files, so Cancel leaves it there (Order create 3d)
 
@@ -28,18 +29,20 @@ const FAR = 0.25
 
 export default function OrderCompare() {
 	const { id } = useParams()
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const order = useApi(getOrder, [id]).data
 	const held = order?.id === id ? order : null
 	return (
 		<>
-			<ScreenBar onBack={() => navigate(`/orders/${id}`)} title="Compare with receipt" meta={held ? [held.vendor?.name, shortDate(held.date)].filter(Boolean).join(dot) : null} />
+			<ScreenBar onBack={() => navigate(`/orders/${id}`)} title={phrase('page.compareWithReceipt')} meta={held ? [held.vendor?.name, shortDate(held.date)].filter(Boolean).join(dot) : null} />
 			<Screen />
 		</>
 	)
 }
 
 function Screen() {
+	const phrase = usePhrase()
 	const { id } = useParams()
 	const [params] = useSearchParams()
 	const documentKey = params.get('doc')
@@ -53,22 +56,22 @@ function Screen() {
 	const back = () => navigate(`/orders/${id}`)
 
 	if (!documentKey || !fileId || (held && !file))
-		return <OrderFailed what="This receipt" error={{ message: 'It is not on this order any more.' }} retry={back} />
+		return <OrderFailed what={phrase('compare.thisReceipt')} error={{ message: phrase('compare.notOnOrder') }} retry={back} />
 	if (!held && order.error) return <OrderFailed error={order.error} retry={order.refresh} />
 	if (!held) return <OrderLoading />
 	if (read.error)
 		return (
-			<Alert color="danger" mark="!" title="This receipt could not be opened."
-				action={<Button variant="outline" size="small" onClick={back}>Back to the order</Button>}>
-				{failureMessage(read.error, 'Check your connection, then try again.')}
+			<Alert color="danger" mark="!" title={phrase('compare.notOpened')}
+				action={<Button variant="outline" size="small" onClick={back}>{phrase('compare.backToOrder')}</Button>}>
+				{failureMessage(read.error, phrase('failed.connection'))}
 			</Alert>
 		)
 	if (!answer) return <Reading file={{ key: documentKey, name: file.name, hasThumbnail: file.hasThumbnail }} documentKey={documentKey} onCancel={back} />
 	if (answer.failure)
 		return (
-			<Alert color="danger" mark="!" title="This receipt could not be read."
-				action={<Button variant="outline" size="small" onClick={back}>Back to the order</Button>}>
-				The file is kept with the order. You can check the lines yourself.
+			<Alert color="danger" mark="!" title={phrase('compare.notRead')}
+				action={<Button variant="outline" size="small" onClick={back}>{phrase('compare.backToOrder')}</Button>}>
+				{phrase('compare.notReadBody')}
 			</Alert>
 		)
 	return <Comparison order={held} file={file} answer={answer} documentKey={documentKey} />
@@ -80,6 +83,7 @@ const receiptTotal = answer => (answer.total != null
 	: totalsOf(answer.lines, answer.shipping, answer.discount).total)
 
 function Comparison({ order, file, answer }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -121,7 +125,7 @@ function Comparison({ order, file, answer }) {
 			started.current = false
 			setSaving(false)
 			toast({
-				message: e.status === 409 ? 'This order was changed somewhere else. Open it again, then compare once more.' : failureMessage(e, 'The order was not changed. Try again.'),
+				message: e.status === 409 ? phrase('compare.changedElsewhere') : failureMessage(e, phrase('compare.notChanged')),
 				color: 'danger'
 			})
 			return
@@ -137,14 +141,14 @@ function Comparison({ order, file, answer }) {
 
 	if (far)
 		return (
-			<Dialog onCancel={back} aria-label="This receipt may belong to another order">
-				<DialogTitle>This receipt may belong to another order</DialogTitle>
+			<Dialog onCancel={back} aria-label={phrase('compare.otherOrder')}>
+				<DialogTitle>{phrase('compare.otherOrder')}</DialogTitle>
 				<DialogBody>
-					The receipt is from {answer.vendor}, {money(printed)} This order is {order.vendor?.name}, {money(order.total)}
+					{phrase('compare.otherOrderBody', { receiptVendor: answer.vendor, receiptAmount: money(printed), vendor: order.vendor?.name, amount: money(order.total) })}
 				</DialogBody>
 				<DialogActions>
-					<Button variant="outline" onClick={() => setFar(false)}>Compare anyway</Button>
-					<Button onClick={back}>Attach only</Button>
+					<Button variant="outline" onClick={() => setFar(false)}>{phrase('compare.anyway')}</Button>
+					<Button onClick={back}>{phrase('compare.attachOnly')}</Button>
 				</DialogActions>
 			</Dialog>
 		)
@@ -153,18 +157,18 @@ function Comparison({ order, file, answer }) {
 	const set = (key, value) => setPicks(p => ({ ...p, [key]: value }))
 	const jump = () => document.querySelector('[data-compare-row] input')?.focus()
 
-	const applyLabel = saving ? 'Applying…' : changes ? (narrow ? `Apply ${changes}` : `Apply ${plural(changes, 'change')}`) : 'Mark validated'
+	const applyLabel = saving ? phrase('compare.applying') : changes ? phrase('compare.apply', { what: narrow ? changes : plural(changes, 'change') }) : phrase('compare.markValidated')
 	const commits = [
-		<Button key="cancel" variant="outline" disabled={saving} onClick={back}>Cancel</Button>,
+		<Button key="cancel" variant="outline" disabled={saving} onClick={back}>{phrase('action.cancel')}</Button>,
 		<Button key="apply" disabled={saving} onClick={() => apply()}>{applyLabel}</Button>
 	]
 	const matchedNote = matched.length
-		? `${plural(matched.length, 'line')} ${matched.length === 1 ? 'matches' : 'match'} the receipt${!narrow && matched.length <= 3 ? `: ${matched.map(l => l.title).join(', ')}` : ''}`
+		? phrase(!narrow && matched.length <= 3 ? 'compare.matchedNamed' : 'compare.matched', { count: matched.length, lines: plural(matched.length, 'line'), names: matched.map(l => l.title).join(', ') })
 		: null
 
 	const list = (
 		<Card>
-			<CardHeader name={`Lines that differ${dot}${rows.length}`} actions={[{ label: narrow ? 'Accept all' : 'Accept all from receipt', onClick: () => setPicks(defaultPicks(rows)) }]} />
+			<CardHeader name={phrase('compare.differ') + dot + rows.length} actions={[{ label: phrase(narrow ? 'compare.acceptAll' : 'compare.acceptAllReceipt'), onClick: () => setPicks(defaultPicks(rows)) }]} />
 			<div className="sp-stack sp-gap-8">
 				{rows.map(row => <Difference key={row.key} row={row} pick={picks[row.key]} onPick={v => set(row.key, v)} order={order} narrow={narrow} />)}
 			</div>
@@ -172,22 +176,22 @@ function Comparison({ order, file, answer }) {
 		</Card>
 	)
 	const notice = (
-		<Alert mark="!" title={`${plural(rows.length, 'line')} ${rows.length === 1 ? 'differs' : 'differ'} from the receipt.`}
-			action={<Button variant="outline" size="small" onClick={jump}>Jump to first</Button>} below={touch}>
-			The receipt's version is picked on each line. Change any you want to keep from the order.
+		<Alert mark="!" title={phrase('compare.differCount', { count: rows.length, lines: plural(rows.length, 'line') })}
+			action={<Button variant="outline" size="small" onClick={jump}>{phrase('compare.jump')}</Button>} below={touch}>
+			{phrase('compare.picked')}
 		</Alert>
 	)
 	const totals = (
 		<Card footer={narrow ? [] : commits} footerLayout="split" footerCommits>
-			<CardHeader name="Totals" />
+			<CardHeader name={phrase('order.totals')} />
 			<div className="sp-stack">
-				<Sum value={money(order.total)}>Order now</Sum>
-				<Sum value={money(after)}>After changes</Sum>
-				<Sum value={money(printed)}>On the receipt</Sum>
+				<Sum value={money(order.total)}>{phrase('compare.orderNow')}</Sum>
+				<Sum value={money(after)}>{phrase('compare.after')}</Sum>
+				<Sum value={money(printed)}>{phrase('compare.onReceipt')}</Sum>
 			</div>
 			{gap < 0.005
-				? <Pill color="success">Totals match</Pill>
-				: <Pill state="progress">{money(gap)} {after > printed ? 'more' : 'less'} than the receipt</Pill>}
+				? <Pill color="success">{phrase('compare.totalsMatch')}</Pill>
+				: <Pill state="progress">{phrase(after > printed ? 'compare.more' : 'compare.less', { amount: money(gap) })}</Pill>}
 		</Card>
 	)
 
@@ -196,7 +200,7 @@ function Comparison({ order, file, answer }) {
 			<div className="sp-stack sp-gap-12" ref={column}>
 				{notice}{list}
 				<SaveBar>
-					<span className="sp-subtitle sp-grow">Total {money(after)}</span>
+					<span className="sp-subtitle sp-grow">{phrase('compare.total', { amount: money(after) })}</span>
 					{commits}
 				</SaveBar>
 			</div>
@@ -210,7 +214,7 @@ function Comparison({ order, file, answer }) {
 					{stacked
 						? (
 							<ListItem variant="sticky">
-								<span className="sp-subtitle sp-grow">Total {money(after)}</span>
+								<span className="sp-subtitle sp-grow">{phrase('compare.total', { amount: money(after) })}</span>
 								{commits}
 							</ListItem>
 						)
@@ -226,19 +230,20 @@ const figures = line => `${Number(line.quantity) === 1 ? '' : `${Number(line.qua
 
 /** Why a line is listed, in the words a reader sees under its name. */
 function reason(row) {
-	if (row.kind === 'renamed') return `Name on the receipt: ${row.receipt.title}`
-	if (row.kind === 'receiptOnly') return 'Only on the receipt - ticked lines are added'
-	if (row.kind === 'orderOnly') return 'Not on the receipt - removed unless ticked'
+	if (row.kind === 'renamed') return phrase('compare.renamed', { name: row.receipt.title })
+	if (row.kind === 'receiptOnly') return phrase('compare.receiptOnly')
+	if (row.kind === 'orderOnly') return phrase('compare.orderOnly')
 	const [a, b] = [row.order, row.receipt]
 	const price = Number(a.price) !== Number(b.price)
 	const count = Number(a.quantity) !== Number(b.quantity)
-	if (price && count) return `Price and quantity differ: ${figures(a)} on the order, ${figures(b)} on the receipt`
-	if (count) return `Quantity differs: ${Number(a.quantity)} on the order, ${Number(b.quantity)} on the receipt`
-	return `Price differs: ${money(a.price)} on the order, ${money(b.price)} on the receipt`
+	if (price && count) return phrase('compare.bothDiffer', { order: figures(a), receipt: figures(b) })
+	if (count) return phrase('compare.quantityDiffers', { order: Number(a.quantity), receipt: Number(b.quantity) })
+	return phrase('compare.priceDiffers', { order: money(a.price), receipt: money(b.price) })
 }
 
 /** One line that differs: its choice, and the amount it will have, with the one it replaces under it. */
 function Difference({ row, pick, onPick, order, narrow }) {
+	const phrase = usePhrase()
 	const { kind } = row
 	const title = (row.order ?? row.receipt).title
 	const both = kind === 'differs' || kind === 'renamed'
@@ -250,8 +255,8 @@ function Difference({ row, pick, onPick, order, narrow }) {
 	const struck = both && kind === 'differs' && lineTotal(other) !== lineTotal(used) ? lineTotal(other) : null
 	const choice = both
 		? (
-			<Segmented name={`pick-${row.key}`} role="radiogroup" aria-label={`Keep ${shortened(title)} from`} value={pick} onChange={onPick}
-				options={[{ value: 'order', label: 'Order' }, { value: 'receipt', label: 'Receipt' }]} />
+			<Segmented name={`pick-${row.key}`} role="radiogroup" aria-label={phrase('compare.keepFrom', { name: shortened(title) })} value={pick} onChange={onPick}
+				options={[{ value: 'order', label: phrase('orderMenu.order') }, { value: 'receipt', label: phrase('repeats.receipt') }]} />
 		)
 		: null
 	const text = (
@@ -264,7 +269,7 @@ function Difference({ row, pick, onPick, order, narrow }) {
 		<ListItem color="warning" variant={narrow ? 'top' : 'default'} data-compare-row=""
 			mark={<>
 				{box
-					? <Check checked={pick === true} onChange={ev => onPick(ev.target.checked)} aria-label={`${kind === 'receiptOnly' ? 'Add' : 'Keep'} ${title}`} />
+					? <Check checked={pick === true} onChange={ev => onPick(ev.target.checked)} aria-label={phrase(kind === 'receiptOnly' ? 'compare.add' : 'compare.keep', { name: title })} />
 					: null}
 				<LinePhoto src={row.order ? itemPhoto(order.id, row.order) : null} name={title} />
 			</>}>

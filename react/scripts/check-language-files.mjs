@@ -19,7 +19,7 @@ const folder = join(src, 'language')
 // the folders whose every word comes from the language files; a folder joins once its words have moved
 const TEXT_FREE = ['components', 'app', 'api']
 // a name, a symbol, or words the server sends and the code compares: not words to translate
-const NAMES = new Set(['Spendly', 'Claude Code', 'kr.', 'No change you can see.'])
+const NAMES = new Set(['Spendly', 'Claude Code', 'kr.', 'https://', 'No change you can see.'])
 const findings = []
 const fail = (where, detail) => findings.push(`${where}: ${detail}`)
 

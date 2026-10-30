@@ -19,7 +19,7 @@ import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useFocusTrap } from '../components/Utilities.jsx'
-import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSearchNames, getSettings, getVendorPage, spendKinds } from '../api/client.js'
+import { failureMessage, getCategoryPage, getCurrentUser, getImport, getOrders, getSearchNames, getSettings, getVendorPage, kindName, spendKinds } from '../api/client.js'
 import { peek, readAs, useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today, withShortMonth } from '../api/format.js'
 import { useAskSearch } from '../app/askSearch.js'
@@ -37,13 +37,14 @@ import { OrderCard, PressedRow, RowMenu, orderName } from './OrderMenu.jsx'
 import { SheetViews, ViewsCard } from './OrderViews.jsx'
 import { useViews, viewLink } from '../app/views.jsx'
 import { usePageSearch } from '../app/afterDraw.js'
+import { usePhrase } from '../language/phrases.js'
 
 const SORTS = [
-	{ id: 'date-desc', label: 'Newest first' },
-	{ id: 'date-asc', label: 'Oldest first' },
-	{ id: 'amount-desc', label: 'Highest total' },
-	{ id: 'amount-asc', label: 'Lowest total' },
-	{ id: 'vendor-asc', label: 'Vendor A - Z' }
+	{ id: 'date-desc', label: 'orders.sort.newest' },
+	{ id: 'date-asc', label: 'orders.sort.oldest' },
+	{ id: 'amount-desc', label: 'orders.sort.highest' },
+	{ id: 'amount-asc', label: 'orders.sort.lowest' },
+	{ id: 'vendor-asc', label: 'orders.sort.vendor' }
 ]
 
 /* The column a sort orders by, and which way: its head says so (2b). */
@@ -131,10 +132,10 @@ const throughParts = (changes, typed, reading) => {
 /* A preset is a calendar period around today, held in the address by its name; a link that carries
    the same two dates still lands on the same chip. */
 const PRESETS = [
-	{ key: 'week', label: 'This week', range: n => { const at = n.getDate() - (n.getDay() + 6) % 7; return [day(n.getFullYear(), n.getMonth(), at), day(n.getFullYear(), n.getMonth(), at + 6)] } },
-	{ key: 'month', label: 'This month', range: n => [day(n.getFullYear(), n.getMonth(), 1), day(n.getFullYear(), n.getMonth() + 1, 0)] },
-	{ key: 'quarter', label: 'This quarter', range: n => { const q = n.getMonth() - n.getMonth() % 3; return [day(n.getFullYear(), q, 1), day(n.getFullYear(), q + 3, 0)] } },
-	{ key: 'year', label: 'This year', range: n => [day(n.getFullYear(), 0, 1), day(n.getFullYear(), 11, 31)] }
+	{ key: 'week', label: 'period.thisWeek', range: n => { const at = n.getDate() - (n.getDay() + 6) % 7; return [day(n.getFullYear(), n.getMonth(), at), day(n.getFullYear(), n.getMonth(), at + 6)] } },
+	{ key: 'month', label: 'period.thisMonth', range: n => [day(n.getFullYear(), n.getMonth(), 1), day(n.getFullYear(), n.getMonth() + 1, 0)] },
+	{ key: 'quarter', label: 'period.thisQuarter', range: n => { const q = n.getMonth() - n.getMonth() % 3; return [day(n.getFullYear(), q, 1), day(n.getFullYear(), q + 3, 0)] } },
+	{ key: 'year', label: 'period.thisYear', range: n => [day(n.getFullYear(), 0, 1), day(n.getFullYear(), 11, 31)] }
 ]
 const presetOf = (from, to) => PRESETS.find(p => { const [a, b] = p.range(new Date()); return a === from && b === to })
 
@@ -160,7 +161,7 @@ const loaded = readAs(getOrders, async (request, size, pages, signal) => {
 
 const importDate = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', year: 'numeric' })
 
-const RECEIPT = { attached: 'Receipt attached', missing: 'Receipt missing' }
+const RECEIPT = { attached: 'orders.receiptAttached', missing: 'orders.receiptMissing' }
 
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
@@ -181,6 +182,7 @@ const menuHere = ev => {
 
 /** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
 export default function OrderList() {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
 	// what the typed search reads (2b): its parts filter beside the address's own, its other words search
@@ -285,7 +287,7 @@ export default function OrderList() {
 		setExporting(true)
 		linesOf(request)
 			.then(lines => saveCsv(linesCsv(lines, statusName)))
-			.catch(e => toast({ message: failureMessage(e, 'The file was not made. Try again.'), color: 'danger' }))
+			.catch(e => toast({ message: failureMessage(e, phrase('bulk.fileNotMade')), color: 'danger' }))
 			.finally(() => setExporting(false))
 	}
 
@@ -315,43 +317,43 @@ export default function OrderList() {
 		clearAll()
 	}
 
-	const vendorName = id => vendors?.find(v => v.id === id)?.name ?? reading.named.get(id) ?? 'Vendor'
-	const categoryName = id => (id === 'none' ? 'No category' : categories?.find(c => c.id === id)?.name ?? reading.named.get(id) ?? 'Category')
+	const vendorName = id => vendors?.find(v => v.id === id)?.name ?? reading.named.get(id) ?? phrase('field.vendor')
+	const categoryName = id => (id === 'none' ? phrase('import.noCategory') : categories?.find(c => c.id === id)?.name ?? reading.named.get(id) ?? phrase('field.category'))
 	const crumbOf = {
 		date: () => {
 			if (!f.from && !f.to) return null
 			const preset = custom ? null : PRESETS.find(p => p.key === f.period) ?? presetOf(f.from, f.to)
-			const label = preset ? preset.label
+			const label = preset ? phrase(preset.label)
 				: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
-					: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
-			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={ev => { setCustom(false); removing({ from: '', to: '', period: '' })(ev) }}>{label}</Crumb>
+					: f.from ? phrase('orders.from', { date: shortDate(f.from) }) : phrase('orders.until', { date: shortDate(f.to) })
+			return <Crumb key="date" name={preset ? label : phrase('orders.dateRange')} onRemove={ev => { setCustom(false); removing({ from: '', to: '', period: '' })(ev) }}>{label}</Crumb>
 		},
 		// one crumb for each value a facet holds, each removing only itself
 		status: () => listOf(f.status).map(s => <Crumb key={`status-${s}`} onRemove={removing({ status: toggled(f.status, s, false) })}>{statusName(s)}</Crumb>),
 		vendor: () => listOf(f.vendor).map(v => <Crumb key={`vendor-${v}`} onRemove={removing({ vendor: toggled(f.vendor, v, false) })}>{vendorName(v)}</Crumb>),
 		category: () => listOf(f.category).map(c => <Crumb key={`category-${c}`} onRemove={removing({ category: toggled(f.category, c, false) })}>{categoryName(c)}</Crumb>),
-		receipt: () => listOf(f.receipt).map(r => <Crumb key={`receipt-${r}`} onRemove={removing({ receipt: toggled(f.receipt, r, false) })}>{RECEIPT[r] ?? r}</Crumb>),
-		files: () => f.files === '1' && <Crumb key="files" onRemove={removing({ files: '' })}>Has attachments</Crumb>,
-		discounted: () => f.discounted === '1' && <Crumb key="discounted" onRemove={removing({ discounted: '' })}>Discounted only</Crumb>,
-		kind: () => f.kind && <Crumb key="kind" onRemove={removing({ kind: '' })}>{f.kind}</Crumb>,
+		receipt: () => listOf(f.receipt).map(r => <Crumb key={`receipt-${r}`} onRemove={removing({ receipt: toggled(f.receipt, r, false) })}>{RECEIPT[r] ? phrase(RECEIPT[r]) : r}</Crumb>),
+		files: () => f.files === '1' && <Crumb key="files" onRemove={removing({ files: '' })}>{phrase('orders.hasAttachments')}</Crumb>,
+		discounted: () => f.discounted === '1' && <Crumb key="discounted" onRemove={removing({ discounted: '' })}>{phrase('orders.discountedOnly')}</Crumb>,
+		kind: () => f.kind && <Crumb key="kind" onRemove={removing({ kind: '' })}>{kindName(f.kind)}</Crumb>,
 		// arriving from an import (11b): one chip, never part of a saved view
 		import: () => {
 			if (!f.import) return null
 			const made = fromImport.data?.id === f.import ? fromImport.data.createdAt : null
-			const label = made ? `From import ${withShortMonth(importDate(), new Date(made * 1000))}` : 'From an import'
+			const label = made ? phrase('orders.fromImport', { date: withShortMonth(importDate(), new Date(made * 1000)) }) : phrase('orders.fromAnImport')
 			return <Crumb key="import" onRemove={removing({ import: '' })}>{label}</Crumb>
 		},
 		amount: () => {
 			if (!f.min && !f.max) return null
 			const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
-				: f.min ? `Over ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
-			return <Crumb key="amount" name="the amount range" onRemove={removing({ min: '', max: '' })}>{label}</Crumb>
+				: f.min ? phrase('orders.over', { amount: currency(Number(f.min), 0) }) : phrase('orders.upTo', { amount: currency(Number(f.max), 0) })
+			return <Crumb key="amount" name={phrase('orders.amountRange')} onRemove={removing({ min: '', max: '' })}>{label}</Crumb>
 		}
 	}
 	// in the order the filters were applied (c12): a new one joins the end of the address
 	const groupOf = k => (k === 'from' || k === 'to' || k === 'period' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
 	// in Ask mode the words Ask kept as search text are a crumb too, since the field holds the sentence
-	const searched = ask.on && f.q ? [<Crumb key="q" name="the search text" onRemove={removing({ q: '' })}>{`"${f.q}"`}</Crumb>] : []
+	const searched = ask.on && f.q ? [<Crumb key="q" name={phrase('orders.searchText')} onRemove={removing({ q: '' })}>{`"${f.q}"`}</Crumb>] : []
 	const crumbs = [...searched, ...[...new Set([...asked.keys()].map(groupOf))].flatMap(g => crumbOf[g]?.() ?? []).filter(Boolean)]
 	useEffect(() => {
 		if (!crumbFocus || crumbs.length === crumbFocus.count) return
@@ -371,20 +373,20 @@ export default function OrderList() {
 	const facetData = { amountScale: amountScale.data?.amountScale }
 	const filtersCard = (
 		<Card>
-			<CardHeader name="Filters" actionSize="xsmall" actions={[{ label: 'Clear all', onClick: clearRail, held: !crumbs.length }]} />
+			<CardHeader name={phrase('orders.filters')} actionSize="xsmall" actions={[{ label: phrase('list.clearAll'), onClick: clearRail, held: !crumbs.length }]} />
 			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} counts={facets.data?.facets} {...facetData} />
 		</Card>
 	)
 
-	const sortLabel = SORTS.find(s => s.id === sort).label
+	const sortLabel = phrase(SORTS.find(s => s.id === sort).label)
 	const filtersButton = (
 		<Button variant="outline" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
-			{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
+			{crumbs.length ? phrase('orders.filters') + dot + crumbs.length : phrase('orders.filters')}
 		</Button>
 	)
 	const sortOptions = SORTS.map(s => (
 		<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
-			{s.label}
+			{phrase(s.label)}
 		</ComboboxOption>
 	))
 	// on a phone the search stands alone, and Filters and Sort share one card below it (7a)
@@ -394,22 +396,22 @@ export default function OrderList() {
 			<div className="sp-combobox sp-combobox--grow">
 				<button type="button" className="sp-combobox__trigger" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'}
 					onClick={() => setFiltersOpen(true)}>
-					<span className="sp-grow">Filters</span>
+					<span className="sp-grow">{phrase('orders.filters')}</span>
 					{crumbs.length ? <span className="sp-list-item__count">{crumbs.length}</span> : null}
 				</button>
 			</div>
-			<Combobox aria-label="Sort" value={sortLabel}>{sortOptions}</Combobox>
+			<Combobox aria-label={phrase('sort.label')} value={sortLabel}>{sortOptions}</Combobox>
 		</ListItem>
 	</> : (
 		// without the rail, Filters joins the bar before sort (15e)
 		<Controls>
 			<OrderSearch key={searchKey} q={typed} onSearch={search} ask={ask} touch={touch} />
 			{railed ? null : filtersButton}
-			<Combobox variant="sort" prefix="Sort" value={sortLabel}>{sortOptions}</Combobox>
+			<Combobox variant="sort" prefix={phrase('sort.label')} value={sortLabel}>{sortOptions}</Combobox>
 			{narrow
 				? null
-				: <Segmented name="order-view" role="group" aria-label="Show orders as" value={view}
-					options={[{ value: 'rows', label: 'Rows' }, { value: 'cards', label: 'Cards' }]}
+				: <Segmented name="order-view" role="group" aria-label={phrase('orders.showAs')} value={view}
+					options={[{ value: 'rows', label: phrase('orders.rows') }, { value: 'cards', label: phrase('orders.cards') }]}
 					onChange={v => update({ view: v === 'cards' ? 'cards' : '' })} />}
 		</Controls>
 	)
@@ -433,24 +435,24 @@ export default function OrderList() {
 	}
 	let body
 	if (orders.error)
-		body = <Failed what="Your orders" error={orders.error} onRetry={orders.refresh} />
+		body = <Failed what={phrase('orders.yours')} error={orders.error} onRetry={orders.refresh} />
 	else if (!data) body = narrow ? <CardsLoading size={size} /> : <RowsLoading width={width} size={size} sort={sort} />
 	else if (data.total === 0)
 		body = (
 			<Card variant="flush">
 				<Empty>
-					<Mark size="large" aria-hidden="true" aria-label="Receipt"><Icon name="receipt" size={26} /></Mark>
-					<EmptyTitle>No orders yet</EmptyTitle>
+					<Mark size="large" aria-hidden="true" aria-label={phrase('repeats.receipt')}><Icon name="receipt" size={26} /></Mark>
+					<EmptyTitle>{phrase('orders.noneYet')}</EmptyTitle>
 					<EmptyBody>
 						{reads === false
-							? 'Drop a receipt and it is attached to a new order. Or start an empty order. Either way, you type in the details.'
-							: 'Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.'}
+							? phrase('orders.noneYetNoRead')
+							: phrase('orders.noneYetRead')}
 					</EmptyBody>
 					<div className="sp-row-flex sp-gap-8">
 						{held
-							? <Button size="small" disabled data-tip="Available once your email is confirmed">Scan a receipt</Button>
-							: <Button size="small" onClick={scan.open}>Scan a receipt</Button>}
-						<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
+							? <Button size="small" disabled data-tip={phrase('import.held')}>{phrase('orders.scan')}</Button>
+							: <Button size="small" onClick={scan.open}>{phrase('orders.scan')}</Button>}
+						<Button variant="outline" size="small" to="/orders/new?source=empty">{phrase('orders.empty')}</Button>
 					</div>
 				</Empty>
 			</Card>
@@ -459,9 +461,9 @@ export default function OrderList() {
 		body = (
 			<Card variant="flush">
 				<Empty>
-					<EmptyTitle>No orders match "{f.q}"</EmptyTitle>
-					<EmptyBody>Check the spelling, or clear the search.</EmptyBody>
-					<Button variant="outline" size="small" onClick={clearSearch}>Clear search</Button>
+					<EmptyTitle>{phrase('orders.noMatchSearch', { q: f.q })}</EmptyTitle>
+					<EmptyBody>{phrase('orders.checkSpelling')}</EmptyBody>
+					<Button variant="outline" size="small" onClick={clearSearch}>{phrase('orders.clearSearch')}</Button>
 				</Empty>
 			</Card>
 		)
@@ -479,24 +481,24 @@ export default function OrderList() {
 				{summary ? <span className="sp-subtitle">{dot.trimStart()}{currency(summary.total)}</span> : null}
 				{summary ? <Saving value={summary.saved} /> : null}
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>Export CSV</Button>
+				<Button variant="outline" size="small" disabled={exporting} onClick={exportCsv}>{phrase('orders.exportCsv')}</Button>
 			</>
 		)
 		const pickedAll = chosen.length > 0 && chosen.length === data.orders.length
 		const note = pickedAll && data.matched > data.orders.length
 			? (current.all
-				? <span>All {plural(data.matched, 'matching order')} are selected.</span>
+				? <span>{phrase('orders.allSelected', { orders: plural(data.matched, 'matching order') })}</span>
 				: <>
-					<span>All {plural(data.orders.length, 'order')} on this page are selected.</span>
+					<span>{phrase('orders.pageSelected', { orders: plural(data.orders.length, 'order') })}</span>
 					<Button variant="outline" size="small" onClick={() => setSelection({ key: selectionKey, ids: current.ids, all: true })}>
-						Select all {amount(data.matched, 0)} matching
+						{phrase('orders.selectAllMatching', { shown: amount(data.matched, 0) })}
 					</Button>
 				</>)
 			: null
 		if (narrow)
 			body = (
 				<OrderCards data={data} size={size} summary={summary} touch={touch} picked={current.ids} onPick={pickRun} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting}
-					bulk={touch || !chosen.length ? null : <BulkBar loose count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar>} />
+					bulk={touch || !chosen.length ? null : <BulkBar loose count={phrase('orders.selected', { shown: amount(count, 0) })} onClear={clearPicked}>{bulk}</BulkBar>} />
 			)
 		else if (view === 'cards')
 			body = (
@@ -517,10 +519,10 @@ export default function OrderList() {
 	const main = (
 		<div className={alone ? 'sp-grow sp-stack sp-gap-12 ol-alone' : 'sp-grow sp-stack sp-gap-12'} ref={column}>
 			{/* on a phone a selection takes the top bar's place (c12) */}
-			{touch && narrow && chosen.length ? <BulkBar head count={`${amount(count, 0)} selected`} onClear={clearPicked}>{bulk}</BulkBar> : null}
+			{touch && narrow && chosen.length ? <BulkBar head count={phrase('orders.selected', { shown: amount(count, 0) })} onClear={clearPicked}>{bulk}</BulkBar> : null}
 			{none ? null : controls}
 			{ask.on && ask.unread
-				? <span className="sp-field__help" data-color="warning">Couldn't turn that into filters. Try naming a shop, a category, an amount or a period.</span>
+				? <span className="sp-field__help" data-color="warning">{phrase('orders.askUnread')}</span>
 				: null}
 			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
@@ -552,7 +554,7 @@ export default function OrderList() {
 		<OverLimitProvider>
 			<div className="sp-rail sp-stack sp-gap-12">
 				<ViewsCard params={params} matched={orders.data?.matched}
-					summary={[...crumbs.map(c => (PRESETS.some(p => p.label === c.props.children) ? c.props.children.toLowerCase() : c.props.children)), sortLabel.toLowerCase()].join(dot)} />
+					summary={[...crumbs.map(c => (PRESETS.some(p => phrase(p.label) === c.props.children) ? c.props.children.toLowerCase() : c.props.children)), sortLabel.toLowerCase()].join(dot)} />
 				{filtersCard}
 			</div>
 			{main}
@@ -563,6 +565,7 @@ export default function OrderList() {
 /** The facets on a phone or a narrow window (c12 touch, 18b): a sheet over the list, whose
     choices wait for Apply rather than filtering at once. */
 function FiltersSheet({ params, views, custom, facetData, onApply, onClose }) {
+	const phrase = usePhrase()
 	const [draft, setDraft] = useState(() => new URLSearchParams(params))
 	const [draftCustom, setDraftCustom] = useState(custom)
 	const f = readFilters(draft)
@@ -584,12 +587,12 @@ function FiltersSheet({ params, views, custom, facetData, onApply, onClose }) {
 
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
-			<Sheet role="dialog" aria-modal="true" aria-label="Filters" ref={box} tabIndex={-1}
+			<Sheet role="dialog" aria-modal="true" aria-label={phrase('orders.filters')} ref={box} tabIndex={-1}
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
 				<div className="sp-row-flex">
-					<span className="sp-heading">Filters</span>
+					<span className="sp-heading">{phrase('orders.filters')}</span>
 					<span className="sp-grow" />
-					<Button variant="text" size="small" onClick={clear}>Reset</Button>
+					<Button variant="text" size="small" onClick={clear}>{phrase('orders.reset')}</Button>
 				</div>
 				<div className="ol-sheet-body">
 					<SheetViews params={views} onOpen={onClose} />
@@ -597,7 +600,7 @@ function FiltersSheet({ params, views, custom, facetData, onApply, onClose }) {
 							counts={count.loading ? undefined : count.data?.facets} {...facetData} />
 				</div>
 				<Button size="small" fullWidth disabled={matched === 0} onClick={apply}>
-					{matched === undefined ? 'Apply' : matched === 0 ? 'No orders match' : `Show ${plural(matched, 'order')}`}
+					{matched === undefined ? phrase('action.apply') : matched === 0 ? phrase('orders.noMatch') : phrase('orders.show', { orders: plural(matched, 'order') })}
 				</Button>
 			</Sheet>
 		</Scrim>,
@@ -609,6 +612,7 @@ function FiltersSheet({ params, views, custom, facetData, onApply, onClose }) {
     settles, so a key pressed while the list redraws is never overwritten. With `ask` it ends in Ask
     (2b): Alt+A switches the mode, and in Ask mode the field holds a sentence sent with Enter. */
 function OrderSearch({ q, onSearch, ask, touch }) {
+	const phrase = usePhrase()
 	const [text, setText] = useState(q)
 	const wrote = useRef(q)
 	useEffect(() => {
@@ -650,8 +654,8 @@ function OrderSearch({ q, onSearch, ask, touch }) {
 			readOnly={ask.working}
 			inputRef={bind}
 			onKeyDown={keys}
-			placeholder="Ask, for example: groceries over 500 last month"
-			aria-label="Ask about your orders"
+			placeholder={phrase('orders.askExample')}
+			aria-label={phrase('orders.askLabel')}
 		/>
 	)
 	return (
@@ -661,8 +665,8 @@ function OrderSearch({ q, onSearch, ask, touch }) {
 			ends={ends}
 			inputRef={bind}
 			onKeyDown={keys}
-			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
-			aria-label="Search orders"
+			placeholder={phrase(touch ? 'orders.search' : 'orders.searchLong')}
+			aria-label={phrase('orders.search')}
 		/>
 	)
 }
@@ -697,6 +701,7 @@ function useSettled(value, ms = 250) {
 /** The orders as rows (2b): the summary line, which the bulk bar takes over once a row is
     picked (2h), the table, and Load more. */
 function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, count, bulk, note, onLoadMore, onDelete }) {
+	const phrase = usePhrase()
 	const { typeOf } = useStatusTypes()
 	const show = columnsFor(width)
 	return (
@@ -705,17 +710,17 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 			rowVoid={o => typeOf(o.status) === 'cancelled'} onContextMenu={menuHere}>
 			<Caption>{caption}</Caption>
 			<Selected>
-				<span className="sp-bulkbar__count">{amount(count, 0)} selected</span>
+				<span className="sp-bulkbar__count">{phrase('orders.selected', { shown: amount(count, 0) })}</span>
 				<span className="sp-grow" />
 				{bulk}
 			</Selected>
 			<ListHead>
 				<ListCell cell="checkbox" />
-				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
-				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
-				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-				<ListCell width="status">Status</ListCell>
-				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
+				<ListCell width="title">{headOf(sort, 'title', phrase('orderMenu.order'))}</ListCell>
+				<ListCell width="date">{headOf(sort, 'date', phrase('field.date'))}</ListCell>
+				{show.categories ? <ListCell width="flex">{phrase('field.categories')}</ListCell> : null}
+				<ListCell width="status">{phrase('field.status')}</ListCell>
+				<ListCell width="amount">{headOf(sort, 'amount', phrase('order.total'))}</ListCell>
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>{o => (
@@ -743,13 +748,13 @@ function OrderRows({ data, width, size, sort, touch, caption, picked, onPick, co
 
 /* The statuses whose own name says what happened to an order ("none returned"); any other, or one
    the account renamed, is named as a status. */
-const PAST = ['Ordered', 'Delivered', 'Returned', 'Cancelled']
+const PAST = { Ordered: 'noMatch.ordered', Delivered: 'noMatch.delivered', Returned: 'noMatch.returned', Cancelled: 'noMatch.cancelled' }
 
 /* The periods a narrow date filter widens to, smallest first, each holding the range in force. A range
    inside this year widens to the whole year (6a), never to a quarter or a month. */
 const widerThan = (from, to) => [
-	...PRESETS.filter(p => p.key === 'year').map(p => { const [a, b] = p.range(new Date()); return { key: p.key, label: p.label.toLowerCase(), from: a, to: b } }),
-	{ key: '', label: 'all dates', from: '', to: '' }
+	...PRESETS.filter(p => p.key === 'year').map(p => { const [a, b] = p.range(new Date()); return { key: p.key, label: p.label, from: a, to: b } }),
+	{ key: '', label: 'noMatch.allDates', from: '', to: '' }
 ].filter(c => !c.key || (from && to && c.from <= from && c.to >= to && !(c.from === from && c.to === to)))
 
 const widened = readAs(getOrders, async (request, periods, signal) => {
@@ -760,6 +765,7 @@ const widened = readAs(getOrders, async (request, periods, signal) => {
 /** A filtered list that holds nothing says why, and offers the smallest wider period that finds
     something (6a). Every number in the sentence waits for its answer. */
 function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, onClear }) {
+	const phrase = usePhrase()
 	const vendorIds = listOf(f.vendor)
 	const categoryIds = listOf(f.category)
 	const statuses = listOf(f.status)
@@ -779,33 +785,31 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 	const waiting = (dated && !counts.data && !counts.error) || (vendorIds.length === 1 && !vendors) || (categoryIds.length === 1 && !categories)
 
 	const preset = PRESETS.find(p => p.key === f.period) ?? presetOf(f.from, f.to)
-	const when = !dated ? '' : preset ? preset.label.toLowerCase()
-		: f.from && f.to ? `between ${shortDate(f.from)} and ${shortDate(f.to)}`
-			: f.from ? `since ${shortDate(f.from)}` : `up to ${shortDate(f.to)}`
+	const when = !dated ? '' : preset ? phrase(preset.label).toLowerCase()
+		: f.from && f.to ? phrase('noMatch.between', { from: shortDate(f.from), to: shortDate(f.to) })
+			: f.from ? phrase('noMatch.since', { date: shortDate(f.from) }) : phrase('noMatch.upTo', { date: shortDate(f.to) })
 	const what = others.length === 1 && statuses.length === 1
-		? (PAST.includes(statuses[0]) && statusName(statuses[0]) === statuses[0] ? statuses[0].toLowerCase() : `with the status ${statusName(statuses[0])}`)
-		: others.length ? 'match the other filters' : null
+		? (PAST[statuses[0]] && statusName(statuses[0]) === statuses[0] ? phrase(PAST[statuses[0]]) : phrase('noMatch.withStatus', { name: statusName(statuses[0]) }))
+		: others.length ? phrase('noMatch.otherFilters') : null
 	// the period is named only when it is what leaves the list empty
-	const period = wider ? ` ${what || !preset ? '' : 'from '}${when}` : ''
+	const period = wider ? ' ' + (what || !preset ? when : phrase('noMatch.fromPeriod', { when })) : ''
 	let said
-	if (subject && !subject.orders) said = `${subject.name} has no orders yet.`
-	else if (subject && (what || wider)) said = `${subject.name} has ${plural(subject.orders, 'order')}, but none${what ? ` ${what}` : ''}${period}.`
+	if (subject && !subject.orders) said = phrase('noMatch.noneYet', { name: subject.name })
+	else if (subject && (what || wider)) said = phrase('noMatch.butNone', { name: subject.name, orders: plural(subject.orders, 'order'), what: what ? ` ${what}` : '', period })
 	else if (wider && !subject) said = others.length
-		? `None of your ${plural(total, 'order')} match these filters ${when}.`
-		: `None of your ${plural(total, 'order')} are ${preset ? 'from' : 'dated'} ${when}.`
-	else said = f.q
-		? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
-		: 'Remove one of the filters, or clear all of them to see every order.'
-	if (wider) said += ` Widening the period finds ${amount(found, 0)}.`
+		? phrase('noMatch.noneFiltered', { orders: plural(total, 'order'), when })
+		: phrase(preset ? 'noMatch.noneFrom' : 'noMatch.noneDated', { orders: plural(total, 'order'), when })
+	else said = phrase(f.q ? 'noMatch.removeSearch' : 'noMatch.remove')
+	if (wider) said += ' ' + phrase('noMatch.widening', { shown: amount(found, 0) })
 
 	return (
 		<Card variant="flush">
 			<Empty>
-				<EmptyTitle>No orders match these filters</EmptyTitle>
+				<EmptyTitle>{phrase('noMatch.title')}</EmptyTitle>
 				{waiting ? <Skeleton shape="line" /> : <EmptyBody>{said}</EmptyBody>}
 				<div className="sp-row-flex sp-gap-8">
-					{wider ? <Button size="small" onClick={() => onWiden(wider.key)}>Search {wider.label}</Button> : null}
-					<Button variant="outline" size="small" onClick={onClear}>Clear filters</Button>
+					{wider ? <Button size="small" onClick={() => onWiden(wider.key)}>{phrase('noMatch.searchIn', { period: phrase(wider.label).toLowerCase() })}</Button> : null}
+					<Button variant="outline" size="small" onClick={onClear}>{phrase('noMatch.clear')}</Button>
 				</div>
 			</Empty>
 		</Card>
@@ -815,6 +819,7 @@ function NoMatch({ f, request, total, vendors, categories, statusName, onWiden, 
 /** At 640 of list column and under, rows become the 2i card, two lines: in a narrow column with its box;
     on a phone without it, since a phone does not select (2c, Mobile screens). */
 function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, onLoadMore, onDelete }) {
+	const phrase = usePhrase()
 	const { typeOf } = useStatusTypes()
 	return (
 		<>
@@ -823,7 +828,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 				const on = picked.includes(o.id)
 				const amount = o.total == null ? null : <span className={typeOf(o.status) === 'cancelled' ? 'sp-amount sp-void sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(o.total)}</span>
 				const when = `${shortDate(o.date)}${dot}${plural(o.itemCount, 'item')}`
-				const saving = typeOf(o.status) === 'cancelled' ? <span className="sp-amount-secondary">not counted</span> : <Saving value={o.saved} />
+				const saving = typeOf(o.status) === 'cancelled' ? <span className="sp-amount-secondary">{phrase('orderMenu.notCounted')}</span> : <Saving value={o.saved} />
 				return (
 					touch
 						? (
@@ -843,7 +848,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 						: (
 							<div key={o.id} className="ol-pickable">
 								<label className="ol-pick">
-									<Check checked={on} aria-label={`Select ${orderName(o)}`} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
+									<Check checked={on} aria-label={phrase('orderMenu.select', { name: orderName(o) })} onChange={ev => onPick(o.id, ev.nativeEvent?.shiftKey)} />
 								</label>
 								<ListItem variant="card" selected={on} mark={<><span className="ol-pick-room" /><OrderPhoto order={o} /></>} onClick={() => onOpen(o)}>
 									<Stacked>
@@ -869,6 +874,7 @@ function OrderCards({ data, size, summary, touch, picked, bulk, onPick, onOpen, 
 /** The Cards view (2c): the same orders, picked the same way, drawn as cards with their photos.
     The summary line or the bulk bar stands above the grid, each led by the box that picks the page, as rows have. */
 function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPick, onPickAll, onOpen, onLoadMore, onDelete, onCategory }) {
+	const phrase = usePhrase()
 	const [menuFor, setMenuFor] = useState(null)
 	const page = data.orders.map(o => o.id)
 	const selectAll = {
@@ -878,7 +884,7 @@ function OrderGrid({ data, size, touch, caption, picked, count, bulk, note, onPi
 	const head = picked.length
 		? (
 			<>
-				<BulkBar loose count={`${amount(count, 0)} selected`} selectAll={selectAll}>{bulk}</BulkBar>
+				<BulkBar loose count={phrase('orders.selected', { shown: amount(count, 0) })} selectAll={selectAll}>{bulk}</BulkBar>
 				{note ? <div className="sp-bulkbar sp-bulkbar--loose sp-bulkbar--note">{note}</div> : null}
 			</>
 		)
@@ -899,17 +905,18 @@ const loadingRows = size => Array.from({ length: size }, (_, i) => ({ id: i, r: 
 
 /* Skeletons hold the real rows' places, a page of them, so nothing moves when the orders land (6b). */
 function RowsLoading({ width, size, sort }) {
+	const phrase = usePhrase()
 	const show = columnsFor(width)
 	const rows = loadingRows(size)
 	return (
 		<List data={rows} recordKey={x => x.id} noun="orders">
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
 			<ListHead>
-				<ListCell width="title">{headOf(sort, 'title', 'Order')}</ListCell>
-				<ListCell width="date">{headOf(sort, 'date', 'Date')}</ListCell>
-				{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-				<ListCell width="status">Status</ListCell>
-				<ListCell width="amount">{headOf(sort, 'amount', 'Total')}</ListCell>
+				<ListCell width="title">{headOf(sort, 'title', phrase('orderMenu.order'))}</ListCell>
+				<ListCell width="date">{headOf(sort, 'date', phrase('field.date'))}</ListCell>
+				{show.categories ? <ListCell width="flex">{phrase('field.categories')}</ListCell> : null}
+				<ListCell width="status">{phrase('field.status')}</ListCell>
+				<ListCell width="amount">{headOf(sort, 'amount', phrase('order.total'))}</ListCell>
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>{({ r }) => (
@@ -973,6 +980,7 @@ function useFacetValues(kind, find, limit, picked) {
 /** The rail's groups (c12, 2b): several values each, with live counts; a value with nothing
     behind it stays, greyed. `bare` gives the groups alone, for the sheet (7b). */
 function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, matched, counts }) {
+	const phrase = usePhrase()
 	const statuses = useStatuses()
 	const over = useOverLimitIds()
 	const size = useApi(getSettings).data?.pageSize ?? 10
@@ -1002,7 +1010,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 		<Groups>
 			<DateFacet from={f.from} to={f.to} period={f.period} matched={matched} update={update} custom={custom} setCustom={setCustom} />
 
-			<FieldGroup facet legend="Status">
+			<FieldGroup facet legend={phrase('field.status')}>
 				{statuses.map(s => {
 					const on = listOf(f.status).includes(s.key)
 					const n = live('status', s.key)
@@ -1014,13 +1022,13 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 				})}
 			</FieldGroup>
 
-			<FieldGroup facet legend="Receipt">
+			<FieldGroup facet legend={phrase('repeats.receipt')}>
 				{['attached', 'missing'].map(r => {
 					const on = listOf(f.receipt).includes(r)
 					const n = counts?.receipt?.[r]
 					return (
 						<Choice key={r} control={<Check checked={on} disabled={empty(n, 1, on)} onChange={ev => update({ receipt: toggled(f.receipt, r, ev.target.checked) })} />}>
-							{r === 'attached' ? 'Attached' : 'Missing'}{countOf(n)}
+							{phrase(r === 'attached' ? 'orders.attached' : 'orders.missing')}{countOf(n)}
 						</Choice>
 					)
 				})}
@@ -1028,12 +1036,12 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 
 			{vendorValues.total
 				? (
-					<FieldGroup facet legend="Vendor" count={`${vendorValues.total} total`}>
+					<FieldGroup facet legend={phrase('field.vendor')} count={phrase('orders.total', { count: vendorValues.total })}>
 						{vendorValues.total > 20
-							? <SearchInput value={find} onChange={setFind} placeholder="Find a vendor…" aria-label="Find a vendor" />
+							? <SearchInput value={find} onChange={setFind} placeholder={phrase('orders.findVendor')} aria-label={phrase('orders.findVendorLabel')} />
 							: null}
-						{vendorValues.total > 20 ? <Announce>{find ? (vendorValues.matched ? plural(vendorValues.matched, 'vendor') : 'No vendor by that name.') : ''}</Announce> : null}
-						{find && !vendorValues.matched ? <span className="sp-subtitle">No vendor by that name.</span> : null}
+						{vendorValues.total > 20 ? <Announce>{find ? (vendorValues.matched ? plural(vendorValues.matched, 'vendor') : phrase('orders.noVendorNamed')) : ''}</Announce> : null}
+						{find && !vendorValues.matched ? <span className="sp-subtitle">{phrase('orders.noVendorNamed')}</span> : null}
 						<FieldGroupValues>
 							{listed.map(v => {
 								const on = vendorsPicked.includes(v.id)
@@ -1047,7 +1055,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 							})}
 						</FieldGroupValues>
 						{vendorsMore > 0
-							? <FieldGroupMore onClick={() => setVendorPages(vendorPages + 1)}>Show {vendorsMore} more</FieldGroupMore>
+							? <FieldGroupMore onClick={() => setVendorPages(vendorPages + 1)}>{phrase('orders.showMore', { count: vendorsMore })}</FieldGroupMore>
 							: null}
 					</FieldGroup>
 				)
@@ -1055,14 +1063,14 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 
 			{categoryValues.total
 				? (
-					<FieldGroup facet legend="Categories">
+					<FieldGroup facet legend={phrase('field.categories')}>
 						{categoryValues.total > 20
-							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder="Find a category…" aria-label="Find a category" />
+							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder={phrase('orderMenu.findCategory')} aria-label={phrase('orderMenu.findCategoryLabel')} />
 							: null}
 						{categoryValues.total > 20
-							? <Announce>{findCategory ? (categoryValues.matched ? plural(categoryValues.matched, 'category') : 'No category by that name.') : ''}</Announce>
+							? <Announce>{findCategory ? (categoryValues.matched ? plural(categoryValues.matched, 'category') : phrase('orders.noCategoryNamed')) : ''}</Announce>
 							: null}
-						{findCategory && !categoryValues.matched ? <span className="sp-subtitle">No category by that name.</span> : null}
+						{findCategory && !categoryValues.matched ? <span className="sp-subtitle">{phrase('orders.noCategoryNamed')}</span> : null}
 						{categoriesListed.length
 							? (
 								<FieldGroupValues>
@@ -1081,17 +1089,17 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 							)
 							: null}
 						{categoriesMore > 0
-							? <FieldGroupMore onClick={() => setCategoryPages(categoryPages + 1)}>Show {categoriesMore} more</FieldGroupMore>
+							? <FieldGroupMore onClick={() => setCategoryPages(categoryPages + 1)}>{phrase('orders.showMore', { count: categoriesMore })}</FieldGroupMore>
 							: null}
 					</FieldGroup>
 				)
 				: null}
 
-			<FieldGroup facet legend="Kind">
-				<Combobox value={f.kind || 'All kinds'} aria-label="Kind">
+			<FieldGroup facet legend={phrase('field.kind')}>
+				<Combobox value={f.kind ? kindName(f.kind) : phrase('orders.allKinds')} aria-label={phrase('field.kind')}>
 					{['', ...spendKinds].map(k => (
 						<ComboboxOption key={k || 'all'} selected={f.kind === k} onSelect={() => update({ kind: k })}>
-							{k || 'All kinds'}
+							{k ? kindName(k) : phrase('orders.allKinds')}
 						</ComboboxOption>
 					))}
 				</Combobox>
@@ -1102,11 +1110,11 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 			<div className="sp-field-group">
 				<label className="sp-row-flex sp-gap-12">
 					<Switch id={`${switches}-files`} checked={f.files === '1'} onChange={ev => update({ files: ev.target.checked ? '1' : '' })} />
-					<span className="sp-data">Has attachments</span>
+					<span className="sp-data">{phrase('orders.hasAttachments')}</span>
 				</label>
 				<label className="sp-row-flex sp-gap-12">
 					<Switch id={`${switches}-discounted`} checked={f.discounted === '1'} onChange={ev => update({ discounted: ev.target.checked ? '1' : '' })} />
-					<span className="sp-data">Discounted only</span>
+					<span className="sp-data">{phrase('orders.discountedOnly')}</span>
 				</label>
 			</div>
 		</Groups>
@@ -1115,6 +1123,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 
 /** One control, four settings (2d): a preset, or a range typed in under them. */
 function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
+	const phrase = usePhrase()
 	const name = useId()
 
 	const chosen = custom ? 'custom' : period || presetOf(from, to)?.key || (from || to ? 'custom' : null)
@@ -1140,17 +1149,17 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 		.filter(Boolean).join(dot)
 
 	return (
-		<FieldGroup facet legend="Date">
+		<FieldGroup facet legend={phrase('field.date')}>
 			<Filters>
 				{PRESETS.map(p => (
 					<Chip key={p.key} variant="facet" inputType="radio" name={name} value={p.key} selected={chosen === p.key}
 						onSelect={() => { setCustom(false); update({ period: p.key, from: '', to: '' }) }}>
-						{p.label}
+						{phrase(p.label)}
 					</Chip>
 				))}
 				<Chip variant="facet" inputType="radio" name={name} value="custom" data-preset="custom" selected={chosen === 'custom'}
 					onSelect={() => { setCustom(true); if (touch) openRange() }}>
-					Custom…
+					{phrase('orders.custom')}
 				</Chip>
 			</Filters>
 			{touch ? (
@@ -1162,18 +1171,18 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 								<div className="sp-row-flex sp-gap-8">
 									<span className="sp-subtitle">{summary}</span>
 									<span className="sp-grow" />
-									<Button variant="outline" size="small" onClick={openRange}>Change</Button>
-									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
+									<Button variant="outline" size="small" onClick={openRange}>{phrase('import.change')}</Button>
+									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>{phrase('orders.clear')}</Button>
 								</div>
 							</>
 						)
-						: <Button variant="outline" size="small" onClick={openRange}>Choose dates</Button>}
+						: <Button variant="outline" size="small" onClick={openRange}>{phrase('orders.chooseDates')}</Button>}
 				</FieldGroupPanel>
 			) : (
 				<FieldGroupPanel onBlur={leave}>
-					<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
-					<Field label="To" message={wrong ? 'To must be on or after From. The list keeps the last valid range.' : null} messageType={wrong ? 'danger' : 'hint'}>
-						<DateField value={draft.to} placeholder="Today" locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} />
+					<Field label={phrase('orders.fromLabel')}><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
+					<Field label={phrase('orders.toLabel')} message={wrong ? phrase('orders.toBeforeFrom') : null} messageType={wrong ? 'danger' : 'hint'}>
+						<DateField value={draft.to} placeholder={phrase('time.today')} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} />
 					</Field>
 					{wrong
 						? null
@@ -1182,10 +1191,10 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 								<div className="sp-row-flex sp-gap-8">
 									<span className="sp-subtitle">{summary}</span>
 									<span className="sp-grow" />
-									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>Clear</Button>
+									<Button variant="outline" size="small" onClick={() => update({ from: '', to: '', period: '' })}>{phrase('orders.clear')}</Button>
 								</div>
 							)
-							: <span className="sp-field__help">Leave To empty to include everything up to today.</span>}
+							: <span className="sp-field__help">{phrase('orders.toEmpty')}</span>}
 				</FieldGroupPanel>
 			)}
 			{range ? (
@@ -1203,6 +1212,7 @@ function DateFacet({ from, to, period, matched, update, custom, setCustom }) {
 /* A drag is many values; the list asks for the one it settles on. A To at the open end (2b)
    is no bound at all; one typed past it is kept. */
 function AmountFacet({ scale, min, max, update }) {
+	const phrase = usePhrase()
 	const stops = scale.stops
 	const top = stops ? stops[stops.length - 1] : Math.max(1000, Math.ceil(scale.highest / 1000) * 1000)
 	const fromUrl = useMemo(() => [
@@ -1218,8 +1228,8 @@ function AmountFacet({ scale, min, max, update }) {
 	}, [range, fromUrl, top, update])
 	const end = stops ? currency(top, 0).replace(amount(top, 0), `${amount(top, 0)}+`) : currency(top, 0)
 	return (
-		<FieldGroup facet legend="Amount" meta={`0 - ${end}`}>
-			<RangeSlider value={range} min={0} max={top} step={100} stops={stops ?? undefined} open={!!stops} label="Amount"
+		<FieldGroup facet legend={phrase('field.amount')} meta={`0 - ${end}`}>
+			<RangeSlider value={range} min={0} max={top} step={100} stops={stops ?? undefined} open={!!stops} label={phrase('field.amount')}
 				format={n => amount(n, 0)} locale={NUMBER_LOCALE} onChange={setRange} />
 		</FieldGroup>
 	)

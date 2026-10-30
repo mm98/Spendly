@@ -5,6 +5,7 @@ import {
 import { plural } from '../api/format.js'
 import { peek } from '../api/useApi.js'
 import { MAX_FILE_MB } from '../components/FileDrop.jsx'
+import { languageCode, phrase } from '../language/phrases.js'
 
 /* One save of the order form as a plan, carried out now or once the connection returns (6d). Its
    files (`file`, `sent`, `sending`) live in this tab only; the rest is kept in the browser too. */
@@ -22,9 +23,9 @@ export const shortened = (name, most = 32) => {
 	return text.length <= most ? text : `${text.slice(0, most).replace(/\s+\S*$/, '').replace(/[\s,.;:-]+$/, '')}…`
 }
 /** "a.pdf", "a.pdf and b.jpg", "a.pdf, b.jpg and c.png" */
-export const names = list => (list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`)
+export const names = list => new Intl.ListFormat(languageCode() ?? 'en', { type: 'conjunction' }).format(list)
 // the server's own words for the two refusals, for a file the form refused before sending it
-const refusalOf = f => (f.problem === 'Too large' ? `A file is too large. Each file can be up to ${MAX_FILE_MB} MB.` : `The file "${f.name}" is not an image or a PDF.`)
+const refusalOf = f => (f.problem === phrase('file.tooLarge') ? phrase('file.refused.tooLarge', { most: MAX_FILE_MB }) : phrase('file.refused.type', { name: f.name }))
 
 /* A receipt's vendor line that was filed under another name becomes that vendor's alias,
    so the next receipt with it matches on its own. */
@@ -46,7 +47,7 @@ export async function writeOrder(plan) {
 		if (e.status === 409 && e.body?.order) return { kind: 'conflict', theirs: e.body.order }
 		// a deleted order stays deleted: the form says so where it stays in view, and offers no second try
 		if (e.gone && !plan.creating) return { kind: 'gone', message: e.message }
-		return { kind: 'refused', message: failureMessage(e, 'The order was not saved. Try again.') }
+		return { kind: 'refused', message: failureMessage(e, phrase('order.notSaved')) }
 	}
 	// the files follow one at a time, each kept or missed on its own (17b); a refusal's own
 	// sentence says why, and one without (no connection) is worth trying again
@@ -100,13 +101,13 @@ export async function writeOrder(plan) {
 	if (plan.scan) learnAlias(plan.scan.vendor, order)
 	invalidateOrderData()
 	const lapses = [
-		missed.length ? `${names(missed)} ${missed.length === 1 ? 'was' : 'were'} not added` : null,
-		receiptMissed ? 'the receipt was not kept with it' : null,
-		notRemoved ? `${plural(notRemoved, 'file')} ${notRemoved === 1 ? 'was' : 'were'} not removed` : null
+		missed.length ? phrase('order.lapse.notAdded', { count: missed.length, names: names(missed) }) : null,
+		receiptMissed ? phrase('order.lapse.receipt') : null,
+		notRemoved ? phrase('order.lapse.notRemoved', { count: notRemoved, files: plural(notRemoved, 'file') }) : null
 	].filter(Boolean)
 	if (receiptMissed || notRemoved) retry = true
 	const lapse = lapses.length
-		? [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' ')
+		? [phrase('order.savedBut', { lapses: names(lapses) }), ...reasons, retry ? phrase('order.tryFromEdit') : null].filter(Boolean).join(' ')
 		: null
 	return { kind: 'saved', order, lapse }
 }

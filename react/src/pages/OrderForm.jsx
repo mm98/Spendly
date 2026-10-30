@@ -27,7 +27,7 @@ import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	attachmentDownloadUrl, attachScanDocument, attachmentFileUrl, attachmentPageUrl, attachmentThumbnailUrl, createCategory, deleteOrder, failureMessage, getCategorySuggestions, getOrder, getOrderLimits, getOrderLookalike, makeScanDraft, getVendorOrdersCarrying, getOverLimitCategories, getScanPages, getSettings,
-	getVendorPage, discardDraft, discardScanDocument, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, sendFile, spendKinds, vendorTextMatch
+	getVendorPage, discardDraft, discardScanDocument, invalidateCategoryData, invalidateDraftData, invalidateOrderData, keepDraft, makeDraft, onOrderSavedElsewhere, scanDownloadUrl, scanFileUrl, scanPageUrl, scanThumbnailUrl, kindName, sendFile, spendKinds, vendorTextMatch
 } from '../api/client.js'
 import {
 	NUMBER_LOCALE, activeLocaleCode, amount, currency, currencySymbol, dayShortMonth, dot, monthNames, plural, quantity, shortDate, today
@@ -46,6 +46,7 @@ import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
 import { OrderRepeats } from './OrderRepeats.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 import { useAfterDraw } from '../app/afterDraw.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Save or Create writes the order, then its files; a draft keeps the form as it is edited. */
@@ -55,12 +56,12 @@ const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral
 /** What blocks a save. Every one of these blocks a Draft status too: it is what the order is filed by. */
 const orderErrors = (d, dated) => {
 	const e = {}
-	if (!d.vendor.trim()) e.vendor = 'A vendor is required. Pick one or create it here.'
-	else if (d.vendor.trim().length > 80) e.vendor = '80 characters at most.'
-	if (!d.date) e.date = 'When was the order placed?'
-	if (!spendKinds.includes(d.kind)) e.kind = 'Pick a kind.'
+	if (!d.vendor.trim()) e.vendor = phrase('form.vendorRequired')
+	else if (d.vendor.trim().length > 80) e.vendor = phrase('form.atMost', { most: 80 })
+	if (!d.date) e.date = phrase('form.dateRequired')
+	if (!spendKinds.includes(d.kind)) e.kind = phrase('form.kindRequired')
 	const own = dated ? d.statusDates?.[d.status] : null
-	if (own && d.date && own < d.date) e.statusDate = `Can't be before the order date, ${shortDate(d.date)}.`
+	if (own && d.date && own < d.date) e.statusDate = phrase('form.statusDateEarly', { date: shortDate(d.date) })
 	return e
 }
 
@@ -68,19 +69,19 @@ const orderErrors = (d, dated) => {
 const problem = message => (message ? { message, messageType: 'danger' } : {})
 
 /** A date after today is kept, since an order can be booked ahead; amber says so (6c). */
-const ahead = date => (date > today() ? { message: 'That is in the future. Keep it if the order is pre-booked.', messageType: 'warning' } : {})
+const ahead = date => (date > today() ? { message: phrase('form.future'), messageType: 'warning' } : {})
 
 /** A new line nothing was typed into, which leaving or saving drops rather than checks. */
 const untouchedNew = e => Boolean(e?.isNew && !e.values.title.trim() && e.values.price == null && !e.values.newPhoto)
 
 const lineErrors = v => {
 	const e = {}
-	if (!String(v.title ?? '').trim()) e.title = 'Describe the item.'
-	else if (v.title.trim().length > 120) e.title = '120 characters at most.'
-	if (!(Number(v.quantity) > 0)) e.quantity = 'More than 0. Remove the line instead of setting it to zero.'
-	else if (Number(v.quantity) > 9999) e.quantity = '9999 at most.'
-	if (v.price == null) e.price = 'What did you pay?'
-	if (String(v.url ?? '').trim() && !httpUrl(v.url)) e.url = 'Not a link.'
+	if (!String(v.title ?? '').trim()) e.title = phrase('form.titleRequired')
+	else if (v.title.trim().length > 120) e.title = phrase('form.atMost', { most: 120 })
+	if (!(Number(v.quantity) > 0)) e.quantity = phrase('form.quantityZero')
+	else if (Number(v.quantity) > 9999) e.quantity = phrase('form.atMost', { most: 9999 })
+	if (v.price == null) e.price = phrase('form.priceRequired')
+	if (String(v.url ?? '').trim() && !httpUrl(v.url)) e.url = phrase('form.notLink')
 	return e
 }
 
@@ -153,6 +154,7 @@ const takeAway = address => {
 /** `origin` is `{ copy, draftId }` or `{ scan, draftId, shownOrders }`, the last the records the dialog in 3c showed for the scan;
     `region` draws the split for a route whose body is not one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
 export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const afterDraw = useAfterDraw()
@@ -335,9 +337,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		setLines(ls => ls.filter(l => l.key !== line.key))
 		if (editing?.key === line.key) setEditing(null)
 		toast({
-			message: `${shortened(line.title) || 'The line'} removed.`,
+			message: phrase('form.removed', { name: shortened(line.title) || phrase('form.theLine') }),
 			undo: {
-				label: 'Undo',
+				label: phrase('action.undo'),
 				onClick: () => {
 					if (!editingNow.current) reopen.current = line.key
 					setLines(ls => [...ls.slice(0, at), line, ...ls.slice(at)])
@@ -383,7 +385,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		const sent = sendFile(record.file, { onSent: part => patchFile(record.key, { sent: part }) })
 			.then(upload => { patchFile(record.key, { upload, sending: false }); return upload })
 			// a file the server cannot open is refused for good, so it says why rather than offering Retry (17b)
-			.catch(e => { patchFile(record.key, e?.status === 415 ? { sending: false, problem: 'Not a supported type' } : { sending: false, failed: failureMessage(e, '') || 'Upload failed' }); return null })
+			.catch(e => { patchFile(record.key, e?.status === 415 ? { sending: false, problem: phrase('file.unsupported') } : { sending: false, failed: failureMessage(e, '') || phrase('file.uploadFailed') }); return null })
 		sends.current.set(record.key, sent)
 	}
 	const addFiles = (picked, problems) => {
@@ -423,12 +425,12 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		}
 		dropped.current.push(file)
 		const at = files.findIndex(f => f.key === file.key)
-		toast({ message: `${shortened(file.name)} removed.`, undo: { label: 'Undo', onClick: () => setFiles(fs => [...fs.slice(0, at), file, ...fs.slice(at)]) } })
+		toast({ message: phrase('form.removed', { name: shortened(file.name) }), undo: { label: phrase('action.undo'), onClick: () => setFiles(fs => [...fs.slice(0, at), file, ...fs.slice(at)]) } })
 	}
 	const removeSaved = file => {
 		if (file.fromScan) return setRemoving({ file })
 		setGone(g => [...g, file.id])
-		toast({ message: `${shortened(file.name)} removed.`, undo: { label: 'Undo', onClick: () => setGone(g => g.filter(id => id !== file.id)) } })
+		toast({ message: phrase('form.removed', { name: shortened(file.name) }), undo: { label: phrase('action.undo'), onClick: () => setGone(g => g.filter(id => id !== file.id)) } })
 	}
 	// a line's photo, while its line is open or after: the patch lands on whichever holds the line
 	const patchLine = (key, patch) => {
@@ -440,7 +442,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		const without = { newPhoto: null, dropPhoto: Boolean(values.photo), photoProblem: null }
 		if (!values.newPhoto && values.photo?.fromScan) return setRemoving({ photo: { key, name: values.title, without } })
 		patchLine(key, without)
-		toast({ message: `The photo of ${shortened(values.title) || 'the line'} removed.`, undo: { label: 'Undo', onClick: () => patchLine(key, before) } })
+		toast({ message: phrase('form.photoRemoved', { name: shortened(values.title) || phrase('form.theLineLower') }), undo: { label: phrase('action.undo'), onClick: () => patchLine(key, before) } })
 	}
 	// the same bytes already on the order or added just before, or one with the same name and size:
 	// warned on its tile, never refused, since two photos of one thing are fine (17b)
@@ -555,22 +557,22 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			.catch(e => {
 				// a category made meanwhile is the one meant
 				if (e?.status === 409) setCategories([...draft.categories, sg.name])
-				else toast({ message: failureMessage(e, 'The category was not created. Try again.'), color: 'danger' })
+				else toast({ message: failureMessage(e, phrase('form.categoryNotCreated')), color: 'danger' })
 			})
 	}
 	const bulb = scanFound ? undefined : (
-		<IconButton variant="bare" size="field" icon={asked === 'looking' ? <Spinner /> : 'bulb'} aria-label="Suggest categories" title="Suggest categories"
+		<IconButton variant="bare" size="field" icon={asked === 'looking' ? <Spinner /> : 'bulb'} aria-label={phrase('form.suggest')} title={phrase('form.suggest')}
 			{...(asked === 'looking' ? { 'aria-busy': 'true' } : {})} onClick={askModel} />
 	)
-	const suggestionRow = asked === 'looking' ? <span className="sp-meta">Looking at the items…</span>
-		: asked?.failure ? <span className="sp-meta">Suggestions are not available right now.</span>
-			: asked && !suggestions.length ? <span className="sp-meta">No suggestions for these items</span>
+	const suggestionRow = asked === 'looking' ? <span className="sp-meta">{phrase('form.looking')}</span>
+		: asked?.failure ? <span className="sp-meta">{phrase('form.noSuggestService')}</span>
+			: asked && !suggestions.length ? <span className="sp-meta">{phrase('form.noSuggestions')}</span>
 				: suggestions.length
 					? (
 						<div className="sp-row-flex sp-wrap sp-gap-6">
-							<span className="sp-meta">Suggested from the items</span>
+							<span className="sp-meta">{phrase('form.suggested')}</span>
 							{suggestions.map(sg => (
-								<Chip key={sg.name} variant="suggestion" onClick={() => takeSuggestion(sg)}>{sg.isNew ? `+ New: ${sg.name}` : `+ ${sg.name}`}</Chip>
+								<Chip key={sg.name} variant="suggestion" onClick={() => takeSuggestion(sg)}>{sg.isNew ? phrase('form.suggestNew', { name: sg.name }) : `+ ${sg.name}`}</Chip>
 							))}
 						</div>
 					)
@@ -609,7 +611,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			upload: keptPhoto(l) ? { key: l.photo.key } : null,
 			// a copied line's photo belongs to the order it came from: it is copied in, never changed there
 			oldId: l.copiedFrom ? null : l.photo?.id ?? null, oldName: l.copiedFrom ? null : l.photo?.name ?? null, drop: Boolean(l.dropPhoto),
-			copy: creatingNow && l.copiedFrom && !l.newPhoto && !l.dropPhoto && !keptPhoto(l) ? { fromOrderId: l.copiedFrom.orderId, attachmentId: l.copiedFrom.attachmentId, name: l.photo?.name ?? 'A photo' } : null
+			copy: creatingNow && l.copiedFrom && !l.newPhoto && !l.dropPhoto && !keptPhoto(l) ? { fromOrderId: l.copiedFrom.orderId, attachmentId: l.copiedFrom.attachmentId, name: l.photo?.name ?? phrase('form.aPhoto') } : null
 		})),
 		files: files.map(f => ({
 			name: f.name, problem: f.problem ?? null, file: f.file, upload: f.upload ?? null,
@@ -679,10 +681,10 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 
 	const offline = () => ({
-		title: navigator.onLine === false ? 'Could not save - you are offline' : 'Could not save - the connection failed',
-		message: 'Your changes are kept and will be sent when the connection returns.',
+		title: phrase(navigator.onLine === false ? 'form.offline' : 'form.connectionFailed'),
+		message: phrase('form.keptForLater'),
 		color: 'danger',
-		undo: { label: 'Retry now', onClick: retryNow }
+		undo: { label: phrase('form.retryNow'), onClick: retryNow }
 	})
 	// Retry now that still finds no connection says so again; one that works answers through settle
 	const retryNow = () => flushOutbox().then(() => { if (waitingSaves().some(w => w.state === 'waiting' && owned.current === w.key)) toast(offline()) })
@@ -713,11 +715,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (waiting?.plan.key === plan.key && waiting.at !== snapshot()) {
 			if (plan.creating) setCreatedAs(order.id)
 			setStart({ ...plan.form.draft, lines: now.current.lines })
-			toast({ message: 'The changes that waited for the connection are saved. Save again for what you changed since.' })
+			toast({ message: phrase('form.waitedSaved') })
 			return
 		}
 		if (lapse) toast({ message: lapse, color: 'danger' })
-		else if (!plan.creating) toast({ message: 'Changes saved.' })
+		else if (!plan.creating) toast({ message: phrase('form.saved') })
 		if (plan.creating) {
 			// a new order becomes this screen saved, at its own address, with the notice that can undo it (3a)
 			guard.release()
@@ -833,7 +835,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				Promise.all(pending).then(() => keep()).then(held => {
 					if (held === null) return
 					invalidateDraftData()
-					if (!keptAway.current) toast(held ? { message: 'Kept in Drafts.' } : { message: 'The last changes were not kept. Check your connection.', color: 'danger' })
+					if (!keptAway.current) toast(held ? { message: phrase('form.keptDraft') } : { message: phrase('form.draftNotKept'), color: 'danger' })
 				})
 			}, 0)
 		}
@@ -851,13 +853,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// the files and photos an order made here would take with it, by the names the reader knows them by
 	const ownFiles = () => [
 		...files.filter(f => !f.problem).map(f => f.name),
-		...lines.filter(l => (l.newPhoto && !l.dropPhoto) || keptPhoto(l)).map(l => `the photo of ${shortened(l.title) || 'a line'}`)
+		...lines.filter(l => (l.newPhoto && !l.dropPhoto) || keptPhoto(l)).map(l => phrase('form.photoOf', { name: shortened(l.title) || phrase('form.aLine') }))
 	]
 	// a draft with nothing but its form goes at once, and Undo brings it back as it was (6d, 6f)
 	const dropDraft = async () => {
 		const form = keptForm()
 		await throwAway()
-		toast({ message: 'Draft discarded.', undo: { label: 'Undo', onClick: () => makeDraft(form).then(made => navigate(`/orders/new?draft=${made.id}`)) } })
+		toast({ message: phrase('form.draftDiscarded'), undo: { label: phrase('action.undo'), onClick: () => makeDraft(form).then(made => navigate(`/orders/new?draft=${made.id}`)) } })
 	}
 
 	/* ---- another copy of the order (6d) ---- */
@@ -885,7 +887,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	}
 	const seeTheirs = () => {
 		if (stuck) dropSave(stuck.key)
-		if (conflict.theirs) return adopt(conflict.theirs, conflict.where === 'tab' ? 'Showing the version saved in the other tab.' : 'Showing the version saved elsewhere.')
+		if (conflict.theirs) return adopt(conflict.theirs, phrase(conflict.where === 'tab' ? 'form.showingTab' : 'form.showingElsewhere'))
 		// brought back from a waiting save: theirs is what the form opened on
 		setDraft({ ...start, lines: undefined })
 		setLines(start.lines)
@@ -918,7 +920,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		if (stuck) check('waited')
 		const off = onOrderSavedElsewhere(news => {
 			if (!news.ids?.includes(orderId)) return
-			if (news.gone) return setLost('This order was deleted in another tab. Your changes cannot be saved.')
+			if (news.gone) return setLost(phrase('form.deletedInTab'))
 			if (news.revision !== base.current) check('tab')
 		})
 		// another device says nothing, so the form asks when the reader comes back to it, at most every 10 seconds
@@ -991,17 +993,17 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		// a name read only in part asks for a spelling check, not a value check (3a)
 		const spelling = line.uncertain && line.unclearPart === 'title'
 		const warn = (line.uncertain && !spelling) || (tried && !relaxed && Object.keys(lineErrors(line)).length)
-		const named = line.title || 'the unnamed line'
+		const named = line.title || phrase('form.unnamedLower')
 		// a line as the receipt gave it says how well it was read (3a); once checked it reads as any line
 		const asRead = scan && !touch && !line.checked && scan.lines.some(r => r.id === line.key)
-		const subtitle = warn ? (line.uncertain ? UNCLEAR_LINE[line.unclearPart] ?? UNCLEAR_LINE.line : UNCLEAR_LINE.line)
-			: spelling ? UNCLEAR_LINE.title : asRead ? 'read clearly' : lineMetaWith(line, photo, scan || touch)
+		const subtitle = warn ? phrase(line.uncertain ? UNCLEAR_LINE[line.unclearPart] ?? UNCLEAR_LINE.line : UNCLEAR_LINE.line)
+			: spelling ? phrase(UNCLEAR_LINE.title) : asRead ? phrase('form.readClearly') : lineMetaWith(line, photo, scan || touch)
 		const ink = warn ? 'sp-ink-warning' : asRead && !spelling ? 'sp-ink-success' : null
 		// a price read badly is typed over in the row itself (3a); the field stays while it has focus
 		const priceField = scan && !touch && line.unclearPart === 'price' && scan.lines.some(r => r.id === line.key)
 		const words = (
 			<span className="sp-stacked or-line">
-				<span className="sp-title sp-truncate">{line.title || 'Unnamed line'}</span>
+				<span className="sp-title sp-truncate">{line.title || phrase('form.unnamed')}</span>
 				<span className={['sp-subtitle', touch ? null : 'sp-truncate', ink].filter(Boolean).join(' ')}>{subtitle}</span>
 			</span>
 		)
@@ -1013,7 +1015,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						<span className="sp-subtitle sp-nowrap">{quantity(Number(line.quantity) || 0)} ×</span>
 						<span className="sp-stacked sp-cell-amount">
 							<span className="sp-field__wrap oc-amount-field">
-								<NumberField unit value={line.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} aria-label={`${named}, price`}
+								<NumberField unit value={line.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} aria-label={phrase('form.priceOf', { name: named })}
 									{...(warn ? { 'data-color': 'warning' } : {})}
 									onChange={price => setLines(ls => ls.map(l => (l.key === line.key ? { ...l, price, uncertain: false, checked: true } : l)))} />
 								<span className="sp-field__unit">{currencySymbol()}</span>
@@ -1022,11 +1024,11 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					</>
 					: <>
 						{asRead && !touch && line.price != null ? <span className="sp-subtitle sp-nowrap">{lineMeta(line, true)}</span> : null}
-						{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact />}
+						{line.price == null ? <span className="sp-subtitle sp-nowrap">{phrase('form.noPrice')}</span> : <LineAmount line={line} compact />}
 					</>}
 			</>
 		)
-		const pencil = <IconButton variant="outline" icon="pencil" aria-label={`Edit ${named}`} data-edit="" onClick={() => openLine(line)} />
+		const pencil = <IconButton variant="outline" icon="pencil" aria-label={phrase('form.edit', { name: named })} data-edit="" onClick={() => openLine(line)} />
 		// a phone's scan review is a list to tick (7b); the row itself opens the line, as every phone row does (1c)
 		if (touch && scan)
 			return (
@@ -1073,17 +1075,17 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const brokenCount = tried && !relaxed ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
 	// what the head says beside the lines: what needs attention first, then how to use the list
 	const itemsAside = brokenCount
-		? (brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`)
+		? phrase('form.attention', { count: brokenCount })
 		: scan
-			? (lines.length ? 'Untick a line to leave it out' : undefined)
+			? (lines.length ? phrase('form.untick') : undefined)
 			: touch
 				? undefined
 				: origin.copy
-					? `dated ${shortDate(draft.date)}${dot}status ${statuses.find(s => s.key === draft.status)?.name ?? draft.status}`
-					: (lines.length > 1 ? 'Drag the handle, or select a line and use ↑ ↓' : undefined)
+					? phrase('form.copyAside', { date: shortDate(draft.date), dot, status: statuses.find(s => s.key === draft.status)?.name ?? draft.status })
+					: (lines.length > 1 ? phrase('form.dragHint') : undefined)
 	const itemsHead = (
-		<CardHeader name={`${scan ? 'Lines found' : 'Items'}${dot}${lines.length}`} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
-			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: reordering ? 'Done' : 'Reorder', onClick: () => setReordering(r => !r) }] : undefined} />
+		<CardHeader name={phrase(scan ? 'form.linesFound' : 'order.items') + dot + lines.length} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
+			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: phrase(reordering ? 'action.done' : 'form.reorder'), onClick: () => setReordering(r => !r) }] : undefined} />
 	)
 
 	const printed = scan?.total ?? null
@@ -1093,14 +1095,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			{itemsHead}
 			<div className="sp-stack sp-gap-8" ref={list} onClick={touch && !scan ? undefined : rowClick}>
 				<Announce>{said}</Announce>
-				<ReorderList items={lines} keyOf={line => line.key} nameOf={line => line.title || 'Unnamed line'} onMove={moveLines}>
+				<ReorderList items={lines} keyOf={line => line.key} nameOf={line => line.title || phrase('form.unnamed')} onMove={moveLines}>
 					{line => (editing && !sheeted && editing.key === line.key ? editor : lineRow(line))}
 				</ReorderList>
 				{!lines.length && !(editing?.isNew) && tried
 					? (
 						<Empty dashed>
-							<span className="sp-heading sp-ink-accent">Add the first item</span>
-							<span className="sp-meta">An order needs at least one line before it can be saved.</span>
+							<span className="sp-heading sp-ink-accent">{phrase('form.firstItem')}</span>
+							<span className="sp-meta">{phrase('form.needsLine')}</span>
 						</Empty>
 					)
 					: null}
@@ -1110,26 +1112,26 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						? null
 						: (
 							<ListItem variant="add" onClick={openNew} data-add="" handle={!touch}
-								mark={<Mark size="medium" fill="add" aria-label="Add" aria-hidden="true"><Icon name="plus" /></Mark>}>
-								<span className="sp-title">{scan ? 'Add a line the scan missed' : 'Add item'}</span>
+								mark={<Mark size="medium" fill="add" aria-label={phrase('action.add')} aria-hidden="true"><Icon name="plus" /></Mark>}>
+								<span className="sp-title">{phrase(scan ? 'form.addMissed' : 'form.addItem')}</span>
 							</ListItem>
 						)}
 			</div>
 			{scan && !touch
 				? (
 					<div className="sp-row-flex sp-gap-12">
-						{editing?.isNew ? null : <Button variant="outline" size="small" iconStart="plus" data-add="" onClick={openNew}>Add a line the scan missed</Button>}
+						{editing?.isNew ? null : <Button variant="outline" size="small" iconStart="plus" data-add="" onClick={openNew}>{phrase('form.addMissed')}</Button>}
 						<span className="sp-grow" />
-						<span className="sp-subtitle">Lines {money(sums.paid)}{dot}shipping {money(draft.shipping || 0)}</span>
+						<span className="sp-subtitle">{phrase('form.linesShipping', { lines: money(sums.paid), dot, shipping: money(draft.shipping || 0) })}</span>
 					</div>
 				)
 				: null}
 			{mismatch
 				? (
 					<ListItem color="warning" count="!"
-						actions={<Button variant="outline" size="small" onClick={() => open('receipt')}>Compare</Button>}>
+						actions={<Button variant="outline" size="small" onClick={() => open('receipt')}>{phrase('form.compare')}</Button>}>
 						<span className="sp-data sp-ink-warning">
-							The order comes to <strong className="sp-strong">{money(sums.total)}</strong> but the receipt says <strong className="sp-strong">{money(printed)}</strong> - a line may be missing.
+							{phrase('form.mismatch', { total: money(sums.total), printed: money(printed), b: words => <strong className="sp-strong">{words}</strong> })}
 						</span>
 					</ListItem>
 				)
@@ -1139,34 +1141,34 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const shownFiles = saved.filter(f => !gone.includes(f.id))
 	const picker = useRef(null)
-	const receiptPages = receipt?.pages > 1 ? `${receipt.pages} pages` : null
+	const receiptPages = receipt?.pages > 1 ? plural(receipt.pages, 'page') : null
 	// on a phone the receipt is its own card above the details (7b); elsewhere it is the first attachment (3a)
 	const attachmentsCard = scan && touch
 		? (
 			<Card>
-				<ListItem onClick={() => open('receipt')} aria-label={`Open the receipt, ${scan.file.name}`}
-					mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label="Receipt">
+				<ListItem onClick={() => open('receipt')} aria-label={phrase('form.openReceipt', { name: scan.file.name })}
+					mark={<Mark size="medium" fill={scan.file.hasThumbnail ? 'photo' : 'none'} text={scan.file.kind === 'pdf' && scan.file.hasThumbnail ? 'PDF' : undefined} aria-hidden="true" aria-label={phrase('repeats.receipt')}>
 						{scan.file.hasThumbnail ? <img src={scanThumbnailUrl(scan.file.key)} alt="" /> : <span>{scan.file.kind === 'pdf' ? 'PDF' : 'IMG'}</span>}
 					</Mark>}>
 					<span className="sp-stacked sp-grow">
-						<span className="sp-title sp-truncate">{receiptPages ? `Receipt, ${receiptPages}` : 'Receipt'}</span>
-						<span className="sp-subtitle">Tap to see it at full size</span>
+						<span className="sp-title sp-truncate">{receiptPages ? phrase('form.receiptPages', { pages: receiptPages }) : phrase('repeats.receipt')}</span>
+						<span className="sp-subtitle">{phrase('form.tapFull')}</span>
 					</span>
 				</ListItem>
 			</Card>
 		)
 		: (
 			<Card>
-				<CardHeader name={`Attachments${dot}${(receipt ? 1 : 0) + shownFiles.length + files.length}`} />
+				<CardHeader name={phrase('order.attachments') + dot + ((receipt ? 1 : 0) + shownFiles.length + files.length)} />
 				{/* a copy of an order with files starts with none (8a): the row offers them until one is added */}
 				{origin.copy?.files && !shownFiles.length && !files.length
 					? (
 						<ListItem variant="outline" actions={<>
-							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>Add files</Button>
+							<Button variant="outline" size="small" onClick={() => picker.current?.click()}>{phrase('form.addFiles')}</Button>
 							<input ref={picker} type="file" name="attachments" accept={FILE_TYPES} multiple hidden tabIndex={-1}
 								onChange={async ev => { const picked = [...ev.target.files]; ev.target.value = ''; addFiles(picked, await Promise.all(picked.map(f => sniffedProblem(f)))) }} />
 						</>}>
-							<span className="sp-data">The receipt was not copied - add this trip's receipt</span>
+							<span className="sp-data">{phrase('form.receiptNotCopied')}</span>
 						</ListItem>
 					)
 					: <Strip>
@@ -1181,7 +1183,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 						{files.map(f => (
 							<AttachmentTile key={f.key} name={f.name} kind={f.kind} bare={touch}
 								thumb={f.thumb ?? (f.upload?.hasThumbnail ? scanThumbnailUrl(f.upload.key) : null)}
-								problem={f.problem ?? (f.failed ? 'Upload failed' : undefined)}
+								problem={f.problem ?? (f.failed ? phrase('file.uploadFailed') : undefined)}
 								sending={f.sending ? f.sent : undefined}
 								twin={!f.problem && !f.failed && twinOf(f)}
 								onOpen={f.problem || f.sending ? undefined : f.failed ? () => resend(f) : () => open(f.key)}
@@ -1194,29 +1196,29 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	const fixCount = Object.keys(shown).length
 	// a note beside a value the receipt gave, while it is still the value read (3a)
-	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === asRead[field] ? { note: 'needs a look', noteType: 'warning' } : {})
+	const lookAt = field => (scan?.unclear?.includes(field) && draft[field] === asRead[field] ? { note: phrase('form.note.look'), noteType: 'warning' } : {})
 	const vendorNote = !scan || !scan.vendor || draft.vendor !== asRead.vendor ? {}
 		: scan.unclear?.includes('vendor') ? lookAt('vendor')
-			: scan.vendorMatched ? { note: 'matched existing vendor', noteType: 'success' } : { note: 'new vendor, created on save' }
+			: scan.vendorMatched ? { note: phrase('form.note.matched'), noteType: 'success' } : { note: phrase('form.note.newVendor') }
 	const statsSwitch = useId()
 	const fields = (
 		<>
-			<Field label="Vendor" {...vendorNote} {...problem(shown.vendor)}>
+			<Field label={phrase('field.vendor')} {...vendorNote} {...problem(shown.vendor)}>
 				<VendorPicker recent={recentVendors} value={draft.vendor} onPick={pickVendor} quiet={quietVendor} autoFocus={vendorFirst && !touch} />
 			</Field>
 			{scan && creating && draft.vendor && scannedVendor.data && !scannedVendor.loading && !scannedVendor.data.matched
 				? <NewVendorFromScan onSetUp={setUpVendor} />
 				: null}
 			<div className="sp-fields">
-				<Field label="Date" {...lookAt('date')} {...(shown.date ? problem(shown.date) : ahead(draft.date))}>
+				<Field label={phrase('field.date')} {...lookAt('date')} {...(shown.date ? problem(shown.date) : ahead(draft.date))}>
 					<DateField value={draft.date} danger={!!shown.date} locale={activeLocaleCode()}
 						onChange={date => set({ date })} />
 				</Field>
-				<Field label="Kind" {...problem(shown.kind)}>
+				<Field label={phrase('field.kind')} {...problem(shown.kind)}>
 					<KindPicker value={draft.kind} onPick={kind => set({ kind })} />
 				</Field>
 			</div>
-			<Field label="Status">
+			<Field label={phrase('field.status')}>
 				<Combobox value={statuses.find(s => s.key === draft.status)?.name ?? draft.status}>
 					{statuses.map(s => (
 						<ComboboxOption key={s.key} dot={DOT[s.tone]} selected={s.key === draft.status} onSelect={() => setStatus(s.key)}>{s.name}</ComboboxOption>
@@ -1226,44 +1228,44 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			{statusDated
 				? (
 					<Field label={statuses.find(s => s.key === draft.status)?.name ?? draft.status}
-						{...(errors.statusDate ? problem(errors.statusDate) : filled === draft.status ? { message: 'Set to today. Change it if it happened earlier.' } : ahead(draft.statusDates?.[draft.status] ?? ''))}>
+						{...(errors.statusDate ? problem(errors.statusDate) : filled === draft.status ? { message: phrase('form.statusToday') } : ahead(draft.statusDates?.[draft.status] ?? ''))}>
 						<DateField value={draft.statusDates?.[draft.status] ?? ''} danger={!!errors.statusDate} locale={activeLocaleCode()}
 							onChange={date => { setFilled(null); set({ statusDates: { ...draft.statusDates, [draft.status]: date } }) }} />
 					</Field>
 				)
 				: null}
-			<Field label="Categories" message={suggested?.said ? `Filled from ${suggested.vendor}. Remove any that do not fit.` : undefined}>
-				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} end={bulb} placeholder="Add category…" />
+			<Field label={phrase('field.categories')} message={suggested?.said ? phrase('form.filledFrom', { vendor: suggested.vendor }) : undefined}>
+				<CategoryTokens value={draft.categories} onChange={setCategories} trails={trails} end={bulb} placeholder={phrase('form.addCategory')} />
 			</Field>
 			{suggestionRow}
 			{offer
 				? (
 					<>
-						<Alert mark="!" title={`${offer.vendor} usually gets ${names(offer.names)}`}>
-							{carrying ? `${carrying === 1 ? 'Its last order carries' : `Its last ${carrying} orders carry`} ${offer.names.length === 1 ? 'it' : offer.names.length === 2 ? 'both' : 'all of them'}.` : null}
+						<Alert mark="!" title={phrase('form.offer.title', { vendor: offer.vendor, names: names(offer.names) })}>
+							{carrying ? phrase('form.offer.carry', { carrying, count: offer.names.length }) : null}
 						</Alert>
 						<div className="sp-row-flex sp-gap-12">
 							<span className="sp-grow" />
 							<Button variant="outline" size="small" onClick={() => { setOffer(null); set({ categories: [...draft.categories, ...offer.names.filter(n => !draft.categories.some(c => c.toLowerCase() === n.toLowerCase()))] }) }}>
-								{offer.names.length === 1 ? `Add ${offer.names[0]}` : offer.names.length === 2 ? 'Add both' : `Add all ${offer.names.length}`}
+								{phrase('form.offer.add', { count: offer.names.length, name: offer.names[0] })}
 							</Button>
 						</div>
 					</>
 				)
 				: null}
 			<div className="sp-fields">
-				<Field label="Reference">
+				<Field label={phrase('field.reference')}>
 					<TextField value={draft.reference} onChange={reference => set({ reference })} />
 				</Field>
-				<Field label="Note">
+				<Field label={phrase('field.note')}>
 					<TextField value={draft.note} onChange={note => set({ note })} />
 				</Field>
 			</div>
 			<div className="sp-fields">
-				<Field label="Discount" unit={currencySymbol()} {...lookAt('discount')}>
+				<Field label={phrase('field.discount')} unit={currencySymbol()} {...lookAt('discount')}>
 					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={discount => set({ discount })} />
 				</Field>
-				<Field label="Shipping fee" unit={currencySymbol()} {...lookAt('shipping')}>
+				<Field label={phrase('form.shippingFee')} unit={currencySymbol()} {...lookAt('shipping')}>
 					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
@@ -1271,9 +1273,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<label className="sp-row-flex sp-gap-12">
 					<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={!!draft.excludeFromStats}
 						onChange={ev => set({ excludeFromStats: ev.target.checked, excludeFromStatsSetByHand: true })} />
-					<span className="sp-data">Leave out of statistics</span>
+					<span className="sp-data">{phrase('form.leaveOut')}</span>
 				</label>
-				<span className="sp-field__help" id={`${statsSwitch}-help`}>For a one-off purchase like a car. The order stays in your list, but totals, medians and trends ignore it.</span>
+				<span className="sp-field__help" id={`${statsSwitch}-help`}>{phrase('form.leaveOutHelp')}</span>
 			</div>
 		</>
 	)
@@ -1283,7 +1285,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			<Card variant="flush" data-details="">
 				<Toolbar variant="toggle" expanded={!folded} onClick={() => setFolded(f => !f)} chevron={<Icon name="chevron-down" />}>
 					<span className="sp-stacked">
-						<span className="sp-title sp-truncate">Order details</span>
+						<span className="sp-title sp-truncate">{phrase('order.details')}</span>
 						<span className="sp-meta sp-truncate">{detailsLine(draft)}</span>
 					</span>
 				</Toolbar>
@@ -1294,8 +1296,8 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: (
 			<Card data-details="">
-				<CardHeader name="Order details" aside={!fixCount && creating ? 'Every value can be changed' : undefined}
-					status={fixCount ? <Pill color="danger">{fixCount === 1 ? '1 to fix' : `${fixCount} to fix`}</Pill> : undefined} />
+				<CardHeader name={phrase('order.details')} aside={!fixCount && creating ? phrase('form.allChangeable') : undefined}
+					status={fixCount ? <Pill color="danger">{phrase('form.toFix', { count: fixCount })}</Pill> : undefined} />
 				{fields}
 			</Card>
 		)
@@ -1319,9 +1321,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const monthName = dated ? monthNames('long')[Number(draft.date.slice(5, 7)) - 1] : ''
 	const limitTitle = l => {
 		if (l.after > l.budget + 0.005)
-			return l.spend > l.budget ? `${shortened(l.name)} is already over its limit` : `This order puts ${shortened(l.name)} over its limit`
+			return phrase(l.spend > l.budget ? 'form.limit.alreadyOver' : 'form.limit.puts', { name: shortened(l.name) })
 		const part = Math.floor(l.after / l.budget * 100)
-		return l.spend >= l.budget * early / 100 ? `${shortened(l.name)} is already at ${part}% of its limit` : `This order takes ${shortened(l.name)} to ${part}% of its limit`
+		return phrase(l.spend >= l.budget * early / 100 ? 'form.limit.alreadyAt' : 'form.limit.takes', { name: shortened(l.name), part })
 	}
 	const limitNotice = flagged.length
 		? flagged.map(l => (
@@ -1329,46 +1331,46 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<span className="sp-stack sp-gap-6">
 					<span className="sp-title sp-ink-warning">{limitTitle(l)}</span>
 					<span className="sp-meta sp-ink-warning">
-						{amount(l.after, 0)} of {currency(l.budget, 0)} for {monthName}. Saving is fine - you will just see it flagged.
+						{phrase('form.limit.body', { spent: amount(l.after, 0), budget: currency(l.budget, 0), month: monthName })}
 					</span>
 				</span>
 			</ListItem>
 		))
 		: null
 
-	const leaveWord = creating || touch ? 'Discard' : 'Cancel'
-	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
+	const leaveWord = phrase(creating || touch ? 'action.discard' : 'action.cancel')
+	const commitWord = phrase(saving ? 'action.saving' : crossed.length ? (creating ? 'form.createAnyway' : 'form.saveAnyway') : creating ? 'action.create' : 'action.save')
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
 	const commitButton = lost ? null : <Button key="save" disabled={saving} onClick={() => save()}>{commitWord}</Button>
 	// a draft holds every change as it is made, so it has nothing unsaved to say (3a)
-	const state = lost ? 'Not saved' : waiting ? 'Waiting for the connection' : draftId ? null
-		: creatingNow ? (dirty ? null : 'Nothing saved yet') : dirty ? 'Unsaved changes' : null
+	const state = lost ? phrase('form.state.notSaved') : waiting ? phrase('form.state.waiting') : draftId ? null
+		: creatingNow ? (dirty ? null : phrase('form.state.nothingYet')) : dirty ? phrase('form.state.unsaved') : null
 	const totalsCard = (
 		<Card
 			// once the split folds the commits move to the bar that stays in view (1d)
 			footer={stacked || touch ? [] : [leaveButton, commitButton]}
 			footerLayout="split"
 			footerCommits
-			after={crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
+			after={crossed.length && !stacked && !touch ? <span className="sp-meta">{phrase('form.stillSave')}</span> : null}
 		>
-			{scan ? <CardHeader name="Totals" /> : null}
+			{scan ? <CardHeader name={phrase('order.totals')} /> : null}
 			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
 					? <>
-						<Sum value={money(sums.total)}>Order total</Sum>
-						{printed != null ? <Sum value={money(printed)}>On the receipt</Sum> : null}
+						<Sum value={money(sums.total)}>{phrase('form.orderTotal')}</Sum>
+						{printed != null ? <Sum value={money(printed)}>{phrase('compare.onReceipt')}</Sum> : null}
 					</>
-					: <Sum variant="total" value={money(sums.total)}>Total</Sum>}
+					: <Sum variant="total" value={money(sums.total)}>{phrase('order.total')}</Sum>}
 			</div>
 			{scan
-				? (printed != null && !mismatch ? <Pill color="success">Totals match</Pill> : null)
+				? (printed != null && !mismatch ? <Pill color="success">{phrase('compare.totalsMatch')}</Pill> : null)
 				: <>
-					<span className="sp-meta">{itemsWord(included.length)}{dot}discount {amount(draft.discount || 0)}{dot}shipping {amount(draft.shipping || 0)}</span>
+					<span className="sp-meta">{phrase('form.totalsLine', { items: itemsWord(included.length), dot, discount: amount(draft.discount || 0), shipping: amount(draft.shipping || 0) })}</span>
 					<Saving value={sums.saved} variant="stat" />
 				</>}
 			{/* the bar that says so on a phone and a narrow window is not drawn here, so the card does */}
-			{waiting && !stacked && !touch ? <span className="sp-meta sp-ink-warning">Waiting for the connection</span> : null}
+			{waiting && !stacked && !touch ? <span className="sp-meta sp-ink-warning">{phrase('form.state.waiting')}</span> : null}
 		</Card>
 	)
 
@@ -1392,13 +1394,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		? <Alert color="danger" mark="!">{lost}</Alert>
 		: conflict
 			? (
-				<Toast asks mark="!" title={conflict.where === 'tab' ? 'This order changed in another tab' : 'This order was changed somewhere else'}
+				<Toast asks mark="!" title={phrase(conflict.where === 'tab' ? 'form.conflict.tab' : 'form.conflict.elsewhere')}
 					actions={<>
-						<Button variant="outline" size="small" onClick={seeTheirs}>See theirs</Button>
-						<Button size="small" color="warning" onClick={keepMine}>Keep mine</Button>
+						<Button variant="outline" size="small" onClick={seeTheirs}>{phrase('form.conflict.seeTheirs')}</Button>
+						<Button size="small" color="warning" onClick={keepMine}>{phrase('form.conflict.keepMine')}</Button>
 					</>}>
-					{conflict.theirs ? changedThere(start, draftOf(conflict.theirs), statuses) : 'It was changed while your change waited for the connection.'}
-					{' '}{onlyLines(start, draft, lines) ? 'Your line edits are safe.' : 'Your changes are safe.'}
+					{conflict.theirs ? changedThere(start, draftOf(conflict.theirs), statuses) : phrase('form.conflict.waited')}
+					{' '}{phrase(onlyLines(start, draft, lines) ? 'form.conflict.linesSafe' : 'form.conflict.safe')}
 				</Toast>
 			)
 			: null
@@ -1430,13 +1432,13 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const sheet = sheeted && editing
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) cancelLine() }}>
-				<Sheet role="dialog" aria-modal="true" aria-label={editing.isNew ? 'Add a line' : 'Edit line'} ref={sheetBox}>
+				<Sheet role="dialog" aria-modal="true" aria-label={phrase(editing.isNew ? 'form.addALine' : 'form.editLine')} ref={sheetBox}>
 					<div className="sp-row-flex sp-gap-8">
-						<span className="sp-heading">{editing.isNew ? 'Add a line' : 'Edit line'}</span>
+						<span className="sp-heading">{phrase(editing.isNew ? 'form.addALine' : 'form.editLine')}</span>
 						<span className="sp-grow" />
-						{editing.isNew || scan ? null : <IconButton variant="outline" icon="copy" aria-label={`Duplicate ${editing.values.title || 'the unnamed line'}`}
+						{editing.isNew || scan ? null : <IconButton variant="outline" icon="copy" aria-label={phrase('form.duplicateLine', { name: editing.values.title || phrase('form.unnamedLower') })}
 							onClick={copyEditing} />}
-						{editing.isNew ? null : <IconButton variant="outline" danger icon="trash" aria-label={`Delete ${editing.values.title || 'the unnamed line'}`}
+						{editing.isNew ? null : <IconButton variant="outline" danger icon="trash" aria-label={phrase('form.deleteLine', { name: editing.values.title || phrase('form.unnamedLower') })}
 							onClick={() => removeLine(lines.find(l => l.key === editing.key))} />}
 					</div>
 					{editor}
@@ -1451,21 +1453,21 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const typed = lines.length - read
 	const confirmRemoval = removing
 		? (
-			<Dialog onCancel={() => setRemoving(null)} aria-label={removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}>
+			<Dialog onCancel={() => setRemoving(null)} aria-label={phrase(removing.file ? 'form.removeScan.receiptTitle' : 'form.removeScan.photoTitle')}>
 				<div className="sp-stack sp-gap-12">
-					<DialogTitle>{removing.file ? 'Remove the scanned receipt?' : 'Remove the scanned photo?'}</DialogTitle>
+					<DialogTitle>{phrase(removing.file ? 'form.removeScan.receiptTitle' : 'form.removeScan.photoTitle')}</DialogTitle>
 					<DialogBody>
 						{removing.file
-							? `${shortened(removing.file.name, 40)} came from a scan. It is the proof of this order, and it cannot be taken again. It is removed when you save.`
-							: `The photo of ${removing.photo.name || 'this line'} came from a scan, and it cannot be taken again. It is removed when you save.`}
+							? phrase('form.removeScan.receiptBody', { name: shortened(removing.file.name, 40) })
+							: phrase('form.removeScan.photoBody', { name: removing.photo.name || phrase('form.thisLine') })}
 					</DialogBody>
 					<DialogActions>
-						<Button variant="outline" fullWidth onClick={() => setRemoving(null)}>Keep it</Button>
+						<Button variant="outline" fullWidth onClick={() => setRemoving(null)}>{phrase('action.keepIt')}</Button>
 						<Button color="danger" fullWidth onClick={() => {
 							if (removing.file) setGone(g => [...g, removing.file.id])
 							else patchLine(removing.photo.key, removing.photo.without)
 							setRemoving(null)
-						}}>{removing.file ? 'Remove receipt' : 'Remove photo'}</Button>
+						}}>{phrase(removing.file ? 'form.removeScan.receipt' : 'form.removeScan.photo')}</Button>
 					</DialogActions>
 				</div>
 			</Dialog>
@@ -1495,48 +1497,48 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			navigate(`/orders/${orderId}/compare?doc=${askedFile.upload.key}&file=${attached}`)
 		} catch (e) {
 			setComparing(false)
-			toast({ message: failureMessage(e, 'The receipt could not be compared. Try again.'), color: 'danger' })
+			toast({ message: failureMessage(e, phrase('form.compareFailed')), color: 'danger' })
 		}
 	}
 	const compareAsk = !askedFile
 		? null
 		: askedTwin
 			? (
-				<Dialog onCancel={dropAsked} aria-label="This file is already on this order">
+				<Dialog onCancel={dropAsked} aria-label={phrase('form.twin.title')}>
 					<div className="sp-stack sp-gap-12">
-						<DialogTitle>This file is already on this order</DialogTitle>
-						<DialogBody>{shortened(askedFile.name, 40)} is the same file as one this order already has.</DialogBody>
+						<DialogTitle>{phrase('form.twin.title')}</DialogTitle>
+						<DialogBody>{phrase('form.twin.body', { name: shortened(askedFile.name, 40) })}</DialogBody>
 						<DialogActions>
-							<Button variant="outline" fullWidth onClick={closeAsk}>Add anyway</Button>
-							<Button fullWidth onClick={dropAsked}>Don't add</Button>
+							<Button variant="outline" fullWidth onClick={closeAsk}>{phrase('form.twin.add')}</Button>
+							<Button fullWidth onClick={dropAsked}>{phrase('form.twin.skip')}</Button>
 						</DialogActions>
 					</div>
 				</Dialog>
 			)
 			: (
-				<Dialog onCancel={closeAsk} aria-label="Compare with this receipt?">
+				<Dialog onCancel={closeAsk} aria-label={phrase('form.compareAsk.title')}>
 					<div className="sp-stack sp-gap-12">
-						<DialogTitle>Compare with this receipt?</DialogTitle>
+						<DialogTitle>{phrase('form.compareAsk.title')}</DialogTitle>
 						<DialogBody>
-							{shortened(askedFile.name, 40)} is added to {start.vendor}, {shortDate(start.date)}. Compare it to see where its lines differ from the order and pick which to keep.
+							{phrase('form.compareAsk.body', { name: shortened(askedFile.name, 40), vendor: start.vendor, date: shortDate(start.date) })}
 						</DialogBody>
-						{unsavedBesides ? <span className="sp-field__help">Save your changes first.</span> : null}
+						{unsavedBesides ? <span className="sp-field__help">{phrase('form.saveFirst')}</span> : null}
 						<DialogActions>
-							<Button variant="outline" fullWidth disabled={comparing} onClick={closeAsk}>Attach only</Button>
-							<Button fullWidth disabled={unsavedBesides || comparing} onClick={compare}>Compare</Button>
+							<Button variant="outline" fullWidth disabled={comparing} onClick={closeAsk}>{phrase('compare.attachOnly')}</Button>
+							<Button fullWidth disabled={unsavedBesides || comparing} onClick={compare}>{phrase('form.compare')}</Button>
 						</DialogActions>
 					</div>
 				</Dialog>
 			)
 	const dialog = asking
 		? (
-			<Dialog onCancel={() => setAsking(false)} aria-label={scan ? 'Discard this scan?' : 'Discard this draft?'}>
+			<Dialog onCancel={() => setAsking(false)} aria-label={phrase(scan ? 'form.discardScan' : 'form.discardDraft')}>
 				<div className="sp-stack sp-gap-12">
-					<DialogTitle>{scan ? 'Discard this scan?' : 'Discard this draft?'}</DialogTitle>
-					<DialogBody>{scan ? discardWords(scan, read, typed) : `Discarding removes ${names(ownFiles())}, and the draft leaves Drafts.`}</DialogBody>
+					<DialogTitle>{phrase(scan ? 'form.discardScan' : 'form.discardDraft')}</DialogTitle>
+					<DialogBody>{scan ? discardWords(scan, read, typed) : phrase('form.discardFile', { file: names(ownFiles()) })}</DialogBody>
 					<DialogActions>
-						<Button variant="outline" fullWidth onClick={() => setAsking(false)}>{scan ? 'Keep checking' : 'Keep editing'}</Button>
-						<Button color="danger" fullWidth onClick={() => { setAsking(false); throwAway() }}>Discard</Button>
+						<Button variant="outline" fullWidth onClick={() => setAsking(false)}>{phrase(scan ? 'form.keepChecking' : 'form.keepEditing')}</Button>
+						<Button color="danger" fullWidth onClick={() => { setAsking(false); throwAway() }}>{phrase('action.discard')}</Button>
 					</DialogActions>
 				</div>
 			</Dialog>
@@ -1578,6 +1580,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 /** The saved state's notice (3a): where the order came from, and Undo, which deletes it and goes
     back to the screen it was created from with what was typed. */
 function Created({ created, touch, orderId, files, typed, onGone }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const [busy, setBusy] = useState(false)
@@ -1592,28 +1595,28 @@ function Created({ created, touch, orderId, files, typed, onGone }) {
 				deleted.current = true
 				if (created.documentKey) navigate(`/orders/new?source=scan&doc=${created.documentKey}`, { replace: true })
 				else navigate('/orders/new?source=empty', { replace: true, state: { seed: typed } })
-				toast({ message: created.documentKey ? 'The order was not kept. The receipt is back for you to check.' : 'The order was not kept. What you typed is back in the form.' })
+				toast({ message: phrase(created.documentKey ? 'form.undoneScan' : 'form.undoneTyped') })
 			})
 			.catch(e => {
 				setBusy(false)
-				toast({ message: failureMessage(e, 'The order was not removed. Try again.'), color: 'danger' })
+				toast({ message: failureMessage(e, phrase('form.notRemoved')), color: 'danger' })
 			})
 	}
 	const said = [
-		created.file ? 'The receipt is kept as an attachment.' : null,
-		files > 0 ? `Undo also removes the ${plural(files, 'file')} you added.` : null
+		created.file ? phrase('form.receiptKept') : null,
+		files > 0 ? phrase('form.undoFiles', { files: plural(files, 'file') }) : null
 	].filter(Boolean).join(' ') || null
-	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>Undo</Button>
+	const undoButton = <Button variant="outline" size="small" disabled={busy} onClick={undo}>{phrase('action.undo')}</Button>
 	// after a scan the next receipt is one click away (16a: open the order or scan another)
 	const actions = created.documentKey
-		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">Scan another</Button></span>
+		? <span className="sp-row-flex sp-gap-8">{undoButton}<Button variant="outline" size="small" to="/orders/new?source=scan">{phrase('form.scanAnother')}</Button></span>
 		: undoButton
 	// a phone's notice is too narrow for words and two buttons side by side, so the buttons go under the words
 	const under = touch && created.documentKey
 	return (
 		<div className="or-span">
 			<Alert color="success" mark={<Icon name="check" size={12} />}
-				title={created.file ? `Order created from ${created.file}.` : 'Order created.'}
+				title={created.file ? phrase('form.createdFrom', { file: created.file }) : phrase('form.created')}
 				action={actions} below={under}>
 				{said}
 			</Alert>
@@ -1623,11 +1626,11 @@ function Created({ created, touch, orderId, files, typed, onGone }) {
 
 /** Discard's words for a draft (6d): what was read, and that its file goes with it. */
 export function discardWords(scan, read = 0, typed = 0) {
-	const file = shortened(scan?.file?.name ?? 'the file', 40)
+	const file = shortened(scan?.file?.name ?? phrase('form.theFile'), 40)
 	const lineWord = n => plural(n, 'line')
-	if (read) return `The receipt was read and ${lineWord(read)} ${read === 1 ? 'is' : 'are'} waiting to be checked${typed ? `, with ${lineWord(typed)} you added` : ''}. Discarding removes the reading and ${file}, and the draft leaves Drafts.`
-	if (typed) return `Discarding removes ${file} and ${typed === 1 ? 'the line you added' : `the ${typed} lines you added`}, and the draft leaves Drafts.`
-	return `Discarding removes ${file}, and the draft leaves Drafts.`
+	if (read) return phrase(typed ? 'form.discardReadTyped' : 'form.discardRead', { count: read, lines: lineWord(read), typed: lineWord(typed), file })
+	if (typed) return phrase('form.discardTyped', { count: typed, file })
+	return phrase('form.discardFile', { file })
 }
 
 const LOOK = '[data-line][data-color="warning"], .sp-field__label + .sp-field__help[data-color="warning"]'
@@ -1673,24 +1676,24 @@ const receiptOf = file => ({
 		: {})
 })
 
-const UNCLEAR_FIELD = { vendor: 'the vendor name', date: 'the date', shipping: 'the shipping fee', discount: 'the discount', total: 'the printed total' }
+const UNCLEAR_FIELD = { vendor: 'form.unclear.vendor', date: 'form.unclear.date', shipping: 'form.unclear.shipping', discount: 'form.unclear.discount', total: 'form.unclear.total' }
 const UNCLEAR_EDITABLE = ['vendor', 'date', 'shipping', 'discount']
 // what was hard to read on a line of a scanned receipt, by the part the reading named (3a)
 const UNCLEAR_LINE = {
-	price: 'price unclear - check against the receipt',
-	title: 'name was partly readable - check the spelling',
-	quantity: 'quantity unclear - check against the receipt',
-	line: 'Check this line against the receipt'
+	price: 'form.unclearLine.price',
+	title: 'form.unclearLine.title',
+	quantity: 'form.unclearLine.quantity',
+	line: 'form.unclearLine.line'
 }
 
-const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
+const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}${phrase('form.noPhoto')}`)
 
-const detailsLine = d => [d.categories.join(', '), d.kind].filter(Boolean).join(dot)
+const detailsLine = d => [d.categories.join(', '), d.kind ? kindName(d.kind) : null].filter(Boolean).join(dot)
 
 const lineShape = l => JSON.stringify([l.title, Number(l.quantity), l.price, l.retail ?? null, String(l.url ?? '').trim()])
 const FIELD_WORDS = {
-	vendor: 'the vendor', date: 'the date', kind: 'the kind', categories: 'the categories', shipping: 'the shipping fee',
-	discount: 'the discount', reference: 'the reference', note: 'the note', excludeFromStats: 'whether it counts in statistics'
+	vendor: 'form.there.vendor', date: 'form.there.date', kind: 'form.there.kind', categories: 'form.there.categories', shipping: 'form.there.shipping',
+	discount: 'form.there.discount', reference: 'form.there.reference', note: 'form.there.note', excludeFromStats: 'form.there.excludeFromStats'
 }
 /** What another copy of the order changed, against the one this form opened on (6d). */
 function changedThere(was, now, statuses) {
@@ -1699,11 +1702,12 @@ function changedThere(was, now, statuses) {
 	const status = was.status !== now.status
 	const lines = !same(was.lines.map(lineShape), now.lines.map(lineShape))
 	if (status && !fields.length && !lines)
-		return `The status was set to ${shortened(statuses.find(st => st.key === now.status)?.name ?? now.status)} there.`
-	const parts = [status ? 'the status' : null, ...fields.map(k => FIELD_WORDS[k]), lines ? 'the lines' : null].filter(Boolean)
-	if (!parts.length) return 'It was saved again there.'
-	const said = names(parts)
-	return `${said.charAt(0).toUpperCase()}${said.slice(1)} ${parts.length === 1 && parts[0] !== 'the lines' && parts[0] !== 'the categories' ? 'was' : 'were'} changed there.`
+		return phrase('form.there.statusSet', { name: shortened(statuses.find(st => st.key === now.status)?.name ?? now.status) })
+	const parts = [status ? 'form.there.status' : null, ...fields.map(k => FIELD_WORDS[k]), lines ? 'form.there.lines' : null].filter(Boolean)
+	if (!parts.length) return phrase('form.there.savedAgain')
+	const said = names(parts.map(p => phrase(p)))
+	const one = parts.length === 1 && parts[0] !== 'form.there.lines' && parts[0] !== 'form.there.categories'
+	return phrase('form.there.changed', { what: `${said.charAt(0).toUpperCase()}${said.slice(1)}`, one: String(one) })
 }
 /** Their lines with the reader's own on top: a changed line replaces theirs, a new one is added,
     a removed one stays removed (6d). A line they removed comes back as a new one. */
@@ -1723,7 +1727,7 @@ const onlyLines = (was, draft, lines) => JSON.stringify({ ...was, lines: undefin
 
 function Include({ line, setLines }) {
 	return (
-		<Check checked={line.include !== false} aria-label={`Include ${line.title}`}
+		<Check checked={line.include !== false} aria-label={phrase('form.include', { name: line.title })}
 			onChange={ev => setLines(ls => ls.map(l => (l.key === line.key ? { ...l, include: ev.target.checked } : l)))} />
 	)
 }
@@ -1734,41 +1738,40 @@ function notices({ origin, scan, unclear: fields, lines, leave, touch, jump }) {
 	if (origin.copy)
 		return (
 			<Alert color="success" mark={<Icon name="copy" size={13} />}
-				action={touch ? null : <Button variant="outline" size="small" onClick={leave}>Discard</Button>}>
-				Copied from <b>{origin.copy.vendor}, {dayShortMonth(origin.copy.date)}</b> - the receipt stays on that order.
+				action={touch ? null : <Button variant="outline" size="small" onClick={leave}>{phrase('action.discard')}</Button>}>
+				{phrase('form.copiedFrom', { from: `${origin.copy.vendor}, ${dayShortMonth(origin.copy.date)}`, b: words => <b>{words}</b> })}
 			</Alert>
 		)
 	if (!scan) return null
 	if (!scan.linesRead)
 		return (
-			<Alert mark="!" title={scan.failure === 'empty' ? 'No lines were read from this receipt.' : 'Nothing was read from this receipt.'}>
-				{scan.failure === 'empty' ? 'Add the lines yourself.' : 'Add the lines and the details yourself.'} The receipt is kept with the order when you create it.
+			<Alert mark="!" title={phrase(scan.failure === 'empty' ? 'form.noLinesRead' : 'form.nothingRead')}>
+				{phrase(scan.failure === 'empty' ? 'form.addLines' : 'form.addAll')} {phrase('form.receiptKeptOnCreate')}
 			</Alert>
 		)
 	const unclear = lines.filter(l => l.uncertain && l.unclearPart !== 'title').length
-	const hard = [unclear ? plural(unclear, 'line') : null, ...fields.map(f => UNCLEAR_FIELD[f])].filter(Boolean)
+	const hard = [unclear ? plural(unclear, 'line') : null, ...fields.map(f => phrase(UNCLEAR_FIELD[f]))].filter(Boolean)
 	const looks = [
-		...(scan.vendorMatched ? [] : ['the vendor is new and will be created']),
-		...(scan.total == null ? ['no printed total was found'] : []),
-		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? ['it was not clear if the prices include VAT'] : []),
-		...(scan.checks ?? []).filter(c => c.id === 'currency').map(c => (c.warning
-			? `the amounts are in ${c.from} and were not changed to ${c.to}`
-			: `the amounts were changed from ${c.from} to ${c.to}`))
+		...(scan.vendorMatched ? [] : [phrase('form.look.newVendor')]),
+		...(scan.total == null ? [phrase('form.look.noTotal')] : []),
+		...(scan.checks?.some(c => c.id === 'vat' && c.warning) ? [phrase('form.look.vat')] : []),
+		...(scan.checks ?? []).filter(c => c.id === 'currency').map(c => phrase(c.warning ? 'form.look.currencyKept' : 'form.look.currencyChanged', { from: c.from, to: c.to }))
 	]
 	const count = looks.length + unclear + fields.length
 	if (!count) return null
 	const one = hard.length === 1 && unclear < 2
-	const said = [hard.length ? `${names(hard)} ${one ? 'was' : 'were'} hard to read` : null, ...looks].filter(Boolean)
+	const said = [hard.length ? phrase('form.look.hard', { names: names(hard), one: String(one) }) : null, ...looks].filter(Boolean)
 	return (
-		<Alert mark="!" title={count === 1 ? '1 value needs a look.' : `${count} values need a look.`}
-			action={jump ? <Button variant="outline" size="small" onClick={jump}>Jump to first</Button> : null}>
-			{said.join(', ').replace(/^./, c => c.toUpperCase())}.{looks.length ? null : ' Everything else matched cleanly.'}
+		<Alert mark="!" title={phrase('form.look.title', { count })}
+			action={jump ? <Button variant="outline" size="small" onClick={jump}>{phrase('compare.jump')}</Button> : null}>
+			{said.join(', ').replace(/^./, c => c.toUpperCase())}.{looks.length ? null : ' ' + phrase('form.look.restClean')}
 		</Alert>
 	)
 }
 
 /** The line being edited or added (1b), in place on a desktop and in a sheet on a phone. */
 function LineForm({ editing, focus, sheet, photoUrl, sendPhoto, refused, onRemovePhoto, onChange, onCommit, onCommitNext, onCancel }) {
+	const phrase = usePhrase()
 	const v = editing.values
 	// the product link is judged as it is left, as every field is (c3)
 	const [linkSeen, setLinkSeen] = useState(false)
@@ -1816,15 +1819,15 @@ function LineForm({ editing, focus, sheet, photoUrl, sendPhoto, refused, onRemov
 		<LineEditor
 			onPaste={paste}
 			sheet={sheet}
-			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
-			commit={editing.isNew ? 'Add line' : 'Save line'}
+			hint={phrase('form.lineHint', { dot, keys: MAC ? '⌘↵' : 'Ctrl ↵' })}
+			commit={phrase(editing.isNew ? 'form.addLine' : 'form.saveLine')}
 			photo={
 				<Slot
 					size="medium"
-					word="Add photo"
-					name="the line's photo"
+					word={phrase('form.addPhoto')}
+					name={phrase('form.linePhoto')}
 					src={photo}
-					problem={v.photoProblem ?? (sending === 'refused' ? 'Not a supported type' : sending === 'failed' ? 'Failed' : undefined)}
+					problem={v.photoProblem ?? (sending === 'refused' ? phrase('file.unsupported') : sending === 'failed' ? phrase('form.failed') : undefined)}
 					busy={sending === 'busy'}
 					onRetry={sending === 'failed' ? () => set({ newPhoto: { ...v.newPhoto, sent: sendPhoto(v.newPhoto.file) } }) : undefined}
 					onFile={take}
@@ -1835,30 +1838,30 @@ function LineForm({ editing, focus, sheet, photoUrl, sendPhoto, refused, onRemov
 			onCommitNext={onCommitNext}
 			onCancel={onCancel}
 		>
-			<Field label="Item" {...problem(errors.title)}>
-				<TextField value={v.title} placeholder="Item name" autoFocus={focus} onChange={title => set({ title })}
-					action={{ icon: 'link', label: hasLink ? 'Edit product link' : 'Add a product link', expanded: linkOpen, onClick: toggleLink }} />
+			<Field label={phrase('form.item')} {...problem(errors.title)}>
+				<TextField value={v.title} placeholder={phrase('import.field.title')} autoFocus={focus} onChange={title => set({ title })}
+					action={{ icon: 'link', label: phrase(hasLink ? 'form.editLink' : 'form.addLink'), expanded: linkOpen, onClick: toggleLink }} />
 			</Field>
 			{linkOpen
 				? (
-					<Field label="Product page" {...problem(errors.url)}>
+					<Field label={phrase('form.productPage')} {...problem(errors.url)}>
 						<TextField type="url" inputMode="url" placeholder="https://" value={v.url ?? ''} inputRef={linkInput} autoFocus={linkAsked}
 							onChange={url => set({ url })} onBlur={() => setLinkSeen(true)} />
 					</Field>
 				)
 				: null}
 			<div className="sp-line-editor__grid">
-				<Field label="Quantity" {...problem(errors.quantity)}>
+				<Field label={phrase('import.field.quantity')} {...problem(errors.quantity)}>
 					{/* the smallest quantity the server keeps: more than 0, two decimals */}
 					<Stepper value={Number(v.quantity) || 0} min={0.01} step={1} decimals={2} locale={NUMBER_LOCALE} onChange={quantity => set({ quantity })} />
 				</Field>
-				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
+				<Field label={phrase('import.field.price')} unit={currencySymbol()} {...problem(errors.price)}>
 					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={price => set({ price })} />
 				</Field>
-				<Field label="Retail price" unit={currencySymbol()}>
+				<Field label={phrase('form.retailPrice')} unit={currencySymbol()}>
 					<NumberField value={v.retail} min={0} locale={NUMBER_LOCALE} placeholder={amount(0)} onChange={retail => set({ retail })} />
 				</Field>
-				<Field label="Line total" unit={currencySymbol()}>
+				<Field label={phrase('form.lineTotal')} unit={currencySymbol()}>
 					<NumberField readOnly value={v.price == null ? null : lineTotal(v)} locale={NUMBER_LOCALE} />
 				</Field>
 			</div>
@@ -1880,6 +1883,7 @@ const resolveVendor = name => getVendorPage({ name, pageSize: 1 }).then(r => r.v
     name that is none of them becomes a new one. The server finds them and the list holds its first
     page. `quiet` keeps the list shut while it is held. */
 function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const typed = query.trim()
@@ -1899,11 +1903,11 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 		?? (vendorTextMatch({ name }, typed).matches ? { v: { id: 'recent ' + name, name }, hit: { alias: null } } : null))
 		.filter(x => x && !x.v.favourite)
 	const others = found.filter(x => !favourites.includes(x) && !recents.some(r => r.v.name === x.v.name)).sort((a, b) => a.v.name.localeCompare(b.v.name))
-	const groups = [['Favourites', favourites], ['Recent', recents], ['Other vendors', others]].filter(([, xs]) => xs.length)
+	const groups = [[phrase('pick.favourites'), favourites], [phrase('pick.recent'), recents], [phrase('form.otherVendors'), others]].filter(([, xs]) => xs.length)
 	const exact = useApi(getVendorPage, [{ name: typed, pageSize: 0 }], { enabled: Boolean(typed) })
 	const known = typed && (exact.loading || !exact.data || exact.data.matched > 0)
 	return (
-		<Combobox searchable value={value} placeholder="Choose a vendor" open={open}
+		<Combobox searchable value={value} placeholder={phrase('form.chooseVendor')} open={open}
 			onOpenChange={next => {
 				if (next && quiet?.current) return
 				setOpen(next)
@@ -1926,7 +1930,7 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 			))}
 			<MoreMatches rows={page.rows} matched={page.matched} noun="vendors" />
 			{typed && !known
-				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => { left.current.picked = true; onPick(typed) }}>Create "{typed}"</ComboboxOption></>
+				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => { left.current.picked = true; onPick(typed) }}>{phrase('form.createNamed', { name: typed })}</ComboboxOption></>
 				: null}
 		</Combobox>
 	)
@@ -1935,19 +1939,20 @@ function VendorPicker({ recent, value, onPick, quiet, ...rest }) {
 /** A receipt's vendor the account does not know yet: set it up first, and come back to the receipt
     with it chosen and the order as it was left (Vendors 5b). The field's note says saving adds it. */
 function NewVendorFromScan({ onSetUp }) {
+	const phrase = usePhrase()
 	return (
 		<div className="sp-row-flex sp-gap-8">
-			<span className="sp-note sp-grow">Want to add its details now?</span>
-			<Button variant="outline" size="small" onClick={onSetUp}>Set it up first</Button>
+			<span className="sp-note sp-grow">{phrase('form.addDetailsNow')}</span>
+			<Button variant="outline" size="small" onClick={onSetUp}>{phrase('form.setUpFirst')}</Button>
 		</div>
 	)
 }
 
 function KindPicker({ value, onPick, ...rest }) {
 	return (
-		<Combobox value={value} {...rest}>
+		<Combobox value={value ? kindName(value) : value} {...rest}>
 			{spendKinds.map(kind => (
-				<ComboboxOption key={kind} selected={kind === value} onSelect={() => onPick(kind)}>{kind}</ComboboxOption>
+				<ComboboxOption key={kind} selected={kind === value} onSelect={() => onPick(kind)}>{kindName(kind)}</ComboboxOption>
 			))}
 		</Combobox>
 	)

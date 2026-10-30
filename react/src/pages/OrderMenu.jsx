@@ -17,6 +17,7 @@ import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Saving } from '../app/saving.jsx'
 import { CategoryMark } from '../app/categoryMark.jsx'
 import { MoreMatches, groupPicks, pickGroups, rowHeads, usePickList, useRecent } from '../app/pickList.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 // the dot a status carries in a pick list, by its tone (2e)
 const DOT = { success: 'done', progress: 'progress', danger: 'returned', neutral: 'draft' }
@@ -39,6 +40,7 @@ export function download(href) {
 /** One order's menu (2e), the same in a row and on a card (2c). A status or category applies at
     once and offers Undo. On touch the menu is a sheet, so a flyout opens in its place. */
 function OrderMenuItems({ order, touch, close, onDelete }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const statuses = useStatuses()
@@ -69,24 +71,24 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			.then(() => {
 				invalidateOrderData()
 				toast({
-					message: `Status set to ${name}.`,
-					undo: { onClick: () => changeOrders({ ids: [order.id], status: before }).then(invalidateOrderData, e => fail(e, 'The status was not changed back. Try again.')) }
+					message: phrase('orderMenu.statusSet', { name }),
+					undo: { onClick: () => changeOrders({ ids: [order.id], status: before }).then(invalidateOrderData, e => fail(e, phrase('orderMenu.statusNotBack'))) }
 				})
 			})
-			.catch(e => fail(e, 'The status was not changed. Try again.'))
+			.catch(e => fail(e, phrase('orderMenu.statusNotChanged')))
 	}
 
 	// one toast for every category change since the menu opened, so its Undo takes them all back
 	const report = () => {
 		const { added, removed } = changes.current
-		const words = [added.length ? `Added ${added.map(x => x.name).join(', ')}.` : '', removed.length ? `Removed ${removed.map(x => x.name).join(', ')}.` : ''].filter(Boolean).join(' ')
+		const words = [added.length ? phrase('orderMenu.added', { names: added.map(x => x.name).join(', ') }) : '', removed.length ? phrase('orderMenu.removed', { names: removed.map(x => x.name).join(', ') }) : ''].filter(Boolean).join(' ')
 		if (!words) return
 		const add = removed.map(x => x.name), remove = added.map(x => x.id)
 		toast({
 			message: words,
 			undo: {
 				onClick: () => changeOrders({ ids: [order.id], addCategories: add, removeCategories: remove })
-					.then(invalidateOrderData, e => fail(e, 'The categories were not changed back. Try again.'))
+					.then(invalidateOrderData, e => fail(e, phrase('orderMenu.categoriesNotBack')))
 			}
 		})
 	}
@@ -100,7 +102,7 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 		else { c.added = c.added.filter(x => x.id !== category.id); if (order.categories.some(x => x.id === category.id)) c.removed.push(category) }
 		changeOrders(on ? { ids: [order.id], addCategories: [category.name] } : { ids: [order.id], removeCategories: [category.id] })
 			.then(() => { invalidateOrderData(); report() })
-			.catch(e => fail(e, 'The category was not changed. Try again.'))
+			.catch(e => fail(e, phrase('orderMenu.categoryNotChanged')))
 	}
 
 	// the server makes the category from its name; its id is read back so the tick and Undo can use it
@@ -115,14 +117,14 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 				changes.current.added.push(made)
 				report()
 			})
-			.catch(e => fail(e, 'The category was not made. Try again.'))
+			.catch(e => fail(e, phrase('orderMenu.categoryNotMade')))
 	}
 
 	const statusItems = statuses.map(s => (
 		<MenuItem key={s.key} dot={DOT[s.tone] ?? 'draft'} onClick={() => setStatus(s.key)} {...(s.key === order.status ? { 'aria-current': 'true' } : {})}>
 			<span>{s.name}</span>
 			{s.key === order.status
-				? <><span className="sp-grow" /><span className="sp-meta">current</span><span className="sp-combobox__check"><Icon name="check" size={13} /></span></>
+				? <><span className="sp-grow" /><span className="sp-meta">{phrase('orderMenu.current')}</span><span className="sp-combobox__check"><Icon name="check" size={13} /></span></>
 				: null}
 		</MenuItem>
 	))
@@ -134,11 +136,11 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 	const categoryItems = (
 		<>
 			{categories.total >= SEARCH_FROM || naming > 0
-				? <li role="none"><SearchInput inputRef={search} value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /></li>
+				? <li role="none"><SearchInput inputRef={search} value={find} onChange={setFind} placeholder={phrase('orderMenu.findCategory')} aria-label={phrase('orderMenu.findCategoryLabel')} /></li>
 				: null}
 			{/* the search and Create stay put; only the categories between them scroll, as 2a's picker does */}
 			<li role="none" className="sp-popover__list">
-				{pickGroups(groupPicks(shown, recentCategories, find, 'Other categories'), c => (
+				{pickGroups(groupPicks(shown, recentCategories, find, phrase('import.otherCategories')), c => (
 					<Choice key={c.id} variant="row" control={<Check checked={has.has(c.id)} onChange={ev => tick(c, ev.target.checked)} />}>
 						<CategoryMark category={c} size="small" />
 						<span className="sp-truncate">{c.name}</span>
@@ -148,40 +150,40 @@ function OrderMenuItems({ order, touch, close, onDelete }) {
 			<MoreMatches role="none" rows={categories.rows} matched={categories.matched} noun="categories" />
 			<MenuSeparator />
 			{needle && !known
-				? <MenuItem icon="plus" onClick={() => create(typed)}><span><strong>Create "{typed}"</strong> as a new category</span></MenuItem>
-				: <MenuItem icon="plus" onClick={() => setNaming(n => n + 1)}>Create a category</MenuItem>}
+				? <MenuItem icon="plus" onClick={() => create(typed)}><span>{phrase('orderMenu.createNamed', { name: typed, b: words => <strong>{words}</strong> })}</span></MenuItem>
+				: <MenuItem icon="plus" onClick={() => setNaming(n => n + 1)}>{phrase('orderMenu.createCategory')}</MenuItem>}
 		</>
 	)
 
 	if (touch && level === 'status')
-		return <Menu position="floating" aria-label="Set status"><MenuItem icon="chevron-left" onClick={() => setLevel('main')}>Back</MenuItem><MenuSeparator />{statusItems}</Menu>
+		return <Menu position="floating" aria-label={phrase('orderMenu.setStatus')}><MenuItem icon="chevron-left" onClick={() => setLevel('main')}>{phrase('action.back')}</MenuItem><MenuSeparator />{statusItems}</Menu>
 	if (touch && level === 'category')
-		return <Menu position="floating" aria-label="Add category"><MenuItem icon="chevron-left" onClick={() => setLevel('main')}>Back</MenuItem><MenuSeparator />{categoryItems}</Menu>
+		return <Menu position="floating" aria-label={phrase('orderMenu.addCategory')}><MenuItem icon="chevron-left" onClick={() => setLevel('main')}>{phrase('action.back')}</MenuItem><MenuSeparator />{categoryItems}</Menu>
 
 	return (
-		<Menu position="floating" aria-label="Order">
-			<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
-			<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>Duplicate</MenuItem>
-			<MenuItem icon="download" disabled={!order.receipt} onClick={() => { close(); download(attachmentDownloadUrl(order.id, order.receipt)) }}>Download receipt</MenuItem>
+		<Menu position="floating" aria-label={phrase('orderMenu.order')}>
+			<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>{phrase('orderMenu.open')}</MenuItem>
+			<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>{phrase('order.duplicateTip')}</MenuItem>
+			<MenuItem icon="download" disabled={!order.receipt} onClick={() => { close(); download(attachmentDownloadUrl(order.id, order.receipt)) }}>{phrase('orderMenu.downloadReceipt')}</MenuItem>
 			<MenuSeparator />
 			{touch
-				? <MenuItem icon="clock" onClick={() => setLevel('status')}><span>Set status</span><span className="sp-grow" /><ChevronRight /></MenuItem>
+				? <MenuItem icon="clock" onClick={() => setLevel('status')}><span>{phrase('orderMenu.setStatus')}</span><span className="sp-grow" /><ChevronRight /></MenuItem>
 				: (
 					<MenuItem icon="clock">
-						<span>Set status</span><span className="sp-grow" /><ChevronRight />
-						<Menu position="sub" aria-label="Set status">{statusItems}</Menu>
+						<span>{phrase('orderMenu.setStatus')}</span><span className="sp-grow" /><ChevronRight />
+						<Menu position="sub" aria-label={phrase('orderMenu.setStatus')}>{statusItems}</Menu>
 					</MenuItem>
 				)}
 			{touch
-				? <MenuItem icon="tag" onClick={() => setLevel('category')}><span>Add category</span><span className="sp-grow" /><ChevronRight /></MenuItem>
+				? <MenuItem icon="tag" onClick={() => setLevel('category')}><span>{phrase('orderMenu.addCategory')}</span><span className="sp-grow" /><ChevronRight /></MenuItem>
 				: (
 					<MenuItem icon="tag">
-						<span>Add category</span><span className="sp-grow" /><ChevronRight />
-						<Menu position="sub" aria-label="Add category">{categoryItems}</Menu>
+						<span>{phrase('orderMenu.addCategory')}</span><span className="sp-grow" /><ChevronRight />
+						<Menu position="sub" aria-label={phrase('orderMenu.addCategory')}>{categoryItems}</Menu>
 					</MenuItem>
 				)}
 			<MenuSeparator />
-			<MenuItem icon="trash" danger onClick={() => { close(); onDelete(order) }}>Delete order</MenuItem>
+			<MenuItem icon="trash" danger onClick={() => { close(); onDelete(order) }}>{phrase('deleteOrder.confirm')}</MenuItem>
 		</Menu>
 	)
 }
@@ -192,13 +194,14 @@ function ChevronRight() {
 
 /** The row's own menu (2b, 2e). */
 export function RowMenu({ order, touch, onDelete }) {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
 	useDismiss(anchor, open, close)
 	return (
 		<Anchor ref={anchor} open={open} onClick={ev => ev.stopPropagation()}>
-			<IconButton icon="dots-vertical" aria-label={`Order menu, ${orderName(order)}`}
+			<IconButton icon="dots-vertical" aria-label={phrase('orderMenu.label', { name: orderName(order) })}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			{open ? <OrderMenuItems order={order} touch={touch} close={close} onDelete={onDelete} /> : null}
 		</Anchor>
@@ -228,6 +231,7 @@ export function PressedRow({ order, mark, onOpen, onDelete, children }) {
 /** One order as a card (2c): its first three line photos, then the row's facts; the card's menu
     is the row's menu, and its box picks it as a row's does. */
 export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOpen, onDelete, onCategory }) {
+	const phrase = usePhrase()
 	const over = useOverLimitIds(order.date)
 	// a cancelled order did not happen: the card is struck and says so where the saving would stand (2b)
 	const cancelled = useStatusTypes().typeOf(order.status) === 'cancelled'
@@ -243,9 +247,9 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 				// the vendor's image fills the band as one photo would, faded (17e)
 				: [<img key="vendor" src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'wide-1080')} alt="" />]}
 			faded={!photos.length && Boolean(order.vendorImage)}
-			empty="No photos"
+			empty={phrase('orderMenu.noPhotos')}
 			more={more}
-			pick={<Check checked={picked} aria-label={`Select ${orderName(order)}`} onClick={ev => ev.stopPropagation()} onChange={ev => onPick(ev.nativeEvent?.shiftKey)} />}
+			pick={<Check checked={picked} aria-label={phrase('orderMenu.select', { name: orderName(order) })} onClick={ev => ev.stopPropagation()} onChange={ev => onPick(ev.nativeEvent?.shiftKey)} />}
 			title={vendorName(order)}
 			subtitle={orderLine(order)}
 			status={<StatusPill status={order.status} />}
@@ -255,15 +259,15 @@ export function OrderCard({ order, touch, picked, onPick, menuOpen, onMenu, onOp
 						{over.has(c.id) ? <><span className="sp-truncate">{c.name}</span><OverLimitDot /></> : c.name}
 					</Chip>
 				))
-				: <Chip variant="dashed">No category</Chip>}
+				: <Chip variant="dashed">{phrase('import.noCategory')}</Chip>}
 			meta={[
 				<span key="when" className="sp-subtitle">{shortDate(order.date)}</span>,
-				cancelled ? <span key="saved" className="sp-amount-secondary">not counted</span> : <Saving key="saved" value={order.saved} />
+				cancelled ? <span key="saved" className="sp-amount-secondary">{phrase('orderMenu.notCounted')}</span> : <Saving key="saved" value={order.saved} />
 			]}
 			amount={cancelled ? <span className="sp-void">{currency(order.total)}</span> : currency(order.total)}
 			menu={{
 				open: menuOpen,
-				label: `Order menu, ${orderName(order)}`,
+				label: phrase('orderMenu.label', { name: orderName(order) }),
 				onToggle: () => onMenu(menuOpen ? null : order.id),
 				onClose: () => onMenu(null),
 				children: menuOpen ? <OrderMenuItems order={order} touch={touch} close={() => onMenu(null)} onDelete={onDelete} /> : null

@@ -7,10 +7,12 @@ import { Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Ov
 import { useApi } from '../api/useApi.js'
 import { getOftenOrders, getOrders } from '../api/client.js'
 import { amount, dayShortMonth, dot, plural } from '../api/format.js'
+import { usePhrase } from '../language/phrases.js'
 
 /** The third way to start (3b), and Home's copy button: pick the order to copy, by vendor or by an
     item on it. The arrow keys walk the rows from the search field, as in every combobox (14a). */
 export function CopyPicker({ onClose }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const [query, setQuery] = useState('')
 	const [asked, setAsked] = useState('')
@@ -53,38 +55,38 @@ export function CopyPicker({ onClose }) {
 				</span>
 				<span className="sp-stacked sp-cell-amount sp-flex-none">
 					<span className="sp-amount">{amount(o.total)}</span>
-					<span className="sp-meta">{o.times ? `${o.times} times${dot}last ${dayShortMonth(o.date)}` : dayShortMonth(o.date)}</span>
+					<span className="sp-meta">{o.times ? phrase('copy.often', { count: o.times, dot, day: dayShortMonth(o.date) }) : dayShortMonth(o.date)}</span>
 				</span>
 			</span>
 		</ComboboxOption>
 	)
 	let rows
 	if (!found.data) rows = null
-	else if (!orders.length) rows = <ComboboxEmpty>{asked ? `No order matches "${asked}".` : 'There are no orders to copy yet.'}</ComboboxEmpty>
+	else if (!orders.length) rows = <ComboboxEmpty>{asked ? phrase('copy.noMatch', { asked }) : phrase('copy.none')}</ComboboxEmpty>
 	else rows = (
 		<>
-			{often.length ? <ComboboxGroup>You order these often</ComboboxGroup> : null}
+			{often.length ? <ComboboxGroup>{phrase('copy.oftenGroup')}</ComboboxGroup> : null}
 			{often.map(row)}
-			{asked || !recent.length ? null : <ComboboxGroup>Recent</ComboboxGroup>}
+			{asked || !recent.length ? null : <ComboboxGroup>{phrase('pick.recent')}</ComboboxGroup>}
 			{recent.map((o, i) => row(o, often.length + i))}
 		</>
 	)
 	return (
-		<Dialog onCancel={onClose} aria-label="Copy an order">
+		<Dialog onCancel={onClose} aria-label={phrase('copy.title')}>
 			<div className="sp-stack sp-gap-12">
 				<div className="sp-stack sp-gap-6">
-					<DialogTitle>Copy an order</DialogTitle>
-					<DialogBody>The vendor, category and item lines are copied, with each item's photo. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
+					<DialogTitle>{phrase('copy.title')}</DialogTitle>
+					<DialogBody>{phrase('copy.body')}</DialogBody>
 				</div>
-				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
+				<SearchInput value={query} onChange={setQuery} placeholder={phrase('copy.search')} aria-label={phrase('copy.searchLabel')}
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"
 					aria-activedescendant={active > -1 ? `${listId}-${active}` : undefined} onKeyDown={keys} />
-				<ul className="oc-options" id={listId} role="listbox" aria-label="Previous orders">{rows}</ul>
-				<span className="sp-announce" aria-live="polite">{asked && found.data ? (orders.length ? plural(orders.length, 'order') : 'No orders') : ''}</span>
+				<ul className="oc-options" id={listId} role="listbox" aria-label={phrase('copy.previous')}>{rows}</ul>
+				<span className="sp-announce" aria-live="polite">{asked && found.data ? (orders.length ? plural(orders.length, 'order') : phrase('copy.noOrders')) : ''}</span>
 				<DialogActions>
-					<span className="sp-meta">Nothing is created until you save.</span>
+					<span className="sp-meta">{phrase('copy.nothingYet')}</span>
 					<span className="sp-grow" />
-					<Button variant="outline" onClick={onClose}>Cancel</Button>
+					<Button variant="outline" onClick={onClose}>{phrase('action.cancel')}</Button>
 				</DialogActions>
 			</div>
 		</Dialog>

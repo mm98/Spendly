@@ -11,6 +11,7 @@ import {
 } from '../api/client.js'
 import { activeLocaleCode, amount, currency, dayShortMonth, dot, plural, shortDate } from '../api/format.js'
 import { pagesOf } from './OrderParts.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* "You already have this order" (3c): the one dialog for the same file or a look-alike, over a scan or a form. */
 
@@ -39,21 +40,22 @@ export const repeatIds = repeats => [...repeats.orders.map(o => o.id), ...(repea
 /** `file` is the upload's `seen` and `upload` the scan; `alike` is `{ count, orders }` from the look-alike
     search and `self` the order entered. `onReread` only where the file can be read again; `editing` for a saved order. */
 export function OrderRepeats({ file = null, upload = null, alike = null, self = null, editing = false, onCreate, onDiscard, onCancel, onReread }) {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const [comparing, setComparing] = useState(null)
 	const { orders, more, draft } = repeatsOf({ file, alike })
 	const rows = [...orders, ...(draft ? [draft] : [])]
 	// the matched file holds these same bytes, so the upload's own picture is a picture of it
 	const uploadThumb = upload?.hasThumbnail ? scanThumbnailUrl(upload.key) : null
-	const andMore = more ? `, and ${more} more` : ''
+	const andMore = more ? phrase('repeats.andMore', { more }) : ''
 	const fileOrders = orders.filter(o => o.why === 'file').length
 	const holders = [
-		fileOrders ? (fileOrders === 1 && file.count === 1 ? 'on this order' : 'on these orders') : null,
-		draft ? (fileOrders ? 'and in a draft' : 'in a draft') : null
+		fileOrders ? phrase(fileOrders === 1 && file.count === 1 ? 'repeats.onThis' : 'repeats.onThese') : null,
+		draft ? phrase(fileOrders ? 'repeats.andDraft' : 'repeats.inDraft') : null
 	].filter(Boolean).join(', ')
 	const said = holders
-		? `${upload?.name ?? 'This file'} is already ${holders}${andMore}`
-		: `This one is ${[self?.vendor, self?.date ? dayShortMonth(self.date) : null, self?.total != null ? currency(self.total) : null].filter(Boolean).join(', ')}${andMore}`
+		? phrase('repeats.already', { file: upload?.name ?? phrase('repeats.thisFile'), holders, more: andMore })
+		: phrase('repeats.thisOne', { facts: [self?.vendor, self?.date ? dayShortMonth(self.date) : null, self?.total != null ? currency(self.total) : null].filter(Boolean).join(', '), more: andMore })
 	// an amount can end in its currency's own full stop
 	const body = said.endsWith('.') ? said : `${said}.`
 
@@ -74,7 +76,7 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 		const thumb = o.why === 'alike' ? (o.thumbnailId ? attachmentThumbnailUrl(o.id, o.thumbnailId) : null) : uploadThumb
 		if (!thumb && o.why === 'alike') return <VendorMark name={o.vendor} colour={o.vendorColour} />
 		return (
-			<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label="Receipt">
+			<Mark size="medium" fill={thumb ? 'photo' : 'none'} aria-hidden="true" aria-label={phrase('repeats.receipt')}>
 				{thumb ? <img src={thumb} alt="" /> : <span>{(o.file?.kind ?? upload?.kind) === 'pdf' ? 'PDF' : 'IMG'}</span>}
 			</Mark>
 		)
@@ -82,11 +84,11 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 	const whyOf = o => {
 		if (o.why === 'file') {
 			const at = o.readAt ? new Date(o.readAt) : null
-			return at ? `Same file${dot}scanned ${dayShortMonth(localDay(at))}, ${timeFormat().format(at)}` : 'Same file'
+			return at ? phrase('repeats.sameFileAt', { dot, day: dayShortMonth(localDay(at)), time: timeFormat().format(at) }) : phrase('repeats.sameFile')
 		}
 		if (o.why !== 'alike' || !self?.date) return null
 		const days = Math.round(dayNumber(self.date) - dayNumber(o.date))
-		return `Same vendor${dot}${days === 0 ? 'the same day' : `${plural(Math.abs(days), 'day')} ${days > 0 ? 'earlier' : 'later'}`}`
+		return phrase('repeats.sameVendor', { dot, when: days === 0 ? phrase('repeats.sameDay') : phrase(days > 0 ? 'repeats.earlier' : 'repeats.later', { days: plural(Math.abs(days), 'day') }) })
 	}
 	// the draft is named by its vendor, or its file while no vendor was read
 	const nameOf = o => (o.why === 'draft' ? o.vendor || o.file?.name || upload?.name : o.vendor)
@@ -94,18 +96,18 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 	const open = (o, first) => (
 		<Button key="open" variant={first ? 'solid' : 'outline'} size={touch ? undefined : 'small'} fullWidth={touch}
 			to={`/orders/${o.id}`} target="_blank" rel="noopener">
-			{o.why === 'draft' ? 'Open that draft' : 'Open that order'}
+			{phrase(o.why === 'draft' ? 'repeats.openDraft' : 'repeats.openOrder')}
 		</Button>
 	)
 	const compareButton = o => (o.why === 'file' && upload
-		? <Button key="compare" variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => compare(o)}>Compare the files</Button>
+		? <Button key="compare" variant="outline" size={touch ? undefined : 'small'} fullWidth={touch} onClick={() => compare(o)}>{phrase('repeats.compare')}</Button>
 		: null)
 
 	const row = (o, i) => {
 		const total = o.total ?? null
 		if (touch) {
 			const facts = o.why === 'draft'
-				? ['Draft', o.scanned ? `scanned ${dayShortMonth(o.scanned)}` : null, total == null ? null : currency(total)]
+				? [phrase('order.draft'), o.scanned ? phrase('repeats.scanned', { day: dayShortMonth(o.scanned) }) : null, total == null ? null : currency(total)]
 				: [o.reference, shortDate(o.date), plural(o.itemCount, 'line'), total == null ? null : currency(total)]
 			return [
 				<ListItem key={o.id} variant="top" mark={markOf(o)}>
@@ -118,7 +120,7 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 			]
 		}
 		const facts = o.why === 'draft'
-			? ['Draft', o.scanned ? `scanned ${dayShortMonth(o.scanned)}` : null]
+			? [phrase('order.draft'), o.scanned ? phrase('repeats.scanned', { day: dayShortMonth(o.scanned) }) : null]
 			: [o.reference, dayShortMonth(o.date), plural(o.itemCount, 'line'), o.status]
 		const why = whyOf(o)
 		return (
@@ -136,20 +138,20 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 		)
 	}
 
-	const createWord = editing ? 'Save anyway' : 'Create anyway'
-	const discardWord = editing ? 'Discard changes' : 'Discard'
+	const createWord = phrase(editing ? 'repeats.saveAnyway' : 'repeats.createAnyway')
+	const discardWord = phrase(editing ? 'repeats.discardChanges' : 'action.discard')
 	const create = <Button key="create" variant="outline" fullWidth={touch} onClick={onCreate}>{createWord}</Button>
 	const discard = <Button key="discard" variant="outline" fullWidth={touch} onClick={onDiscard}>{discardWord}</Button>
-	const reread = onReread ? <Button key="reread" variant="outline" fullWidth={touch} onClick={onReread}>Read it again</Button> : null
+	const reread = onReread ? <Button key="reread" variant="outline" fullWidth={touch} onClick={onReread}>{phrase('repeats.reread')}</Button> : null
 	// a sheet stacks its buttons with the last one on top (app.css)
 	const actions = touch
 		? <DialogActions>{discard}{reread}{create}</DialogActions>
 		: <DialogActions>{reread}{reread ? <span className="sp-grow" /> : null}{discard}{create}</DialogActions>
-	const head = [<DialogTitle key="title">You already have this order</DialogTitle>, <DialogBody key="body">{body}</DialogBody>]
+	const head = [<DialogTitle key="title">{phrase('repeats.title')}</DialogTitle>, <DialogBody key="body">{body}</DialogBody>]
 	// the files are compared in place of the dialog, which comes back when the viewer closes
 	if (comparing) return <Viewer items={[comparing]} at={0} beside={comparing.beside} onMove={() => {}} onClose={() => setComparing(null)} />
 	return (
-		<Dialog onCancel={onCancel} aria-label="You already have this order">
+		<Dialog onCancel={onCancel} aria-label={phrase('repeats.title')}>
 			{touch ? head : <div className="sp-stack sp-gap-6">{head}</div>}
 			{rows.flatMap(row)}
 			{actions}
