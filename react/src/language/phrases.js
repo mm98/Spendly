@@ -39,9 +39,8 @@ export async function setLanguage(choice) {
 /** The code of the language in use. */
 export const languageCode = () => active.code
 
-/** The phrase under `key` with `values` in its places (ICU message format). A number is passed already
-    written in the account's format; a plural choice reads the raw count. A part drawn by the page, such as a
-    link, is a value: a function for a `<tag>words</tag>`, or an element for a place. An unknown key comes back as itself. */
+/** The phrase under `key` with `values` in its places (ICU message format); an unknown key comes back as itself.
+    A number is passed already written, a plural reads the raw count, and a link is a function for `<tag>words</tag>`. */
 export function phrase(key, values) {
 	const message = active.phrases[key]
 	if (message === undefined) return key

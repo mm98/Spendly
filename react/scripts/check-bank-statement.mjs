@@ -1,10 +1,17 @@
 // Reads an anonymised export in the bank format the check is built for, and checks it against a small budget.
 import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
-import {
+import { register } from 'node:module'
+
+// phrases.js finds its language files through Vite, which does not run here; the words are not checked, so it gets none
+register('data:text/javascript,' + encodeURIComponent(`export async function load(url, context, next) {
+	const found = await next(url, context)
+	return url.endsWith('/language/phrases.js') ? { ...found, source: String(found.source).replace("import.meta.glob('./*.json', { import: 'default' })", '{}') } : found
+}`))
+const {
 	checkPayments, dateFormatsFor, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
 	realAmounts
-} from '../src/api/bankStatement.js'
+} = await import('../src/api/bankStatement.js')
 
 const load = async name => {
 	const bytes = readFileSync(new URL(`./fixtures/${name}`, import.meta.url))

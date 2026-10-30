@@ -16,10 +16,10 @@
 			"hash": "40dd98323c561e40"
 		},
 		"DatePickers.jsx": {
-			"hash": "3f043c776ad580d8"
+			"hash": "6c25a96ad2459336"
 		},
 		"FileDrop.jsx": {
-			"hash": "a5a3a67cb03ea614"
+			"hash": "2b7272568fc932b9"
 		},
 		"Inputs.jsx": {
 			"hash": "3f7b785a2c890cd7"
@@ -35,6 +35,9 @@
 		},
 		"Overlays.jsx": {
 			"hash": "1866ee03507aa3e2"
+		},
+		"Reorder.jsx": {
+			"hash": "d39d1c2d706a9618"
 		},
 		"Shell.jsx": {
 			"hash": "3b388c2912a6bbab"

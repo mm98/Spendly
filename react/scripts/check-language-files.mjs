@@ -16,7 +16,7 @@ import { parseAst } from 'rolldown/parseAst'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = join(root, 'src')
 // the folders whose every word comes from the language files; a folder joins once its words have moved
-const TEXT_FREE = ['components', 'app', 'api']
+const TEXT_FREE = ['components', 'app', 'api', 'pages']
 // a name, a symbol, or words the server sends and the code compares: not words to translate
 const NAMES = new Set(['Spendly', 'Claude Code', 'kr.', 'https://', 'No change you can see.'])
 const findings = []

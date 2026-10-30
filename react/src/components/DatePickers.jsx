@@ -553,10 +553,9 @@ const periodNote = (preset, [from, to], today) => {
 	const a = parse(from)
 	const b = parse(to)
 	if (!a || !b) return null
-	const running = { week: 'to today', month: 'month to date', quarter: 'quarter to date', year: 'year to date' }[preset]
-	if (running && from <= today && today <= to) return running
+	if (['week', 'month', 'quarter', 'year'].includes(preset) && from <= today && today <= to) return phrase('period.running', { preset })
 	const days = Math.round((b - a) / 86400000) + 1
-	return days === 1 ? '1 day' : days + ' days'
+	return phrase('calendar.days', { count: days })
 }
 
 const precedingDates = (preset, [from, to]) => {

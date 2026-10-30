@@ -81,9 +81,9 @@ export function CategoryIconPicker({ value, onChange }) {
 	]
 	return (
 		<Picker icons={icons} value={chosen} onChange={onChange}
-			search={search} onSearch={v => { setSearch(v); setLimit(PAGE) }} searchLabel="Search icons…" noun="icons"
+			search={search} onSearch={v => { setSearch(v); setLimit(PAGE) }} searchLabel={phrase('icon.search')} noun="icons"
 			more={more ? phrase('action.more') : undefined} onMore={() => setLimit(n => n + PAGE)}
-			empty={entries && needle ? `No icon matches "${needle}". Try another word, in English.` : undefined} />
+			empty={entries && needle ? phrase('icon.noMatch', { search: needle }) : undefined} />
 	)
 }
 CategoryIconPicker.fieldRole = 'group'

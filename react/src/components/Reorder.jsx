@@ -2,6 +2,7 @@ import { createContext, useContext, useRef, useState } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
 import { Announce } from './ListItem.jsx'
 import { Rows } from './motion.js'
+import { phrase } from '../language/phrases.js'
 
 // Components, Ordering by hand: a touch drags after holding still, a pointer once it moves
 const HOLD_MS = 200
@@ -41,7 +42,7 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 	now.current = { order, keys, byKey, held }
 
 	const tell = (key, word, within = now.current.order) =>
-		setSaid(`${nameOf(now.current.byKey.get(key))}${word ? `, ${word}` : ''}, position ${within.indexOf(key) + 1} of ${within.length}`)
+		setSaid(phrase('reorder.said', { name: nameOf(now.current.byKey.get(key)), word: word ?? 'none', at: within.indexOf(key) + 1, count: within.length }))
 	// putting a row down where it was is not a change: nothing is saved
 	const commit = (next, key) => {
 		setLive(null)
@@ -52,7 +53,7 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 		if (now.current.held) commit(now.current.order, now.current.held.key)
 		setHeld({ key, from: now.current.order })
 		setLive(now.current.order)
-		tell(key, 'picked up')
+		tell(key, 'picked')
 	}
 	const drop = key => { setHeld(null); commit(now.current.order, key); tell(key, 'dropped') }
 	const keysOf = key => ev => {
@@ -66,7 +67,7 @@ export function ReorderList({ items, keyOf, nameOf, onMove, children }) {
 			ev.stopPropagation()
 			setLive(null)
 			setHeld(null)
-			return tell(key, 'put back', now.current.held.from)
+			return tell(key, 'back', now.current.held.from)
 		}
 		const at = now.current.order.indexOf(key)
 		const to = at + (ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0)

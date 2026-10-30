@@ -569,8 +569,10 @@ for (const [p, ast] of parsed) {
 			if (tag === 'IconButton' && literal(attr(n, 'icon')) === 'chevron-left') {
 				const row = siblingLists(above.findLast(a => a.type === 'JSXElement' || a.type === 'JSXFragment') ?? {}).find(r => r.includes(n)) ?? []
 				const next = row[row.indexOf(n) + 1]
-				if (next && /\bsp-stack(ed)?\b/.test(classOf(next)) && literal(attr(n, 'aria-label')) !== 'Back')
-					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(attr(n, 'aria-label')) ?? '(not a word)'}"`)
+				const label = attr(n, 'aria-label')
+				// the word comes from the language files, under action.back
+				if (next && /\bsp-stack(ed)?\b/.test(classOf(next)) && literal(label) !== 'Back' && !(label && text.slice(label.value.start, label.value.end) === "{phrase('action.back')}"))
+					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(label) ?? '(not a word)'}"`)
 			}
 
 			// a chip that adds a value under a field ("+ Lighting") is the suggestion chip, smaller on touch

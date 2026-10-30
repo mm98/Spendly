@@ -109,6 +109,7 @@ function Blank({ vendor, restored, onDraft }) {
 /* A copy carries the vendor, categories, kind, reference, note, Leave out of statistics and priced lines with their photos; the
    date is today, the status the account's default (3b, 8b), and the order's own files stay behind. */
 function Copy({ id, onDraft }) {
+	const phrase = usePhrase()
 	const order = useApi(getOrder, [id])
 	const blank = useApi(getOrderDraft)
 	const navigate = useNavigate()
@@ -136,7 +137,7 @@ function Copy({ id, onDraft }) {
 	return (
 		<OrderForm mode="new" region seed={seed}
 			photoUrl={draftPhotoUrl}
-			origin={{ copy: { id, vendor: order.data.vendor?.name ?? 'the order', date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
+			origin={{ copy: { id, vendor: order.data.vendor?.name ?? phrase('copy.theOrder'), date: order.data.date, files: (order.data.attachments?.length ?? 0) > 0 } }}
 			onLeave={() => navigate(`/orders/${id}`)} onDraft={onDraft} />
 	)
 }

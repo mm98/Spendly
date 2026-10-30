@@ -372,7 +372,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 					action={phrase('library.seeMoreStatistics')} />
 				{!known || known.orders ? <RecentLoading /> : null}
 				<EndLoading label={phrase('vendor.end')} title={end.title} body={end.body}
-					action={<Button variant="outline">{known?.archived ? 'Unarchive' : phrase('vendor.archive')}</Button>}
+					action={<Button variant="outline">{known?.archived ? phrase('library.unarchive') : phrase('vendor.archive')}</Button>}
 					after={<Button variant="outline" size="small" fullWidth>{phrase('library.mergeInto')}</Button>} />
 			</>
 		)

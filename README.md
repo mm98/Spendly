@@ -355,6 +355,7 @@ printed amounts.
   The server's answers are compressed too, except an answer that arrives line by line.
 - **The server** keeps each account's records apart in every query. Totals and counts are kept on
   the record by the database itself, so lists and statistics read them for free.
+  Its messages are written in the reader's language, from its own language files.
 - **What Ask makes** is one maker for each kind of thing (a file, a chart), and one file for each
   format a maker offers (Excel, CSV, Word and PDF; bars and shares). A new format is one file, and
   the rest of the server reads the lists. How, in [`api/src/format`](api/src/format/README.md).

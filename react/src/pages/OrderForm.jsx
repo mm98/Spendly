@@ -357,7 +357,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			return [...ls.slice(0, at + 1), copy, ...ls.slice(at + 1)]
 		})
 		reopen.current = key
-		setSaid(`${values.title || 'The line'} copied below itself`)
+		setSaid(phrase('form.lineCopied', { name: values.title || phrase('form.theLine') }))
 	}
 	const moveTo = (key, to) => setLines(ls => {
 		const at = ls.findIndex(l => l.key === key)
@@ -882,7 +882,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		setConflict(null)
 		if (said) toast({
 			message: said,
-			undo: { label: 'Undo', onClick: () => { setDraft(kept.draft); setLines(kept.lines); setGone(kept.gone); setFiles(kept.files) } }
+			undo: { label: phrase('action.undo'), onClick: () => { setDraft(kept.draft); setLines(kept.lines); setGone(kept.gone); setFiles(kept.files) } }
 		})
 	}
 	const seeTheirs = () => {
@@ -1053,17 +1053,17 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				opens={!touch && !reordering}
 				// a phone's Reorder mode has the handle and the two buttons, both (1c)
 				handle={scan ? undefined : <Icon name="grip-vertical" size={14} />}
-				handleLabel={`Reorder ${named}, currently position ${at + 1} of ${lines.length}`}
+				handleLabel={phrase('form.reorderLine', { name: named, at: at + 1, count: lines.length })}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
 				actions={reordering
 					? <>
-						<IconButton variant="outline" icon="chevron-up" aria-label={`Move ${named} up`} disabled={at === 0} onClick={() => move(line.key, -1)} />
-						<IconButton variant="outline" icon="chevron-down" aria-label={`Move ${named} down`} disabled={at === lines.length - 1} onClick={() => move(line.key, 1)} />
+						<IconButton variant="outline" icon="chevron-up" aria-label={phrase('form.moveLineUp', { name: named })} disabled={at === 0} onClick={() => move(line.key, -1)} />
+						<IconButton variant="outline" icon="chevron-down" aria-label={phrase('form.moveLineDown', { name: named })} disabled={at === lines.length - 1} onClick={() => move(line.key, 1)} />
 					</>
 					: <>
 						{pencil}
-						{scan ? null : <IconButton variant="outline" icon="copy" aria-label={`Duplicate ${named}`} onClick={() => duplicateLine(line)} />}
-						{scan ? null : <IconButton variant="outline" danger icon="trash" aria-label={`Delete ${named}`} onClick={() => removeLine(line)} />}
+						{scan ? null : <IconButton variant="outline" icon="copy" aria-label={phrase('form.duplicateLine', { name: named })} onClick={() => duplicateLine(line)} />}
+						{scan ? null : <IconButton variant="outline" danger icon="trash" aria-label={phrase('form.deleteLine', { name: named })} onClick={() => removeLine(line)} />}
 					</>}
 			>
 				{/* on a phone the two move buttons need the row's width, so the amount steps aside while reordering */}
