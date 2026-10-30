@@ -272,10 +272,11 @@ export function ChatShares({ children, ...rest }) {
     @param {() => void} [props.onRemove] */
 export function ChatPick({ question, disabled = false, onChoose, onRemove, ...rest }) {
 	reject(rest, 'ChatPick')
+	const phrase = usePhrase()
 	return (
 		<span className="sp-chat__pick">
 			<Button variant="outline" size="small" disabled={disabled} title={question} onClick={onChoose}><span className="sp-truncate">{question}</span></Button>
-			{onRemove ? <IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={`Remove ${question}`} onClick={onRemove} /> : null}
+			{onRemove ? <IconButton icon={<Icon name="x" size={9} />} size="small" aria-label={phrase('list.removeFilter', { name: question })} onClick={onRemove} /> : null}
 		</span>
 	)
 }

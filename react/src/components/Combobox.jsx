@@ -306,7 +306,7 @@ function ComboboxMany({ fullWidth = false, value = [], onChange, placeholder, da
 						{trails?.[token]}
 						<IconButton
 							icon={<Icon name="x" size={9} />}
-							aria-label={`Remove ${token}`}
+							aria-label={phrase('list.removeFilter', { name: token })}
 							size="small"
 							onClick={() => remove(token)}
 						/>

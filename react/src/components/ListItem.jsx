@@ -3,6 +3,7 @@ import { join, pick, reject } from './variants.js'
 import { m, useRow } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { useLongPress } from './Card.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 // a row arrives, leaves and glides to its place inside Rows; as a link it is the router's link, moving
 const MLink = m.create(Link)
@@ -48,7 +49,7 @@ export function ListItem({
 	mark,
 	handle,
 	// what the handle says it moves: a row of several, each named, is one a reader can tell apart
-	handleLabel = 'Reorder',
+	handleLabel,
 	actions,
 	count,
 	chevron,
@@ -66,6 +67,8 @@ export function ListItem({
 	...rest
 }) {
 	reject(rest, 'ListItem')
+	const phrase = usePhrase()
+	handleLabel ??= phrase('listItem.reorder')
 	const moves = useRow()
 	const held = useLongPress(onLongPress)
 	// in a ReorderList the row is carried by its handle, or picked up from the keyboard

@@ -272,6 +272,7 @@ export function AskTrail({ on, busy, spent, onToggle, onStop }) {
     @param {string} [props.locale] How numbers are written, such as da-DK. */
 export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
+	const phrase = usePhrase()
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
 	const [typing, setTyping] = useState({})
 	// the boxes read text back in the grammar `format` writes it in, unless a locale is named
@@ -369,7 +370,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 			className="sp-track__handle"
 			style={{ '--p': pct(n) }}
 			role="slider"
-			aria-label={`${label}, ${which === 'low' ? 'from' : 'to'}`}
+			aria-label={phrase(which === 'low' ? 'rangeSlider.from' : 'rangeSlider.to', { label })}
 			aria-valuemin={which === 'low' ? least : low}
 			aria-valuemax={which === 'low' ? high : most}
 			aria-valuenow={n}
@@ -411,14 +412,14 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 					classes="sp-number"
 					component="RangeSlider"
 					inputMode="decimal"
-					aria-label={`${label}, from`}
+					aria-label={phrase('rangeSlider.from', { label })}
 					{...bound('low', low)}
 				/>
 				<Box
 					classes="sp-number"
 					component="RangeSlider"
 					inputMode="decimal"
-					aria-label={`${label}, to`}
+					aria-label={phrase('rangeSlider.to', { label })}
 					{...bound('high', high)}
 				/>
 			</span>
