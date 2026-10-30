@@ -7,7 +7,7 @@ The control for choosing one value from a list: a trigger that opens a panel of 
 
 - `value`: what the trigger shows
 - `children`: `ComboboxOption`s, with `ComboboxGroup`, `ComboboxSeparator` and `ComboboxEmpty` between them
-- `variant`: `'default'` | `'sort'` | `'sort-end'` (a sort control last in its bar, opens leftward) | `'end'` | `'stretch'` | `'narrow'` (at most the field's width)
+- `variant`: `'default'` | `'sort'` | `'stretch'` | `'narrow'` (at most the field's width)
 - `fullWidth`: takes all the room it is given: the width of its column, or what is left in its row
 - `lead`: content before the value in the trigger, e.g. a status dot
 - `prefix`: a word kept in the trigger before the value ("Sort")

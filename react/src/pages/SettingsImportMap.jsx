@@ -84,7 +84,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 					{facts.dateFormat === 'excel' ? 'Dates are read as Excel dates.' : <>Dates are read as <b className="sp-nowrap">{DATE_SHAPES[facts.dateFormat]}</b>.</>}
 					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
 				</span>
-				<Combobox variant="sort-end" value="Change" aria-label="How the dates are written">
+				<Combobox variant="sort" value="Change" aria-label="How the dates are written">
 					{knownFormats.map(f => (
 						<ComboboxOption key={f} selected={f === facts.dateFormat} onSelect={() => onChange({ dateFormat: f, dateChosen: true })}>{DATE_LABELS[f]}</ComboboxOption>
 					))}
@@ -146,7 +146,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 
 	const groupedBy = shape === 'line'
 		? (
-			<Combobox variant="sort-end" aria-label="How item lines become orders"
+			<Combobox variant="sort" aria-label="How item lines become orders"
 				value={mapping.group === 'reference' && columns.includes('reference') ? 'grouped by Order ref' : 'grouped by vendor and date'}>
 				{columns.includes('reference')
 					? <ComboboxOption selected={mapping.group === 'reference'} onSelect={() => onChange({ group: 'reference' })}>grouped by Order ref</ComboboxOption>
@@ -241,7 +241,7 @@ function CategoryChoice({ value, chosen, open, onPick }) {
 	const recent = useRecent('category')
 	const searched = Boolean(find.trim()) || (page.total ?? 0) > (page.rows?.length ?? 0)
 	return (
-		<Combobox variant="sort-end" aria-label={`Category for ${value}`}
+		<Combobox variant="sort" aria-label={`Category for ${value}`}
 			value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === value ? `Create ${value}` : chosen}
 			{...(searched ? { searchable: true, search: find, onSearch: setFind, noun: 'categories' } : {})}>
 			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{`Create ${value}`}</ComboboxOption>

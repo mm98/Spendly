@@ -5160,13 +5160,13 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 
 .sp-gauge__fill--negative { left: auto; right: 0; background: var(--red-ink); border-radius: var(--r-marker); }
 
-/* ---------- a panel wider than its trigger - DRAFT c5 variant ----------
-   The combobox panel spans its trigger (left and right both 0), which is right
-   while the trigger is the wider of the two. A short trigger - a lens on a bar -
-   lets min-width push the panel past whatever contains it, so this variant anchors
-   it to the trigger's right edge instead and lets it grow inward. */
+/* ---------- a list hung from its field's right edge - c5 state ----------
+   A list wider than its field grows rightward. When that would pass the window
+   edge and the field's other side has more room, place() in Combobox.jsx marks it
+   data-hang="end": anchored to the field's right edge, growing leftward, at the
+   width it measured. Not a variant: any list takes it when the room calls for it. */
 
-.sp-combobox--end .sp-combobox__panel { left: auto; right: 0; width: 288px; }
+.sp-combobox__panel[data-hang="end"] { left: auto; right: 0; }
 
 /* The screen a sheet or a dialog sits over, dimmed. It fills the frame it is in, so
    inside a phone it covers the glass edge to edge and takes the frame's own corners.

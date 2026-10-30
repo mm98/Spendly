@@ -175,7 +175,7 @@ export const COMPONENTS = [
 
 	/* ---- choosing ---- */
 	C('Combobox', 'Combobox.jsx', 'Choosing', 'nodes', null, [
-		['variant', 'enum', 'default', ['default', 'sort', 'end', 'stretch', 'narrow']], ['fullWidth', 'bool', false],
+		['variant', 'enum', 'default', ['default', 'sort', 'stretch', 'narrow']], ['fullWidth', 'bool', false],
 		['value', 'text', 'Indbo Møbler'],
 		['lead', 'node', null],
 		['open', 'bool', false], ['defaultOpen', 'bool', false],

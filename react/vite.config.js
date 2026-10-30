@@ -1,4 +1,6 @@
-import { defineConfig, transformWithOxc } from 'vite'
+import fs from 'fs'
+import path from 'path'
+import { defineConfig, minifySync, transformWithOxc } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // base is relative so a build can be opened from any path -- the prototype it ports
@@ -19,6 +21,25 @@ const stripHtmlComments = () => ({
 	transformIndexHtml: html => html.replace(/[ \t]*<!--(?!\[if)[\s\S]*?-->\n?/g, '')
 })
 
+/* Vite copies public/ as written, comments and all. theme.js blocks the first paint, so its built copy
+   is minified in place; the source keeps its comments. precompress.mjs runs after this. */
+const minifyPublicScripts = () => {
+	let outDir
+	return {
+		name: 'minify-public-scripts',
+		apply: 'build',
+		configResolved: config => { outDir = path.resolve(config.root, config.build.outDir) },
+		closeBundle() {
+			for (const name of ['theme.js']) {
+				const file = path.join(outDir, name)
+				const result = minifySync(name, fs.readFileSync(file, 'utf8'), { compress: true, mangle: true })
+				if (result.errors?.length) throw new Error(`${name}: ${result.errors.map(e => e.message).join('; ')}`)
+				fs.writeFileSync(file, result.code)
+			}
+		}
+	}
+}
+
 /* motion.js (from design/react_handoff) is a .js file that holds JSX, which Vite only reads in a .jsx.
    Storybook imports this plugin too. */
 export const jsxInComponentJs = () => ({
@@ -38,7 +59,7 @@ const api = { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', ch
 
 export default defineConfig({
 	base: './',
-	plugins: [jsxInComponentJs(), react(), stripHtmlComments()],
+	plugins: [jsxInComponentJs(), react(), stripHtmlComments(), minifyPublicScripts()],
 	optimizeDeps: componentJsScan,
 	// the commit and version this bundle was built from (the Dockerfile passes GIT_SHA and VERSION);
 	// null anywhere else, which the update notice reads as "nothing to be out of date with"
