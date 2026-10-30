@@ -17,9 +17,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = join(root, 'src')
 const folder = join(src, 'language')
 // the folders whose every word comes from the language files; a folder joins once its words have moved
-const TEXT_FREE = ['components']
+const TEXT_FREE = ['components', 'app', 'api']
 // a name, a symbol, or words the server sends and the code compares: not words to translate
-const NAMES = new Set(['Spendly', 'kr.', 'No change you can see.'])
+const NAMES = new Set(['Spendly', 'Claude Code', 'kr.', 'No change you can see.'])
 const findings = []
 const fail = (where, detail) => findings.push(`${where}: ${detail}`)
 
@@ -66,8 +66,11 @@ for (const [p, text] of code) {
 const all = code.map(([, text]) => text).join('\n')
 // plural(n, 'item line') names count.itemLine
 const nounOf = key => `'${key.slice('count.'.length).replace(/[A-Z]/g, c => ' ' + c.toLowerCase())}'`
+// phrase(`kind.${kind}`) names every key in kind. that is one word longer
+const built = [...all.matchAll(/phrase\(`([\w.]+\.)\$\{/g)].map(([, prefix]) => prefix)
+const builtFrom = key => built.some(prefix => key.startsWith(prefix) && !key.slice(prefix.length).includes('.'))
 for (const key of Object.keys(english)) {
-	if (named.has(key) || all.includes(`'${key}'`) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue
+	if (named.has(key) || all.includes(`'${key}'`) || builtFrom(key) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue
 	fail('en.json', `${key} is not used anywhere`)
 }
 

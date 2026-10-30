@@ -11,23 +11,23 @@ import { Spinner, Stacked } from '../components/Utilities.jsx'
 import { deleteAccount, failureMessage, getAccountExport, getTwoStep } from '../api/client.js'
 import { download } from '../api/orderImport.js'
 import { useApi } from '../api/useApi.js'
-import { useCountdown, waitWords } from './AuthParts.jsx'
+import { bold, useCountdown, waitWords } from './AuthParts.jsx'
 import { Waiting, cleanCode, lockedOut } from './SettingsTwoStep.jsx'
+import { usePhrase } from '../language/phrases.js'
 
-const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
-const LINE = "Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good. This can't be undone."
 
 /* Delete account (11g): the last card in Account and profile, and on a phone at the end of the
    Settings account page. Its one dialog deletes the account at once. */
 export function DeleteAccountCard() {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	return (
 		<Card>
-			<CardHeader name="Delete account" />
-			<span className="sp-data">{LINE}</span>
+			<CardHeader name={phrase('deleteAccount.title')} />
+			<span className="sp-data">{phrase('deleteAccount.line')}</span>
 			<div className="sp-card__footer sp-row-flex sp-gap-8">
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" color="danger" disabled={open} onClick={() => setOpen(true)}>Delete account</Button>
+				<Button variant="outline" size="small" color="danger" disabled={open} onClick={() => setOpen(true)}>{phrase('deleteAccount.title')}</Button>
 			</div>
 			<Leaving>{open ? <DeleteAccount onCancel={() => setOpen(false)} /> : null}</Leaving>
 		</Card>
@@ -36,30 +36,32 @@ export function DeleteAccountCard() {
 
 /** The optional copy of the data, above the password: the button waits while the file is made. */
 function CopyOfData() {
+	const phrase = usePhrase()
 	const toast = useToast()
 	const [preparing, setPreparing] = useState(false)
 	const make = () => {
 		setPreparing(true)
 		getAccountExport()
 			.then(({ name, blob }) => download(name, blob, 'application/zip'))
-			.catch(() => toast({ message: 'The copy could not be made. Try again.', color: 'danger' }))
+			.catch(() => toast({ message: phrase('deleteAccount.copyFailed'), color: 'danger' }))
 			.finally(() => setPreparing(false))
 	}
 	return (
 		<ListItem>
 			<Stacked>
-				<span className="sp-title">A copy of your data</span>
-				<span className="sp-meta">Orders, receipts and lists, in one .zip file.</span>
+				<span className="sp-title">{phrase('deleteAccount.copy')}</span>
+				<span className="sp-meta">{phrase('deleteAccount.copyHelp')}</span>
 			</Stacked>
 			{preparing
-				? <Button variant="outline" size="small" disabled><Spinner />Preparing…</Button>
-				: <Button variant="outline" size="small" onClick={make}><Icon name="download" size={14} />Download</Button>}
+				? <Button variant="outline" size="small" disabled><Spinner />{phrase('deleteAccount.preparing')}</Button>
+				: <Button variant="outline" size="small" onClick={make}><Icon name="download" size={14} />{phrase('action.download')}</Button>}
 		</ListItem>
 	)
 }
 
 /** The password, and with two-step sign-in on a code, delete the account; then sign-in opens with a toast. */
 function DeleteAccount({ onCancel }) {
+	const phrase = usePhrase()
 	const twoStep = useApi(getTwoStep).data?.on === true
 	const navigate = useNavigate()
 	const [password, setPassword] = useState('')
@@ -76,11 +78,11 @@ function DeleteAccount({ onCancel }) {
 	})
 	const send = () => {
 		if (!password) {
-			setProblem({ password: 'Enter your password.' })
+			setProblem({ password: phrase('signIn.passwordMissing') })
 			return document.getElementById('delete-account-password')?.focus()
 		}
 		if (twoStep && !code) {
-			setProblem({ code: 'Enter the code.' })
+			setProblem({ code: phrase('signIn.codeMissing') })
 			return document.getElementById('delete-account-code')?.focus()
 		}
 		setBusy(true)
@@ -91,25 +93,25 @@ function DeleteAccount({ onCancel }) {
 				const wait = lockedOut(e)
 				if (wait) return setWaitFor(wait)
 				const field = e?.fields?.code ? 'code' : 'password'
-				setProblem({ [field]: e?.fields?.[field] ?? failureMessage(e, UNREACHABLE) })
+				setProblem({ [field]: e?.fields?.[field] ?? failureMessage(e, phrase('failed.unreachable')) })
 				select(field === 'code' ? 'delete-account-code' : 'delete-account-password')
 			})
 	}
 	const cancel = busy ? undefined : onCancel
 	return (
 		<Dialog onCancel={cancel}>
-			<DialogTitle>Delete your account?</DialogTitle>
-			<DialogBody>Your orders, receipts, vendors, categories, budget, bookmarks and chats are removed for good, and you are signed out on every device. This can't be undone.</DialogBody>
+			<DialogTitle>{phrase('deleteAccount.ask')}</DialogTitle>
+			<DialogBody>{phrase('deleteAccount.body')}</DialogBody>
 			<CopyOfData />
-			{waiting ? <Waiting title="Too many attempts">Try again in <b>{waitWords(waitFor)}</b>.</Waiting> : null}
+			{waiting ? <Waiting title={phrase('signIn.tooManyAttempts')}>{phrase('wait.tryAgainIn', { wait: waitWords(waitFor), b: bold })}</Waiting> : null}
 			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (!busy && !waiting) send() }}>
-				<Field label="Password" id="delete-account-password" message={problem?.password} messageType={problem?.password ? 'danger' : 'hint'}>
+				<Field label={phrase('field.password')} id="delete-account-password" message={problem?.password} messageType={problem?.password ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="current-password" autoFocus value={password} disabled={waiting}
 						onChange={v => { setPassword(v); setProblem(null) }} />
 				</Field>
 				{twoStep
 					? (
-						<Field label="Code from the app or a recovery code" id="delete-account-code" message={problem?.code} messageType={problem?.code ? 'danger' : 'hint'}>
+						<Field label={phrase('field.anyCode')} id="delete-account-code" message={problem?.code} messageType={problem?.code ? 'danger' : 'hint'}>
 							<TextField code autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={9} value={code} disabled={waiting}
 								onChange={v => { setCode(cleanCode(v)); setProblem(null) }} />
 						</Field>
@@ -118,9 +120,9 @@ function DeleteAccount({ onCancel }) {
 				<button type="submit" hidden />
 			</form>
 			<DialogActions>
-				<Button variant="outline" disabled={busy} onClick={cancel}>Cancel</Button>
+				<Button variant="outline" disabled={busy} onClick={cancel}>{phrase('action.cancel')}</Button>
 				<span className="sp-grow" />
-				<Button color="danger" disabled={busy || waiting} onClick={send}>{busy ? 'Deleting…' : 'Delete account'}</Button>
+				<Button color="danger" disabled={busy || waiting} onClick={send}>{phrase(busy ? 'action.deleting' : 'deleteAccount.title')}</Button>
 			</DialogActions>
 		</Dialog>
 	)

@@ -15,18 +15,18 @@ import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
 } from '../api/orderImport.js'
 import { landing } from './SettingsParts.jsx'
-import { phrase } from '../language/phrases.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const SHAPES = [
-	{ value: 'line', label: 'one item line' },
-	{ value: 'order', label: 'a whole order' }
+	{ value: 'line', label: 'import.shape.line' },
+	{ value: 'order', label: 'import.shape.order' }
 ]
 // a line's own fields, which a whole order has no place for (11b)
 const ITEM_ONLY = ['quantity', 'price']
 const label = id => phrase(FIELDS.find(f => f.id === id)?.label ?? 'import.field.none')
 const sampleOf = (body, i) => {
 	const values = [...new Set(body.map(r => String(r[i] ?? '').trim()).filter(Boolean))].slice(0, 3)
-	return values.length ? values.join(', ') + '…' : 'Empty'
+	return values.length ? values.join(', ') + '…' : phrase('import.emptyColumn')
 }
 
 /** A footer whose buttons share a line where they fit and take one each on a touch screen. */
@@ -57,6 +57,7 @@ export function readMapping(rows, mapping, categories) {
 
 /** Step 2 of 11b: which column is which, checked against the file's own rows. */
 export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPreview }) {
+	const phrase = usePhrase()
 	const matchRef = useRef(null)
 	// the category names the file holds, and which of them the account has already
 	const categoryAt = mapping[mapping.shape].indexOf('category')
@@ -72,7 +73,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 		const next = columns.map((c, j) => (j === i ? id : c === id && id !== NONE ? NONE : c))
 		onChange({ [shape]: next })
 	}
-	const required = REQUIRED[shape].map(label).map((l, i, all) => (i === 0 ? l : i === all.length - 1 ? ` and ${l.toLowerCase()}` : `, ${l.toLowerCase()}`)).join('')
+	const required = phrase('join.list', { first: REQUIRED[shape].slice(0, -1).map((id, i) => (i ? label(id).toLowerCase() : label(id))).join(', '), last: label(REQUIRED[shape].at(-1)).toLowerCase() })
 	const categoryColumn = header[columns.indexOf('category')]
 	const dateColumnAt = columns.indexOf('date')
 	const knownFormats = facts.dateFormats.length ? facts.dateFormats : Object.keys(DATE_SHAPES).filter(f => f !== 'excel')
@@ -83,9 +84,9 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-warning sp-grow">
 					{phrase('import.datesReadAs', { shape: phrase(DATE_SHAPES[facts.dateFormat]), b: words => <b className="sp-nowrap">{words}</b> })}
-					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
+					{facts.dateFormats.length === 1 ? ' ' + phrase('import.datesAllMatch') : facts.dateFormats.length > 1 ? ' ' + phrase('import.datesOtherWay') : ''}
 				</span>
-				<Combobox variant="sort" value="Change" aria-label="How the dates are written">
+				<Combobox variant="sort" value={phrase('import.change')} aria-label={phrase('import.dateShape')}>
 					{knownFormats.map(f => (
 						<ComboboxOption key={f} selected={f === facts.dateFormat} onSelect={() => onChange({ dateFormat: f, dateChosen: true })}>{phrase(DATE_LABELS[f])}</ComboboxOption>
 					))}
@@ -95,7 +96,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 		: (
 			<ListItem color="danger">
 				<Icon name="alert-circle" />
-				<span className="sp-subtitle sp-ink-danger">These are not dates Spendly can read. Map another column as the order date.</span>
+				<span className="sp-subtitle sp-ink-danger">{phrase('import.notDates')}</span>
 			</ListItem>
 		)
 
@@ -104,9 +105,9 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 			<ListItem color="warning">
 				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-warning sp-grow">
-					<b>{plural(facts.unresolved.length, 'value')}</b> in {categoryColumn} {facts.unresolved.length === 1 ? "doesn't" : "don't"} match a category yet. They are listed below and each needs a choice before the import can run.
+					{phrase('import.unmatched', { count: facts.unresolved.length, values: plural(facts.unresolved.length, 'value'), column: categoryColumn, b: words => <b>{words}</b> })}
 				</span>
-				<Button variant="outline" size="small" color="warning" onClick={() => matchRef.current?.scrollIntoView({ block: 'center' })}>Match them</Button>
+				<Button variant="outline" size="small" color="warning" onClick={() => matchRef.current?.scrollIntoView({ block: 'center' })}>{phrase('import.matchThem')}</Button>
 			</ListItem>
 		)
 		: null
@@ -114,7 +115,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 	const row = (name, i) => {
 		const id = columns[i]
 		const idle = id === NONE
-		const title = String(name || `Column ${i + 1}`)
+		const title = String(name || phrase('import.column', { at: i + 1 }))
 		if (shape === 'order' && idle && ITEM_ONLY.includes(mapping.line?.[i])) return (
 			<div key={i} className="st-map sp-muted">
 				<Well variant="quiet">
@@ -122,7 +123,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
 				</Well>
 				<Icon name="chevron-right" size={16} />
-				<span className="sp-input sp-input--empty sp-input--stretch">No field for this now</span>
+				<span className="sp-input sp-input--empty sp-input--stretch">{phrase('import.noField')}</span>
 			</div>
 		)
 		return (
@@ -132,14 +133,14 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 					<span className="sp-meta sp-truncate">{sampleOf(body, i)}</span>
 				</Well>
 				<Icon name="chevron-right" size={16} />
-				<Combobox variant="stretch" aria-label={`Field for ${name || `column ${i + 1}`}`}
-					value={idle ? <span className="sp-ink-5">Don't import</span>
-						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}{shape === 'order' && id === 'total' ? <Pill color="success">New</Pill> : null}</span>}>
+				<Combobox variant="stretch" aria-label={phrase('import.fieldFor', { name: title })}
+					value={idle ? <span className="sp-ink-5">{phrase('import.field.none')}</span>
+						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">{phrase('field.optional')}</span> : null}{shape === 'order' && id === 'total' ? <Pill color="success">{phrase('import.new')}</Pill> : null}</span>}>
 					{fields.map(f => (
 						<ComboboxOption key={f.id} selected={f.id === id} onSelect={() => setColumn(i, f.id)}
 							meta={REQUIRED[shape].includes(f.id) ? phrase('field.required') : f.optional ? phrase('field.optional') : undefined}>{phrase(f.label)}</ComboboxOption>
 					))}
-					<ComboboxOption selected={idle} onSelect={() => setColumn(i, NONE)}>Don't import</ComboboxOption>
+					<ComboboxOption selected={idle} onSelect={() => setColumn(i, NONE)}>{phrase('import.field.none')}</ComboboxOption>
 				</Combobox>
 			</div>
 		)
@@ -147,30 +148,30 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 
 	const groupedBy = shape === 'line'
 		? (
-			<Combobox variant="sort" aria-label="How item lines become orders"
-				value={mapping.group === 'reference' && columns.includes('reference') ? 'grouped by Order ref' : 'grouped by vendor and date'}>
+			<Combobox variant="sort" aria-label={phrase('import.grouping')}
+				value={phrase(mapping.group === 'reference' && columns.includes('reference') ? 'import.groupByReference' : 'import.groupByVendor')}>
 				{columns.includes('reference')
-					? <ComboboxOption selected={mapping.group === 'reference'} onSelect={() => onChange({ group: 'reference' })}>grouped by Order ref</ComboboxOption>
+					? <ComboboxOption selected={mapping.group === 'reference'} onSelect={() => onChange({ group: 'reference' })}>{phrase('import.groupByReference')}</ComboboxOption>
 					: null}
-				<ComboboxOption selected={mapping.group !== 'reference' || !columns.includes('reference')} onSelect={() => onChange({ group: 'vendor-date' })}>grouped by vendor and date</ComboboxOption>
+				<ComboboxOption selected={mapping.group !== 'reference' || !columns.includes('reference')} onSelect={() => onChange({ group: 'vendor-date' })}>{phrase('import.groupByVendor')}</ComboboxOption>
 			</Combobox>
 		)
 		: null
 
 	return (
 		<Card ref={box}>
-			<CardHeader name="Import" {...landing('import')} />
+			<CardHeader name={phrase('settings.section.import')} {...landing('import')} />
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-row-flex sp-flex-none"><Icon name="file" /></span>
 				<span className="sp-title sp-truncate">{file}</span>
 				<span className="sp-meta sp-nowrap">{plural(body.length, 'row')}{dot}{plural(header.length, 'column')}</span>
 				<span className="sp-grow" />
-				<Button variant="outline" size="small" onClick={onReplace}>Replace file</Button>
+				<Button variant="outline" size="small" onClick={onReplace}>{phrase('import.replaceFile')}</Button>
 			</div>
 			<ListItem setting>
 				<div className="st-wrap">
-					<span className="sp-field__label" id="import-shape-label">Each row is</span>
-					<Segmented name="import-shape" options={SHAPES} value={shape} aria-labelledby="import-shape-label"
+					<span className="sp-field__label" id="import-shape-label">{phrase('import.eachRow')}</span>
+					<Segmented name="import-shape" options={SHAPES.map(s => ({ ...s, label: phrase(s.label) }))} value={shape} aria-labelledby="import-shape-label"
 						onChange={v => onChange({ shape: v })} />
 					<span className="st-push" />
 					{groupedBy}
@@ -178,9 +179,9 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 			</ListItem>
 			<div className="sp-stack sp-gap-12">
 				<div className="st-map st-map--head">
-					<span className="sp-section-label">Column in file</span>
+					<span className="sp-section-label">{phrase('import.columnInFile')}</span>
 					<span />
-					<span className="sp-section-label">Spendly field</span>
+					<span className="sp-section-label">{phrase('import.spendlyField')}</span>
 				</div>
 				{header.map((name, i) => (
 					<div key={i} className="sp-stack sp-gap-12">
@@ -195,7 +196,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 					<ListItem color="warning">
 						<Icon name="alert-circle" />
 						<span className="sp-subtitle sp-ink-warning">
-							Each order arrives with <b>one item line</b> carrying the description and the total, quantity 1. That keeps the totals correct and the order editable, but the detail is gone - an order imported this way can't be broken back into its items later. Switching back to "one item line" restores the mapping you had; it isn't lost.
+							{phrase('import.wholeOrders', { b: words => <b>{words}</b> })}
 						</span>
 					</ListItem>
 				)
@@ -203,8 +204,8 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 			{facts.unknown.length
 				? (
 					<div className="sp-stack sp-gap-8" ref={matchRef}>
-						<span className="sp-section-label">Matching unknown values</span>
-						<span className="sp-meta">Every unmatched value gets a row. Nothing is guessed silently - an unresolved row blocks the import, because a category invented by an import is worse than one you chose.</span>
+						<span className="sp-section-label">{phrase('import.matching')}</span>
+						<span className="sp-meta">{phrase('import.matchingHint')}</span>
 						{facts.unknown.map(u => {
 							const chosen = mapping.categories?.[u.value]
 							const open = chosen === undefined
@@ -225,10 +226,10 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 				: null}
 			<ImportFooter>
 				<span className="sp-subtitle st-foot-note">
-					{facts.mapped} of {header.length} columns mapped. {required} are required.
-					{facts.missing.length ? <> Still missing: {facts.missing.map(label).join(', ').toLowerCase()}.</> : null}
+					{phrase('import.mapped', { mapped: facts.mapped, count: header.length, required })}
+					{facts.missing.length ? ' ' + phrase('import.missing', { fields: facts.missing.map(label).join(', ').toLowerCase() }) : null}
 				</span>
-				<Button disabled={!facts.ready} onClick={() => onPreview(facts)}>Preview</Button>
+				<Button disabled={!facts.ready} onClick={() => onPreview(facts)}>{phrase('import.previewButton')}</Button>
 			</ImportFooter>
 		</Card>
 	)
@@ -237,20 +238,21 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 /** What one unknown category of the file becomes: a new category, one the account has, or none. The
     account's categories come a page at a time; past a page the choice is searched. */
 function CategoryChoice({ value, chosen, open, onPick }) {
+	const phrase = usePhrase()
 	const [find, setFind] = useState('')
 	const page = usePickList('category', find, {})
 	const recent = useRecent('category')
 	const searched = Boolean(find.trim()) || (page.total ?? 0) > (page.rows?.length ?? 0)
 	return (
-		<Combobox variant="sort" aria-label={`Category for ${value}`}
-			value={open ? 'Pick, or create it' : chosen === '' ? 'No category' : chosen === value ? `Create ${value}` : chosen}
+		<Combobox variant="sort" aria-label={phrase('import.categoryFor', { value })}
+			value={open ? phrase('import.pickOrCreate') : chosen === '' ? phrase('import.noCategory') : chosen === value ? phrase('import.create', { value }) : chosen}
 			{...(searched ? { searchable: true, search: find, onSearch: setFind, noun: 'categories' } : {})}>
-			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{`Create ${value}`}</ComboboxOption>
-			{pickGroups(groupPicks(page.rows ?? [], recent, find, 'Other categories', { byName: true }), c => (
+			<ComboboxOption create selected={chosen === value} onSelect={() => onPick(value)}>{phrase('import.create', { value })}</ComboboxOption>
+			{pickGroups(groupPicks(page.rows ?? [], recent, find, phrase('import.otherCategories'), { byName: true }), c => (
 				<ComboboxOption key={c.id} selected={chosen === c.name} onSelect={() => onPick(c.name)}>{c.name}</ComboboxOption>
 			))}
 			<MoreMatches rows={page.rows} matched={page.matched} noun="categories" />
-			<ComboboxOption selected={chosen === ''} onSelect={() => onPick('')}>No category</ComboboxOption>
+			<ComboboxOption selected={chosen === ''} onSelect={() => onPick('')}>{phrase('import.noCategory')}</ComboboxOption>
 		</Combobox>
 	)
 }

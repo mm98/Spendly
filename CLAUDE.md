@@ -569,7 +569,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   Reading code, writing a script and thinking count as work too: the 30-second line holds for
   them, not only while a command runs. Before each next step, check when the last status went out;
   if it was 30 seconds or more ago, the status goes first. A user who has to ask for a status means
-  the rule was already broken.
+  the rule was already broken. A status is a message in the thread: a changed checklist alone is not
+  seen as one.
 - **A question the user has to answer is a choice they can tap, never a line in a message.** A
   question in plain text is overlooked. Give each answer as its own option. This holds every time
   it is asked: when the user answers a card with something else, or the question comes up again,

@@ -21,7 +21,7 @@ import { chosenTheme, followSystem, setDensity, setScheme, setTheme, showScheme,
 import { freshFetch, invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCategoryPage, getCategoryPages, getCurrentUser, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getOrderDraft, getOrders, getSettings, getStatsSlice, getStatuses, getVendorPage, getVendorPages, listSorts, removePicture, saveSettings,
-	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
+	setViewsShown, kindName, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
 import { LANGUAGES, browserLanguage, phrase, setLanguage, usePhrase } from '../language/phrases.js'
@@ -48,18 +48,18 @@ const OWN_PAGES = ['passkeys', 'two-step', 'status-email']
 
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
-	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
-	{ key: 'formats', label: 'Language and formats', keys: ['language', 'currency', 'locale'] },
-	{ key: 'appearance', label: 'Appearance', keys: ['colourScheme', 'density', 'compareMonth'] },
-	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
-	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
-	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
-	{ key: 'looks', label: 'Needs a look', keys: LOOKS.map(l => `look.${l.id}`) },
-	{ key: 'statuses', label: 'Statuses', keys: ['statuses'] },
-	{ key: 'assistants', label: 'AI assistants' },
-	{ key: 'import', label: 'Import' },
-	{ key: 'demo', label: 'Demo data' },
-	{ key: 'build', label: 'This build' }
+	{ key: 'account', label: 'settings.section.account', keys: ['name', 'picture'] },
+	{ key: 'formats', label: 'settings.section.formats', keys: ['language', 'currency', 'locale'] },
+	{ key: 'appearance', label: 'settings.section.appearance', keys: ['colourScheme', 'density', 'compareMonth'] },
+	{ key: 'defaults', label: 'settings.section.defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
+	{ key: 'lists', label: 'settings.section.lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
+	{ key: 'alerts', label: 'settings.section.alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
+	{ key: 'looks', label: 'settings.section.looks', keys: LOOKS.map(l => `look.${l.id}`) },
+	{ key: 'statuses', label: 'settings.section.statuses', keys: ['statuses'] },
+	{ key: 'assistants', label: 'settings.section.assistants' },
+	{ key: 'import', label: 'settings.section.import' },
+	{ key: 'demo', label: 'settings.section.demo' },
+	{ key: 'build', label: 'settings.section.build' }
 ]
 
 // the first of the panes that are tools rather than preferences, which the nav sets apart (11a)
@@ -72,46 +72,46 @@ const RECENT_ROWS = Array.from({ length: 15 }, (_, i) => i + 1)
 const VIEWS_SHOWN = [2, 3, 4, 5, 6, 8, 10]
 
 const THEMES = [
-	{ value: 'light', label: 'Light' },
-	{ value: 'dark', label: 'Dark' },
-	{ value: 'system', label: 'Follow system' }
+	{ value: 'light', label: 'settings.theme.light' },
+	{ value: 'dark', label: 'settings.theme.dark' },
+	{ value: 'system', label: 'settings.theme.system' }
 ]
 
 // in the order 11a draws them; each value is a data-scheme in styles/schemes.css
 const SCHEMES = [
-	{ value: 'rust', label: 'Terracotta' },
-	{ value: 'mocha', label: 'Mocha' },
-	{ value: 'ochre', label: 'Ochre' },
-	{ value: 'olive', label: 'Olive' },
-	{ value: 'emerald', label: 'Emerald' },
-	{ value: 'teal', label: 'Petrol teal' },
-	{ value: 'ocean', label: 'Ocean' },
-	{ value: 'slate', label: 'Slate' },
-	{ value: 'navy', label: 'Deep navy' },
-	{ value: 'cobalt', label: 'Cobalt' },
-	{ value: 'indigo', label: 'Indigo' },
-	{ value: 'violet', label: 'Violet' },
-	{ value: 'plum', label: 'Plum' },
-	{ value: 'raspberry', label: 'Raspberry' },
-	{ value: 'oxblood', label: 'Oxblood' },
-	{ value: 'charcoal', label: 'Charcoal' }
+	{ value: 'rust', label: 'settings.scheme.rust' },
+	{ value: 'mocha', label: 'settings.scheme.mocha' },
+	{ value: 'ochre', label: 'settings.scheme.ochre' },
+	{ value: 'olive', label: 'settings.scheme.olive' },
+	{ value: 'emerald', label: 'settings.scheme.emerald' },
+	{ value: 'teal', label: 'settings.scheme.teal' },
+	{ value: 'ocean', label: 'settings.scheme.ocean' },
+	{ value: 'slate', label: 'settings.scheme.slate' },
+	{ value: 'navy', label: 'settings.scheme.navy' },
+	{ value: 'cobalt', label: 'settings.scheme.cobalt' },
+	{ value: 'indigo', label: 'settings.scheme.indigo' },
+	{ value: 'violet', label: 'settings.scheme.violet' },
+	{ value: 'plum', label: 'settings.scheme.plum' },
+	{ value: 'raspberry', label: 'settings.scheme.raspberry' },
+	{ value: 'oxblood', label: 'settings.scheme.oxblood' },
+	{ value: 'charcoal', label: 'settings.scheme.charcoal' }
 ]
 
 const DENSITIES = [
-	{ value: 'comfortable', label: 'Comfortable' },
-	{ value: 'compact', label: 'Compact' }
+	{ value: 'comfortable', label: 'settings.density.comfortable' },
+	{ value: 'compact', label: 'settings.density.compact' }
 ]
 
 const COMPARES = [
-	{ id: 'last', label: 'Last month' },
-	{ id: 'year', label: 'Same month last year' }
+	{ id: 'last', label: 'settings.compare.last' },
+	{ id: 'year', label: 'settings.compare.year' }
 ]
 
 // the share of a limit a warning starts at (8b); 100 is only once it is passed
 const EARLY = [
-	{ value: 75, label: '75%' },
-	{ value: 90, label: '90%' },
-	{ value: 100, label: 'Only over' }
+	{ value: 75, label: 'settings.early.75' },
+	{ value: 90, label: 'settings.early.90' },
+	{ value: 100, label: 'settings.early.over' }
 ]
 // what a key the server does not send yet stands at, as 8b draws it
 const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: 90, scanOverrides: true }
@@ -120,6 +120,9 @@ const lookValues = settings => Object.fromEntries(LOOKS.map(l => [`look.${l.id}`
 
 const currencyLabel = c => `${phrase(c.label)} (${c.symbol})`
 const localeLabel = l => `${phrase(l.label)} (${localeSample(l.code)})`
+// a list whose labels are phrase keys, as a picker draws it
+const said = options => options.map(o => ({ ...o, label: phrase(o.label) }))
+const sectionNames = sections => sections.map(s => phrase(s.label))
 // the chosen currency, not the saved one: the preview shows what Save would make every amount
 const previewAmount = code => {
 	const c = CURRENCIES.find(x => x.code === code) ?? CURRENCIES[0]
@@ -133,6 +136,7 @@ const dropStale = () => {
 }
 
 export default function Settings() {
+	const phrase = usePhrase()
 	const { section: asked } = useParams()
 	const shape = useShellShape()
 	const touch = shape === 'touch'
@@ -183,9 +187,9 @@ export default function Settings() {
 	const unimported = importUnsaved(importing)
 	const leaveBody = !unimported ? undefined
 		: !dirty.length ? importLeaveBody(unimported)
-		: `Your changes in ${dirty.map(s => s.label).join(' and in ')} are not saved, and ${unimported} is not imported yet. If you leave now, they are lost. No orders have been written.`
+		: phrase('settings.leaveBoth', { sections: sectionNames(dirty).join(phrase('settings.andIn')), file: unimported })
 	// moving between panes keeps the draft and the import, so only leaving Settings asks first, naming what is lost
-	const guard = useLeaveGuard(dirty.length > 0 || unimported != null, { within: '/settings', names: dirty.map(s => s.label), body: leaveBody })
+	const guard = useLeaveGuard(dirty.length > 0 || unimported != null, { within: '/settings', names: sectionNames(dirty), body: leaveBody })
 
 	const save = () => {
 		setSaving(true)
@@ -217,10 +221,10 @@ export default function Settings() {
 				settings.refresh()
 				setLanded(draft)
 				setDraft({})
-				toast({ message: 'Your settings are saved.' })
+				toast({ message: phrase('settings.saved') })
 			})
 			.catch(e => {
-				const message = failureMessage(e, 'Your changes were not saved. Try again.')
+				const message = failureMessage(e, phrase('settings.notSaved'))
 				if (message) toast({ message, color: 'danger' })
 			})
 			.finally(() => setSaving(false))
@@ -253,26 +257,26 @@ export default function Settings() {
 		: touch
 			? (
 				<SaveBar>
-					<span className="sp-subtitle sp-grow">Unsaved changes</span>
-					<Button variant="outline" disabled={saving} onClick={discard}>Discard</Button>
-					<Button disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</Button>
+					<span className="sp-subtitle sp-grow">{phrase('settings.unsaved')}</span>
+					<Button variant="outline" disabled={saving} onClick={discard}>{phrase('action.discard')}</Button>
+					<Button disabled={saving} onClick={save}>{phrase(saving ? 'action.saving' : 'action.save')}</Button>
 				</SaveBar>
 			)
 			: (
 				<ListItem variant="sticky">
 					<span className="sp-data">
-						{dirty.length === 1 ? `Unsaved changes in ${dirty[0].label}` : `Unsaved changes in ${dirty.length} sections`}
+						{dirty.length === 1 ? phrase('settings.unsavedIn', { section: phrase(dirty[0].label) }) : phrase('settings.unsavedSections', { count: dirty.length })}
 					</span>
 					<span className="sp-grow" />
-					<Button variant="outline" size="small" disabled={saving} onClick={discard}>Discard</Button>
-					<Button disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</Button>
+					<Button variant="outline" size="small" disabled={saving} onClick={discard}>{phrase('action.discard')}</Button>
+					<Button disabled={saving} onClick={save}>{phrase(saving ? 'action.saving' : 'action.save')}</Button>
 				</ListItem>
 			)
 
 	const seen = useSeenSection(!touch && saved != null)
 	const failed = settings.error ?? user.error
 	const body = failed && !saved
-		? <Failed what="Your settings" error={failed} onRetry={() => { settings.refresh(); user.refresh() }} />
+		? <Failed what={phrase('settings.what')} error={failed} onRetry={() => { settings.refresh(); user.refresh() }} />
 		: !saved
 			? <><LoadingCard /><LoadingCard /><LoadingCard /></>
 			: null
@@ -333,12 +337,13 @@ function useSeenSection(active) {
 }
 
 function SettingsNav({ current }) {
+	const phrase = usePhrase()
 	return (
-		<SectionNav label="Settings">
+		<SectionNav label={phrase('page.settings')}>
 			{SECTIONS.map(s => (
 				<Fragment key={s.key}>
 					{s.key === TOOLS ? <MenuSeparator variant="divider" /> : null}
-					<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{s.label}</NavItem>
+					<NavItem variant="light" to={`/settings/${s.key}`} current={s.key === current}>{phrase(s.label)}</NavItem>
 				</Fragment>
 			))}
 		</SectionNav>
@@ -348,11 +353,12 @@ function SettingsNav({ current }) {
 /* Below 900 the section nav is a select above the cards (11a). */
 function SectionPicker({ current }) {
 	const navigate = useNavigate()
+	const phrase = usePhrase()
 	const chosen = SECTIONS.find(s => s.key === current)
 	return (
-		<Combobox value={chosen?.label ?? 'Go to a section'} aria-label="Settings section">
+		<Combobox value={phrase(chosen?.label ?? 'settings.goToSection')} aria-label={phrase('settings.sectionPicker')}>
 			{SECTIONS.map(s => (
-				<ComboboxOption key={s.key} selected={s.key === current} onSelect={() => navigate(`/settings/${s.key}`)}>{s.label}</ComboboxOption>
+				<ComboboxOption key={s.key} selected={s.key === current} onSelect={() => navigate(`/settings/${s.key}`)}>{phrase(s.label)}</ComboboxOption>
 			))}
 		</Combobox>
 	)
@@ -408,6 +414,7 @@ function Arrive({ section, visit, room, children }) {
    The colour scheme is the account's: a pick shows at once, and is kept when the card is saved. */
 function AppearanceCard({ value, change, touch }) {
 	useTheme()
+	const phrase = usePhrase()
 	const [, redraw] = useReducer(n => n + 1, 0)
 	const pick = next => {
 		if (next === 'system') followSystem()
@@ -416,21 +423,21 @@ function AppearanceCard({ value, change, touch }) {
 	}
 	return (
 		<Card>
-			<CardHeader name="Appearance" {...landing('appearance')} />
-			<Field label="Theme">
-				<ThemeTiles name="theme" options={THEMES} value={chosenTheme() ?? 'system'} onChange={pick} />
+			<CardHeader name={phrase('settings.section.appearance')} {...landing('appearance')} />
+			<Field label={phrase('settings.theme')}>
+				<ThemeTiles name="theme" options={said(THEMES)} value={chosenTheme() ?? 'system'} onChange={pick} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Colour scheme" message="Sets the colour of buttons, links, the sidebar and savings, in light and dark.">
-				<SchemeTiles name="colourScheme" options={SCHEMES} value={value('colourScheme') ?? 'emerald'} onChange={v => change('colourScheme', v)} />
+			<Field label={phrase('settings.scheme')} message={phrase('settings.schemeHelp')}>
+				<SchemeTiles name="colourScheme" options={said(SCHEMES)} value={value('colourScheme') ?? 'emerald'} onChange={v => change('colourScheme', v)} />
 			</Field>
 			<span className="sp-rule" />
 			<Pair touch={touch}>
-				<Field label="Row density" message="Compact fits more rows on screen.">
-					<Segmented name="density" fullWidth options={DENSITIES} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
+				<Field label={phrase('settings.density')} message={phrase('settings.densityHelp')}>
+					<Segmented name="density" fullWidth options={said(DENSITIES)} value={value('density') ?? 'comfortable'} onChange={v => change('density', v)} />
 				</Field>
-				<Field label="Compare this month with" message="What Home and the monthly summary measure this month against." messageType="quiet">
-					<Choose value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={COMPARES} />
+				<Field label={phrase('settings.compare')} message={phrase('settings.compareHelp')} messageType="quiet">
+					<Choose value={value('compareMonth') ?? 'last'} onChange={v => change('compareMonth', v)} options={said(COMPARES)} />
 				</Field>
 			</Pair>
 		</Card>
@@ -447,23 +454,23 @@ function FormatsCard({ value, change, touch }) {
 	const browserName = LANGUAGES.find(l => l.code === browserLanguage()).name
 	return (
 		<Card>
-			<CardHeader name="Language and formats" {...landing('formats')} />
+			<CardHeader name={phrase('settings.section.formats')} {...landing('formats')} />
 			<Field label={phrase('settings.language.label')} message={phrase('settings.language.help')} messageType="quiet">
 				<Choose value={value('language') ?? 'auto'} onChange={v => change('language', v)}
 					options={[{ id: 'auto', label: phrase('settings.language.matchBrowser', { language: browserName }) }, ...LANGUAGES.map(l => ({ id: l.code, label: l.name }))]} />
 			</Field>
 			<Pair touch={touch}>
-				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them." messageType="quiet">
+				<Field label={phrase('field.currency')} message={phrase('settings.currencyHelp')} messageType="quiet">
 					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}
 						options={CURRENCIES.map(c => ({ id: c.code, label: currencyLabel(c) }))} />
 				</Field>
-				<Field label="Date and time format" message="How dates, times and numbers are written. Times always show in your own clock." messageType="quiet">
+				<Field label={phrase('settings.dateFormat')} message={phrase('settings.dateFormatHelp')} messageType="quiet">
 					<Choose narrow={!touch} value={value('locale')} onChange={v => change('locale', v)}
 						options={LOCALES.map(l => ({ id: l.code, label: localeLabel(l) }))} />
 				</Field>
 			</Pair>
 			<ListItem>
-				<span className="sp-section-label">Preview</span>
+				<span className="sp-section-label">{phrase('welcome.preview')}</span>
 				<span className="sp-amount">{previewAmount(value('currency'))}</span>
 				<span className="sp-rule sp-rule--vertical" />
 				<span className="sp-data">{localeSample(value('locale'))}</span>
@@ -476,15 +483,16 @@ function FormatsCard({ value, change, touch }) {
    so the switch is not offered. */
 function DefaultsCard({ value, change, touch, reads }) {
 	const statuses = useStatuses()
+	const phrase = usePhrase()
 	return (
 		<Card>
-			<CardHeader name="Defaults for a new order" {...landing('defaults')} />
+			<CardHeader name={phrase('settings.defaults')} {...landing('defaults')} />
 			<Pair touch={touch}>
-				<Field label="Kind" message="What the Kind field opens with on a new order." messageType="quiet">
+				<Field label={phrase('field.kind')} message={phrase('settings.kindHelp')} messageType="quiet">
 					<Choose narrow={!touch} value={value('defaultKind')} onChange={v => change('defaultKind', v)}
-						options={spendKinds.map(k => ({ id: k, label: k }))} />
+						options={spendKinds.map(k => ({ id: k, label: kindName(k) }))} />
 				</Field>
-				<Field label="Status">
+				<Field label={phrase('field.status')}>
 					<Choose narrow={!touch} value={value('defaultStatus')} onChange={v => change('defaultStatus', v)}
 						options={statuses.map(s => ({ id: s.key, label: s.name }))} />
 				</Field>
@@ -496,8 +504,8 @@ function DefaultsCard({ value, change, touch, reads }) {
 						<div className="sp-stack">
 							<Choice variant="described"
 								control={<Switch checked={value('scanOverrides')} onChange={ev => change('scanOverrides', ev.target.checked)} />}
-								description="When a scan shows what the paper is, such as an order confirmation or a return, the scan sets the status or the kind to match. Off means your defaults always apply.">
-								Let a scan override these
+								description={phrase('settings.scanOverridesHelp')}>
+								{phrase('settings.scanOverrides')}
 							</Choice>
 						</div>
 					</>
@@ -509,33 +517,35 @@ function DefaultsCard({ value, change, touch, reads }) {
 
 /* How loudly a category's limit speaks up (8b), in the app only. */
 function AlertsCard({ value, change }) {
+	const phrase = usePhrase()
 	const switchOf = (key, label, rest) => (
 		<Choice control={<Switch checked={value(key)} onChange={ev => change(key, ev.target.checked)} {...rest} />}>{label}</Choice>
 	)
 	return (
 		<Card footerLayout="stack" footer={[
-			<span key="label" className="sp-section-label" id="alerts-early">Tell me early, at</span>,
-			<Segmented key="early" variant="facet" name="alerts-early" options={EARLY} value={value('notifyEarly')}
+			<span key="label" className="sp-section-label" id="alerts-early">{phrase('settings.early')}</span>,
+			<Segmented key="early" variant="facet" name="alerts-early" options={said(EARLY)} value={value('notifyEarly')}
 				onChange={v => change('notifyEarly', v)} role="radiogroup" aria-labelledby="alerts-early" />
 		]}>
-			<CardHeader name="Limit alerts" {...landing('alerts')} />
-			{switchOf('notifyWhileSaving', 'Warn me while I am saving an order')}
-			{switchOf('notifyMonthlySummary', 'Monthly summary on the first of the month')}
+			<CardHeader name={phrase('settings.section.alerts')} {...landing('alerts')} />
+			{switchOf('notifyWhileSaving', phrase('settings.warnSaving'))}
+			{switchOf('notifyMonthlySummary', phrase('settings.monthlySummary'))}
 		</Card>
 	)
 }
 
 /* What Home's Needs a look points out (Settings 11a): one switch per rule, in the order Home ranks them. */
 function LooksCard({ value, change }) {
+	const phrase = usePhrase()
 	return (
 		<Card>
-			<CardHeader name="Needs a look" {...landing('looks')} />
-			<span className="sp-data">What Home points out. It shows at most three at a time, in this order.</span>
-			<FieldGroup aria-label="Rows Home can show">
+			<CardHeader name={phrase('settings.section.looks')} {...landing('looks')} />
+			<span className="sp-data">{phrase('settings.looksLead')}</span>
+			<FieldGroup aria-label={phrase('settings.looksRows')}>
 				{LOOKS.map(l => (
-					<Choice key={l.id} variant="described" description={l.help}
-						control={<Switch aria-label="On" checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
-						{l.label}
+					<Choice key={l.id} variant="described" description={phrase(l.help)}
+						control={<Switch aria-label={phrase('settings.on')} checked={value(`look.${l.id}`)} onChange={ev => change(`look.${l.id}`, ev.target.checked)} />}>
+						{phrase(l.label)}
 					</Choice>
 				))}
 			</FieldGroup>
@@ -547,37 +557,38 @@ function LooksCard({ value, change }) {
 const known = (options, id) => (options.some(o => o.id === id) ? id : options[0].id)
 
 function ListsCard({ value, change, touch }) {
+	const phrase = usePhrase()
 	const rows = value('pageSize')
 	const recent = value('recentRows')
 	return (
 		<Card>
-			<CardHeader name="Lists" {...landing('lists')} />
-			<Field label="Order views in the menu" message="How many order views the sidebar shows before the rest fold under More." messageType="quiet">
+			<CardHeader name={phrase('settings.section.lists')} {...landing('lists')} />
+			<Field label={phrase('settings.views')} message={phrase('settings.viewsHelp')} messageType="quiet">
 				<Choose value={value('orderViews')} onChange={v => change('orderViews', v)}
 					figure={<span className="sp-data sp-number">{value('orderViews')}</span>}
-					suffix={<span className="sp-data sp-ink-5">views</span>}
-					options={VIEWS_SHOWN.map(n => ({ id: n, label: `${n} views` }))} />
+					suffix={<span className="sp-data sp-ink-5">{phrase('settings.viewsWord', { count: value('orderViews') })}</span>}
+					options={VIEWS_SHOWN.map(n => ({ id: n, label: phrase('settings.viewsCount', { count: n }) }))} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Rows per page" message="How many rows the order, vendor and category lists show before Load more." messageType="quiet">
+			<Field label={phrase('settings.rows')} message={phrase('settings.rowsHelp')} messageType="quiet">
 				<Choose value={rows} onChange={v => change('pageSize', v)}
 					figure={<span className="sp-data sp-number">{rows}</span>}
-					suffix={<span className="sp-data sp-ink-5">rows</span>}
-					options={PAGE_SIZES.map(n => ({ id: n, label: `${n} rows` }))} />
+					suffix={<span className="sp-data sp-ink-5">{phrase('settings.rowsWord', { count: rows })}</span>}
+					options={PAGE_SIZES.map(n => ({ id: n, label: plural(n, 'row') }))} />
 			</Field>
 			<span className="sp-rule" />
-			<Field label="Recent orders on Home" message="How many of your newest orders Home shows." messageType="quiet">
+			<Field label={phrase('settings.recent')} message={phrase('settings.recentHelp')} messageType="quiet">
 				<Choose value={recent} onChange={v => change('recentRows', v)}
 					figure={<span className="sp-data sp-number">{recent}</span>}
-					suffix={<span className="sp-data sp-ink-5">{recent === 1 ? 'order' : 'orders'}</span>}
+					suffix={<span className="sp-data sp-ink-5">{phrase('settings.ordersWord', { count: recent })}</span>}
 					options={RECENT_ROWS.map(n => ({ id: n, label: plural(n, 'order') }))} />
 			</Field>
 			<Pair touch={touch}>
-				<Field label="Sort orders by" message="The order All orders opens with." messageType="quiet">
-					<Choose value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={sorts} />
+				<Field label={phrase('settings.sortOrders')} message={phrase('settings.sortOrdersHelp')} messageType="quiet">
+					<Choose value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={said(sorts)} />
 				</Field>
-				<Field label="Sort vendors and categories by" message="The order both lists open with." messageType="quiet">
-					<Choose value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={listSorts} />
+				<Field label={phrase('settings.sortLists')} message={phrase('settings.sortListsHelp')} messageType="quiet">
+					<Choose value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={said(listSorts)} />
 				</Field>
 			</Pair>
 		</Card>
@@ -586,6 +597,7 @@ function ListsCard({ value, change, touch }) {
 
 /* Below 640 the panes are a list (7a): the account first, then its passkeys, two-step sign-in and status email, then one row per pane. */
 function PhoneIndex({ user }) {
+	const phrase = usePhrase()
 	const chevron = <Icon name="chevron-right" />
 	const passkeys = usePasskeyCount()
 	const twoStep = useTwoStepWord()
@@ -595,9 +607,9 @@ function PhoneIndex({ user }) {
 	const name = user?.name || email?.split('@')[0]
 	return (
 		<>
-			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label="Account and profile"
+			<ListItem variant="card" chevron={chevron} to="/settings/account" aria-label={phrase('settings.section.account')}
 				mark={!email ? null : user.picture
-					? <Mark size="large" fill="photo" round aria-label="Your picture"><img src={user.picture} alt="" /></Mark>
+					? <Mark size="large" fill="photo" round aria-label={phrase('settings.yourPicture')}><img src={user.picture} alt="" /></Mark>
 					: <Mark size="large" fill="solid" swatch="primary-3" round role="img" aria-label={name}><>{initialsOf(name)}</></Mark>}>
 				{email
 					? (
@@ -612,24 +624,24 @@ function PhoneIndex({ user }) {
 				? null
 				: (
 					<ListItem variant="card" chevron={chevron} to="/settings/passkeys">
-						<span className="sp-data sp-grow">Passkeys</span>
+						<span className="sp-data sp-grow">{phrase('settings.passkeys')}</span>
 						{passkeys === null ? null : <span className="sp-meta">{passkeys}</span>}
 					</ListItem>
 				)}
 			<ListItem variant="card" chevron={chevron} to="/settings/two-step">
-				<span className="sp-data sp-grow">Two-step sign-in</span>
+				<span className="sp-data sp-grow">{phrase('signIn.twoStep')}</span>
 				{twoStep ? <span className="sp-meta">{twoStep}</span> : null}
 			</ListItem>
 			{user?.mail
 				? (
 					<ListItem variant="card" chevron={chevron} to="/settings/status-email">
-						<span className="sp-data sp-grow">Status email</span>
+						<span className="sp-data sp-grow">{phrase('settings.statusEmail')}</span>
 					</ListItem>
 				)
 				: null}
 			{SECTIONS.filter(s => s.key !== 'account').map(s => (
 				<ListItem key={s.key} variant="card" chevron={chevron} to={`/settings/${s.key}`}>
-					<span className="sp-data sp-grow">{s.label}</span>
+					<span className="sp-data sp-grow">{phrase(s.label)}</span>
 					{counts[s.key] == null ? null : <span className="sp-meta">{counts[s.key]}</span>}
 				</ListItem>
 			))}

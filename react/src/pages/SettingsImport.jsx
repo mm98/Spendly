@@ -24,6 +24,7 @@ import { useStatuses } from '../app/statuses.js'
 import { useShellShape } from '../app/useMedia.js'
 import { ImportButton } from './BudgetImport.jsx'
 import { LeaveDialog } from './vendorsCategories.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
    in slices under this many bytes of JSON. */
@@ -47,7 +48,7 @@ function slices(orders) {
 
 const itemsOf = order => (Array.isArray(order?.items) ? order.items : [])
 // the item name orderImport.js gives a whole order with no description
-const UNNAMED = 'Imported order'
+const UNNAMED = () => phrase('import.importedOrder')
 const dateOf = o => (/^\d{4}-\d{2}-\d{2}$/.test(String(o.date)) ? shortDate(o.date) : o.date)
 const linesIn = orders => orders.reduce((n, o) => n + itemsOf(o).length, 0)
 // summed as a saved order's total is: its lines, plus shipping, less discount
@@ -73,43 +74,43 @@ const FILE_ID = 'import-file'
 const ACCEPT = '.csv,.xlsx,.json,text/csv,application/json'
 const TEMPLATE = 'Spendly_import_template.xlsx'
 
-const ordersWord = n => `${amount(n, 0)} ${n === 1 ? 'order' : 'orders'}`
-const rowsWord = n => `${amount(n, 0)} ${n === 1 ? 'row' : 'rows'}`
+const ordersWord = n => plural(n, 'order')
+const rowsWord = n => plural(n, 'row')
 
 /* The server refuses a row in the order form's words, which ask a question; a skipped row needs
    what is wrong with it. Kept in step with api/src/lib/validate.js; any other text shows as sent. */
 const REASONS = [
-	[/^Who did you buy from\?$/, 'The vendor is missing.'],
-	[/^80 characters at most\.$/, 'The vendor name is longer than 80 characters.'],
-	[/^When was the order placed\?$/, 'The date is missing, or is not written like 2026-08-18.'],
-	[/^Pick a kind\.$/, 'The kind is missing.'],
-	[/^Kind is one of: (.+)$/, m => `The kind is not one Spendly knows. Use one of: ${m[1]}`],
-	[/^Status is one of: (.+)$/, m => `The status is not one Spendly knows. Use one of: ${m[1]}`],
-	[/^That is not a valid date\.$/, 'A delivery or return date is not written like 2026-08-18.'],
-	[/^A delivery cannot be dated in the future\.$/, 'The delivery date is in the future.'],
-	[/^That is before the order date\.$/, 'The delivery date is before the order date.'],
-	[/^A return cannot be dated in the future\.$/, 'The return date is in the future.'],
-	[/^That is before the delivery date\.$/, 'The return date is before the delivery date.'],
-	[/^Shipping must be/, 'The shipping is not an amount, or is below zero.'],
-	[/^Discount must be/, 'The discount is not an amount, or is below zero.'],
-	[/^An order needs at least one item\.$/, 'It has no items.'],
-	[/^Describe the item\.$/, 'An item has no name.'],
-	[/^120 characters at most\.$/, 'An item name or note is longer than 120 characters.'],
-	[/^Quantity must be/, 'An item quantity is wrong. Use a number above 0 and at most 9999.'],
-	[/^What did you pay\?$/, 'An item has no price.'],
-	[/^Price cannot go below zero/, 'An item price is below zero.'],
-	[/^Retail price must be/, 'An item retail price is not an amount, or is below zero.']
+	[/^Who did you buy from\?$/, 'reason.noVendor'],
+	[/^80 characters at most\.$/, 'reason.longVendor'],
+	[/^When was the order placed\?$/, 'reason.noDate'],
+	[/^Pick a kind\.$/, 'reason.noKind'],
+	[/^Kind is one of: (.+)$/, 'reason.badKind'],
+	[/^Status is one of: (.+)$/, 'reason.badStatus'],
+	[/^That is not a valid date\.$/, 'reason.badDate'],
+	[/^A delivery cannot be dated in the future\.$/, 'reason.deliveryFuture'],
+	[/^That is before the order date\.$/, 'reason.deliveryEarly'],
+	[/^A return cannot be dated in the future\.$/, 'reason.returnFuture'],
+	[/^That is before the delivery date\.$/, 'reason.returnEarly'],
+	[/^Shipping must be/, 'reason.badShipping'],
+	[/^Discount must be/, 'reason.badDiscount'],
+	[/^An order needs at least one item\.$/, 'reason.noItems'],
+	[/^Describe the item\.$/, 'reason.noItemName'],
+	[/^120 characters at most\.$/, 'reason.longItem'],
+	[/^Quantity must be/, 'reason.badQuantity'],
+	[/^What did you pay\?$/, 'reason.noPrice'],
+	[/^Price cannot go below zero/, 'reason.negativePrice'],
+	[/^Retail price must be/, 'reason.badRetail']
 ]
 const reason = error => {
-	for (const [pattern, plain] of REASONS) {
+	for (const [pattern, key] of REASONS) {
 		const m = String(error).match(pattern)
-		if (m) return typeof plain === 'function' ? plain(m) : plain
+		if (m) return phrase(key, { known: m[1] })
 	}
 	return error
 }
 
 // what a row of the file is called in a sentence: its row in a spreadsheet, its place in a JSON list
-const where = (source, rows) => (source.kind === 'json' ? `Order ${rows[0]} in the file` : rows.length > 1 ? `Rows ${rows[0]} to ${rows.at(-1)}` : `Row ${rows[0]}`)
+const where = (source, rows) => (source.kind === 'json' ? phrase('import.where.order', { at: rows[0] }) : rows.length > 1 ? phrase('import.where.rows', { from: rows[0], to: rows.at(-1) }) : phrase('import.where.row', { at: rows[0] }))
 
 /** The import's stage and the mapping waiting for the next file. Settings holds them, so moving
     between its sections keeps an import, as it keeps every other unsaved change. */
@@ -124,11 +125,12 @@ export function useImportState() {
 export const importUnsaved = ({ stage }) => (stage.name === 'map' ? stage.file : stage.name === 'review' ? stage.source.file : null)
 
 /** What leaving an import before it is written loses (11b). */
-export const importLeaveBody = file => `${file} is not imported yet. Leaving discards the file and the column choices you made. No orders have been written.`
+export const importLeaveBody = file => phrase('import.leaveBody', { file })
 
 /* Import, as 11b: pick a file, map a spreadsheet's columns, check what it holds, then write it,
    with the last few imports listed for their mapping and their undo. Nothing is written before Import is pressed. */
 export function ImportCard({ state }) {
+	const phrase = usePhrase()
 	const history = useApi(getImports)
 	const settings = useApi(getSettings)
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
@@ -200,13 +202,13 @@ export function ImportCard({ state }) {
 
 	if (stage.name === 'undone') return (
 		<Card ref={box}>
-			<CardHeader name="Import" {...landing('import')} />
+			<CardHeader name={phrase('settings.section.import')} {...landing('import')} />
 			<ListItem color="success">
 				<Icon name="check" />
-				<span className="sp-subtitle sp-ink-accent">The import is undone. {ordersWord(stage.removed)} {stage.removed === 1 ? 'was' : 'were'} removed, with the vendors and categories it created.</span>
+				<span className="sp-subtitle sp-ink-accent">{phrase('import.undone', { count: stage.removed, orders: ordersWord(stage.removed) })}</span>
 			</ListItem>
 			<ImportFooter>
-				<Button variant="outline" onClick={restart}>Import another file</Button>
+				<Button variant="outline" onClick={restart}>{phrase('import.another')}</Button>
 			</ImportFooter>
 		</Card>
 	)
@@ -214,28 +216,28 @@ export function ImportCard({ state }) {
 	return (
 		<>
 			<Card ref={box}>
-				<CardHeader name="Import" {...landing('import')} />
+				<CardHeader name={phrase('settings.section.import')} {...landing('import')} />
 				{held
 					? (
 						<FileDrop disabled>
-							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
-							<span className="sp-title sp-ink-2">Drop a file, or choose one</span>
-							<span className="sp-meta">Available once your email is confirmed</span>
+							<Mark size="medium" fill="solid" aria-label={phrase('file.upload')} aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title sp-ink-2">{phrase('file.drop')}</span>
+							<span className="sp-meta">{phrase('import.held')}</span>
 						</FileDrop>
 					)
 					: (
 						<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept={ACCEPT} onFiles={read}>
-							<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
-							<span className="sp-title">Drop a file, or choose one</span>
-							<span className="sp-subtitle">CSV, XLSX or a JSON export. One row per item line, or one row per order - both work.</span>
+							<Mark size="medium" fill="solid" aria-label={phrase('file.upload')} aria-hidden="true"><Icon name="upload" /></Mark>
+							<span className="sp-title">{phrase('file.drop')}</span>
+							<span className="sp-subtitle">{phrase('import.kinds')}</span>
 						</FileDrop>
 					)}
 				{reuse && !reuse.replacing
 					? (
 						<ListItem color="success">
 							<Icon name="check" />
-							<span className="sp-subtitle sp-ink-accent sp-grow">The next file is read with the mapping from {reuse.fileName}.</span>
-							<Button variant="text" size="small" onClick={() => setReuse(null)}>Don't</Button>
+							<span className="sp-subtitle sp-ink-accent sp-grow">{phrase('import.reuse', { file: reuse.fileName })}</span>
+							<Button variant="text" size="small" onClick={() => setReuse(null)}>{phrase('import.dont')}</Button>
 						</ListItem>
 					)
 					: null}
@@ -243,22 +245,22 @@ export function ImportCard({ state }) {
 					? (
 						<Well color="danger">
 							<span className="sp-title sp-ink-danger">
-								{stage.problem === 'empty' ? 'There are no orders in that file.'
-									: stage.problem === 'type' ? 'Spendly cannot read that kind of file.'
-									: 'That file could not be read.'}
+								{phrase(stage.problem === 'empty' ? 'import.problem.empty'
+									: stage.problem === 'type' ? 'import.problem.type'
+									: 'import.problem.unreadable')}
 							</span>
-							<span className="sp-meta sp-ink-danger">Choose a CSV or XLSX spreadsheet, or a .json file exported from Spendly or a similar app.</span>
+							<span className="sp-meta sp-ink-danger">{phrase('import.problem.hint')}</span>
 						</Well>
 					)
 					: null}
 				<div className="sp-stack sp-gap-8">
-					<span className="sp-section-label">Or start from a template</span>
+					<span className="sp-section-label">{phrase('import.template')}</span>
 					<ListItem variant="outline">
 						<Icon name="file" />
 						<span className="sp-data sp-grow sp-truncate">{TEMPLATE}</span>
-						<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>Download</Button>
+						<Button variant="outline" size="small" onClick={() => download(TEMPLATE, templateWorkbook(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}>{phrase('action.download')}</Button>
 					</ListItem>
-					<span className="sp-meta">Fill it in and upload it - the columns are already named correctly.</span>
+					<span className="sp-meta">{phrase('import.templateHint')}</span>
 				</div>
 			</Card>
 			<History history={history} onReuse={item => { setReuse({ ...item.mapping, fileName: item.fileName }); then(FILE_ID) }} />
@@ -269,11 +271,12 @@ export function ImportCard({ state }) {
 
 /** The budget's own Excel import, the same button Budget has (21f): it opens the newest year it brought in. */
 function BudgetImport() {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	return (
 		<Card>
-			<CardHeader name="Budget" />
-			<span className="sp-data">An Excel workbook with one sheet for each year, named like 2026. You see the years it holds before anything is written.</span>
+			<CardHeader name={phrase('page.budget')} />
+			<span className="sp-data">{phrase('import.budget')}</span>
 			<div className="sp-row-flex">
 				<ImportButton onImported={years => navigate(`/budget/${Math.max(...years)}`)} />
 			</div>
@@ -284,6 +287,7 @@ function BudgetImport() {
 /** Previous imports (11b): when, what each wrote, its undo for a day, and its menu: the mapping to
     reuse, and once the undo has gone, the way to remove the line from the list. */
 function History({ history, onReuse }) {
+	const phrase = usePhrase()
 	const toast = useToast()
 	// on a phone Undo takes a row of its own under the name, which keeps the whole width beside the menu
 	const touch = useShellShape() === 'touch'
@@ -297,8 +301,8 @@ function History({ history, onReuse }) {
 		setBusy(item.id)
 		setSaid(null)
 		undoImport(item.id)
-			.then(out => setSaid(`${item.fileName}: ${ordersWord(out.orders)} removed.`))
-			.catch(e => setSaid(failureMessage(e, 'The import was not undone. Try again.')))
+			.then(out => setSaid(phrase('import.removed', { file: item.fileName, orders: ordersWord(out.orders) })))
+			.catch(e => setSaid(failureMessage(e, phrase('import.notUndone'))))
 			.finally(() => { setBusy(null); history.refresh() })
 	}
 	const hide = (item, hidden) => setImportHidden(item.id, hidden).then(() => history.refresh())
@@ -306,24 +310,24 @@ function History({ history, onReuse }) {
 		setBusy(item.id)
 		hide(item, true)
 			.then(() => toast({
-				message: `${item.fileName} removed from Previous imports`,
+				message: phrase('import.hidden', { file: item.fileName }),
 				undo: {
-					label: 'Undo',
-					onClick: () => hide(item, false).catch(e => toast({ message: failureMessage(e, `${item.fileName} was not put back. Try again.`), color: 'danger' }))
+					label: phrase('action.undo'),
+					onClick: () => hide(item, false).catch(e => toast({ message: failureMessage(e, phrase('import.notShown', { file: item.fileName })), color: 'danger' }))
 				}
 			}))
-			.catch(e => toast({ message: failureMessage(e, `${item.fileName} was not removed. Try again.`), color: 'danger' }))
+			.catch(e => toast({ message: failureMessage(e, phrase('import.notHidden', { file: item.fileName })), color: 'danger' }))
 			.finally(() => setBusy(null))
 	}
 	return (
 		<Card>
-			<CardHeader name="Previous imports" />
+			<CardHeader name={phrase('import.previous')} />
 			{list.map((item, i) => {
 				const facts = [dayShortMonth(new Date(item.createdAt * 1000).toISOString().slice(0, 10)), ordersWord(item.orders)]
-				if (item.skipped) facts.push(`${amount(item.skipped, 0)} skipped`)
-				if (item.undone) facts.push('undone')
+				if (item.skipped) facts.push(phrase('import.skipped', { shown: amount(item.skipped, 0) }))
+				if (item.undone) facts.push(phrase('import.wasUndone'))
 				const undo = item.undoable
-					? <Button variant="outline" size={touch ? 'standard' : 'small'} fullWidth={touch} disabled={busy === item.id} onClick={() => setAsking(item)}>Undo</Button>
+					? <Button variant="outline" size={touch ? 'standard' : 'small'} fullWidth={touch} disabled={busy === item.id} onClick={() => setAsking(item)}>{phrase('action.undo')}</Button>
 					: null
 				return (
 					<div key={item.id} className="sp-stack sp-gap-12">
@@ -349,6 +353,7 @@ function History({ history, onReuse }) {
 /** A line's menu in Previous imports (11b, c9): Reuse mapping, and Remove from this list once the
     line has no Undo. A line with neither has no menu. */
 function ImportMenu({ item, disabled, onReuse, onRemove }) {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -356,13 +361,13 @@ function ImportMenu({ item, disabled, onReuse, onRemove }) {
 	if (!item.mapping && item.undoable) return null
 	return (
 		<Anchor ref={anchor} open={open}>
-			<IconButton icon="dots-vertical" disabled={disabled} aria-label={`Actions for ${item.fileName}`}
+			<IconButton icon="dots-vertical" disabled={disabled} aria-label={phrase('statuses.actions', { name: item.fileName })}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			{open
 				? (
 					<Menu position="floating" aria-label={item.fileName}>
-						{item.mapping ? <MenuItem onClick={() => { close(); onReuse() }}>Reuse mapping</MenuItem> : null}
-						{item.undoable ? null : <MenuItem onClick={() => { close(); onRemove() }}>Remove from this list</MenuItem>}
+						{item.mapping ? <MenuItem onClick={() => { close(); onReuse() }}>{phrase('import.reuseMapping')}</MenuItem> : null}
+						{item.undoable ? null : <MenuItem onClick={() => { close(); onRemove() }}>{phrase('import.hide')}</MenuItem>}
 					</Menu>
 				)
 				: null}
@@ -373,43 +378,46 @@ function ImportMenu({ item, disabled, onReuse, onRemove }) {
 /** "Undo this import?" (11b), from stage 4 and from Previous imports: what the undo deletes, counted
     as it stands now, so every number in it is true. Delete waits for the count. */
 function UndoImport({ id, onCancel, onConfirm }) {
+	const phrase = usePhrase()
 	const counts = useApi(getImportUndo, [id])
 	const c = counts.data
 	let body
 	if (c) {
 		const made = [[c.vendors, 'vendor'], [c.categories, 'category']].filter(([n]) => n > 0).map(([n, noun]) => plural(n, noun))
-		const also = made.length ? `${c.orders ? ', and' : ''} the ${made.join(' and ')} it created that nothing else uses now` : ''
-		const what = c.orders ? `its ${ordersWord(c.orders)} and ${plural(c.lines, 'item line')}${also}` : also.replace(/^, and /, '')
 		const day = dayShortMonth(new Date(c.createdAt * 1000).toISOString().slice(0, 10))
+		const also = made.length === 2 ? phrase('join.two', { first: made[0], second: made[1] }) : made[0]
+		const undoes = c.orders
+			? phrase(also ? 'import.undoes.all' : 'import.undoes.orders', { orders: ordersWord(c.orders), lines: plural(c.lines, 'item line'), also })
+			: also ? phrase('import.undoes.made', { also }) : phrase('import.undoes.nothing')
 		body = (
 			<>
-				<DialogBody>{c.fileName}, imported {day}. {what ? `Undoing deletes ${what}.` : 'Its orders are already deleted.'}</DialogBody>
+				<DialogBody>{phrase('import.undoAsk', { file: c.fileName, day })} {undoes}</DialogBody>
 				{c.changed
-					? <ListItem>{c.changed === 1 ? '1 of these orders was changed after the import. It is deleted too, with the changes.' : `${amount(c.changed, 0)} of these orders were changed after the import. They are deleted too, with the changes.`}</ListItem>
+					? <ListItem>{phrase('import.changed', { count: c.changed, shown: amount(c.changed, 0) })}</ListItem>
 					: null}
 			</>
 		)
 	} else if (counts.error)
 		body = (
-			<Alert color="danger" mark="!" title="What the undo deletes did not load"
-				action={<Button variant="outline" size="small" onClick={counts.refresh}>Try again</Button>}>
-				Nothing is deleted yet. Check your connection.
+			<Alert color="danger" mark="!" title={phrase('import.undoNotLoaded')}
+				action={<Button variant="outline" size="small" onClick={counts.refresh}>{phrase('action.tryAgain')}</Button>}>
+				{phrase('import.undoNotLoadedBody')}
 			</Alert>
 		)
 	else
 		body = (
-			<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Counting what the undo deletes">
+			<div className="sp-stack sp-gap-6" aria-busy="true" aria-label={phrase('import.undoCounting')}>
 				<Skeleton shape="line" />
 				<Skeleton shape="short" />
 			</div>
 		)
 	return (
 		<Dialog onCancel={onCancel}>
-			<DialogTitle>Undo this import?</DialogTitle>
+			<DialogTitle>{phrase('import.undoTitle')}</DialogTitle>
 			{body}
 			<DialogActions>
-				<Button variant="outline" fullWidth onClick={onCancel}>Keep the orders</Button>
-				<Button color="danger" fullWidth disabled={!c?.undoable} onClick={onConfirm}>{c?.orders ? `Delete ${ordersWord(c.orders)}` : 'Undo this import'}</Button>
+				<Button variant="outline" fullWidth onClick={onCancel}>{phrase('import.keep')}</Button>
+				<Button color="danger" fullWidth disabled={!c?.undoable} onClick={onConfirm}>{c?.orders ? phrase('import.deleteOrders', { orders: ordersWord(c.orders) }) : phrase('import.undo')}</Button>
 			</DialogActions>
 		</Dialog>
 	)
@@ -417,6 +425,7 @@ function UndoImport({ id, onCancel, onConfirm }) {
 
 /** Step 3 (11b): what will be written, what looks like it is already here, what cannot be read. */
 function ReviewStep({ box, stage, setStage, then, restart }) {
+	const phrase = usePhrase()
 	const { source } = stage
 	// which of the file's vendor names the account already has
 	const names = [...new Set(source.orders.map(o => String(o.draft?.vendor ?? '').trim()).filter(Boolean))]
@@ -467,7 +476,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 				} catch (e) {
 					// a 400 here names every refused row; anything else stops the import
 					if (e.status === 400 && e.body?.failed) failed.push(...e.body.failed.map(f => ({ ...f, index: f.index + batch.offset })))
-					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This order is too big to send.' })
+					else if (e.status === 413) failed.push({ index: batch.offset, error: phrase('import.tooBig') })
 					else throw e
 				}
 			}
@@ -482,17 +491,17 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 		}
 	}
 
-	const heading = <CardHeader name="Import" {...landing('import')} />
+	const heading = <CardHeader name={phrase('settings.section.import')} {...landing('import')} />
 	const preview = drafts$.slice(0, 5)
 	const wholeOrders = source.mapping?.shape === 'order'
 	return (
 		<Card ref={box}>
 			{heading}
 			<div className="sp-stats">
-				<Stat large label="Orders" figure={amount(drafts$.length, 0)} />
-				<Stat large label="Item lines" figure={amount(linesIn(drafts$), 0)} />
-				{fresh === null ? null : <Stat large label="New vendors" figure={amount(fresh, 0)} />}
-				<Stat large label="Total" figure={amountRound(totalOf(drafts$))} />
+				<Stat large label={phrase('page.orders')} figure={amount(drafts$.length, 0)} />
+				<Stat large label={phrase('import.itemLines')} figure={amount(linesIn(drafts$), 0)} />
+				{fresh === null ? null : <Stat large label={phrase('import.newVendors')} figure={amount(fresh, 0)} />}
+				<Stat large label={phrase('import.total')} figure={amountRound(totalOf(drafts$))} />
 			</div>
 			{duplicates?.size || reasons.size
 				? (
@@ -503,8 +512,8 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 								? (
 									<>
 										<ListItem color="warning" count={amount(duplicates.size, 0)}>
-											<span className="sp-data sp-ink-warning sp-grow">{duplicates.size === 1 ? 'row looks like an order you already have' : 'rows look like orders you already have'}</span>
-											<Button variant="text" size="small" color="warning" onClick={() => toggle('dupes')}>{open === 'dupes' ? 'Hide' : 'Review'}</Button>
+											<span className="sp-data sp-ink-warning sp-grow">{phrase('import.duplicates', { count: duplicates.size })}</span>
+											<Button variant="text" size="small" color="warning" onClick={() => toggle('dupes')}>{phrase(open === 'dupes' ? 'action.hide' : 'import.review')}</Button>
 										</ListItem>
 										{open === 'dupes'
 											? (
@@ -514,7 +523,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 														return <span key={i} className="sp-meta">{where(source, o.rows)}: {o.draft.vendor}, {shortDate(o.draft.date)}, {amount(totalOne(o.draft))}</span>
 													})}
 													<Choice control={<Switch checked={withDuplicates} disabled={busy} onChange={ev => setWithDuplicates(ev.target.checked)} />}>
-														Import these too
+														{phrase('import.withDuplicates')}
 													</Choice>
 												</div>
 											)
@@ -527,14 +536,14 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 								return (
 									<div key={why} className="sp-stack sp-gap-8">
 										<ListItem color="danger" count={amount(count, 0)}>
-											<span className="sp-data sp-ink-danger sp-grow">{count === 1 ? 'row' : 'rows'} can't be imported - {why}</span>
-											<Button variant="text" size="small" color="danger" onClick={() => toggle(why)}>{open === why ? 'Hide' : 'See them'}</Button>
+											<span className="sp-data sp-ink-danger sp-grow">{phrase('import.cannot', { count, why })}</span>
+											<Button variant="text" size="small" color="danger" onClick={() => toggle(why)}>{phrase(open === why ? 'action.hide' : 'import.seeThem')}</Button>
 										</ListItem>
-										{open === why ? <span className="sp-meta">{list.slice(0, 40).map(s => where(source, s.rows)).join(dot)}{list.length > 40 ? `${dot}and ${amount(list.length - 40, 0)} more` : ''}</span> : null}
+										{open === why ? <span className="sp-meta">{list.slice(0, 40).map(s => where(source, s.rows)).join(dot)}{list.length > 40 ? dot + phrase('import.andMore', { shown: amount(list.length - 40, 0) }) : ''}</span> : null}
 									</div>
 								)
 							})}
-							{reasons.size ? <span className="sp-meta">Rows that can't be imported are skipped. You can download them, correct them, and import them again.</span> : null}
+							{reasons.size ? <span className="sp-meta">{phrase('import.skippedHint')}</span> : null}
 						</div>
 					</>
 				)
@@ -544,17 +553,17 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 					<>
 						<span className="sp-rule" />
 						<div className="sp-stack sp-gap-8">
-							<span className="sp-section-label">{preview.length === 5 ? 'First five orders, as they will be saved' : 'The orders, as they will be saved'}</span>
+							<span className="sp-section-label">{phrase(preview.length === 5 ? 'import.previewFive' : 'import.preview')}</span>
 							<div className="sp-list st-sideways">
 								{wholeOrders
 									? (
 										<table className="sp-table sp-table--static st-table" data-cols="imports">
 											<thead>
 												<tr>
-													<th scope="col" className="sp-col-title">Vendor</th>
-													<th scope="col" className="sp-col-date">Date</th>
-													<th scope="col">Item line</th>
-													<th scope="col" className="sp-col-amount">Total</th>
+													<th scope="col" className="sp-col-title">{phrase('field.vendor')}</th>
+													<th scope="col" className="sp-col-date">{phrase('field.date')}</th>
+													<th scope="col">{phrase('import.itemLine')}</th>
+													<th scope="col" className="sp-col-amount">{phrase('import.total')}</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -564,7 +573,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 														<tr key={i}>
 															<td className="sp-col-title"><span className="sp-title sp-truncate">{o.vendor}</span></td>
 															<td><span className="sp-data sp-ink-2">{dateOf(o)}</span></td>
-															<td><span className={'sp-data sp-truncate ' + (line?.title === UNNAMED ? 'sp-ink-5' : 'sp-ink-2')}>{line ? `${line.title} × ${line.quantity}` : ''}</span></td>
+															<td><span className={'sp-data sp-truncate ' + (line?.title === UNNAMED() ? 'sp-ink-5' : 'sp-ink-2')}>{line ? `${line.title} × ${line.quantity}` : ''}</span></td>
 															<td className="sp-col-amount"><div className="sp-stacked sp-cell-amount"><span className="sp-amount">{amountRound(totalOne(o))}</span></div></td>
 														</tr>
 													)
@@ -576,11 +585,11 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 										<table className="sp-table sp-table--static st-table" data-cols="preview">
 											<thead>
 												<tr>
-													<th scope="col" className="sp-col-title">Vendor</th>
-													<th scope="col" className="sp-col-date">Date</th>
-													<th scope="col" className="st-w-lines">Lines</th>
-													<th scope="col">Category</th>
-													<th scope="col" className="sp-col-amount">Amount</th>
+													<th scope="col" className="sp-col-title">{phrase('field.vendor')}</th>
+													<th scope="col" className="sp-col-date">{phrase('field.date')}</th>
+													<th scope="col" className="st-w-lines">{phrase('import.lines')}</th>
+													<th scope="col">{phrase('field.category')}</th>
+													<th scope="col" className="sp-col-amount">{phrase('field.amount')}</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -593,8 +602,8 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 															<td><span className="sp-data sp-ink-2">{itemsOf(o).length}</span></td>
 															<td>{o.categories?.length
 																? <span className="sp-data sp-ink-2 sp-truncate">{o.categories.join(', ')}</span>
-																: isNew ? <span className="sp-data sp-ink-warning">New vendor</span>
-																: <span className="sp-data sp-ink-5">None</span>}</td>
+																: isNew ? <span className="sp-data sp-ink-warning">{phrase('import.newVendor')}</span>
+																: <span className="sp-data sp-ink-5">{phrase('import.none')}</span>}</td>
 															<td className="sp-col-amount"><div className="sp-stacked sp-cell-amount"><span className="sp-amount">{amountRound(totalOne(o))}</span></div></td>
 														</tr>
 													)
@@ -610,30 +619,30 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 			{canDraft && source.kind === 'sheet'
 				? (
 					<Choice variant="described" control={<Switch checked={drafts} disabled={busy} onChange={ev => setDrafts(ev.target.checked)} />}
-						description="Drafts don't count in Statistics until you set a status on them.">
-						Bring them in as drafts
+						description={phrase('import.draftsHint')}>
+						{phrase('import.drafts')}
 					</Choice>
 				)
 				: null}
 			{busy
 				? (
 					<>
-						<Gauge thin value={(stage.done / Math.max(1, drafts$.length)) * 100} aria-label="Import progress" />
+						<Gauge thin value={(stage.done / Math.max(1, drafts$.length)) * 100} aria-label={phrase('import.progress')} />
 						<div className="sp-sum">
-							<span className="sp-meta">{amount(stage.done, 0)} of {amount(drafts$.length, 0)}</span>
+							<span className="sp-meta">{phrase('demo.done', { done: amount(stage.done, 0), count: amount(drafts$.length, 0) })}</span>
 							<span className="sp-grow" />
-							<span className="sp-meta">This can take a moment.</span>
+							<span className="sp-meta">{phrase('demo.moment')}</span>
 						</div>
 					</>
 				)
 				: null}
 			<ImportFooter>
-				<Button variant="outline" disabled={busy} onClick={() => setLeaving(true)}>Cancel</Button>
+				<Button variant="outline" disabled={busy} onClick={() => setLeaving(true)}>{phrase('action.cancel')}</Button>
 				<span className="st-push" />
-				{stage.back ? <Button variant="outline" disabled={busy} onClick={() => { then('heading'); setStage(stage.back) }}>Back to mapping</Button> : null}
+				{stage.back ? <Button variant="outline" disabled={busy} onClick={() => { then('heading'); setStage(stage.back) }}>{phrase('import.backToMapping')}</Button> : null}
 				{busy
-					? <Button disabled><Spinner />Importing…</Button>
-					: <Button disabled={!drafts$.length || duplicates === null} onClick={run}>Import {ordersWord(drafts$.length)}</Button>}
+					? <Button disabled><Spinner />{phrase('import.importing')}</Button>
+					: <Button disabled={!drafts$.length || duplicates === null} onClick={run}>{phrase('import.run', { orders: ordersWord(drafts$.length) })}</Button>}
 			</ImportFooter>
 			<Leaving>{leaving ? <LeaveDialog body={importLeaveBody(source.file)} onStay={() => setLeaving(false)} onLeave={restart} /> : null}</Leaving>
 		</Card>
@@ -642,6 +651,7 @@ function ReviewStep({ box, stage, setStage, then, restart }) {
 
 /** Step 4 (11b): what was written, its undo for a day, the skipped rows to fix, and the way to the orders. */
 function DoneStep({ box, stage, setStage, restart, history }) {
+	const phrase = usePhrase()
 	const { imported, lines, failed, stopped, source, sent, fresh, importId } = stage
 	const [undoing, setUndoing] = useState(false)
 	const [asking, setAsking] = useState(false)
@@ -649,8 +659,8 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 	useEffect(() => { history.refresh() }, [])
 	const record = history.data?.find(h => h.id === importId)
 	const vendorsMade = record ? record.vendors : fresh
-	const heading = <CardHeader name="Import" {...landing('import')} />
-	const again = <Button variant="outline" onClick={restart}>Import another file</Button>
+	const heading = <CardHeader name={phrase('settings.section.import')} {...landing('import')} />
+	const again = <Button variant="outline" onClick={restart}>{phrase('import.another')}</Button>
 
 	// every row the file had that was not written: unreadable here, or refused by the server
 	const refused = failed.map(f => ({ rows: sent[f.index]?.rows ?? [], reason: reason(f.error) }))
@@ -670,7 +680,7 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 		setProblem(null)
 		undoImport(importId)
 			.then(out => setStage({ name: 'undone', removed: out.orders }))
-			.catch(e => { setUndoing(false); setProblem(failureMessage(e, 'The import was not undone. Try again.')) })
+			.catch(e => { setUndoing(false); setProblem(failureMessage(e, phrase('import.notUndone'))) })
 	}
 	const asked = asking ? <UndoImport id={importId} onCancel={() => setAsking(false)} onConfirm={undo} /> : null
 
@@ -681,22 +691,22 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 					{skipped.slice(0, 3).map((s, i) => (
 						<span key={i} className="sp-data sp-ink-danger">{where(source, s.rows)}: {s.reason}</span>
 					))}
-					{skipped.length > 3 ? <span className="sp-meta sp-ink-danger">And {amount(skipped.length - 3, 0)} more.</span> : null}
+					{skipped.length > 3 ? <span className="sp-meta sp-ink-danger">{phrase('import.andMoreLine', { shown: amount(skipped.length - 3, 0) })}</span> : null}
 				</span>
 			</ListItem>
 		)
 		: null
-	const downloadButton = skipped.length ? <Button variant="outline" onClick={saveSkipped}>Download skipped</Button> : null
+	const downloadButton = skipped.length ? <Button variant="outline" onClick={saveSkipped}>{phrase('import.downloadSkipped')}</Button> : null
 
 	if (stopped || !imported) return (
 		<Card ref={box}>
 			{heading}
 			<Well color="danger">
-				<span className="sp-title sp-ink-danger">{stopped ? 'The import stopped before the end.' : 'No orders were imported.'}</span>
+				<span className="sp-title sp-ink-danger">{phrase(stopped ? 'import.stopped' : 'import.noneImported')}</span>
 				<span className="sp-meta sp-ink-danger">
 					{stopped
-						? `${imported ? `At least ${ordersWord(imported)} ${imported === 1 ? 'was' : 'were'} imported. ` : ''}${stage.why ? stage.why + ' ' : ''}Look at your orders before you import this file again.`
-						: 'Fix the rows in the file, then import it again.'}
+						? [imported ? phrase('import.atLeast', { count: imported, orders: ordersWord(imported) }) : '', stage.why, phrase('import.lookFirst')].filter(Boolean).join(' ')
+						: phrase('import.fixRows')}
 				</span>
 			</Well>
 			{reasons}
@@ -704,33 +714,33 @@ function DoneStep({ box, stage, setStage, restart, history }) {
 				{again}
 				<span className="st-push" />
 				{downloadButton}
-				{stopped && importId && imported ? <Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>Undo this import</Button> : null}
+				{stopped && importId && imported ? <Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>{phrase('import.undo')}</Button> : null}
 			</ImportFooter>
 			<Leaving>{asked}</Leaving>
 		</Card>
 	)
 
 	const facts = [plural(lines, 'item line')]
-	if (vendorsMade) facts.push(`${plural(vendorsMade, 'vendor')} created`)
-	if (skippedRows) facts.push(`${rowsWord(skippedRows)} skipped`)
+	if (vendorsMade) facts.push(phrase('import.created', { vendors: plural(vendorsMade, 'vendor') }))
+	if (skippedRows) facts.push(phrase('import.rowsSkipped', { rows: rowsWord(skippedRows) }))
 	return (
 		<Card ref={box}>
 			{heading}
 			<div className="sp-row-flex sp-gap-12">
-				<Mark size="medium" round aria-label="Imported"><Icon name="check" /></Mark>
+				<Mark size="medium" round aria-label={phrase('import.imported')}><Icon name="check" /></Mark>
 				<Stacked>
-					<span className="sp-heading sp-truncate">{ordersWord(imported)} imported</span>
+					<span className="sp-heading sp-truncate">{phrase('import.ordersImported', { orders: ordersWord(imported) })}</span>
 					<span className="sp-subtitle">{facts.join(dot)}</span>
 				</Stacked>
 			</div>
 			{reasons}
-			<span className="sp-meta">Undo removes exactly what this import wrote, including the vendors it created, for 24 hours. After that the orders are ordinary orders.</span>
+			<span className="sp-meta">{phrase('import.undoHint')}</span>
 			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
 			<ImportFooter>
-				<Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>{undoing ? 'Undoing…' : 'Undo this import'}</Button>
+				<Button variant="outline" disabled={undoing} onClick={() => setAsking(true)}>{phrase(undoing ? 'import.undoing' : 'import.undo')}</Button>
 				<span className="st-push" />
 				{downloadButton}
-				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>See the {ordersWord(imported)}</Button>
+				<Button to={`/orders?import=${encodeURIComponent(importId)}`}>{phrase('import.seeOrders', { orders: ordersWord(imported) })}</Button>
 			</ImportFooter>
 			<Leaving>{asked}</Leaving>
 		</Card>

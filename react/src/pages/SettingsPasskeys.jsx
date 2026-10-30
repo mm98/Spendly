@@ -12,14 +12,14 @@ import { useApi } from '../api/useApi.js'
 import { addPasskeyHere, alreadyHere, closedPrompt, deviceFailed, passkeysHere } from '../app/passkeys.js'
 import { useAuthOptions } from './AuthParts.jsx'
 import { landing } from './SettingsParts.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
-const UNREACHABLE = 'Spendly could not be reached. Check your connection and try again.'
-
-const used = seconds => (seconds == null ? 'not used yet' : `last used ${isToday(seconds) ? 'today' : dayShortMonthYear(seconds)}`)
+const used = seconds => (seconds == null ? phrase('passkey.notUsed') : phrase('passkey.lastUsed', { when: isToday(seconds) ? phrase('time.today') : dayShortMonthYear(seconds) }))
 
 /* Passkeys, a card under Account and profile (11a) and a page of its own on a phone (7a). The
    password always keeps working, so removing the last passkey locks nobody out. */
 export function PasskeysCard() {
+	const phrase = usePhrase()
 	const options = useAuthOptions()
 	const list = useApi(getPasskeys)
 	const [adding, setAdding] = useState(false)
@@ -37,24 +37,24 @@ export function PasskeysCard() {
 	const deviceRefused = e => {
 		setAdding(false)
 		if (closedPrompt(e)) return
-		setProblem(alreadyHere(e) ? 'This device already has a passkey for your account.' : 'The passkey could not be added. Try again.')
+		setProblem(phrase(alreadyHere(e) ? 'passkey.alreadyHere' : 'passkey.notAdded'))
 	}
 	const rows = list.data?.passkeys
 	return (
 		<Card>
-			<CardHeader name="Passkeys" {...landing('passkeys')} control={here
-				? <Button variant="outline" size="small" disabled={adding} onClick={add}><Icon name="key" size={14} />Add a passkey</Button>
+			<CardHeader name={phrase('settings.passkeys')} {...landing('passkeys')} control={here
+				? <Button variant="outline" size="small" disabled={adding} onClick={add}><Icon name="key" size={14} />{phrase('passkey.add')}</Button>
 				: null} />
-			<span className="sp-data">Sign in with your fingerprint or face instead of typing your password. Your password keeps working.</span>
+			<span className="sp-data">{phrase('passkey.lead')}</span>
 			{here ? null : (
 				<span className="sp-meta">
 					{location.origin === options.passkeys
-						? 'This browser cannot add a passkey.'
-						: `To add a passkey, open Spendly at ${new URL(options.passkeys).host}.`}
+						? phrase('passkey.browserCannot')
+						: phrase('passkey.openAt', { host: new URL(options.passkeys).host })}
 				</span>
 			)}
 			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
-			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, UNREACHABLE)}</span> : null}
+			{list.error && !rows ? <span className="sp-meta sp-ink-danger" role="alert">{failureMessage(list.error, phrase('failed.unreachable'))}</span> : null}
 			{!rows && !list.error ? <Skeleton shape="line" /> : null}
 			{rows?.map((p, i) => (
 				<Fragment key={p.id}>
@@ -65,11 +65,11 @@ export function PasskeysCard() {
 							<div className="sp-row-flex sp-gap-12 st-pk-row">
 								<Stacked>
 									<span className="sp-title sp-truncate">{p.name}</span>
-									<span className="sp-meta">Added {dayShortMonthYear(p.createdAt)}{dot}{used(p.lastUsedAt)}</span>
+									<span className="sp-meta">{phrase('passkey.added', { date: dayShortMonthYear(p.createdAt) })}{dot}{used(p.lastUsedAt)}</span>
 								</Stacked>
 								<div className="sp-row-flex sp-gap-8 sp-flex-none">
-									<Button variant="outline" size="small" onClick={() => setRenaming(p.id)}>Rename</Button>
-									<Button variant="outline" size="small" onClick={() => setRemoving(p)}>Remove</Button>
+									<Button variant="outline" size="small" onClick={() => setRenaming(p.id)}>{phrase('action.rename')}</Button>
+									<Button variant="outline" size="small" onClick={() => setRemoving(p)}>{phrase('action.remove')}</Button>
 								</div>
 							</div>
 						)}
@@ -84,12 +84,13 @@ export function PasskeysCard() {
 /** Adding asks for the password first: a passkey keeps working after the password changes, so a
     device that is only signed in must not be able to add one. */
 function AddPasskey({ onDone, onDeviceRefused }) {
+	const phrase = usePhrase()
 	const [password, setPassword] = useState('')
 	const [problem, setProblem] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const add = () => {
 		if (!password) {
-			setProblem('Enter your password.')
+			setProblem(phrase('signIn.passwordMissing'))
 			return document.getElementById('passkey-password')?.focus()
 		}
 		setBusy(true)
@@ -98,24 +99,24 @@ function AddPasskey({ onDone, onDeviceRefused }) {
 			.catch(e => {
 				if (closedPrompt(e) || alreadyHere(e) || deviceFailed(e)) return onDeviceRefused(e)
 				setBusy(false)
-				setProblem(e?.fields?.password ?? failureMessage(e, UNREACHABLE))
+				setProblem(e?.fields?.password ?? failureMessage(e, phrase('failed.unreachable')))
 				document.getElementById('passkey-password')?.focus()
 			})
 	}
 	return (
 		<Dialog onCancel={busy ? undefined : onDone}>
-			<DialogTitle>Add a passkey</DialogTitle>
-			<DialogBody>Enter your password first. Then this device asks you to confirm.</DialogBody>
+			<DialogTitle>{phrase('passkey.add')}</DialogTitle>
+			<DialogBody>{phrase('passkey.addBody')}</DialogBody>
 			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (!busy) add() }}>
-				<Field label="Password" id="passkey-password" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
+				<Field label={phrase('field.password')} id="passkey-password" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
 					<PasswordField autoComplete="current-password" autoFocus value={password}
 						onChange={v => { setPassword(v); setProblem(null) }} />
 				</Field>
 				<button type="submit" hidden />
 			</form>
 			<DialogActions>
-				<Button variant="outline" disabled={busy} onClick={onDone}>Cancel</Button>
-				<Button disabled={busy} onClick={add}>{busy ? 'Adding…' : 'Continue'}</Button>
+				<Button variant="outline" disabled={busy} onClick={onDone}>{phrase('action.cancel')}</Button>
+				<Button disabled={busy} onClick={add}>{phrase(busy ? 'links.adding' : 'action.continue')}</Button>
 			</DialogActions>
 		</Dialog>
 	)
@@ -123,6 +124,7 @@ function AddPasskey({ onDone, onDeviceRefused }) {
 
 /** The row open for its name, as a status is renamed in place (11a). */
 function Rename({ passkey, onDone }) {
+	const phrase = usePhrase()
 	const [name, setName] = useState(passkey.name)
 	const [problem, setProblem] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -134,16 +136,16 @@ function Rename({ passkey, onDone }) {
 		setBusy(true)
 		renamePasskey(passkey.id, name.trim())
 			.then(onDone)
-			.catch(e => { setBusy(false); setProblem(failureMessage(e, UNREACHABLE)) })
+			.catch(e => { setBusy(false); setProblem(failureMessage(e, phrase('failed.unreachable'))) })
 	}
 	return (
 		<div className="sp-stack sp-gap-6">
 			<div className="sp-row-flex sp-gap-12 st-pk-row">
-				<TextField inputRef={field} value={name} maxLength={80} aria-label="Passkey name" onChange={v => { setName(v); setProblem(null) }}
+				<TextField inputRef={field} value={name} maxLength={80} aria-label={phrase('passkey.name')} onChange={v => { setName(v); setProblem(null) }}
 					onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onDone() }} />
 				<div className="sp-row-flex sp-gap-8 sp-flex-none">
-					<Button variant="outline" onClick={onDone}>Cancel</Button>
-					<Button disabled={empty || busy} onClick={save}>Save</Button>
+					<Button variant="outline" onClick={onDone}>{phrase('action.cancel')}</Button>
+					<Button disabled={empty || busy} onClick={save}>{phrase('action.save')}</Button>
 				</div>
 			</div>
 			{problem ? <span className="sp-meta sp-ink-danger" role="alert">{problem}</span> : null}
@@ -153,22 +155,23 @@ function Rename({ passkey, onDone }) {
 
 /** Remove asks first (11a); the password keeps working, and nothing is sent. */
 function Remove({ passkey, onDone }) {
+	const phrase = usePhrase()
 	const [busy, setBusy] = useState(false)
 	const [problem, setProblem] = useState(null)
 	const remove = () => {
 		setBusy(true)
 		removePasskey(passkey.id)
 			.then(onDone)
-			.catch(e => { setBusy(false); setProblem(failureMessage(e, UNREACHABLE)) })
+			.catch(e => { setBusy(false); setProblem(failureMessage(e, phrase('failed.unreachable'))) })
 	}
 	return (
 		<Dialog onCancel={onDone}>
-			<DialogTitle>Remove <span className="sp-break">{passkey.name}</span>?</DialogTitle>
-			<DialogBody>{problem ?? 'It can no longer sign in to your account. Your password keeps working.'}</DialogBody>
+			<DialogTitle>{phrase('passkey.removeTitle', { name: passkey.name, span: words => <span className="sp-break">{words}</span> })}</DialogTitle>
+			<DialogBody>{problem ?? phrase('passkey.removeBody')}</DialogBody>
 			<DialogActions>
-				<Button variant="outline" onClick={onDone}>Keep it</Button>
+				<Button variant="outline" onClick={onDone}>{phrase('action.keepIt')}</Button>
 				<span className="sp-grow" />
-				<Button color="danger" disabled={busy} onClick={remove}>Remove</Button>
+				<Button color="danger" disabled={busy} onClick={remove}>{phrase('action.remove')}</Button>
 			</DialogActions>
 		</Dialog>
 	)

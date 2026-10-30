@@ -242,7 +242,7 @@ export const localeSample = code => {
 	const was = activeLocale
 	setLocale(code)
 	const shown = sampleFormat().format(SAMPLE_AT)
-	activeLocale = was
+	setLocale(was)
 	return shown
 }
 

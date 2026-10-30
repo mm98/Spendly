@@ -13,8 +13,9 @@ import { addStatus, changeStatus, deleteStatus, getStatuses, invalidateOrderData
 import { plural } from '../api/format.js'
 import { TONES } from '../app/statuses.js'
 import { landing } from './SettingsParts.jsx'
+import { usePhrase } from '../language/phrases.js'
 
-const TONE_NAMES = [['success', 'Positive'], ['progress', 'In progress'], ['danger', 'Problem'], ['neutral', 'Neutral']]
+const TONE_NAMES = ['success', 'progress', 'danger', 'neutral']
 
 // the one list where a long status name ends in an ellipsis, so its row keeps its height (11a)
 const StatusLook = ({ tone, children }) => {
@@ -45,6 +46,7 @@ export async function saveStatuses(after) {
 /** Statuses (11a): every move, rename, delete and new status waits for the page's save bar.
     `value('statuses')` is the list as edited, `saved` as stored; Draft is built in. */
 export function StatusesCard({ value, change, saved, touch = false }) {
+	const phrase = usePhrase()
 	const list = value('statuses') ?? null
 	const [editing, setEditing] = useState(null)
 	const made = useRef(0)
@@ -52,8 +54,8 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	if (!list)
 		return (
 			<Card>
-				<CardHeader name="Statuses" {...landing('statuses')} />
-				<div className="sp-stack sp-gap-6" aria-busy="true" aria-label="Loading your statuses">
+				<CardHeader name={phrase('settings.section.statuses')} {...landing('statuses')} />
+				<div className="sp-stack sp-gap-6" aria-busy="true" aria-label={phrase('statuses.loading')}>
 					<Skeleton shape="line" /><Skeleton shape="line" /><Skeleton shape="line" />
 				</div>
 			</Card>
@@ -67,32 +69,32 @@ export function StatusesCard({ value, change, saved, touch = false }) {
 	}
 
 	return (
-		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>Add a status</Button>}
+		<Card footer={editing === 'new' ? null : <Button variant="outline" onClick={() => setEditing('new')}>{phrase('statuses.add')}</Button>}
 			footerLayout="stack" footerCommits>
-			<CardHeader name="Statuses" {...landing('statuses')} aside="Drag to reorder" />
+			<CardHeader name={phrase('settings.section.statuses')} {...landing('statuses')} aside={phrase('statuses.drag')} />
 			<div className="sp-stack sp-gap-6">
 				<ReorderList items={list} keyOf={status => status.key} nameOf={status => status.name} onMove={edit}>
 					{status => (editing === status.key
 						? <StatusEditor status={status} touch={touch} onCancel={() => setEditing(null)} onSave={next => keep(status, next)} />
 						: (
 							<ListItem editable
-								handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${status.name}`}
+								handle={<Icon name="grip-vertical" size={14} />} handleLabel={phrase('statuses.move', { name: status.name })}
 								data-status={status.key}>
 								<StatusLook tone={status.tone}>{status.name}</StatusLook>
 								<span className="sp-grow" />
 								{/* on a phone the count is left out, so the name sits level with the rest of the row (11a) */}
 								{touch ? null : <span className="sp-meta sp-nowrap">{plural(status.orders ?? 0, 'order')}</span>}
-								{status.builtIn ? <Pill>built in</Pill> : null}
+								{status.builtIn ? <Pill>{phrase('statuses.builtIn')}</Pill> : null}
 								{touch
 									? <StatusMenu status={status} onRename={() => setEditing(status.key)} onDelete={() => remove(status)} />
 									: (
 										<>
-											<Mark size="small" aria-label={`Rename or recolour ${status.name}`} onClick={() => setEditing(status.key)}>
+											<Mark size="small" aria-label={phrase('statuses.edit', { name: status.name })} onClick={() => setEditing(status.key)}>
 												<Icon name="pencil" size={14} />
 											</Mark>
 											{deletable(status)
 												? (
-													<Mark size="small" aria-label={`Delete ${status.name}`} onClick={() => remove(status)}>
+													<Mark size="small" aria-label={phrase('statuses.delete', { name: status.name })} onClick={() => remove(status)}>
 														<Icon name="trash" size={14} />
 													</Mark>
 												)
@@ -116,6 +118,7 @@ const deletable = status => !status.builtIn && !status.orders
 /** A status's actions on a phone (11a): Rename, and Delete where it may go. Draft has neither,
     so it has no menu: the pencil and the bin sit too close together for two 44px targets. */
 function StatusMenu({ status, onRename, onDelete }) {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
@@ -123,13 +126,13 @@ function StatusMenu({ status, onRename, onDelete }) {
 	if (status.type === 'draft') return null
 	return (
 		<Anchor ref={anchor} open={open}>
-			<IconButton icon="dots-vertical" aria-label={`Actions for ${status.name}`}
+			<IconButton icon="dots-vertical" aria-label={phrase('statuses.actions', { name: status.name })}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			{open
 				? (
 					<Menu position="floating" aria-label={status.name}>
-						<MenuItem onClick={() => { close(); onRename() }}>Rename</MenuItem>
-						{deletable(status) ? <MenuItem onClick={() => { close(); onDelete() }}>Delete</MenuItem> : null}
+						<MenuItem onClick={() => { close(); onRename() }}>{phrase('action.rename')}</MenuItem>
+						{deletable(status) ? <MenuItem onClick={() => { close(); onDelete() }}>{phrase('action.delete')}</MenuItem> : null}
 					</Menu>
 				)
 				: null}
@@ -139,6 +142,7 @@ function StatusMenu({ status, onRename, onDelete }) {
 
 /* One status open for its name and tone (11a): the four looks the list can draw, as pills. */
 function StatusEditor({ status, touch = false, onCancel, onSave }) {
+	const phrase = usePhrase()
 	const [name, setName] = useState(status?.name ?? '')
 	const [tone, setTone] = useState(status?.tone ?? 'neutral')
 	const field = useRef(null)
@@ -149,21 +153,21 @@ function StatusEditor({ status, touch = false, onCancel, onSave }) {
 	}
 	return (
 		<ListItem variant="outline" selected editable>
-			<TextField inputRef={field} value={name} maxLength={40} aria-label="Status name" onChange={setName}
+			<TextField inputRef={field} value={name} maxLength={40} aria-label={phrase('statuses.name')} onChange={setName}
 				onKeyDown={ev => { if (ev.key === 'Enter') save(); if (ev.key === 'Escape') onCancel() }} />
 			{/* on a phone the row wraps and the field takes the first line, so it has no spacer to share it with */}
 			{touch ? null : <span className="sp-grow" />}
-			<div className="sp-row-flex sp-gap-6 sp-flex-none" role="radiogroup" aria-label="Tone">
-				{TONE_NAMES.map(([key, label]) => (
+			<div className="sp-row-flex sp-gap-6 sp-flex-none" role="radiogroup" aria-label={phrase('statuses.tone')}>
+				{TONE_NAMES.map(key => (
 					<label key={key} className="st-tone">
-						<input type="radio" name={`tone-${status?.key ?? 'new'}`} checked={tone === key} aria-label={label} onChange={() => setTone(key)} />
-						<StatusLook tone={key}>Aa</StatusLook>
+						<input type="radio" name={`tone-${status?.key ?? 'new'}`} checked={tone === key} aria-label={phrase(`statuses.tone.${key}`)} onChange={() => setTone(key)} />
+						<StatusLook tone={key}>{phrase('statuses.sample')}</StatusLook>
 					</label>
 				))}
 			</div>
 			<div className="sp-row-flex sp-gap-8 sp-flex-none">
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
-				<Button disabled={empty} onClick={save}>Save</Button>
+				<Button variant="outline" onClick={onCancel}>{phrase('action.cancel')}</Button>
+				<Button disabled={empty} onClick={save}>{phrase('action.save')}</Button>
 			</div>
 		</ListItem>
 	)

@@ -22,6 +22,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
 import { OrderAmount, vendorName } from '../app/orderRow.jsx'
 import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../app/pickList.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
@@ -41,11 +42,12 @@ export function SortControl({ sorts, value, onChange }) {
 	const current = sorts.find(s => s.id === value) ?? sorts[0]
 	// a phone draws the value alone, as the order list does (Mobile screens 5a)
 	const touch = useShellShape() === 'touch'
+	const phrase = usePhrase()
 	return (
-		<Combobox variant="sort" prefix={touch ? null : 'Sort'} aria-label="Sort" value={current.label}>
+		<Combobox variant="sort" prefix={touch ? null : phrase('sort.label')} aria-label={phrase('sort.label')} value={phrase(current.label)}>
 			{sorts.map(s => (
 				<ComboboxOption key={s.id} selected={s.id === current.id} onSelect={() => onChange(s.id)}>
-					{s.label}
+					{phrase(s.label)}
 				</ComboboxOption>
 			))}
 		</Combobox>

@@ -1245,11 +1245,11 @@ export async function putSummaryAway(month, signal) {
 /** The order the vendors and categories lists open in: one setting, so only the orders both lists
     have. A label names the column and the direction; Name has one direction, the one that finds. */
 export const listSorts = [
-	{ id: 'name-asc', label: 'Name, A to Z' },
-	{ id: 'spend-desc', label: 'Spend, highest' },
-	{ id: 'spend-asc', label: 'Spend, lowest' },
-	{ id: 'saved-desc', label: 'Saved, highest' },
-	{ id: 'saved-asc', label: 'Saved, lowest' }
+	{ id: 'name-asc', label: 'sort.nameAsc' },
+	{ id: 'spend-desc', label: 'sort.spendDesc' },
+	{ id: 'spend-asc', label: 'sort.spendAsc' },
+	{ id: 'saved-desc', label: 'sort.savedDesc' },
+	{ id: 'saved-asc', label: 'sort.savedAsc' }
 ]
 
 /* ---- scan ---- */
@@ -1428,27 +1428,30 @@ export async function getSearchNames(spans, signal) {
 	return request(`/api/search/names?${usp}`, { signal })
 }
 
-/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses) ---- */
+/* ---- option lists: spendKinds mirrors the server's own; statuses are the account's (getStatuses).
+   A sort's label is a phrase key. ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+/** A kind in the reader's words; the stored value stays as the server has it. */
+export const kindName = kind => phrase(`kind.${String(kind).toLowerCase()}`)
 
 // a ranking comes in both directions; Vendor groups rather than ranks, so it has one
 export const sorts = [
-	{ id: 'date-desc', label: 'Date, newest' },
-	{ id: 'date-asc', label: 'Date, oldest' },
-	{ id: 'amount-desc', label: 'Amount, highest' },
-	{ id: 'amount-asc', label: 'Amount, lowest' },
-	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
+	{ id: 'date-desc', label: 'sort.dateDesc' },
+	{ id: 'date-asc', label: 'sort.dateAsc' },
+	{ id: 'amount-desc', label: 'sort.amountDesc' },
+	{ id: 'amount-asc', label: 'sort.amountAsc' },
+	{ id: 'vendor-asc', label: 'sort.vendorAsc' }
 ]
 
 /** The two price sorts also narrow: a bookmark with no price is not the cheapest one
     (api/src/routes/bookmarks.js). */
 export const bookmarkSorts = [
-	{ id: 'added-desc', label: 'Added, newest' },
-	{ id: 'added-asc', label: 'Added, oldest' },
-	{ id: 'price-desc', label: 'Price, highest' },
-	{ id: 'price-asc', label: 'Price, lowest' },
-	{ id: 'name-asc', label: 'Name, A to Z' }
+	{ id: 'added-desc', label: 'sort.addedDesc' },
+	{ id: 'added-asc', label: 'sort.addedAsc' },
+	{ id: 'price-desc', label: 'sort.priceDesc' },
+	{ id: 'price-asc', label: 'sort.priceAsc' },
+	{ id: 'name-asc', label: 'sort.nameAsc' }
 ]
 
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
