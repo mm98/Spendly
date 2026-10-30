@@ -1,5 +1,45 @@
 {
-	"files": {},
+	"files": {
+		"Attachments.jsx": {
+			"hash": "b0ec18a4c9d2a99e"
+		},
+		"Chat.jsx": {
+			"hash": "7751f98fed2765ac"
+		},
+		"Choice.jsx": {
+			"hash": "3775a3d4c0c697da"
+		},
+		"Combobox.jsx": {
+			"hash": "f262253c907eb351"
+		},
+		"DatePickers.jsx": {
+			"hash": "3f043c776ad580d8"
+		},
+		"FileDrop.jsx": {
+			"hash": "a5a3a67cb03ea614"
+		},
+		"Inputs.jsx": {
+			"hash": "e915b40f762edfc2"
+		},
+		"LineEditor.jsx": {
+			"hash": "aa06e577614db090"
+		},
+		"List.jsx": {
+			"hash": "dfa74ffd61954a5a"
+		},
+		"Overlays.jsx": {
+			"hash": "1866ee03507aa3e2"
+		},
+		"Shell.jsx": {
+			"hash": "4d464c65bc30a465"
+		},
+		"Stepper.jsx": {
+			"hash": "7ce76e1cc0e90c83"
+		},
+		"Utilities.jsx": {
+			"hash": "85f5fbdb3837ee59"
+		}
+	},
 	"appOnly": [
 		"Failed.jsx",
 		"Icon.jsx",

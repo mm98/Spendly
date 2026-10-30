@@ -9,7 +9,8 @@ import { Scrim, ShellTouch } from './Shell.jsx'
 import { Sheet } from './Touch.jsx'
 import { own as ownedBy, useDismiss, useFocusTrap } from './Utilities.jsx'
 import { Rows, usePanelMotion } from './motion.js'
-import { singular } from './format.js'
+import { formatNumber } from './format.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const VARIANT = {
 	default: null,
@@ -216,10 +217,10 @@ function ComboboxSheet({ owner, name, search, onClose, children }) {
 }
 
 /** What a filtered list reads out as it narrows (c9: "6 vendors"): its options, less the create row,
-    which is not one of them. `noun` is the plural. Internal. */
+    which is not one of them. `noun` is the plural, which the phrase chooses its words by. Internal. */
 export function countOf(options, noun = 'options') {
-	const n = options.filter(o => !o.create).length
-	return n === 0 ? `No ${noun}` : `${n} ${n === 1 ? singular(noun) : noun}`
+	const count = options.filter(o => !o.create).length
+	return phrase('combobox.count', { noun, count, shown: formatNumber(count, { decimals: 0 }) })
 }
 
 /** Picking an option applies it and closes the panel (c5), focus staying on the trigger. `prefix`
@@ -265,6 +266,7 @@ export function Combobox({ multiple = false, ...props }) {
 /* Several values as chips, offering `children` (ComboboxOption) in a panel filtered by `onSearch` (22c). */
 function ComboboxMany({ fullWidth = false, value = [], onChange, placeholder, danger = false, id, onSearch, noun, marked, trails, end, children, ...rest }) {
 	reject(rest, 'Combobox')
+	usePhrase()
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
 	const [typed, setTyped] = useState('')
@@ -406,6 +408,7 @@ function ComboboxOne({
 	...rest
 }) {
 	reject(rest, 'Combobox')
+	usePhrase()
 	const told = { 'aria-describedby': describedBy, ...(invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {}) }
 	if (searchable && !onSearch) console.error('<Combobox searchable> needs onSearch: the page filters its own options, so typing narrows nothing without it')
 	if (!searchable && (onSearch || search !== undefined)) console.error('<Combobox> a query belongs to a searchable one')

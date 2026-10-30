@@ -87,7 +87,7 @@ export const OneNavItem = {
 	render: args => <div className="sp-sidebar" style={{ width: 240 }}><NavItem {...args} /></div>
 }
 
-const SECTIONS = ['Account', 'Passkeys', 'Appearance', 'Money, dates and times', 'Status emails']
+const SECTIONS = ['Account', 'Passkeys', 'Language and formats', 'Appearance', 'Status emails']
 const TOOLS = ['Import', 'Demo data']
 
 // the nav beside a page's pane, as Settings has it: light rows, and a divider before the tools

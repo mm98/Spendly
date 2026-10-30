@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { CURRENCIES, LOCALES, MAX_PAGE_SIZE, NOTIFY_EARLY_DEFAULT, SPEND_KINDS } from '../lib/constants.js'
+import { CURRENCIES, LANGUAGES, LOCALES, MAX_PAGE_SIZE, NOTIFY_EARLY_DEFAULT, SPEND_KINDS } from '../lib/constants.js'
 import { statusKeys } from '../lib/statuses.js'
 import { looksOf, setLooks } from '../lib/looks.js'
 import { mailAvailable } from '../lib/mail.js'
@@ -10,20 +10,20 @@ import { STATUS_EMAILS, chooseStatusEmail, sendTestStatusEmail } from '../lib/st
 export const router = Router()
 
 const selectSettings = db.prepare(`
-	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density,
+	SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, language, density,
 		notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly
 	FROM user_settings WHERE user_id = ?
 `)
 const upsertSettings = db.prepare(`
 	INSERT INTO user_settings (user_id, default_kind, default_status, page_size, sort,
-		list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary,
+		list_sort, currency, locale, language, density, notify_while_saving, notify_monthly_summary,
 		notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme)
-	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @listSort, @currency, @locale, @density,
+	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @listSort, @currency, @locale, @language, @density,
 		@notifyWhileSaving, @notifyMonthlySummary, @notifyEarly, @scanOverrides, @sidebar, @compareMonth, @recentRows, @colourScheme)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort, list_sort = excluded.list_sort,
-		currency = excluded.currency, locale = excluded.locale, density = excluded.density,
+		currency = excluded.currency, locale = excluded.locale, language = excluded.language, density = excluded.density,
 		notify_while_saving = excluded.notify_while_saving, notify_monthly_summary = excluded.notify_monthly_summary,
 		notify_early = excluded.notify_early, scan_overrides = excluded.scan_overrides,
 		sidebar = excluded.sidebar, compare_month = excluded.compare_month, recent_rows = excluded.recent_rows,
@@ -32,7 +32,7 @@ const upsertSettings = db.prepare(`
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
-	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, density: row.density,
+	sort: row.sort, listSort: row.list_sort, currency: row.currency, locale: row.locale, language: row.language, density: row.density,
 	notifyWhileSaving: Boolean(row.notify_while_saving), notifyMonthlySummary: Boolean(row.notify_monthly_summary),
 	notifyEarly: row.notify_early, scanOverrides: Boolean(row.scan_overrides), sidebar: row.sidebar, compareMonth: row.compare_month,
 	recentRows: row.recent_rows, colourScheme: SCHEME_IDS.includes(row.colour_scheme) ? row.colour_scheme : DEFAULT_SCHEME,
@@ -97,7 +97,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		listSort: 'name-asc', currency: 'DKK', locale: 'auto', density: 'comfortable',
+		listSort: 'name-asc', currency: 'DKK', locale: 'auto', language: 'auto', density: 'comfortable',
 		notifyWhileSaving: true, notifyMonthlySummary: true, notifyEarly: NOTIFY_EARLY_DEFAULT, scanOverrides: true, sidebar: 'open', compareMonth: 'last',
 		recentRows: 5, colourScheme: DEFAULT_SCHEME
 	}
@@ -129,6 +129,7 @@ router.patch('/', (req, res) => {
 		   so a stored value nothing validates is every date in the product replaced by an
 		   error boundary. */
 		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale),
+		language: oneOf(LANGUAGES, String(next.language ?? ''), currentApi.language),
 		density: oneOf(DENSITIES, String(next.density ?? ''), currentApi.density),
 		notifyWhileSaving: onOff(next.notifyWhileSaving, currentApi.notifyWhileSaving),
 		notifyMonthlySummary: onOff(next.notifyMonthlySummary, currentApi.notifyMonthlySummary),

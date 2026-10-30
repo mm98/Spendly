@@ -1,6 +1,7 @@
 import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { join, reject } from './variants.js'
+import { usePhrase } from '../language/phrases.js'
 
 /** @param {object} props
     @param {import('react').ReactNode} [props.photo] The line's photo slot. Leave it out for a line with no photo.
@@ -22,7 +23,7 @@ import { join, reject } from './variants.js'
     @param {import('react').ReactNode} [props.children] The fields of the line. */
 export function LineEditor({
 	photo,
-	hint = 'Enter saves · Escape cancels',
+	hint,
 	title,
 	what,
 	onMoveUp,
@@ -41,6 +42,7 @@ export function LineEditor({
 	...rest
 }) {
 	reject(rest, 'LineEditor')
+	const phrase = usePhrase()
 	const fields = [].concat(children ?? []).filter(Boolean)
 	// Enter and Escape belong to an open picker first, which marks the key as handled
 	const keys = ev => {
@@ -59,9 +61,9 @@ export function LineEditor({
 			{photo ? null : <div className="sp-line-editor__head">
 				<span className="sp-title">{title}</span>
 				<span className="sp-grow" />
-				{onMoveUp ? <IconButton variant="outline" icon={<Icon name="chevron-up" />} aria-label={`Move the ${what} up`} disabled={first} onClick={onMoveUp} /> : null}
-				{onMoveDown ? <IconButton variant="outline" icon={<Icon name="chevron-down" />} aria-label={`Move the ${what} down`} disabled={last} onClick={onMoveDown} /> : null}
-				{onDelete ? <IconButton variant="outline" danger icon={<Icon name="trash" />} aria-label={`Delete the ${what}`} onClick={onDelete} /> : null}
+				{onMoveUp ? <IconButton variant="outline" icon={<Icon name="chevron-up" />} aria-label={phrase('lineEditor.moveUp', { what })} disabled={first} onClick={onMoveUp} /> : null}
+				{onMoveDown ? <IconButton variant="outline" icon={<Icon name="chevron-down" />} aria-label={phrase('lineEditor.moveDown', { what })} disabled={last} onClick={onMoveDown} /> : null}
+				{onDelete ? <IconButton variant="outline" danger icon={<Icon name="trash" />} aria-label={phrase('lineEditor.delete', { what })} onClick={onDelete} /> : null}
 			</div>}
 			{photo ? children : (
 				// on a phone two halves holding unrelated values become two full-width fields (15b)
@@ -71,9 +73,9 @@ export function LineEditor({
 			)}
 			<div className="sp-dialog__actions">
 				{/* in a sheet the two commits share the row (1c), with no keys to name */}
-				{sheet ? null : <><span className="sp-note sp-truncate">{hint}</span><span className="sp-grow" /></>}
-				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>Cancel</Button>
-				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving…' : commit}</Button>
+				{sheet ? null : <><span className="sp-note sp-truncate">{hint ?? phrase('lineEditor.keys')}</span><span className="sp-grow" /></>}
+				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>{phrase('action.cancel')}</Button>
+				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? phrase('action.saving') : commit}</Button>
 			</div>
 		</>
 	)

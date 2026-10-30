@@ -6,7 +6,7 @@ import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Alert, MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
 import { Spinner, useDismiss } from './Utilities.jsx'
-import { plural } from '../api/format.js'
+import { usePhrase } from '../language/phrases.js'
 
 /* ---------- chat (c34, Ask 24a) ---------- */
 
@@ -66,9 +66,10 @@ export function ChatScroll({ scrollRef, children, ...rest }) {
     @param {import('react').ReactNode} [props.children] The messages, oldest first, with day lines between days. */
 export function ChatThread({ scrollRef, children, ...rest }) {
 	reject(rest, 'ChatThread')
+	const phrase = usePhrase()
 	return (
 		<ChatScroll scrollRef={scrollRef}>
-			<div className="sp-chat__thread" role="log" aria-live="polite" aria-label="Conversation" {...rest}>{children}</div>
+			<div className="sp-chat__thread" role="log" aria-live="polite" aria-label={phrase('chat.conversation')} {...rest}>{children}</div>
 		</ChatScroll>
 	)
 }
@@ -130,9 +131,10 @@ export function ChatQuestion({ children, ...rest }) {
     @param {() => void} [props.onClick] */
 export function ChatSave({ saved = false, disabled = false, tip, onClick, ...rest }) {
 	reject(rest, 'ChatSave')
+	const phrase = usePhrase()
 	return (
 		<button type="button" className="sp-chat__save sp-icon-btn sp-icon-btn--small" aria-pressed={saved ? 'true' : 'false'}
-			aria-label={saved ? 'Saved question' : 'Save this question'} disabled={disabled} data-tip={tip} onClick={onClick} {...rest}>
+			aria-label={phrase(saved ? 'chat.savedQuestion' : 'chat.saveQuestion')} disabled={disabled} data-tip={tip} onClick={onClick} {...rest}>
 			<Icon name="bookmark" size={14} />
 		</button>
 	)
@@ -146,14 +148,15 @@ const REPLY_STATE = { answered: true, working: true, failed: true }
     @param {string} [props.doing] What Spendly is doing while it works.
     @param {() => void} [props.onRetry]
     @param {import('react').ReactNode} [props.children] The reply. */
-export function ChatReply({ state = 'answered', doing = 'Reading your orders', onRetry, children, ...rest }) {
+export function ChatReply({ state = 'answered', doing, onRetry, children, ...rest }) {
 	reject(rest, 'ChatReply')
+	const phrase = usePhrase()
 	pick(REPLY_STATE, state, 'state', 'ChatReply')
-	if (state === 'working') return <div className="sp-chat__working" {...rest}><Spinner /><span>{doing}</span></div>
+	if (state === 'working') return <div className="sp-chat__working" {...rest}><Spinner /><span>{doing ?? phrase('chat.reading')}</span></div>
 	return (
 		<div className="sp-chat__reply" {...rest}>
 			{state === 'failed'
-				? <><p className="sp-chat__failed">Spendly could not answer that just now.</p><Button variant="outline" size="small" onClick={onRetry}>Try again</Button></>
+				? <><p className="sp-chat__failed">{phrase('chat.failed')}</p><Button variant="outline" size="small" onClick={onRetry}>{phrase('action.tryAgain')}</Button></>
 				: children}
 		</div>
 	)
@@ -170,7 +173,7 @@ export function ChatFigures({ children, ...rest }) {
 /* ---------- what an answer holds besides its words (Ask 24d) ---------- */
 
 const FILE_STATE = { ready: null, making: null, failed: null, gone: 'gone' }
-const FILE_GONE = { deleted: 'Deleted', expired: 'Removed after 30 days' }
+const FILE_GONE = { deleted: 'chat.file.deleted', expired: 'chat.file.expired' }
 
 /** The frame one answer's files share, a row per file, a rule between rows. Also the list on Files (24e).
     @param {object} props
@@ -200,17 +203,18 @@ export function ChatFiles({ children, ...rest }) {
     @param {() => void} [props.onDelete] Offers Delete after Download. */
 export function ChatFile({ title, kind, size, state = 'ready', reason, gone, keptUntil, href, to, icon = 'file-text', meta: line, chatTo, onDelete, ...rest }) {
 	reject(rest, 'ChatFile')
+	const phrase = usePhrase()
 	pick(FILE_STATE, state, 'state', 'ChatFile')
 	if (!line && !kind) console.error('<ChatFile> a file names its kind')
 	if (state === 'failed' && !reason) console.error('<ChatFile> a file that could not be made says why')
 	if (state === 'gone' && !(gone in FILE_GONE)) console.error(`<ChatFile> gone="${gone}" is not one of: ${Object.keys(FILE_GONE).join(' | ')}`)
 	if (state === 'ready' && !href && !to) console.error('<ChatFile> a ready file needs its href')
 	// the day is never broken across two lines on a phone's narrow row
-	const kept = keptUntil ? <> · Kept until <span className="sp-nowrap">{keptUntil}</span></> : null
+	const kept = keptUntil ? <> · {phrase('chat.file.keptUntil')} <span className="sp-nowrap">{keptUntil}</span></> : null
 	let meta = <>{line ?? join(kind, size && `· ${size}`)}{kept}</>
-	if (state === 'failed') meta = `Could not be made: ${reason}`
-	else if (state === 'making') meta = `${kind} · Being made`
-	else if (state === 'gone') meta = `${kind} · ${FILE_GONE[gone]}`
+	if (state === 'failed') meta = phrase('chat.file.failed', { reason })
+	else if (state === 'making') meta = `${kind} · ${phrase('chat.file.making')}`
+	else if (state === 'gone') meta = `${kind} · ${phrase(FILE_GONE[gone])}`
 	return (
 		<div className="sp-chat__file" data-state={FILE_STATE[state] || undefined} {...rest}>
 			<Mark size="medium" fill="none" aria-hidden="true" aria-label={kind ?? title}><Icon name={icon} /></Mark>
@@ -220,10 +224,10 @@ export function ChatFile({ title, kind, size, state = 'ready', reason, gone, kep
 					: <span className="sp-chat__file-name sp-truncate" title={title}>{title}</span>}
 				<span className={join('sp-meta', state === 'failed' && 'sp-chat__failed')}>{meta}</span>
 			</span>
-			{state === 'ready' && chatTo ? <IconButton variant="outline" icon="message-circle" to={chatTo} aria-label={`Open the chat of ${title}`} data-tip="Open chat" /> : null}
-			{state === 'ready' && href ? <IconButton variant="outline" icon="download" href={href} aria-label={`Download ${title}`} data-tip="Download" /> : null}
-			{state === 'ready' && onDelete ? <IconButton variant="outline" icon="trash" onClick={onDelete} aria-label={`Delete ${title}`} data-tip="Delete" /> : null}
-			{state === 'making' ? <IconButton variant="outline" icon={<Spinner />} disabled aria-label="Being made" /> : null}
+			{state === 'ready' && chatTo ? <IconButton variant="outline" icon="message-circle" to={chatTo} aria-label={phrase('chat.file.openChatOf', { title })} data-tip={phrase('chat.file.openChat')} /> : null}
+			{state === 'ready' && href ? <IconButton variant="outline" icon="download" href={href} aria-label={phrase('chat.file.downloadNamed', { title })} data-tip={phrase('action.download')} /> : null}
+			{state === 'ready' && onDelete ? <IconButton variant="outline" icon="trash" onClick={onDelete} aria-label={phrase('chat.file.deleteNamed', { title })} data-tip={phrase('action.delete')} /> : null}
+			{state === 'making' ? <IconButton variant="outline" icon={<Spinner />} disabled aria-label={phrase('chat.file.making')} /> : null}
 		</div>
 	)
 }
@@ -306,10 +310,11 @@ export function ChatHelp({ makes, disabled = false, onChoose, ...rest }) {
     @param {object} props
     @param {number | null} props.left How many questions are left today. The line shows only at 3 or fewer. Null means no limit. */
 export function ChatLimit({ left }) {
+	const phrase = usePhrase()
 	if (left == null || left > 3) return null
 	return left === 0
-		? <Alert mark="!" title="No questions left today">You can ask again tomorrow from 00:00. This chat stays on Chats.</Alert>
-		: <Alert mark="!" title={`${plural(left, 'question')} left today`}>The count starts again tomorrow from 00:00.</Alert>
+		? <Alert mark="!" title={phrase('chat.limit.none')}>{phrase('chat.limit.noneBody')}</Alert>
+		: <Alert mark="!" title={phrase('chat.limit.left', { left })}>{phrase('chat.limit.leftBody')}</Alert>
 }
 
 /** Under the thread: the field with What Ask can do at its edge (`onHelp`, never disabled), and Send, or Stop
@@ -328,19 +333,20 @@ export function ChatLimit({ left }) {
     @param {import('react').ReactNode} [props.end] A part after Send, such as the conversation menu. */
 export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp, working = false, disabled = false, fieldRef, placeholder, end, ...rest }) {
 	reject(rest, 'ChatDock')
+	const phrase = usePhrase()
 	const size = bar ? 'small' : 'standard'
 	return (
 		<div className={join('sp-chat__dock', bar && 'sp-chat__dock--bar')}>
 			<div className="sp-chat__composer">
 				<span className="sp-field__wrap sp-chat__wrap">
 					<textarea ref={fieldRef} className="sp-textarea sp-chat__field" name="question" rows={1} value={value} disabled={disabled}
-						onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label="Ask" {...rest} />
-					<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label="What Ask can do" aria-haspopup="dialog"
-						data-tip="What Ask can do" onClick={onHelp}><Icon name="help-circle" size={15} /></button>
+						onChange={ev => onChange(ev.target.value)} placeholder={placeholder} aria-label={phrase('chat.ask')} {...rest} />
+					<button type="button" className="sp-icon-btn sp-icon-btn--field sp-field__trail" aria-label={phrase('chat.help')} aria-haspopup="dialog"
+						data-tip={phrase('chat.help')} onClick={onHelp}><Icon name="help-circle" size={15} /></button>
 				</span>
 				{working
-					? <Button variant="outline" size={size} onClick={onStop}>Stop</Button>
-					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>Send</Button>}
+					? <Button variant="outline" size={size} onClick={onStop}>{phrase('chat.stop')}</Button>
+					: <Button size={size} disabled={disabled || !value.trim()} onClick={onSend}>{phrase('chat.send')}</Button>}
 				{end}
 			</div>
 		</div>
@@ -354,16 +360,17 @@ export function ChatDock({ bar = false, value, onChange, onSend, onStop, onHelp,
     @param {import('react').ReactNode} [props.children] The Menu the button opens. */
 export function ChatMore({ back, children, ...rest }) {
 	reject(rest, 'ChatMore')
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const box = useRef(null)
 	const keys = useMenuButton(box, open)
 	useMenuPlace(box, open)
 	useDismiss(box, open, () => setOpen(false))
-	if (back) return <div className="sp-chat__more" {...rest}><IconButton icon="chevron-left" variant="outline" to={back} aria-label="Back to chat" data-tip="Back to chat" /></div>
+	if (back) return <div className="sp-chat__more" {...rest}><IconButton icon="chevron-left" variant="outline" to={back} aria-label={phrase('chat.backToChat')} data-tip={phrase('chat.backToChat')} /></div>
 	return (
 		<div className="sp-chat__more" ref={box} data-open={open ? 'true' : 'false'} data-menu-open={open ? 'true' : undefined} {...keys}
 			onClick={ev => { if (ev.target.closest('.sp-menu__item:not(:disabled)')) setOpen(false) }} {...rest}>
-			<IconButton icon="dots-vertical" variant="outline" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} data-tip="More" onClick={() => setOpen(!open)} />
+			<IconButton icon="dots-vertical" variant="outline" aria-label={phrase('chat.menu')} aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} data-tip={phrase('action.more')} onClick={() => setOpen(!open)} />
 			<MenuHostOf open={open} box={box}>{open ? children : null}</MenuHostOf>
 		</div>
 	)

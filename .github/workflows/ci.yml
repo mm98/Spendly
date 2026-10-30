@@ -89,6 +89,10 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: react
         run: npm run icons:check
+      - name: Language files
+        if: ${{ !cancelled() }}
+        working-directory: react
+        run: npm run language:check
 
       # Storybook draws the app's components, so a change to a component is checked against it here.
       # It uses the app's packages installed above.

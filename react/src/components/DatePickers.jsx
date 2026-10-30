@@ -8,6 +8,7 @@ import { Sheet } from './Touch.jsx'
 import { useFocusTrap } from './Utilities.jsx'
 import { join, pick, reject } from './variants.js'
 import { glide, m, usePanelMotion } from './motion.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const parse = s => {
@@ -134,6 +135,7 @@ function Month({
 	...rest
 }) {
 	reject(rest, 'Month')
+	const phrase = usePhrase()
 	const grid = useRef(null)
 	// which way the month last stepped, so its days slide in from that side
 	const seen = useRef(year * 12 + month)
@@ -212,15 +214,15 @@ function Month({
 	return (
 		<div className={join('sp-range__month', showWeeks && 'sp-range__month--weeks')} {...rest}>
 			<div className="sp-range__month-head">
-				{showPrevious ? <button type="button" className="sp-range__nav" aria-label="The month before" disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" size={13} /></button> : null}
+				{showPrevious ? <button type="button" className="sp-range__nav" aria-label={phrase('calendar.monthBefore')} disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" size={13} /></button> : null}
 				{/* the month is announced when it changes, so walking into the next one is
 				    not a silent jump for a screen-reader user */}
 				<span aria-live="polite">{monthName(year, month, locale)}</span>
 				<span className="sp-grow" />
-				{showNext ? <button type="button" className="sp-range__nav" aria-label="The month after" disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" size={13} /></button> : null}
+				{showNext ? <button type="button" className="sp-range__nav" aria-label={phrase('calendar.monthAfter')} disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" size={13} /></button> : null}
 			</div>
 			<div className="sp-range__weekdays" aria-hidden="true">
-				{showWeeks ? <span className="sp-range__week">W</span> : null}
+				{showWeeks ? <span className="sp-range__week">{phrase('calendar.weekShort')}</span> : null}
 				{weekdays(locale).map((d2, i) => <span key={i}>{d2}</span>)}
 			</div>
 			<div className="sp-range__days" role="grid" ref={grid} key={year * 12 + month} {...(step.current ? { 'data-step': step.current } : {})}>
@@ -272,10 +274,10 @@ function standardRanges(locale) {
 	const lastOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 	return [
 		// a range of one day: both bounds are today, which is what "today" means
-		{ label: 'Today', value: [iso(today), iso(today)] },
-		{ label: 'This week', value: [iso(weekStart), iso(weekEnd)] },
-		{ label: 'This month', value: [iso(firstOfMonth), iso(lastOfMonth)] },
-		{ label: 'This year', value: [`${today.getFullYear()}-01-01`, `${today.getFullYear()}-12-31`] }
+		{ label: phrase('calendar.today'), value: [iso(today), iso(today)] },
+		{ label: phrase('period.thisWeek'), value: [iso(weekStart), iso(weekEnd)] },
+		{ label: phrase('period.thisMonth'), value: [iso(firstOfMonth), iso(lastOfMonth)] },
+		{ label: phrase('period.thisYear'), value: [`${today.getFullYear()}-01-01`, `${today.getFullYear()}-12-31`] }
 	]
 }
 
@@ -300,6 +302,7 @@ const field = ({ invalid, ...props }) => props
     @param {boolean} [props.single] The phone form: From and To at the top, the months scrolling under them, and Apply. */
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, single = false, ...rest }) {
 	reject(rest, 'RangePicker')
+	const phrase = usePhrase()
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
 	if (from && to && from > to) console.error('<RangePicker> from is after to: ' + from + ' → ' + to)
 	for (const [name, at] of [['from', from], ['to', to]]) {
@@ -417,15 +420,15 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 	if (single)
 		return (
 			<>
-				<span className="sp-heading">Custom range</span>
+				<span className="sp-heading">{phrase('calendar.customRange')}</span>
 				<div className="sp-row-flex sp-gap-12">
 					<div className="sp-field sp-grow">
-						<label className="sp-field__label" htmlFor={`${fieldId}-from`}>From</label>
+						<label className="sp-field__label" htmlFor={`${fieldId}-from`}>{phrase('calendar.from')}</label>
 						<input id={`${fieldId}-from`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('from')}
 							{...field(fromText)} {...(fromText.invalid ? { 'aria-invalid': 'true' } : {})} />
 					</div>
 					<div className="sp-field sp-grow">
-						<label className="sp-field__label" htmlFor={`${fieldId}-to`}>To</label>
+						<label className="sp-field__label" htmlFor={`${fieldId}-to`}>{phrase('calendar.to')}</label>
 						<input id={`${fieldId}-to`} className="sp-input sp-number" inputMode="numeric" onFocus={() => setEditing('to')}
 							{...field(toText)} {...(toText.invalid ? { 'aria-invalid': 'true' } : {})} />
 					</div>
@@ -437,8 +440,8 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						</div>
 					))}
 				</div>
-				<span className="sp-note">{days === 1 ? '1 day selected' : `${days} days selected`}</span>
-				<Button size="small" onClick={apply}>Apply</Button>
+				<span className="sp-note">{phrase('calendar.daysSelected', { count: days })}</span>
+				<Button size="small" onClick={apply}>{phrase('action.apply')}</Button>
 			</>
 		)
 
@@ -448,14 +451,14 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); revert() } }}
 			{...rest}
 		>
-			<div className="sp-range__quick" role="group" aria-label="Ranges worth one click">
+			<div className="sp-range__quick" role="group" aria-label={phrase('calendar.quickRanges')}>
 				{ranges.map(q => (
 					<Chip variant="pill" onClick={() => onChange?.(q.value[0], q.value[1])} key={q.label}>{q.label}</Chip>
 				))}
 			</div>
 			<div className="sp-range__fields">
 				<label className="sp-range__field">
-					<span className="sp-range__label">From</span>
+					<span className="sp-range__label">{phrase('calendar.from')}</span>
 					<input
 						className="sp-range__input"
 						data-editing={editing === 'from' ? 'true' : 'false'}
@@ -466,7 +469,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 				</label>
 				<span className="sp-range__arrow" aria-hidden="true"><Icon name="chevron-right" /></span>
 				<label className="sp-range__field">
-					<span className="sp-range__label">To</span>
+					<span className="sp-range__label">{phrase('calendar.to')}</span>
 					<input
 						className="sp-range__input"
 						data-editing={editing === 'to' ? 'true' : 'false'}
@@ -483,9 +486,9 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 			{/* the foot is the control's, not the caller's: the count says what applying
 			    will do, and a range picker without a way to cancel is a trap */}
 			<div className="sp-range__foot">
-				<span className="sp-subtitle sp-grow">{days === 1 ? '1 day' : `${days} days`}</span>
-				<Button variant="text" size="small" onClick={revert}>Cancel</Button>
-				<Button size="small" onClick={apply}>Apply</Button>
+				<span className="sp-subtitle sp-grow">{phrase('calendar.days', { count: days })}</span>
+				<Button variant="text" size="small" onClick={revert}>{phrase('action.cancel')}</Button>
+				<Button size="small" onClick={apply}>{phrase('action.apply')}</Button>
 			</div>
 		</div>
 	)
@@ -497,11 +500,12 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
     @param {() => void} props.onClose
     @param {import('react').ReactNode} [props.children] The RangePicker, in a sheet over the page. */
 export function RangeSheet({ onClose, children }) {
+	const phrase = usePhrase()
 	const box = useRef(null)
 	useFocusTrap(box)
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
-			<Sheet role="dialog" aria-modal="true" aria-label="Choose dates" ref={box}
+			<Sheet role="dialog" aria-modal="true" aria-label={phrase('calendar.chooseDates')} ref={box}
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
 				{children}
 			</Sheet>
@@ -528,11 +532,11 @@ const PERIODS = {
 }
 
 const STANDARD_PERIODS = [
-	{ value: 'week', label: 'This week' },
-	{ value: 'month', label: 'This month' },
-	{ value: 'quarter', label: 'This quarter' },
-	{ value: 'year', label: 'This year' },
-	{ value: 'custom', label: 'Custom' }
+	{ value: 'week', label: 'period.thisWeek' },
+	{ value: 'month', label: 'period.thisMonth' },
+	{ value: 'quarter', label: 'period.thisQuarter' },
+	{ value: 'year', label: 'period.thisYear' },
+	{ value: 'custom', label: 'period.custom' }
 ]
 
 // the dates as c14 writes them: day and month numbers, the year once at the end unless they differ
@@ -577,10 +581,9 @@ const precedingName = (preset, [from, to], locale) => {
 		// the year is worth saying only when it is a different one
 		return before.getFullYear() === a.getFullYear() ? month : month + ' ' + before.getFullYear()
 	}
-	if (preset === 'quarter') return 'the previous quarter'
-	if (preset === 'week') return 'the previous week'
-	const days = Math.round((b - a) / 86400000) + 1
-	return 'the previous ' + (days === 1 ? 'day' : days + ' days')
+	if (preset === 'quarter') return phrase('period.previousQuarter')
+	if (preset === 'week') return phrase('period.previousWeek')
+	return phrase('period.previousDays', { count: Math.round((b - a) / 86400000) + 1 })
 }
 
 export function Selected() { return null }
@@ -597,8 +600,9 @@ const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year',
     @param {() => void} [props.onPrevious]
     @param {() => void} [props.onNext]
     @param {boolean} [props.touch] The larger arrows for touch. */
-export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
+export function PeriodWindow({ label, unit = 'month', previousLabel, nextLabel, onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
+	const phrase = usePhrase()
 	const size = touch ? 15 : 14
 	const previous = useRef(null)
 	const next = useRef(null)
@@ -613,11 +617,11 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 	const track = which => ({ onFocus: () => { held.current = which }, onBlur: ev => { if (ev.relatedTarget) held.current = null } })
 	return (
 		<div className="sp-window" {...rest}>
-			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious} ref={previous} {...track('previous')}>
+			<button type="button" className="sp-window__btn" aria-label={previousLabel ?? phrase('period.previousWindow')} disabled={!onPrevious} onClick={onPrevious} ref={previous} {...track('previous')}>
 				<Icon name="chevron-left" size={size} />
 			</button>
 			<span className="sp-window__label" data-w={pick(WINDOW, unit, 'unit', 'PeriodWindow')}>{label}</span>
-			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext} ref={next} {...track('next')}>
+			<button type="button" className="sp-window__btn" aria-label={nextLabel ?? phrase('period.nextWindow')} disabled={!onNext} onClick={onNext} ref={next} {...track('next')}>
 				<Icon name="chevron-right" size={size} />
 			</button>
 		</div>
@@ -644,6 +648,7 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
     @param {string} [props.locale] How dates are written, such as da-DK. */
 export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
+	const phrase = usePhrase()
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
 	let picked
@@ -657,7 +662,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 		}
 		else console.error('<PeriodPicker> takes a Selected and nothing else')
 	}
-	const list = presets ?? STANDARD_PERIODS
+	const list = presets ?? STANDARD_PERIODS.map(p => ({ ...p, label: phrase(p.label) }))
 	const today = new Date()
 	const box = useRef(null)
 	// Back to the present goes away under the reader, so focus moves to the stepper's live arrow
@@ -717,7 +722,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 
 	return (
 		<div className="sp-period" ref={box} {...rest}>
-			<div className="sp-period__presets" role="group" aria-label="Window size">
+			<div className="sp-period__presets" role="group" aria-label={phrase('period.windowSize')}>
 				{before.map(preset)}
 				{withCustom
 					? (
@@ -738,7 +743,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 			{away
 				? (
 					<Button variant="text" size="small" onClick={() => { back.current = true; onPresent() }}>
-						{value === 'days30' ? 'Back to today' : `Back to this ${value}`}
+						{phrase('period.backToPresent', { window: value })}
 					</Button>
 				)
 				: note ? <span className="sp-period__note">{note}</span> : null}
@@ -767,14 +772,14 @@ function readable(value, locale) {
 	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parse(value))
 }
 
-const LETTERS = { day: 'dd', month: 'mm', year: 'yyyy' }
+const LETTERS = { day: 'calendar.letters.day', month: 'calendar.letters.month', year: 'calendar.letters.year' }
 
 /** How the reader writes a date, as an empty field shows it: their locale's order and separator
     ("dd.mm.yyyy", "mm/dd/yyyy"). */
 export function datePattern(locale) {
 	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 		.formatToParts(new Date(2026, 10, 22))
-		.map(p => LETTERS[p.type] ?? p.value)
+		.map(p => (LETTERS[p.type] ? phrase(LETTERS[p.type]) : p.value))
 		.join('')
 }
 
@@ -805,8 +810,8 @@ function dayShortcuts({ min, max, unavailable }) {
 	const yesterday = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
 	const takes = s => !(min && s < min) && !(max && s > max) && !(typeof unavailable === 'function' && unavailable(s))
 	return [
-		takes(today) ? { label: 'Today', pick: today } : null,
-		takes(yesterday) ? { label: 'Yesterday', pick: yesterday } : null
+		takes(today) ? { label: phrase('calendar.today'), pick: today } : null,
+		takes(yesterday) ? { label: phrase('calendar.yesterday'), pick: yesterday } : null
 	].filter(Boolean)
 }
 
@@ -827,6 +832,7 @@ function dayShortcuts({ min, max, unavailable }) {
     @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row. Inside a Field, set it on the Field. */
 export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, shortcuts = true, locale, id, placeholder, fullWidth = false, ...rest }) {
 	reject(rest, 'DateField')
+	const phrase = usePhrase()
 	// what Field hands the control: its message and its state, on the input that takes focus
 	const { 'aria-describedby': message, 'aria-invalid': invalid, required, lead, trail, unit, ...unused } = rest
 	const marked = danger || invalid === true || invalid === 'true'
@@ -906,7 +912,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 					{...(marked ? { 'aria-invalid': 'true' } : {})}
 					{...unused}
 				/>
-				<button type="button" className="sp-field__trail" aria-label="Open the calendar" onClick={pickNative}>
+				<button type="button" className="sp-field__trail" aria-label={phrase('calendar.open')} onClick={pickNative}>
 					<Icon name="calendar" size={15} />
 				</button>
 			</span>
@@ -946,21 +952,21 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 					text.onKeyDown(ev)
 				}}
 			/>
-			{hintId ? <span id={hintId} hidden>For example {readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
+			{hintId ? <span id={hintId} hidden>{phrase('calendar.example', { date: readable(iso(new Date(2026, 10, 22)), locale) })}</span> : null}
 			<span className="sp-field__trail" ref={trigger}>
 				<IconButton
 					icon={<Icon name="calendar" size={15} />}
-					aria-label="Pick a date"
+					aria-label={phrase('calendar.pickDate')}
 					size="field"
 					aria-haspopup="dialog"
 					aria-expanded={open ? 'true' : 'false'}
 					onClick={() => (open ? close({ toTrigger: true }) : openTo(value))}
 				/>
 			</span>
-			<div className="sp-calendar" role="dialog" aria-label="Choose a date">
+			<div className="sp-calendar" role="dialog" aria-label={phrase('calendar.chooseDate')}>
 				{shortcuts
 					? (
-						<div className="sp-range__quick" role="group" aria-label="Days worth one click">
+						<div className="sp-range__quick" role="group" aria-label={phrase('calendar.quickDays')}>
 							{dayShortcuts({ min, max, unavailable }).map(q => (
 								<Chip key={q.label}
 									onClick={() => { onChange?.(q.pick); close({ toTrigger: true }) }}>{q.label}</Chip>

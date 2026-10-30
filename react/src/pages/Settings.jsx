@@ -24,6 +24,7 @@ import {
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
+import { LANGUAGES, browserLanguage, setLanguage, usePhrase } from '../language/phrases.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard, StatusEmailCard } from './SettingsAccount.jsx'
@@ -48,8 +49,8 @@ const OWN_PAGES = ['passkeys', 'two-step', 'status-email']
 // `keys` are the stored settings a pane edits, which is what decides the pane the save bar names
 const SECTIONS = [
 	{ key: 'account', label: 'Account and profile', keys: ['name', 'picture'] },
+	{ key: 'formats', label: 'Language and formats', keys: ['language', 'currency', 'locale'] },
 	{ key: 'appearance', label: 'Appearance', keys: ['colourScheme', 'density', 'compareMonth'] },
-	{ key: 'money', label: 'Money, dates and times', keys: ['currency', 'locale'] },
 	{ key: 'defaults', label: 'Defaults', keys: ['defaultKind', 'defaultStatus', 'scanOverrides'] },
 	{ key: 'lists', label: 'Lists', keys: ['orderViews', 'pageSize', 'recentRows', 'sort', 'listSort'] },
 	{ key: 'alerts', label: 'Limit alerts', keys: ['notifyWhileSaving', 'notifyMonthlySummary', 'notifyEarly'] },
@@ -170,6 +171,12 @@ export default function Settings() {
 	savedScheme.current = stored('colourScheme')
 	useEffect(() => { if (shownScheme !== undefined) showScheme(shownScheme) }, [shownScheme])
 	useEffect(() => () => { if (savedScheme.current !== undefined) showScheme(savedScheme.current) }, [])
+	// a picked language shows at once in the same way, and leaving without saving puts the saved one back
+	const shownLanguage = value('language')
+	const savedLanguage = useRef()
+	savedLanguage.current = stored('language')
+	useEffect(() => { if (shownLanguage !== undefined) setLanguage(shownLanguage) }, [shownLanguage])
+	useEffect(() => () => { if (savedLanguage.current !== undefined) setLanguage(savedLanguage.current) }, [])
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
 	const importing = useImportState()
 	const assistants = useAssistantsState()
@@ -203,6 +210,7 @@ export default function Settings() {
 			.then(([next]) => {
 				setCurrency(next?.currency ?? value('currency'))
 				setLocale(next?.locale ?? value('locale'))
+				setLanguage(next?.language ?? value('language'))
 				setDensity(next?.density ?? value('density'))
 				setScheme(next?.colourScheme ?? value('colourScheme'))
 				dropStale()
@@ -226,8 +234,8 @@ export default function Settings() {
 		passkeys: <PasskeysCard key="passkeys" />,
 		'two-step': <TwoStepCard key="two-step" />,
 		'status-email': <StatusEmailCard key="status-email" user={user.data} />,
+		formats: <FormatsCard key="formats" {...fields} />,
 		appearance: <AppearanceCard key="appearance" {...fields} />,
-		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" reads={user.data?.scanAiEnabled} {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
 		alerts: <AlertsCard key="alerts" {...fields} />,
@@ -434,10 +442,16 @@ function Pair({ touch, children }) {
 	return touch ? children : <Halves>{children}</Halves>
 }
 
-function MoneyCard({ value, change, touch }) {
+function FormatsCard({ value, change, touch }) {
+	const phrase = usePhrase()
+	const browserName = LANGUAGES.find(l => l.code === browserLanguage()).name
 	return (
 		<Card>
-			<CardHeader name="Money, dates and times" {...landing('money')} />
+			<CardHeader name="Language and formats" {...landing('formats')} />
+			<Field label={phrase('settings.language.label')} message={phrase('settings.language.help')} messageType="quiet">
+				<Choose value={value('language') ?? 'auto'} onChange={v => change('language', v)}
+					options={[{ id: 'auto', label: phrase('settings.language.matchBrowser', { language: browserName }) }, ...LANGUAGES.map(l => ({ id: l.code, label: l.name }))]} />
+			</Field>
 			<Pair touch={touch}>
 				<Field label="Currency" message="The currency all amounts are shown in. This renames your figures. It does not convert them." messageType="quiet">
 					<Choose narrow={!touch} value={value('currency')} onChange={v => change('currency', v)}

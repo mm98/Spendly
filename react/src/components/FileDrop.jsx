@@ -4,6 +4,7 @@ import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { usePhrase } from '../language/phrases.js'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
 export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
@@ -167,8 +168,12 @@ export function pasteAnywhere(ev) {
     @param {import('react').ReactNode} [props.trail] Set by the Field around it.
     @param {import('react').ReactNode} [props.unit] Set by the Field around it.
     @param {string} [props['aria-describedby']] */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+export function Slot({ id, src, size = 'large', kind, word, name, start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
+	const phrase = usePhrase()
+	kind ??= phrase('slot.photo')
+	word ??= phrase('action.add')
+	name ??= phrase('slot.theImage')
 	const [refused, setRefused] = useState(null)
 	const field = useRef(null)
 	const take = async file => {
@@ -179,12 +184,12 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 	}
 	usePastePlace(field, take)
 	const failed = refused?.problem ?? problem
-	const what = src ? `Replace ${name}` : `Add ${name}`
+	const what = phrase(src ? 'slot.replace' : 'slot.add', { name })
 	// on a phone a filled slot is the image and its Replace and Remove buttons beside it; the image is not the target
 	const actions = useShellShape() === 'touch' && Boolean(src) && !failed
 	const input = (
 		<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
-			aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
+			aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? phrase('slot.stillSending', { what }) : what}
 			onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 	)
 	return (
@@ -215,14 +220,14 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			{actions
 				? (
 					<span className="sp-slot__actions">
-						<label className="sp-icon-btn sp-icon-btn--outline" aria-label={busy ? `${what}, still sending` : what}><Icon name="upload" />{input}</label>
-						<button type="button" className="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="trash" /></button>
+						<label className="sp-icon-btn sp-icon-btn--outline" aria-label={busy ? phrase('slot.stillSending', { what }) : what}><Icon name="upload" />{input}</label>
+						<button type="button" className="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label={phrase('slot.remove', { name })} onClick={onRemove}><Icon name="trash" /></button>
 					</span>
 				)
 				: refused
-					? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-					: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
-						: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+					? <button type="button" className="sp-slot__remove" aria-label={phrase('slot.remove', { name: refused.name })} onClick={() => setRefused(null)}>{phrase('action.remove')}</button>
+					: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={phrase('slot.sendAgain', { name })} onClick={onRetry}>{phrase('action.retry')}</button>
+						: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>{phrase('action.remove')}</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }

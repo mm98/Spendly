@@ -7,6 +7,7 @@ import { Scrim } from './Shell.jsx'
 import { reject } from './variants.js'
 import { useFocusTrap } from './Utilities.jsx'
 import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way.
@@ -14,6 +15,7 @@ import { FILE_TYPES, sniffedProblem } from './FileDrop.jsx'
     @param {import('react').ReactNode} [props.children] The attachments, and an AttachmentAdd at the end. */
 export function Strip({ children, ...rest }) {
 	reject(rest, 'Strip')
+	const phrase = usePhrase()
 	const box = useRef(null)
 	const [ends, setEnds] = useState({ start: true, end: true })
 	const tiles = Children.count(children)
@@ -34,11 +36,11 @@ export function Strip({ children, ...rest }) {
 	const by = way => box.current?.scrollBy({ left: way * box.current.clientWidth * 0.9, behavior: 'smooth' })
 	return (
 		<div className="sp-strip-wrap" {...rest}>
-			<button type="button" className="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled={ends.start} onClick={() => by(-1)}>
+			<button type="button" className="sp-strip-nav" data-strip="prev" aria-label={phrase('attachments.showEarlier')} disabled={ends.start} onClick={() => by(-1)}>
 				<Icon name="chevron-left" size={14} />
 			</button>
 			<div className="sp-strip" ref={box} onScroll={measure}>{children}</div>
-			<button type="button" className="sp-strip-nav" data-strip="next" aria-label="Show later attachments" disabled={ends.end} onClick={() => by(1)}>
+			<button type="button" className="sp-strip-nav" data-strip="next" aria-label={phrase('attachments.showLater')} disabled={ends.end} onClick={() => by(1)}>
 				<Icon name="chevron-right" size={14} />
 			</button>
 		</div>
@@ -67,12 +69,13 @@ export function Attachment({ name, children, ...rest }) {
     @param {(files: File[], problems: (string | null)[]) => void} [props.onFiles] */
 export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, ...rest }) {
 	reject(rest, 'AttachmentAdd')
+	const phrase = usePhrase()
 	const take = async list => {
 		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
 		if (files.length) onFiles?.(files, await Promise.all(files.map(file => sniffedProblem(file, accept))))
 	}
 	return (
-		<Mark as="label" size="xlarge" fill="add" data-tip="Add attachment"
+		<Mark as="label" size="xlarge" fill="add" data-tip={phrase('attachments.add')}
 			onDragOver={ev => ev.preventDefault()} onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files) }} {...rest}>
 			<Icon name="plus" size={18} />
 			<input
@@ -80,7 +83,7 @@ export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, .
 				name="attachment"
 				accept={accept}
 				multiple={multiple}
-				aria-label="Add attachment"
+				aria-label={phrase('attachments.add')}
 				onChange={ev => { const files = [...ev.target.files]; ev.target.value = ''; take(files) }}
 			/>
 		</Mark>
@@ -88,7 +91,7 @@ export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, .
 }
 
 // what a file is, as its tile names it when there is no picture of it
-const kindOf = item => (item.kind === 'pdf' ? 'PDF' : String(item.name).includes('.') ? String(item.name).split('.').pop().toUpperCase().slice(0, 4) : 'File')
+const kindOf = item => (item.kind === 'pdf' ? 'PDF' : String(item.name).includes('.') ? String(item.name).split('.').pop().toUpperCase().slice(0, 4) : phrase('attachments.file'))
 
 /** How many pages a viewer item has: its own `pages`, else what `countPages()` answers. */
 function usePages(item) {
@@ -232,13 +235,14 @@ function ZoomStage({ src, zoomSrc, alt, onSwipe }) {
 
 /** One file on a stage, with the page rail when it has more than one page (17d: page thumbnail). */
 function ViewerFile({ item, onSwipe }) {
+	const phrase = usePhrase()
 	const pages = usePages(item)
 	const [page, setPage] = useState(0)
 	useEffect(() => setPage(0), [item?.key, item?.name])
 	const many = pages > 1 && item.pageSrc
 	const src = many ? item.pageSrc(page) : item.src
 	const stage = src
-		? <ZoomStage key={src} src={src} zoomSrc={many ? undefined : item.zoomSrc} alt={many ? `${item.name}, page ${page + 1} of ${pages}` : item.name} onSwipe={onSwipe} />
+		? <ZoomStage key={src} src={src} zoomSrc={many ? undefined : item.zoomSrc} alt={many ? phrase('attachments.pageOfFile', { name: item.name, page: page + 1, pages }) : item.name} onSwipe={onSwipe} />
 		: (
 			<div className="sp-viewer__stage">
 				<Mark size="xlarge" fill="none" aria-label={item.name}><span>{kindOf(item)}</span></Mark>
@@ -247,9 +251,9 @@ function ViewerFile({ item, onSwipe }) {
 	const body = many
 		? (
 			<div className="sp-viewer__paged">
-				<div className="sp-viewer__pages" role="group" aria-label={`Pages of ${item.name}`}>
+				<div className="sp-viewer__pages" role="group" aria-label={phrase('attachments.pagesOfFile', { name: item.name })}>
 					{Array.from({ length: pages }, (_, i) => (
-						<Mark key={i} size="xlarge" fill="photo" text={String(i + 1)} aria-label={`Page ${i + 1}`}
+						<Mark key={i} size="xlarge" fill="photo" text={String(i + 1)} aria-label={phrase('attachments.page', { page: i + 1 })}
 							aria-current={i === page ? 'true' : undefined} onClick={() => setPage(i)}>
 							<img src={item.pageSrc(i)} alt="" loading="lazy" />
 						</Mark>
@@ -274,6 +278,7 @@ function ViewerFile({ item, onSwipe }) {
     @param {() => void} [props.onClose] */
 export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')
+	const phrase = usePhrase()
 	const box = useRef(null)
 	const shown = items[at]
 	const step = useCallback(by => {
@@ -297,19 +302,19 @@ export function Viewer({ items = [], at = 0, beside, onMove, onClose, ...rest })
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose?.() }}>
 			<div className="sp-viewer" role="dialog" aria-modal="true"
-				aria-label={beside ? `${shown.name} beside ${beside.name}` : shown.name} tabIndex={-1} ref={box}>
+				aria-label={beside ? phrase('attachments.beside', { name: shown.name, other: beside.name }) : shown.name} tabIndex={-1} ref={box}>
 				{beside
 					? <div className="sp-viewer__compare"><ViewerFile item={shown} /><ViewerFile item={beside} /></div>
 					: <ViewerFile item={shown} onSwipe={items.length > 1 ? step : undefined} />}
 				{/* on a phone the bar is the file's name, then Previous, Next, download and close (18b) */}
 				<div className="sp-viewer__bar">
 					{touch ? <span className="sp-viewer__count sp-truncate sp-grow">{shown.name}</span> : null}
-					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />
-					{touch ? null : <span className="sp-viewer__count">{at + 1} of {items.length}</span>}
-					<IconButton icon="chevron-right" aria-label="Next" disabled={items.length < 2} onClick={() => step(1)} />
+					<IconButton icon="chevron-left" aria-label={phrase('action.previous')} disabled={items.length < 2} onClick={() => step(-1)} />
+					{touch ? null : <span className="sp-viewer__count">{phrase('attachments.fileOf', { file: at + 1, files: items.length })}</span>}
+					<IconButton icon="chevron-right" aria-label={phrase('action.next')} disabled={items.length < 2} onClick={() => step(1)} />
 					{touch ? null : <span className="sp-grow" />}
-					{shown.download ? <IconButton icon="download" aria-label={`Download ${shown.name}`} href={shown.download} download={shown.name} /> : null}
-					<IconButton icon="x" aria-label="Close" onClick={onClose} />
+					{shown.download ? <IconButton icon="download" aria-label={phrase('attachments.download', { name: shown.name })} href={shown.download} download={shown.name} /> : null}
+					<IconButton icon="x" aria-label={phrase('action.close')} onClick={onClose} />
 				</div>
 			</div>
 		</Scrim>,

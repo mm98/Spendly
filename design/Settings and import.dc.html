@@ -50,6 +50,7 @@
     <div class="doc-note"><b>Compare this month with</b> sits in Appearance and offers Last month (the default) and Same month last year. It sets what Home's month card (<a href="Home.dc.html#10a">10a</a>), the phone's Home and the monthly summary (<a href="Duplicate and alerts.dc.html#8b">8b</a>) measure against. It saves with the card's own save, like every card here.</div>
     <div class="doc-note"><b>Colour scheme</b> sits in Appearance under Theme: 16 schemes in hue order, Terracotta round the colour wheel to Oxblood and Charcoal last, four tiles to a row; Emerald is the default and is selected for a new account wherever it sits. Each tile shows the scheme as its tones: the sidebar, then the primary scale from darkest to lightest, in the theme in use. A scheme replaces the primary scale, the neutrals and the sidebar (<code>styles/schemes.css</code>, set as <code>data-scheme</code> on the root beside <code>data-theme</code>) and holds for Light, Dark and Follow system. Ink is the same in every scheme. In Terracotta, Mocha, Ochre, Raspberry and Oxblood the primary sits near a warning or a problem, so those two turn to another hue at the same lightness and strength: in Terracotta and Mocha a warning is olive and a problem plum, in Ochre a warning is green-olive and a problem rose, in Raspberry and Oxblood a warning is olive and a problem burnt orange. Picking a Theme or Colour scheme tile applies it to the whole view at once; it is saved with the card's Save, and the view goes back to the saved choice if Settings is left without saving. Savings and positive figures take the scheme's primary. It is stored on the account, so the emails use it too (<a href="Auth and first run.dc.html#20f">20f</a>).</div>
     <div class="doc-note"><b>The language and region setting writes dates, times and numbers</b> - the preview shows all three - and every figure in the app follows it, amounts included.</div>
+    <div class="doc-note"><b>Language and formats</b> (until now Money, dates and times) opens with Language, full width, with Currency and Date and time format side by side under it. It is a combobox like Currency, with three options in this order: "Match my browser (English)", "English", "Dansk". The first names what the browser resolves to in brackets: the first of the browser's languages that is English or Danish, else English. "English" and "Dansk" are written in their own language whatever language is in use. It is its own setting, separate from Currency and Date and time format. A pick applies at once, as Theme does, and is kept with Save.</div>
     <div class="doc-note"><b>The profile photo is a FileDrop</b>: drop an image on the round mark, or use Upload a photo. With no photo the mark is the initials on <code>--primary-3</code> (<code>data-swatch="primary-3"</code>, following the scheme), round, as in the sidebar.</div>
     <div class="doc-note"><b>Draft, Ordered, Delivered, Returned and Cancelled are built in</b> and are never deleted, whatever their order count; Delivered is drawn mid-rename as Received. The app knows Returned and Cancelled by what they mean, not by their name: they are left out of spending, a scanned return receipt is filed under Returned, demo data and imports use them, and a cancelled order is struck out. A new status with the same name would not bring that back, so the row has no delete control. Each built-in row carries the "built in" pill; all but Draft keep the pencil, since a rename changes only the name.</div>
     <div class="doc-note"><b>Statuses on a phone</b> (STATUSES · PHONE): each row is the handle, the name's pill, "built in" where it applies, and one actions button with Rename, and Delete on an added status with no orders. The order count is left out on a phone, so the pill sits in the middle of the row with the rest; a long name ends in an ellipsis. The pencil and the trash are desktop only: side by side they sit 36px apart on a phone, too close for two 44px targets. Draft has neither, so it has no actions button.</div>
@@ -110,8 +111,8 @@
         <span class="sp-section-label sp-section-nav__head">SETTINGS</span>
         <div class="sp-nav-list">
           <a class="sp-nav-item sp-nav-item--light" href="#11a" aria-current="page"><span class="sp-grow">Account and profile</span></a>
+          <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Language and formats</span></a>
           <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Appearance</span></a>
-          <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Money, dates and times</span></a>
           <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Defaults</span></a>
           <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Lists</span></a>
           <a class="sp-nav-item sp-nav-item--light" href="#11a"><span class="sp-grow">Limit alerts</span></a>
@@ -220,6 +221,48 @@
           <div class="sp-card__footer sp-row-flex sp-gap-8">
             <span class="sp-grow"></span>
             <button type="button" class="sp-btn sp-btn--outline sp-btn--small" data-color="danger">Delete account</button>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-card__head"><span class="sp-section-label">LANGUAGE AND FORMATS</span></div>
+            <div class="sp-field">
+              <span class="sp-field__label" id="st-cb-lang">Language</span>
+            <div class="sp-combobox">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb-lang">
+                  <span class="sp-grow">Match my browser (English)</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">The language Spendly's words are shown in. Currency, dates and times keep their own format.</span>
+          </div>
+          <div class="sp-halves">
+            <div class="sp-field">
+              <span  class="sp-field__label" id="st-cb10">Currency</span>
+            <div class="sp-combobox sp-combobox--narrow">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb10">
+                  <span class="sp-grow">Danish krone (kr.)</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">The currency all amounts are shown in. This renames your figures. It does not convert them.</span>
+          </div>
+            <div class="sp-field">
+              <span   class="sp-field__label" id="st-cb9">Date and time format</span>
+            <div class="sp-combobox sp-combobox--narrow">
+                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb9">
+                  <span class="sp-grow">Danish (18.08.2026, 14.26)</span>
+                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+                </button>
+              </div>
+            <span class="sp-meta">How dates, times and numbers are written. Times always show in your own clock.</span>
+          </div>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-section-label">PREVIEW</span>
+            <span class="sp-amount">1.234,50 kr.</span>
+            <span class="sp-rule sp-rule--vertical"></span>
+            <span class="sp-data">18.08.2026, 14.26</span>
           </div>
         </div>
 
@@ -491,38 +534,6 @@
               </div>
             <span class="sp-meta">What Home and the monthly summary measure this month against.</span>
           </div>
-          </div>
-        </div>
-
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">MONEY, DATES AND TIMES</span></div>
-          <div class="sp-halves">
-            <div class="sp-field">
-              <span  class="sp-field__label" id="st-cb10">Currency</span>
-            <div class="sp-combobox sp-combobox--narrow">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb10">
-                  <span class="sp-grow">Danish krone (kr.)</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">The currency all amounts are shown in. This renames your figures. It does not convert them.</span>
-          </div>
-            <div class="sp-field">
-              <span   class="sp-field__label" id="st-cb9">Date and time format</span>
-            <div class="sp-combobox sp-combobox--narrow">
-                <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="st-cb9">
-                  <span class="sp-grow">Danish (18.08.2026, 14.26)</span>
-                  <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-                </button>
-              </div>
-            <span class="sp-meta">How dates, times and numbers are written. Times always show in your own clock.</span>
-          </div>
-          </div>
-          <div class="sp-list-item">
-            <span class="sp-section-label">PREVIEW</span>
-            <span class="sp-amount">1.234,50 kr.</span>
-            <span class="sp-rule sp-rule--vertical"></span>
-            <span class="sp-data">18.08.2026, 14.26</span>
           </div>
         </div>
 

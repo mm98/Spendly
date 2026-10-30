@@ -11,6 +11,7 @@ import { Kbd } from './Utilities.jsx'
 import { PRESENCE, animate, glide, m, slideLabels, useGoing, useRow, useStill } from './motion.js'
 import { Reorder, itemOf, useMovingRow } from './Reorder.jsx'
 import { Button } from './Button.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /* The current row's ground, by kind (the dark sidebar, the light lists): the row it was last drawn on and
    where on that row, kept as it leaves so the next ground starts there. Both rows are read at one moment,
@@ -183,11 +184,12 @@ export function SidebarGroup({ children, ...rest }) {
     @param {() => void} [props.onClick] */
 export function SidebarGrip({ expanded = true, onClick, ...rest }) {
 	reject(rest, 'SidebarGrip')
+	const phrase = usePhrase()
 	return (
 		<button
 			type="button"
 			className="sp-sidebar__grip"
-			aria-label={expanded ? 'Collapse the menu' : 'Expand the menu'}
+			aria-label={phrase(expanded ? 'shell.collapseMenu' : 'shell.expandMenu')}
 			aria-expanded={expanded ? 'true' : 'false'}
 			onClick={onClick}
 			{...rest}
@@ -481,6 +483,7 @@ const PaletteScreen = createContext(false)
     @param {import('react').ReactNode} [props.children] The groups of results. */
 export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
+	const phrase = usePhrase()
 	const list = useId()
 	const term = {
 		role: 'combobox',
@@ -497,7 +500,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 						? (
 							<>
 								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
-								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+								{onCancel ? <Button variant="text" onClick={onCancel}>{phrase('action.cancel')}</Button> : null}
 							</>
 						)
 						: (
@@ -509,7 +512,7 @@ export function Palette({ screen = false, value, onChange, onCancel, count, acti
 							</>
 						)}
 				</div>
-				<div className="sp-palette__body" id={list} role="listbox" aria-label="Results">{children}</div>
+				<div className="sp-palette__body" id={list} role="listbox" aria-label={phrase('shell.results')}>{children}</div>
 				{!screen && foot?.length
 					? <div className="sp-palette__foot">{foot.map(key => <span key={key}>{key}</span>)}</div>
 					: null}

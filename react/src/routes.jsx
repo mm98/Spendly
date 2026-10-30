@@ -7,9 +7,10 @@ import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
 import { setDensity, setScheme } from './app/theme.js'
+import { languageCode, setLanguage } from './language/phrases.js'
 
 /* Every route under the shell needs a signed-in session, checked once per navigation; the
-   account's currency and date format are read on the same wait, before any figure is drawn. */
+   account's currency, date format and language are read on the same wait, before any word is drawn. */
 const requireAuth = async ({ request }) => {
 	try {
 		const user = await cachedFetch(getCurrentUser)
@@ -18,9 +19,13 @@ const requireAuth = async ({ request }) => {
 			const { pathname, search } = new URL(request.url)
 			throw redirect(pathname === '/' ? '/welcome' : `/welcome?next=${encodeURIComponent(pathname + search)}`)
 		}
-		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale); setDensity(s?.density); setScheme(s?.colourScheme) }).catch(() => {})
+		const s = await cachedFetch(getSettings).catch(() => null)
+		if (s) { setCurrency(s.currency); setLocale(s.locale); setDensity(s.density); setScheme(s.colourScheme) }
+		// only the account's language is downloaded; with no settings, the browser's
+		await setLanguage(s?.language)
 		return null
 	} catch (e) {
+		if (!languageCode()) await setLanguage('auto')
 		if (e instanceof Response) throw e
 		if (e.status === 401) {
 			const { pathname, search } = new URL(request.url)
@@ -70,16 +75,23 @@ const SavedViews = page(() => import('./pages/OrderViews.jsx'))
    (default, split, rail, fill), `fab` the phone's New order button, `remember` a return as it was left, `placesConfirmBanner` that the page
    draws the confirm-email banner itself, so the shell leaves it out. */
 export const routes = [
-	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
-	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
-	{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
-	{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
-	{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
-	{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
-	{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
-	{ path: 'email/stop/:token', element: <StatusEmailStop />, handle: { title: 'Stop status emails' } },
-	{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
-	{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } },
+	{
+		// the pages before sign-in follow the browser's language (20a)
+		loader: () => setLanguage('auto').then(() => null),
+		HydrateFallback: () => null,
+		children: [
+			{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
+			{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
+			{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
+			{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
+			{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
+			{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
+			{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
+			{ path: 'email/stop/:token', element: <StatusEmailStop />, handle: { title: 'Stop status emails' } },
+			{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
+			{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } }
+		]
+	},
 	{
 		element: <AppShell />,
 		errorElement: <ShellError />,

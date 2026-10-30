@@ -38,10 +38,13 @@ export const CURRENCIES = [
    offering the lot would be a picker nobody can read -- and it moves by adding a code here
    and its label there, in the same commit or one of the two lists is lying about the other.
 
-   Nothing here translates the product. The copy is English at every setting; a locale
-   decides the shape of a date, the order of its parts and whether the clock runs to 12 or
-   24, which is a different question from what language the sentence around it is in. */
+   A locale decides the shape of a date, the order of its parts and whether the clock runs to
+   12 or 24, which is a different question from what language the words around it are in. */
 export const LOCALES = ['auto', 'da-DK', 'sv-SE', 'nb-NO', 'de-DE', 'en-GB', 'en-US']
+
+/* The languages Spendly's words can be shown in, apart from LOCALES; 'auto' follows the browser.
+   In step with LANGUAGES in react/src/language/phrases.js. */
+export const LANGUAGES = ['auto', 'en', 'da']
 
 /* The most rows one orders-list page may carry, enforced wherever a page size enters -- the
    list route's query param and the stored settings value. LIMIT is the one place a caller's

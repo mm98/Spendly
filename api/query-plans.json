@@ -2218,7 +2218,7 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly FROM user_settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, language, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly FROM user_settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH user_settings USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
 			],

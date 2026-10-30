@@ -183,8 +183,8 @@ Everything that needs you, on one page.
 - **Account** - name, picture, password, **passkeys** (fingerprint, face or device PIN),
   **two-step sign-in** (a code from an app on your phone), and **Delete account**.
 - **Status email** - a weekly summary, a monthly one or both, of spending, saving, limits, your latest orders and bookmarks.
+- **Language and formats** - the language of Spendly's words (English or Danish), currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
 - **Appearance** - light, dark or follow the system; a colour scheme for the app and its emails; comfortable or compact rows.
-- **Money, dates and times** - currency (DKK, SEK, NOK, EUR, USD, GBP) and date format.
 - **Defaults** for a new order, **lists** (page size, sort, how many saved views and recent
   orders), **limit alerts**, and which **Needs a look** rules show on Home.
 - **Statuses** - add, rename, colour and reorder your own.
@@ -329,6 +329,7 @@ printed amounts.
 |---|---|
 | The app | [React 19](https://react.dev), [React Router](https://reactrouter.com), built with [Vite](https://vite.dev) |
 | Icons | [Tabler Icons](https://tabler.io/icons) |
+| Languages | One file of phrases per language, in the [ICU message format](https://unicode-org.github.io/icu/userguide/format_parse/messages/), read by [intl-messageformat](https://formatjs.github.io/docs/intl-messageformat) |
 | The server | [Node.js 22](https://nodejs.org) and [Express 5](https://expressjs.com) |
 | The database | [SQLite](https://sqlite.org), through [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) |
 | Reading receipts | [Claude](https://www.anthropic.com/claude), through the Anthropic API |
@@ -350,6 +351,7 @@ printed amounts.
 - **The app** loads each page when it is first opened, keeps every request in one place, and
   shares one cache across pages, so a count in the sidebar follows a change made on another page.
   Files are compressed ahead of time, and the server sends the smallest one the browser accepts.
+  The words of only the chosen language are downloaded.
   The server's answers are compressed too, except an answer that arrives line by line.
 - **The server** keeps each account's records apart in every query. Totals and counts are kept on
   the record by the database itself, so lists and statistics read them for free.
@@ -363,6 +365,7 @@ printed amounts.
   - The query plan of every statement the server runs, against an account of real size.
   - The bank statement reader, against example files.
   - The icon library, against its source.
+  - The language files, against each other and the code.
   - The component catalogue: every component file has a story, and the catalogue builds.
   - Comments, external links, and the security of every package.
 

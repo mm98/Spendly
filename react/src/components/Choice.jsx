@@ -4,6 +4,7 @@ import { SearchInput } from './Inputs.jsx'
 import { Icon } from './Icon.jsx'
 import { countOf } from './Combobox.jsx'
 import { Fold, glide, m } from './motion.js'
+import { usePhrase } from '../language/phrases.js'
 
 /** @param {object} props
     @param {boolean} [props.indeterminate] Some of the set is ticked, not all: the box shows a dash. */
@@ -156,15 +157,15 @@ export function FieldGroupPanel({ children, ...rest }) {
 
 // what a reader calls each colour of the set (c7): its tooltip and its name
 const SWATCH_NAMES = {
-	primary: 'Primary',
-	'primary-2': 'Deep',
-	'primary-3': 'Mid',
-	'primary-4': 'Light',
-	'primary-5': 'Pale',
-	'amber-ink': 'Brown',
-	'amber-2': 'Sand',
-	'red-ink': 'Rust',
-	'ink-6': 'Grey'
+	primary: 'colour.primary',
+	'primary-2': 'colour.deep',
+	'primary-3': 'colour.mid',
+	'primary-4': 'colour.light',
+	'primary-5': 'colour.pale',
+	'amber-ink': 'colour.brown',
+	'amber-2': 'colour.sand',
+	'red-ink': 'colour.rust',
+	'ink-6': 'colour.grey'
 }
 
 // an icon the page does not name is called what its register name says, in words
@@ -221,6 +222,7 @@ function walk(ev) {
     @param {import('react').ReactNode} [props.empty] Shown in place of the icons when none match. */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, empty, ...rest }) {
 	reject(rest, 'Picker')
+	const phrase = usePhrase()
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
 	if (custom && !swatches) console.error('<Picker> a custom colour belongs to a colour group')
 	if (onSearch && !icons) console.error('<Picker> a search belongs to a tile group')
@@ -243,8 +245,8 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 				<button
 					type="button"
 					className="sp-option sp-option--swatch"
-					aria-label={SWATCH_NAMES[swatch] ?? 'Colour'}
-					data-tip={SWATCH_NAMES[swatch] ?? 'Colour'}
+					aria-label={phrase(SWATCH_NAMES[swatch] ?? 'colour.any')}
+					data-tip={phrase(SWATCH_NAMES[swatch] ?? 'colour.any')}
 					aria-pressed={value === swatch ? 'true' : 'false'}
 					onClick={() => onChange?.(swatch)}
 					key={swatch}
@@ -271,7 +273,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 				? (
 					<label
 						className={join('sp-option', 'sp-option--swatch', !chosenOutside && 'sp-option--custom')}
-						data-tip="Custom colour"
+						data-tip={phrase('colour.custom')}
 						data-chosen={chosenOutside ? 'true' : 'false'}
 						{...(chosenOutside ? { style: { '--swatch': value } } : {})}
 					>
@@ -279,7 +281,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 						<input
 							type="color"
 							name="custom-colour"
-							aria-label="Custom colour"
+							aria-label={phrase('colour.custom')}
 							value={chosenOutside ? value : '#1d4d33'}
 							onChange={ev => onChange?.(ev.target.value)}
 							{...cell('custom')}
