@@ -6,22 +6,26 @@ import { publicLink, sendMail } from './mail.js'
 import { initialsOf } from './names.js'
 import { schemeTokens } from './schemes.js'
 import { usableLocale, writerFor } from './statusEmail.js'
+import { words } from './phrases.js'
 
 /* What Ask keeps beside the conversation (24b, 24c): the reader's saved questions, and the
    conversation sent to the reader's own address. The conversation itself is never stored. */
 
 export const SAVED_MOST = 8
 
-const selectSaved = db.prepare('SELECT id, question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid')
+const selectSaved = db.prepare('SELECT id, question, builtin_question FROM user_ask_questions WHERE user_id = ? ORDER BY created_at, rowid')
 const insertSaved = db.prepare('INSERT OR IGNORE INTO user_ask_questions (id, user_id, question) VALUES (?, ?, ?)')
 const deleteSaved = db.prepare('DELETE FROM user_ask_questions WHERE id = ? AND user_id = ?')
 
 /** The reader's saved questions, oldest first. */
-export const savedQuestions = userId => selectSaved.all(userId)
+// an example question shows in the reader's language; the reader cannot change one, only remove it
+export const savedQuestions = userId => selectSaved.all(userId).map(({ id, question, builtin_question: builtin }) => ({
+	id, question: builtin ? String(words(`builtin.question.${builtin}`)) : question
+}))
 
 /** Saves `question` as typed; the same wording twice is kept once. False when SAVED_MOST are saved. */
 export const saveQuestion = db.transaction((userId, question) => {
-	const saved = selectSaved.all(userId)
+	const saved = savedQuestions(userId)
 	if (saved.some(s => s.question === question)) return true
 	if (saved.length >= SAVED_MOST) return false
 	insertSaved.run(newId('aq'), userId, question)

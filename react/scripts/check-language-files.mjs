@@ -70,8 +70,8 @@ function checkFiles(folder, codeRoot, naming) {
 	const all = code.map(([, text]) => text).join('\n')
 	// plural(n, 'item line') names count.itemLine
 	const nounOf = key => `'${key.slice('count.'.length).replace(/[A-Z]/g, c => ' ' + c.toLowerCase())}'`
-	// phrase(`kind.${kind}`) names every key in kind. that is one word longer
-	const built = [...all.matchAll(/phrase\(`([\w.]+\.)\$\{/g)].map(([, prefix]) => prefix)
+	// phrase(`kind.${kind}`) names every key in kind. that is one word longer, as words() does on the server
+	const built = [...all.matchAll(/(?:phrase|words)\(`([\w.]+\.)\$\{/g)].map(([, prefix]) => prefix)
 	const builtFrom = key => built.some(prefix => key.startsWith(prefix) && !key.slice(prefix.length).includes('.'))
 	for (const key of Object.keys(english)) {
 		if (named.has(key) || all.includes(`'${key}'`) || builtFrom(key) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue

@@ -15,14 +15,14 @@ const QUERY_MAX = 2000
 const SHOWN_FIRST = 4
 const SHOWN = [2, 3, 4, 5, 6, 8, 10]
 
-const selectViews = db.prepare('SELECT id, name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid')
-const selectView = db.prepare('SELECT id FROM user_saved_views WHERE id = ? AND user_id = ?')
+const selectViews = db.prepare('SELECT id, name, builtin_name, query, is_default, attention FROM user_saved_views WHERE user_id = ? ORDER BY position, rowid')
+const selectView = db.prepare('SELECT id, name, builtin_name FROM user_saved_views WHERE id = ? AND user_id = ?')
 const selectFirst = db.prepare('SELECT MIN(position) p FROM user_saved_views WHERE user_id = ?')
 const selectShown = db.prepare('SELECT saved_views_shown AS shown FROM user_settings WHERE user_id = ?')
 const updateShown = db.prepare('UPDATE user_settings SET saved_views_shown = ? WHERE user_id = ?')
 const countAll = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const insertView = db.prepare('INSERT INTO user_saved_views (id, user_id, name, query, position, attention) VALUES (?, ?, ?, ?, ?, ?)')
-const renameView = db.prepare('UPDATE user_saved_views SET name = ? WHERE id = ? AND user_id = ?')
+const renameView = db.prepare('UPDATE user_saved_views SET name = ?, builtin_name = NULL WHERE id = ? AND user_id = ?')
 const requeryView = db.prepare('UPDATE user_saved_views SET query = ? WHERE id = ? AND user_id = ?')
 const flagView = db.prepare('UPDATE user_saved_views SET attention = ? WHERE id = ? AND user_id = ?')
 const clearDefault = db.prepare('UPDATE user_saved_views SET is_default = 0 WHERE user_id = ?')
@@ -59,12 +59,15 @@ function requestOf(query, today) {
 	}
 }
 
+// a built-in name shows in the reader's language until it is renamed
+const nameOf = v => (v.builtin_name ? String(words(`builtin.view.${v.builtin_name}`)) : v.name)
+
 const list = (userId, today) => ({
 	// drafts are in the list, so All orders counts them as the list does
 	all: countAll.get(userId).c + draftCount(userId),
 	shown: selectShown.get(userId)?.shown ?? SHOWN_FIRST,
 	views: selectViews.all(userId).map(v => ({
-		id: v.id, name: v.name, query: v.query, isDefault: Boolean(v.is_default), attention: Boolean(v.attention),
+		id: v.id, name: nameOf(v), query: v.query, isDefault: Boolean(v.is_default), attention: Boolean(v.attention),
 		count: countMatching(userId, requestOf(v.query, today))
 	}))
 })
@@ -90,18 +93,20 @@ router.post('/', (req, res) => {
 
 router.put('/shown', (req, res) => {
 	const shown = Number(req.body?.shown)
-	if (!SHOWN.includes(shown)) return refuse(res, `Pick one of ${SHOWN.join(', ')}.`)
+	if (!SHOWN.includes(shown)) return refuse(res, words('view.shownChoice', { choices: SHOWN.join(', ') }))
 	updateShown.run(shown, req.user.id)
 	res.json(list(req.user.id, req.today))
 })
 
 router.patch('/:id', (req, res) => {
-	if (!selectView.get(req.params.id, req.user.id)) return refuse(res, words('view.missing'), 404)
+	const view = selectView.get(req.params.id, req.user.id)
+	if (!view) return refuse(res, words('view.missing'), 404)
 	const body = req.body ?? {}
 	if ('name' in body) {
 		const name = cleanName(body.name)
 		if (!name) return refuse(res, words('view.nameMissing'))
-		renameView.run(name, req.params.id, req.user.id)
+		// the name shown, sent back unchanged, keeps following the language
+		if (name !== nameOf(view)) renameView.run(name, req.params.id, req.user.id)
 	}
 	if ('query' in body) requeryView.run(cleanQuery(body.query), req.params.id, req.user.id)
 	// the amber count is the view's own setting, chosen when it is saved or edited (9e)

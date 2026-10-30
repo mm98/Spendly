@@ -10,21 +10,24 @@ export const router = Router()
 const TONES = ['success', 'progress', 'danger', 'neutral']
 const NAME_MAX = 40
 
-const selectAll = db.prepare('SELECT id, key, name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid')
-const selectOne = db.prepare('SELECT id, key, name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?')
+const selectAll = db.prepare('SELECT id, key, name, builtin_name, tone, position, own_date, type FROM statuses WHERE user_id = ? ORDER BY position, rowid')
+const selectOne = db.prepare('SELECT id, key, name, builtin_name, tone, own_date, type FROM statuses WHERE user_id = ? AND key = ?')
 const countByStatus = db.prepare('SELECT status, COUNT(*) n FROM orders WHERE user_id = ? GROUP BY status')
 const countOne = db.prepare('SELECT COUNT(*) n FROM orders WHERE user_id = ? AND status = ?')
 const selectDefault = db.prepare('SELECT default_status FROM user_settings WHERE user_id = ?')
 // every status but Ordered is dated on its own; Ordered is the order's own date
 const insertStatus = db.prepare('INSERT INTO statuses (id, user_id, key, name, tone, position, own_date) VALUES (?, ?, ?, ?, ?, ?, 1)')
-const updateStatus = db.prepare('UPDATE statuses SET name = ?, tone = ? WHERE user_id = ? AND key = ?')
+const updateStatus = db.prepare('UPDATE statuses SET name = ?, builtin_name = ?, tone = ? WHERE user_id = ? AND key = ?')
 const placeStatus = db.prepare('UPDATE statuses SET position = ? WHERE user_id = ? AND key = ?')
 const deleteStatus = db.prepare('DELETE FROM statuses WHERE user_id = ? AND key = ?')
+
+// a built-in name shows in the reader's language until it is renamed
+const nameOf = s => (s.builtin_name ? String(words(`builtin.status.${s.builtin_name}`)) : s.name)
 
 const list = userId => {
 	const counts = new Map(countByStatus.all(userId).map(r => [r.status, r.n]))
 	return selectAll.all(userId).map(s => ({
-		key: s.key, name: s.name, tone: s.tone, ownDate: Boolean(s.own_date), type: s.type, builtIn: s.type !== 'custom', orders: counts.get(s.key) ?? 0
+		key: s.key, name: nameOf(s), tone: s.tone, ownDate: Boolean(s.own_date), type: s.type, builtIn: s.type !== 'custom', orders: counts.get(s.key) ?? 0
 	}))
 }
 
@@ -35,8 +38,8 @@ function checked(userId, body, key = null) {
 	const name = String(body.name ?? '').trim()
 	if (!name) return { error: words('status.nameMissing') }
 	if (name.length > NAME_MAX) return { error: words('status.nameLong', { most: NAME_MAX }) }
-	const clash = selectAll.all(userId).find(s => s.key !== key && s.name.toLowerCase() === name.toLowerCase())
-	if (clash) return { error: words('status.twin', { name: clash.name }) }
+	const clash = selectAll.all(userId).find(s => s.key !== key && nameOf(s).toLowerCase() === name.toLowerCase())
+	if (clash) return { error: words('status.twin', { name: nameOf(clash) }) }
 	const tone = String(body.tone ?? 'neutral')
 	if (!TONES.includes(tone)) return { error: words('status.pickLook') }
 	return { name, tone }
@@ -56,9 +59,11 @@ router.post('/', (req, res) => {
 router.patch('/:key', (req, res) => {
 	const status = selectOne.get(req.user.id, req.params.key)
 	if (!status) return refuse(res, words('status.missing'), 404)
-	const ok = checked(req.user.id, { name: status.name, tone: status.tone, ...req.body }, status.key)
+	const ok = checked(req.user.id, { name: nameOf(status), tone: status.tone, ...req.body }, status.key)
 	if (ok.error) return refuse(res, ok.error)
-	updateStatus.run(ok.name, ok.tone, req.user.id, status.key)
+	// the name shown, sent back unchanged, keeps following the language
+	const kept = ok.name === nameOf(status) && status.builtin_name
+	updateStatus.run(kept ? status.name : ok.name, kept || null, ok.tone, req.user.id, status.key)
 	res.json(list(req.user.id))
 })
 
@@ -75,10 +80,10 @@ router.put('/order', (req, res) => {
 router.delete('/:key', (req, res) => {
 	const status = selectOne.get(req.user.id, req.params.key)
 	if (!status) return refuse(res, words('status.missing'), 404)
-	if (status.type !== 'custom') return refuse(res, `${status.name} is built in and stays.`)
-	if (countOne.get(req.user.id, status.key).n) return refuse(res, words('status.inUse', { name: status.name }), 409)
+	if (status.type !== 'custom') return refuse(res, words('status.builtIn', { name: nameOf(status) }))
+	if (countOne.get(req.user.id, status.key).n) return refuse(res, words('status.inUse', { name: nameOf(status) }), 409)
 	if (selectDefault.get(req.user.id)?.default_status === status.key)
-		return refuse(res, `${status.name} is the status a new order starts with. Choose another one in Defaults first.`, 409)
+		return refuse(res, words('status.isDefault', { name: nameOf(status) }), 409)
 	deleteStatus.run(req.user.id, status.key)
 	res.json(list(req.user.id))
 })
