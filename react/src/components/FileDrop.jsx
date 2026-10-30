@@ -4,7 +4,7 @@ import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
-import { usePhrase } from '../language/phrases.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
 export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
@@ -42,17 +42,17 @@ export async function sniffedProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE
 	let head
 	try { head = new Uint8Array(await file.slice(0, 12).arrayBuffer()) } catch { return null }
 	return SIGNATURES.some(parts => parts.every(([at, bytes]) => bytes.every((byte, i) => head[at + i] === byte)))
-		? null : 'Not a supported type'
+		? null : phrase('file.unsupported')
 }
 
 /** Why a file cannot be taken where `accept` (the input's own list) names what can, in the words its
-    tile shows (17b): "Not a supported type" or "Too large". Null when it can be taken. */
+    tile shows (17b), in the language in use. Null when it can be taken. */
 export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 	const { ending, types } = typesOf(file)
 	const fits = String(accept).split(',').map(a => a.trim().toLowerCase()).filter(Boolean).some(a =>
 		a.startsWith('.') ? a === '.' + ending : a.endsWith('/*') ? types.some(t => t.startsWith(a.slice(0, -1))) : types.includes(a))
-	if (!fits) return 'Not a supported type'
-	if (file.size > maxMb * 1024 * 1024) return 'Too large'
+	if (!fits) return phrase('file.unsupported')
+	if (file.size > maxMb * 1024 * 1024) return phrase('file.tooLarge')
 	return null
 }
 
@@ -134,7 +134,7 @@ export function pasteAnywhere(ev) {
 	if (!file) return
 	const open = [...document.querySelectorAll('[aria-modal="true"]')].filter(shown).at(-1)
 	const takes = input => Boolean(input && !input.disabled && shown(holderOf(input)) && (!open || open.contains(input))
-		&& fileProblem(file, input.accept || FILE_TYPES, Infinity) !== 'Not a supported type')
+		&& fileProblem(file, input.accept || FILE_TYPES, Infinity) !== phrase('file.unsupported'))
 	const place = places.findLast(p => takes(p.input.current))
 	if (place) { ev.preventDefault(); return place.take(file) }
 	const input = [...(open ?? document).querySelectorAll('input[type="file"]')].find(takes)

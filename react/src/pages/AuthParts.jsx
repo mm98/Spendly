@@ -11,11 +11,12 @@ import { useShellShape } from '../app/useMedia.js'
 import { getAuthOptions, getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { useAfterDraw } from '../app/afterDraw.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 // the server refuses anything shorter
 export const MIN_PASSWORD = 12
 
-const STRENGTH = ['Weak', 'Fair', 'Strong', 'Very strong']
+const STRENGTH = ['auth.strength.weak', 'auth.strength.fair', 'auth.strength.strong', 'auth.strength.veryStrong']
 
 /** 1 to 4 from length first ("longer beats complicated"); a password of few different characters is weak. */
 export function strengthOf(password) {
@@ -26,6 +27,7 @@ export function strengthOf(password) {
 
 /** The new-password field's meter (20a, 20c): a thin gauge at a quarter per step, a word, then the field's hint. */
 export function PasswordHint({ password, hint }) {
+	const phrase = usePhrase()
 	if (!password) return hint
 	const level = strengthOf(password)
 	const weak = level < 3
@@ -33,7 +35,7 @@ export function PasswordHint({ password, hint }) {
 		<span className="sp-stack sp-gap-6">
 			<span className="sp-row-flex sp-gap-8">
 				<span className="sp-grow"><Gauge thin value={level * 25} aria-hidden="true" /></span>
-				<span className={'sp-meta sp-strong sp-nowrap ' + (weak ? 'sp-ink-warning' : 'sp-ink-accent')}>{password.length < MIN_PASSWORD ? 'Too short' : STRENGTH[level - 1]}</span>
+				<span className={'sp-meta sp-strong sp-nowrap ' + (weak ? 'sp-ink-warning' : 'sp-ink-accent')}>{phrase(password.length < MIN_PASSWORD ? 'auth.strength.tooShort' : STRENGTH[level - 1])}</span>
 			</span>
 			{hint ? <span>{hint}</span> : null}
 		</span>
@@ -42,7 +44,7 @@ export function PasswordHint({ password, hint }) {
 
 // the server's own rule, so an address it would refuse is named before it is sent
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-export const EMAIL_PROBLEM = 'Enter a valid email address.'
+export const EMAIL_PROBLEM = 'auth.emailInvalid'
 /** Focus for a field, once the page has drawn the message bound to it, so it is read out with the
     field, once the request that failed has unlocked it. */
 export function useFocusField() {
@@ -52,8 +54,11 @@ export function useFocusField() {
 
 /** "4 minutes", "1 minute", or seconds under a minute: a wait as the reader counts it. */
 export const waitWords = seconds => (seconds >= 60
-	? `${Math.ceil(seconds / 60)} ${Math.ceil(seconds / 60) === 1 ? 'minute' : 'minutes'}`
-	: `${seconds} ${seconds === 1 ? 'second' : 'seconds'}`)
+	? phrase('time.minutes', { count: Math.ceil(seconds / 60) })
+	: phrase('time.seconds', { count: seconds }))
+
+/** Bold words inside a phrase: `<b>…</b>`. */
+export const bold = words => <b>{words}</b>
 
 /** A countdown in whole seconds from `seconds`, restarted whenever `seconds` is set again. */
 export function useCountdown() {
@@ -79,9 +84,10 @@ export function AuthCard({
 	submitIcon, submitVariant = 'solid', busy, busyLabel, disabled = false, gap = 14, secondary, across, note, terms, footer, children
 }) {
 	const shape = useShellShape()
+	const phrase = usePhrase()
 	// outside the shell, so the tab is named here, from the route's own title
 	const named = useMatches().at(-1)?.handle?.title
-	useEffect(() => { if (named) document.title = `${named} - Spendly` }, [named])
+	useEffect(() => { if (named) document.title = `${phrase(named)} - Spendly` }, [named])
 	const warning = alertColor === 'warning'
 	const card = (
 		<Card variant="float" footer={footer}>
@@ -168,17 +174,15 @@ export function useAuthOptions() {
    from the app, or one of the recovery codes, in the one field. */
 export const CODE_KINDS = {
 	app: {
-		label: 'Code', line: 'Type the 6-digit code from your authenticator app.', other: 'Use a recovery code instead',
-		wrong: 'That code is not right. Check the time on your phone, and try the newest code.',
+		label: 'auth.code.app.label', line: 'auth.code.app.line', other: 'auth.code.app.other', wrong: 'auth.code.app.wrong',
 		field: { inputMode: 'numeric', autoComplete: 'one-time-code', pattern: '[0-9]*', maxLength: 6 }
 	},
 	recovery: {
-		label: 'Recovery code', line: 'Type one of your recovery codes.', other: 'Use a code from the app instead',
-		wrong: 'That recovery code is not right, or it was used already.',
+		label: 'auth.code.recovery.label', line: 'auth.code.recovery.line', other: 'auth.code.recovery.other', wrong: 'auth.code.recovery.wrong',
 		field: { autoComplete: 'off', autoCapitalize: 'characters', spellCheck: false, maxLength: 9 }
 	}
 }
-export const LOST_BOTH = 'Lost your phone and your recovery codes? Ask the person who runs this Spendly server.'
+export const LOST_BOTH = 'auth.code.lostBoth'
 // spaces typed or pasted are dropped (20g)
 export const cleanCode = value => value.replace(/\s+/g, '')
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { logout } from '../api/client.js'
 import { Toaster, useToast } from '../components/Overlays.jsx'
+import { phrase } from '../language/phrases.js'
 
 /** The sign-in page as Sign out (9c) and Delete account (11g) reach it. Sign out ends the session here,
     once the shell's readers are gone; a deleted account's is already gone, and a toast says so. */
@@ -29,6 +30,6 @@ export function SignedOut({ children }) {
 
 function AccountDeleted() {
 	const toast = useToast()
-	useEffect(() => { toast({ message: 'Your account was deleted.' }) }, [toast])
+	useEffect(() => { toast({ message: phrase('signedOut.deleted') }) }, [toast])
 	return null
 }

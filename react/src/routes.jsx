@@ -80,16 +80,16 @@ export const routes = [
 		loader: () => setLanguage('auto').then(() => null),
 		HydrateFallback: () => null,
 		children: [
-			{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
-			{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
-			{ path: 'welcome', element: <Welcome />, handle: { title: 'Welcome' } },
-			{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'Confirm your email' } },
-			{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'Confirm your email' } },
-			{ path: 'reset', element: <ResetAsk />, handle: { title: 'Reset your password' } },
-			{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'Choose a new password' } },
-			{ path: 'email/stop/:token', element: <StatusEmailStop />, handle: { title: 'Stop status emails' } },
-			{ path: 'terms', element: <Terms />, handle: { title: 'Terms of use' } },
-			{ path: 'privacy', element: <Privacy />, handle: { title: 'Privacy notice' } }
+			{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'page.signIn' } },
+			{ path: 'register', element: <Register />, handle: { title: 'page.createYourAccount' } },
+			{ path: 'welcome', element: <Welcome />, handle: { title: 'page.welcome' } },
+			{ path: 'confirm', element: <ConfirmSent />, handle: { title: 'page.confirmYourEmail' } },
+			{ path: 'confirm/:token', element: <ConfirmLink />, handle: { title: 'page.confirmYourEmail' } },
+			{ path: 'reset', element: <ResetAsk />, handle: { title: 'page.resetYourPassword' } },
+			{ path: 'reset/:token', element: <ResetLink />, handle: { title: 'page.chooseANewPassword' } },
+			{ path: 'email/stop/:token', element: <StatusEmailStop />, handle: { title: 'page.stopStatusEmails' } },
+			{ path: 'terms', element: <Terms />, handle: { title: 'page.termsOfUse' } },
+			{ path: 'privacy', element: <Privacy />, handle: { title: 'page.privacyNotice' } }
 		]
 	},
 	{
@@ -104,46 +104,46 @@ export const routes = [
 			// a page that fails shows its problem in the content column, under the shell
 			errorElement: <RouteError />,
 			children: [
-				{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } },
+				{ index: true, element: <Home />, handle: { title: 'page.home', navKey: 'home', fab: true } },
 
 				{ path: 'orders', children: [
-					{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
-					{ path: 'new', element: <OrderNew />, handle: { title: 'New order', navKey: 'orders' } },
-					{ path: ':id', element: <Order />, handle: { title: 'Order', navKey: 'orders', layout: 'split' } },
-					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } },
-					{ path: ':id/compare', element: <OrderCompare />, handle: { title: 'Compare with receipt', navKey: 'orders' } }
+					{ index: true, element: <Orders />, handle: { title: 'page.orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
+					{ path: 'new', element: <OrderNew />, handle: { title: 'page.newOrder', navKey: 'orders' } },
+					{ path: ':id', element: <Order />, handle: { title: 'page.order', navKey: 'orders', layout: 'split' } },
+					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'page.editOrder', navKey: 'orders', layout: 'split' } },
+					{ path: ':id/compare', element: <OrderCompare />, handle: { title: 'page.compareWithReceipt', navKey: 'orders' } }
 				] },
 
-				{ path: 'statistics', element: <Statistics />, handle: { title: 'Statistics', navKey: 'statistics', remember: true } },
+				{ path: 'statistics', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
 
 				{ path: 'vendors', children: [
-					{ index: true, element: <Vendors />, handle: { title: 'Vendors', navKey: 'vendors', remember: true } },
-					{ path: 'new', element: <VendorForm />, handle: { title: 'New vendor', navKey: 'vendors', layout: 'split' } },
-					{ path: ':id/edit', element: <VendorForm />, handle: { title: 'Edit vendor', navKey: 'vendors', layout: 'split' } }
+					{ index: true, element: <Vendors />, handle: { title: 'page.vendors', navKey: 'vendors', remember: true } },
+					{ path: 'new', element: <VendorForm />, handle: { title: 'page.newVendor', navKey: 'vendors', layout: 'split' } },
+					{ path: ':id/edit', element: <VendorForm />, handle: { title: 'page.editVendor', navKey: 'vendors', layout: 'split' } }
 				] },
 				{ path: 'categories', children: [
-					{ index: true, element: <Categories />, handle: { title: 'Categories', navKey: 'categories', remember: true } },
-					{ path: 'new', element: <CategoryForm />, handle: { title: 'New category', navKey: 'categories', layout: 'split' } },
-					{ path: ':id/edit', element: <CategoryForm />, handle: { title: 'Edit category', navKey: 'categories', layout: 'split' } }
+					{ index: true, element: <Categories />, handle: { title: 'page.categories', navKey: 'categories', remember: true } },
+					{ path: 'new', element: <CategoryForm />, handle: { title: 'page.newCategory', navKey: 'categories', layout: 'split' } },
+					{ path: ':id/edit', element: <CategoryForm />, handle: { title: 'page.editCategory', navKey: 'categories', layout: 'split' } }
 				] },
 				{ path: 'bookmarks', children: [
-					{ index: true, element: <Bookmarks />, handle: { title: 'Bookmarks', navKey: 'bookmarks', remember: true } },
-					{ path: 'new', element: <BookmarkForm />, handle: { title: 'New bookmark', navKey: 'bookmarks', layout: 'split' } },
-					{ path: ':id/edit', element: <BookmarkForm />, handle: { title: 'Edit bookmark', navKey: 'bookmarks', layout: 'split' } }
+					{ index: true, element: <Bookmarks />, handle: { title: 'page.bookmarks', navKey: 'bookmarks', remember: true } },
+					{ path: 'new', element: <BookmarkForm />, handle: { title: 'page.newBookmark', navKey: 'bookmarks', layout: 'split' } },
+					{ path: ':id/edit', element: <BookmarkForm />, handle: { title: 'page.editBookmark', navKey: 'bookmarks', layout: 'split' } }
 				] },
 
-				{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'Check a bank statement', navKey: 'budget' } },
-				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
+				{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'page.checkABankStatement', navKey: 'budget' } },
+				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'page.budget', navKey: 'budget', remember: true } },
 
-				{ path: 'ask', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
-				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'Files', navKey: 'ask', layout: 'dock' } },
-				{ path: 'ask/chats', element: <AskChats />, handle: { title: 'Chats', navKey: 'ask', layout: 'dock' } },
-				{ path: 'ask/:chatId', element: <Ask />, handle: { title: 'Ask', navKey: 'ask', layout: 'fill' } },
-				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings', placesConfirmBanner: true } },
-				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
-				{ path: 'more/views', element: <SavedViews />, handle: { title: 'Saved views', navKey: 'more' } },
+				{ path: 'ask', element: <Ask />, handle: { title: 'page.ask', navKey: 'ask', layout: 'fill' } },
+				{ path: 'ask/files', element: <AskFiles />, handle: { title: 'page.files', navKey: 'ask', layout: 'dock' } },
+				{ path: 'ask/chats', element: <AskChats />, handle: { title: 'page.chats', navKey: 'ask', layout: 'dock' } },
+				{ path: 'ask/:chatId', element: <Ask />, handle: { title: 'page.ask', navKey: 'ask', layout: 'fill' } },
+				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'page.settings', navKey: 'settings', placesConfirmBanner: true } },
+				{ path: 'more', element: <More />, handle: { title: 'page.more', navKey: 'more' } },
+				{ path: 'more/views', element: <SavedViews />, handle: { title: 'page.savedViews', navKey: 'more' } },
 
-				{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } }
+				{ path: '*', element: <Home />, handle: { title: 'page.home', navKey: 'home', fab: true } }
 			]
 		}]
 	}

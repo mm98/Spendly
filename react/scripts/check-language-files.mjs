@@ -25,8 +25,8 @@ const fail = (where, detail) => findings.push(`${where}: ${detail}`)
 
 // the names of the places a phrase takes values into, at any depth
 const placesOf = elements => elements.flatMap(e => {
-	const inner = e.options ? Object.values(e.options).flatMap(o => placesOf(o.value)) : []
-	return e.type === TYPE.argument || e.type === TYPE.plural || e.type === TYPE.select || e.type === TYPE.number || e.type === TYPE.date
+	const inner = e.options ? Object.values(e.options).flatMap(o => placesOf(o.value)) : e.children ? placesOf(e.children) : []
+	return e.type === TYPE.argument || e.type === TYPE.plural || e.type === TYPE.select || e.type === TYPE.number || e.type === TYPE.date || e.type === TYPE.tag
 		? [e.value, ...inner] : inner
 })
 
@@ -64,6 +64,8 @@ for (const key of Object.keys(english)) if (!named.has(key) && !all.includes(`'$
 
 // what a reader would read: a word of two letters or more, never a name from NAMES
 const words = text => /[A-Za-z]{2,}/.test(text) && !NAMES.has(text.trim())
+// two words or more starting with a capital, or words ending a sentence
+const sentence = text => /^[A-Z][a-z']*[ ,][A-Za-z]/.test(text) || /[a-z]{2}[.…?!]$/.test(text)
 const ATTRIBUTES = /^(aria-label|title|placeholder|alt|data-tip|label)$/
 const visit = (node, at) => {
 	if (!node || typeof node !== 'object') return
@@ -86,7 +88,18 @@ const visit = (node, at) => {
 	}
 	// a default prop written in words: `kind = 'Photo'`
 	if (node.type === 'AssignmentPattern' && node.right?.type === 'Literal' && typeof node.right.value === 'string' && /^[A-Z][a-z]/.test(node.right.value) && words(node.right.value)) at(node, node.right.value)
-	for (const k in node) if (k !== 'type' && typeof node[k] === 'object') visit(node[k], at)
+	// a sentence anywhere else: a message kept in a constant, a toast, a fallback
+	else if (node.type === 'Literal' && typeof node.value === 'string' && sentence(node.value)) at(node, node.value)
+	else if (node.type === 'TemplateLiteral' && node.quasis.some(q => sentence(q.value.cooked))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
+	if (node.type === 'JSXAttribute' || node.type === 'TemplateLiteral') return
+	// a message for a developer, in the console or in an error the code throws
+	if (node.type === 'CallExpression' && node.callee?.object?.name === 'console') return
+	if ((node.type === 'NewExpression' || node.type === 'CallExpression') && /Error$/.test(node.callee?.name ?? '')) return
+	for (const k in node) {
+		// where a module comes from, and the name of a key, are code
+		if (k === 'type' || k === 'source' || (k === 'key' && node.type === 'Property' && !node.computed)) continue
+		if (typeof node[k] === 'object') visit(node[k], at)
+	}
 }
 for (const folder of TEXT_FREE) {
 	for (const [p, text] of code.filter(([p]) => p.startsWith(join(src, folder) + '/'))) {

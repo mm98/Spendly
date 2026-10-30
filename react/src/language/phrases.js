@@ -1,5 +1,5 @@
 import { IntlMessageFormat } from 'intl-messageformat'
-import { useSyncExternalStore } from 'react'
+import { Fragment, createElement, useSyncExternalStore } from 'react'
 
 /* The languages Spendly's words can be shown in, in step with the server's LANGUAGES
    (api/src/lib/constants.js). A name is written in its own language, whatever language is in use. */
@@ -40,14 +40,17 @@ export async function setLanguage(choice) {
 export const languageCode = () => active.code
 
 /** The phrase under `key` with `values` in its places (ICU message format). A number is passed already
-    written in the account's format; a plural choice reads the raw count. An unknown key comes back as itself. */
+    written in the account's format; a plural choice reads the raw count. A part drawn by the page, such as a
+    link, is a value: a function for a `<tag>words</tag>`, or an element for a place. An unknown key comes back as itself. */
 export function phrase(key, values) {
 	const message = active.phrases[key]
 	if (message === undefined) return key
-	if (!message.includes('{')) return message
+	if (!/[{<]/.test(message)) return message
 	let format = formats.get(key)
 	if (!format) formats.set(key, (format = new IntlMessageFormat(message, active.code)))
-	return format.format(values)
+	const said = format.format(values)
+	// parts given as arguments need no key of their own
+	return Array.isArray(said) ? createElement(Fragment, null, ...said) : said
 }
 
 const subscribe = listener => {

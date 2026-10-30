@@ -24,7 +24,7 @@ import {
 	setViewsShown, sorts, spendKinds, updateProfile, uploadPicture
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, plural, setCurrency, setLocale } from '../api/format.js'
-import { LANGUAGES, browserLanguage, setLanguage, usePhrase } from '../language/phrases.js'
+import { LANGUAGES, browserLanguage, phrase, setLanguage, usePhrase } from '../language/phrases.js'
 import { ImportCard, importLeaveBody, importUnsaved, useImportState } from './SettingsImport.jsx'
 import { DemoCard } from './SettingsDemo.jsx'
 import { AccountCard, StatusEmailCard } from './SettingsAccount.jsx'
@@ -118,8 +118,8 @@ const ALERT_DEFAULTS = { notifyWhileSaving: true, notifyMonthlySummary: true, no
 // a rule of Needs a look is kept in the draft as `look.<rule>` and saved as one `looks` map
 const lookValues = settings => Object.fromEntries(LOOKS.map(l => [`look.${l.id}`, settings?.looks?.[l.id] ?? l.on]))
 
-const currencyLabel = c => `${c.label} (${c.symbol})`
-const localeLabel = l => `${l.label} (${localeSample(l.code)})`
+const currencyLabel = c => `${phrase(c.label)} (${c.symbol})`
+const localeLabel = l => `${phrase(l.label)} (${localeSample(l.code)})`
 // the chosen currency, not the saved one: the preview shows what Save would make every amount
 const previewAmount = code => {
 	const c = CURRENCIES.find(x => x.code === code) ?? CURRENCIES[0]

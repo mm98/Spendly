@@ -6,11 +6,13 @@ import { PasswordField, TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle } from '../components/Overlays.jsx'
 import { cancelTwoStepSignIn, failureMessage, finishTwoStepSignIn, login } from '../api/client.js'
-import { ActionLink, CODE_KINDS, cleanCode, useCountdown, waitWords } from '../pages/AuthParts.jsx'
+import { ActionLink, CODE_KINDS, bold, cleanCode, useCountdown, waitWords } from '../pages/AuthParts.jsx'
+import { usePhrase } from '../language/phrases.js'
 
 /** A session that ended mid-use (20e, level 3): the reader signs in again over the page, which
     stays mounted with whatever was typed. With no address in hand, Sign in goes to the sign-in page. */
 export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
+	const phrase = usePhrase()
 	const [asking, setAsking] = useState(false)
 	const [password, setPassword] = useState('')
 	const [problem, setProblem] = useState(null)
@@ -26,7 +28,7 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 
 	const submit = () => {
 		if (!password) {
-			setProblem('Enter your password.')
+			setProblem(phrase('signIn.passwordMissing'))
 			return document.getElementById('session-password')?.focus()
 		}
 		setBusy(true)
@@ -44,8 +46,8 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 				setBusy(false)
 				if (e?.status === 429 && e.body?.retryAfter) return setLockedFor(e.body.retryAfter)
 				setAlert(e?.status === 401
-					? "That email and password don't match. Check both and try again."
-					: failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
+					? phrase('signIn.wrong')
+					: failureMessage(e, phrase('failed.unreachable')))
 				document.getElementById('session-password')?.focus()
 			})
 	}
@@ -61,7 +63,7 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 	}
 	const sendCode = () => {
 		if (!code) {
-			setProblem('Enter the code.')
+			setProblem(phrase('signIn.codeMissing'))
 			return document.getElementById('session-code')?.focus()
 		}
 		setBusy(true)
@@ -72,7 +74,7 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 				setBusy(false)
 				if (e?.status === 429 && e.body?.retryAfter) return setLockedFor(e.body.retryAfter)
 				if (e?.status === 410) return setTimedOut(true)
-				setAlert(e?.status === 401 ? CODE_KINDS[kind].wrong : failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
+				setAlert(e?.status === 401 ? phrase(CODE_KINDS[kind].wrong) : failureMessage(e, phrase('failed.unreachable')))
 				requestAnimationFrame(() => document.getElementById('session-code')?.select())
 			})
 	}
@@ -80,41 +82,41 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 	const stopped = locked || timedOut
 
 	return (
-		<Dialog onCancel={onLater} aria-label="You've been signed out">
+		<Dialog onCancel={onLater} aria-label={phrase('session.title')}>
 			<form className="sp-stack sp-gap-12" noValidate onSubmit={ev => { ev.preventDefault(); if (asking && !stopped && !busy) (ticket ? sendCode : submit)() }}>
-				<DialogTitle>You've been signed out</DialogTitle>
-				<DialogBody>{ticket ? words.line : 'Your session expired. Sign in again to carry on - nothing was lost.'}</DialogBody>
+				<DialogTitle>{phrase('session.title')}</DialogTitle>
+				<DialogBody>{phrase(ticket ? words.line : 'session.body')}</DialogBody>
 				{ticket && timedOut
-					? <Alert color="warning" mark={<Icon name="clock" />} title="This step timed out">The code has to be typed within 5 minutes of the password. Sign in again from the start.</Alert>
+					? <Alert color="warning" mark={<Icon name="clock" />} title={phrase('signIn.timedOut')}>{phrase('signIn.timedOutBody')}</Alert>
 					: ticket && locked
-						? <Alert color="warning" mark={<Icon name="lock" />} title="Too many tries">Sign in is paused for <b>{waitWords(lockedFor)}</b>. Then sign in again from the start.</Alert>
+						? <Alert color="warning" mark={<Icon name="lock" />} title={phrase('signIn.tooManyTries')}>{phrase('signIn.pausedStartAgain', { wait: waitWords(lockedFor), b: bold })}</Alert>
 						: null}
 				{ticket
 					? (
 						<>
 							{alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
-							<Field label={words.label} id="session-code" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
+							<Field label={phrase(words.label)} id="session-code" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
 								<TextField {...words.field} code value={code} disabled={stopped || busy}
 									onChange={v => { setCode(cleanCode(v)); setProblem(null); setAlert(null) }} />
 							</Field>
 							{stopped ? null : (
 								<span className="sp-meta">
-									<ActionLink onClick={() => { setKind(k => (k === 'app' ? 'recovery' : 'app')); setCode(''); setProblem(null); setAlert(null) }}>{words.other}</ActionLink>
+									<ActionLink onClick={() => { setKind(k => (k === 'app' ? 'recovery' : 'app')); setCode(''); setProblem(null); setAlert(null) }}>{phrase(words.other)}</ActionLink>
 								</span>
 							)}
 						</>
 					)
 					: null}
 				{!ticket && asking && locked
-					? <Alert color="warning" mark={<Icon name="lock" />} title="Too many attempts">Sign in is paused for <b>{waitWords(lockedFor)}</b>.</Alert>
+					? <Alert color="warning" mark={<Icon name="lock" />} title={phrase('signIn.tooManyAttempts')}>{phrase('signIn.paused', { wait: waitWords(lockedFor), b: bold })}</Alert>
 					: !ticket && asking && alert ? <Alert color="danger" mark={<Icon name="alert-circle" />}>{alert}</Alert> : null}
 				{asking && !ticket
 					? (
 						<>
-							<Field label="Email" id="session-email">
+							<Field label={phrase('field.email')} id="session-email">
 								<TextField type="email" autoComplete="email" value={email} disabled onChange={() => {}} />
 							</Field>
-							<Field label="Password" id="session-password" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
+							<Field label={phrase('field.password')} id="session-password" message={problem ?? undefined} messageType={problem ? 'danger' : 'hint'}>
 								<PasswordField autoComplete="current-password" value={password} disabled={locked}
 									onChange={v => { setPassword(v); setProblem(null) }} />
 							</Field>
@@ -122,13 +124,13 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 					)
 					: null}
 				<DialogActions>
-					{ticket ? <><Button variant="outline" size="small" onClick={leaveCodeStep}>Back</Button><span className="sp-grow" /></> : null}
-					<Button variant="outline" size="small" onClick={onLater}>Later</Button>
+					{ticket ? <><Button variant="outline" size="small" onClick={leaveCodeStep}>{phrase('action.back')}</Button><span className="sp-grow" /></> : null}
+					<Button variant="outline" size="small" onClick={onLater}>{phrase('action.later')}</Button>
 					{ticket
-						? <Button type="submit" size="small" disabled={busy || stopped}>{busy ? 'Signing in…' : 'Sign in'}</Button>
+						? <Button type="submit" size="small" disabled={busy || stopped}>{phrase(busy ? 'signIn.busy' : 'page.signIn')}</Button>
 						: asking
-						? <Button type="submit" size="small" disabled={busy || locked}>{busy ? 'Signing in…' : 'Sign in'}</Button>
-						: <Button size="small" onClick={() => (email ? setAsking(true) : onSignInPage())}>Sign in</Button>}
+						? <Button type="submit" size="small" disabled={busy || locked}>{phrase(busy ? 'signIn.busy' : 'page.signIn')}</Button>
+						: <Button size="small" onClick={() => (email ? setAsking(true) : onSignInPage())}>{phrase('page.signIn')}</Button>}
 				</DialogActions>
 			</form>
 		</Dialog>
@@ -137,12 +139,13 @@ export function SessionDialog({ email, onSignedIn, onLater, onSignInPage }) {
 
 /** After Later the page stays to be read and copied; a save asks to sign in again (20e). */
 export function SignedOutBanner({ onSignIn }) {
+	const phrase = usePhrase()
 	return (
 		<div className="au-banner">
 			<ListItem color="warning">
 				<Icon name="lock" size={18} />
-				<span className="sp-data sp-ink-warning sp-grow">You are signed out. Nothing on this page is lost; sign in again to save.</span>
-				<Button variant="text" size="small" color="warning" onClick={onSignIn}>Sign in</Button>
+				<span className="sp-data sp-ink-warning sp-grow">{phrase('session.banner')}</span>
+				<Button variant="text" size="small" color="warning" onClick={onSignIn}>{phrase('page.signIn')}</Button>
 			</ListItem>
 		</div>
 	)

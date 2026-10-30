@@ -47,12 +47,12 @@ export const isSaving = (n, decimals = 2) => Math.round((Number(n) || 0) * 10 **
 /* The currencies an account can keep, in step with the server's CURRENCIES
    (api/src/lib/constants.js). The symbol does not always follow the figure: "$1.187,25". */
 export const CURRENCIES = [
-	{ code: 'DKK', symbol: 'kr.', before: false, label: 'Danish krone' },
-	{ code: 'SEK', symbol: 'kr', before: false, label: 'Swedish krona' },
-	{ code: 'NOK', symbol: 'kr', before: false, label: 'Norwegian krone' },
-	{ code: 'EUR', symbol: '€', before: true, label: 'Euro' },
-	{ code: 'USD', symbol: '$', before: true, label: 'US dollar' },
-	{ code: 'GBP', symbol: '£', before: true, label: 'Pound sterling' }
+	{ code: 'DKK', symbol: 'kr.', before: false, label: 'currency.dkk' },
+	{ code: 'SEK', symbol: 'kr', before: false, label: 'currency.sek' },
+	{ code: 'NOK', symbol: 'kr', before: false, label: 'currency.nok' },
+	{ code: 'EUR', symbol: '€', before: true, label: 'currency.eur' },
+	{ code: 'USD', symbol: '$', before: true, label: 'currency.usd' },
+	{ code: 'GBP', symbol: '£', before: true, label: 'currency.gbp' }
 ]
 
 // one value for the whole session, set where the settings arrive (routes.jsx) and where they are saved
@@ -100,13 +100,13 @@ export const parseAmount = v => {
 /* The locales an account can choose, in step with the server's LOCALES (api/src/lib/constants.js).
    'auto' keeps asking the browser; a label names the region whose way of writing dates it is. */
 export const LOCALES = [
-	{ code: 'auto', label: 'Match my browser' },
-	{ code: 'da-DK', label: 'Danish' },
-	{ code: 'sv-SE', label: 'Swedish' },
-	{ code: 'nb-NO', label: 'Norwegian' },
-	{ code: 'de-DE', label: 'German' },
-	{ code: 'en-GB', label: 'English (UK)' },
-	{ code: 'en-US', label: 'English (US)' }
+	{ code: 'auto', label: 'dateFormat.auto' },
+	{ code: 'da-DK', label: 'dateFormat.danish' },
+	{ code: 'sv-SE', label: 'dateFormat.swedish' },
+	{ code: 'nb-NO', label: 'dateFormat.norwegian' },
+	{ code: 'de-DE', label: 'dateFormat.german' },
+	{ code: 'en-GB', label: 'dateFormat.englishUk' },
+	{ code: 'en-US', label: 'dateFormat.englishUs' }
 ]
 
 // undefined is what Intl reads as the browser's own; set where the settings arrive and are saved
