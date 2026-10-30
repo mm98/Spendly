@@ -1,11 +1,16 @@
 import { amount, currency, monthNames } from '../api/format.js'
+import { periodSpend } from '../api/client.js'
 import { phrase } from '../language/phrases.js'
 
 /* Home's Needs a look rules, in rank order; each also has an entry in api/src/lib/looks.js, whose default `on` mirrors.
    `rows` answers the desktop rows, the phone rows, and where "All" leads when the card cannot show them all. */
 
 export const monthOf = w => monthNames('long')[Number(w.from.slice(5, 7)) - 1]
-export const ordersFor = (category, window) => `/orders?category=${category.id}&from=${window.from}&to=${window.to}`
+/** The orders a category's limit is measured on: its month, or its year so far for a yearly limit. */
+export const ordersFor = (category, window) =>
+	`/orders?category=${category.id}&from=${category.budgetPeriod === 'year' ? `${window.from.slice(0, 4)}-01-01` : window.from}&to=${window.to}`
+// the period a row's limit is for, in words: the window's month, or its year
+const periodOf = (category, window) => (category.budgetPeriod === 'year' ? window.from.slice(0, 4) : monthOf(window))
 
 const rowOf = (key, to, count, text, phone) => ({ key, to, count: amount(count, 0), text, phone })
 const none = { rows: [], phone: [] }
@@ -16,7 +21,7 @@ export const LOOKS = [
 		rows: ({ view }) => ({
 			rows: view.over.map(c => ({
 				key: c.id, to: ordersFor(c, view.window), color: 'warning', count: '!',
-				text: phrase('look.over.row', { name: c.name, amount: currency(c.monthSpend - c.budget, 0), month: monthOf(view.window), b: words => <b className="sp-break">{words}</b> })
+				text: phrase('look.over.row', { name: c.name, amount: currency(periodSpend(c) - c.budget, 0), period: periodOf(c, view.window), b: words => <b className="sp-break">{words}</b> })
 			})),
 			phone: view.over.length
 				? [{ ...rowOf('over', '/categories?flag=over-limit', view.over.length, null, phrase('look.over.phone', { count: view.over.length })), color: 'warning' }]
@@ -29,7 +34,7 @@ export const LOOKS = [
 		rows: ({ view }) => ({
 			rows: view.near.map(c => ({
 				key: c.id, to: ordersFor(c, view.window), color: 'warning', count: '!',
-				text: phrase('look.near.row', { name: c.name, share: Math.floor((c.monthSpend / c.budget) * 100), month: monthOf(view.window), b: words => <b className="sp-break">{words}</b> })
+				text: phrase('look.near.row', { name: c.name, share: Math.floor((periodSpend(c) / c.budget) * 100), period: periodOf(c, view.window), b: words => <b className="sp-break">{words}</b> })
 			})),
 			phone: view.near.length
 				? [{ ...rowOf('near', '/categories?flag=near-limit', view.near.length, null, phrase('look.near.phone', { count: view.near.length })), color: 'warning' }]

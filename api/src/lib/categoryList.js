@@ -54,9 +54,8 @@ const selectEarly = db.prepare('SELECT notify_early FROM user_settings WHERE use
 
 const MONTH_PARAM = /^\d{4}-(0[1-9]|1[0-2])$/
 
-/** The month a date or a "2026-10" falls in as `from` and `to` epoch seconds, its year as
-    `periodYearFrom` and `periodYearTo` (up to that month when it is `named`), and the twelve whole
-    months before it as `averageFrom`. */
+/** The month of a date or a "2026-10" as `from`/`to`, its year (up to that month when `named`) as
+    `periodYearFrom`/`periodYearTo`, and the twelve whole months before it as `averageFrom`. */
 function monthOf(today, named = false) {
 	const [y, m] = today.split('-').map(Number)
 	const { month, year } = budgetWindows(today, { upToMonth: named })
@@ -171,9 +170,8 @@ export function categoryPage(userId, q, today, languages = []) {
 
 const selectLimited = db.prepare('SELECT id, name, icon, colour, budget, budget_period, favourite FROM categories WHERE user_id = ? AND budget > 0')
 
-/** Every category with a limit, by name, as who it is and its limit: never paged, so none is ever
-    left out. `spend` adds the spend of this month and of this year; `over` keeps those whose spend in
-    their own period is past the limit. */
+/** Every category with a limit, by name, never paged. `spend` adds this month's and this year's
+    spend; `over` keeps those past the limit in their own period. */
 export function limitedCategories(userId, today, { over = false, spend = false, languages = [] } = {}) {
 	let rows = selectLimited.all(userId)
 	if ((over || spend) && rows.length) {

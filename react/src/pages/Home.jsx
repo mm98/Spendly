@@ -18,8 +18,8 @@ import { CategoryIcon, CategoryMark, swatchOf } from '../app/categoryMark.jsx'
 import { OrderAmount, OrderPhoto, StatusPill, vendorName } from '../app/orderRow.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import {
-	failureMessage, getCategoryPage, getCounts, getCurrentUser, getDrafts, getHomeAttention, getLimitedCategories, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsMonths, getStatsSlice, thisMonthSlice,
-	overBudget, putSummaryAway, scanThumbnailUrl, withMonthSpend
+	failureMessage, getCategoryPage, getCounts, getCurrentUser, getDrafts, getHomeAttention, getMonthlySummary, getComparedMonth, getOrders, getSettings, getStatsMonths, getStatsSlice, thisMonthSlice,
+	getLimitedCategorySpend, overBudget, periodSpend, putSummaryAway, scanThumbnailUrl, withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, today } from '../api/format.js'
@@ -48,22 +48,23 @@ function loudness(settings) {
 }
 
 /** A category with a limit is near it from the reader's chosen share up to the limit itself. */
-const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && c.monthSpend >= (c.budget * early) / 100
+const nearLimit = (c, early) => c.budget > 0 && early < 100 && !overBudget(c) && periodSpend(c) >= (c.budget * early) / 100
 
-/** The month window joined with every category with a limit, how many categories there are (`count`)
-    and the four that spent most (`top`, in the window's order): what three cards are drawn from. */
+/** The month window, every limited category with its own period's spend, the category `count` and
+    the four that spent most this month (`top`), a yearly one shown on its year: three cards' data. */
 function monthView(window, limited, count, early, top) {
 	if (!window || !limited || count === undefined || !top) return null
-	const categories = withMonthSpend(limited, window.split)
-	const byOverage = c => c.monthSpend - c.budget
-	const spent = withMonthSpend(top, window.split)
+	const categories = limited
+	const byOverage = c => periodSpend(c) - c.budget
+	const yearOf = new Map(limited.map(c => [c.id, c.yearSpend]))
+	const spent = withMonthSpend(top, window.split).map(c => ({ ...c, yearSpend: yearOf.get(c.id) ?? 0 }))
 	return {
 		window,
 		count,
 		withSpend: window.split.filter(s => s.id && s.amount > 0).length,
 		early,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
-		near: categories.filter(c => nearLimit(c, early)).sort((a, b) => b.monthSpend / b.budget - a.monthSpend / a.budget),
+		near: categories.filter(c => nearLimit(c, early)).sort((a, b) => periodSpend(b) / b.budget - periodSpend(a) / a.budget),
 		top: spent.slice(0, 4),
 		pace: window.pace.unitDays ? (window.pace.daysIn / window.pace.unitDays) * 100 : 100
 	}
@@ -143,7 +144,7 @@ export default function Home() {
 	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const month = useApi(getStatsSlice, [thisMonthSlice()])
-	const categories = useApi(getLimitedCategories)
+	const categories = useApi(getLimitedCategorySpend)
 	const counts = useApi(getCounts)
 	const settings = useApi(getSettings)
 	const known = settings.data !== undefined || !!settings.error
@@ -358,13 +359,15 @@ function summarySentence(over, close, room) {
 }
 
 /** Last month against its limits, said once (8b, 6f): from the first of the month until the reader
-    hides it. Each row opens that month's orders in the category. */
+    hides it. Each row opens that month's orders in the category. A yearly limit is named once, in the
+    month that passed it, and said to have finished close or to have room only in December's. */
 function MonthlySummary({ summary, categories, early, onHide }) {
 	const month = monthNames('long')[Number(summary.month.slice(5)) - 1]
 	const byId = new Map(categories.map(c => [c.id, c]))
 	const rows = summary.limits
-		.map(l => ({ ...byId.get(l.id), spend: l.spend, overs: l.overs }))
+		.map(l => ({ ...byId.get(l.id), spend: l.spend, overs: l.overs, yearly: l.period === 'year', passed: l.passed, yearEnd: l.yearEnd }))
 		.filter(c => c.name && c.budget > 0)
+		.filter(c => !c.yearly || c.passed || (c.yearEnd && c.spend <= c.budget))
 		.map(c => ({ ...c, used: (c.spend / c.budget) * 100 }))
 	const over = rows.filter(c => c.spend > c.budget).sort((a, b) => b.spend - b.budget - (a.spend - a.budget))
 	const close = early < 100 ? rows.filter(c => c.spend <= c.budget && c.used >= early).sort((a, b) => b.used - a.used) : []
@@ -381,8 +384,10 @@ function MonthlySummary({ summary, categories, early, onHide }) {
 	const lines = [
 		...over.map(c => ({
 			c, color: 'danger', mark: <Mark size="medium" fill="solid" swatch={swatchOf(c.colour)} aria-hidden="true" aria-label={c.name}><CategoryIcon name={c.icon} size={18} /></Mark>,
-			said: phrase('home.line.over', { amount: currency(c.spend - c.budget, 0) }),
-			meta: c.overs >= 12 ? phrase('home.line.allYear')
+			said: c.yearly
+				? phrase('home.line.overYear', { amount: currency(c.spend - c.budget, 0), year: summary.month.slice(0, 4) })
+				: phrase('home.line.over', { amount: currency(c.spend - c.budget, 0) }),
+			meta: c.yearly ? of(c) : c.overs >= 12 ? phrase('home.line.allYear')
 				: c.overs >= 2 ? phrase('home.line.nth', { n: String(c.overs), low: c.overs >= 3 ? 'yes' : 'no' }) : of(c),
 			adjust: true
 		})),
@@ -672,6 +677,7 @@ function CategoriesCard({ view }) {
    from the share of the limit the reader chose (8b). */
 function CategoryLine({ category: c, early }) {
 	const limited = c.budget > 0
+	const spend = limited ? periodSpend(c) : c.monthSpend
 	const warn = overBudget(c) || nearLimit(c, early)
 	return (
 		<Link className="sp-stack sp-gap-6 sp-row-opens" to={`/statistics?range=month&crumbs=category:${c.id}`}>
@@ -679,11 +685,13 @@ function CategoryLine({ category: c, early }) {
 				<CategoryMark category={c} size="small" />
 				<span className="sp-data sp-grow sp-truncate">{c.name}</span>
 				<span className={warn ? 'sp-meta sp-meta--over' : 'sp-meta'}>
-					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : amount(c.monthSpend, 0)}
+					{!limited ? amount(spend, 0)
+						: c.budgetPeriod === 'year' ? phrase('home.lineThisYear', { spent: amount(spend, 0), budget: amount(c.budget, 0) })
+						: `${amount(spend, 0)} / ${amount(c.budget, 0)}`}
 				</span>
 			</div>
 			{limited
-				? <Gauge {...against(c.monthSpend, c.budget)} aria-label={phrase('home.againstLimit', { name: c.name })} />
+				? <Gauge {...against(spend, c.budget)} aria-label={phrase('home.againstLimit', { name: c.name })} />
 				: <Gauge value={0} untargeted aria-label={phrase('categories.noLimitSet')} />}
 		</Link>
 	)

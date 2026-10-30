@@ -4,25 +4,27 @@ import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
+import { Segmented } from '../components/Segmented.jsx'
 import { Check, Choice, Picker } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Gauge, Stat, Sum } from '../components/Data.jsx'
 import { Well } from '../components/Well.jsx'
 import { Skeleton, Stacked } from '../components/Utilities.jsx'
-import { useToast, Leaving } from '../components/Overlays.jsx'
+import { Alert, useToast, Leaving } from '../components/Overlays.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	changeOrders, createCategory, deleteCategory, failureMessage, getCategory, getCategoryPage, getNextCategoryColour,
-	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeCategory, overBudget, updateCategory
+	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeCategory, overBudget, periodSpend, updateCategory,
+	categoryBudgetPeriods
 } from '../api/client.js'
-import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
+import { NUMBER_LOCALE, amount, currency, currencySymbol, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import { CategoryIconPicker } from '../app/categoryMark.jsx'
 import {
 	CategoryMark, CommitBar, DeleteCategory, EndLoading, GoneNotice, Held, RecentLoading, RecentOrders, RecordPage, SWATCHES,
-	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, monthPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
+	MergeButton, MergeDialog, MergePicker, SummaryLoading, focusFirst, hold, isGone, periodPace, sayFailure, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 import { phrase, usePhrase } from '../language/phrases.js'
 
@@ -74,6 +76,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		icon: category?.icon || 'tag',
 		colour: category ? pickedColour(category.colour) : null,
 		budget: category?.budget > 0 ? category.budget : null,
+		budgetPeriod: category?.budgetPeriod ?? categoryBudgetPeriods[0],
 		favourite: Boolean(category?.favourite)
 	}), [category, named])
 	const [values, setValues] = useState(start)
@@ -98,7 +101,8 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const holder = useApi(getCategoryPage, [{ name: typed, except: category?.id, pageSize: 1, shape: 'brief' }], { enabled: !editing && Boolean(typed) })
 
 	const changed = values.name.trim() !== start.name.trim() || values.icon !== start.icon
-		|| values.colour !== start.colour || values.budget !== start.budget || values.favourite !== start.favourite
+		|| values.colour !== start.colour || values.budget !== start.budget || values.budgetPeriod !== start.budgetPeriod
+		|| values.favourite !== start.favourite
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
 	// back to the page the picker was on, or to the order when this page was opened on its own
@@ -137,10 +141,19 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	const budgetProblem = budget => (budget === 0 ? phrase('category.limitZero') : null)
 	// a limit most of the last twelve months went past (6c): said in amber on leaving the field, and saving is not stopped
 	const [checkedBudget, setCheckedBudget] = useState(start.budget)
-	const passedMonths = checkedBudget > 0 ? (category?.monthSpends ?? []).filter(spend => spend > checkedBudget).length : 0
+	// the months a yearly limit is not measured on, so it is not checked against them
+	const passedMonths = checkedBudget > 0 && values.budgetPeriod === 'month' ? (category?.monthSpends ?? []).filter(spend => spend > checkedBudget).length : 0
 	const limitWarning = passedMonths > 6
 		? phrase('category.limitLow', { name: values.name.trim() || category.name, amount: currency(category.monthAverage, 0) })
 		: null
+
+	/* A saved limit keeps its size when its period changes (5i): a month to a year is twelve times the
+	   amount, a year to a month a twelfth, in whole kroner. A new limit changes only its period. */
+	const switchPeriod = period => setValues(v => {
+		if (!(start.budget > 0) || !(v.budget > 0) || period === v.budgetPeriod) return { ...v, budgetPeriod: period }
+		return { ...v, budgetPeriod: period, budget: period === 'year' ? Math.round(v.budget * 12) : Math.round(v.budget / 12) }
+	})
+	const periodChanged = start.budget > 0 && values.budget > 0 && values.budgetPeriod !== start.budgetPeriod
 
 	const save = async () => {
 		if (writing.current) return
@@ -151,7 +164,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		setSaving(true)
 		const name = values.name.trim()
 		const look = {
-			name, icon: values.icon, colour: storedColour(colour), budget: values.budget ?? 0, favourite: values.favourite,
+			name, icon: values.icon, colour: storedColour(colour), budget: values.budget ?? 0, budgetPeriod: values.budgetPeriod, favourite: values.favourite,
 			...(values.icon !== start.icon ? { iconPath: null } : {})
 		}
 		const written = editing ? updateCategory(category.id, look) : createCategory(name, look)
@@ -250,15 +263,33 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 
 			<Card>
 				<CardHeader name={phrase('categories.limit')} />
-				{/* the field's own blur formats the amount, so the check listens from around it */}
-				<div onBlur={() => { setErrors(e => ({ ...e, budget: budgetProblem(values.budget) })); setCheckedBudget(values.budget) }}>
-					<Field id="category-limit" label={phrase('category.limit')}
-						message={errors.budget ?? limitWarning ?? phrase(editing ? 'category.limitHelp' : 'category.limitHelpNew')}
-						messageType={errors.budget ? 'danger' : limitWarning ? 'warning' : 'hint'}>
-						{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
-						{h(<NumberField value={values.budget} onChange={n => set('budget', n)} min={0} locale={NUMBER_LOCALE} placeholder={phrase('categories.noLimit')} />)}
-					</Field>
+				{/* the field's own blur formats the amount, so the check listens from around it; the period
+				    sits beside the amount (5e), which Field cannot hold, so the field is put together here */}
+				<div className="sp-field" onBlur={() => { setErrors(e => ({ ...e, budget: budgetProblem(values.budget) })); setCheckedBudget(values.budget) }}>
+					<label className="sp-field__label" htmlFor="category-limit">{phrase('category.limit')}</label>
+					<div className="sp-row-flex sp-gap-8">
+						<span className="sp-field__wrap sp-grow">
+							{/* money is written the Danish way everywhere it is shown (api/format.js), so it is typed that way too */}
+							{h(<NumberField id="category-limit" unit aria-describedby="category-limit-help" value={values.budget} onChange={n => set('budget', n)}
+								min={0} locale={NUMBER_LOCALE} placeholder={phrase('categories.noLimit')}
+								{...(errors.budget ? { 'aria-invalid': 'true' } : limitWarning ? { 'data-color': 'warning' } : {})} />)}
+							<span className="sp-field__unit">{currencySymbol()}</span>
+						</span>
+						{h(<Segmented name="category-limit-period" role="radiogroup" aria-label={phrase('category.limitPeriod')}
+							options={categoryBudgetPeriods.map(period => ({ value: period, label: phrase(`category.limitPeriod.${period}`) }))}
+							value={values.budgetPeriod} onChange={switchPeriod} />)}
+					</div>
+					<span className="sp-field__help" id="category-limit-help" {...(errors.budget ? { 'data-color': 'danger' } : limitWarning ? { 'data-color': 'warning' } : {})}>
+						{errors.budget ?? limitWarning ?? phrase(editing ? 'category.limitHelp' : 'category.limitHelpNew', { period: values.budgetPeriod })}
+					</span>
 				</div>
+				{periodChanged
+					? (
+						<Alert mark="!" title={phrase('category.limitChanges', { amount: currency(values.budget, 0), period: values.budgetPeriod })}>
+							{phrase('category.limitChangesNote', { amount: currency(start.budget, 0), period: start.budgetPeriod })}
+						</Alert>
+					)
+					: null}
 			</Card>
 		</>
 	)
@@ -277,7 +308,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 		: editing
 			? (
 				<>
-					<CategorySummary category={category} preview={preview} budget={values.budget} />
+					<CategorySummary category={category} preview={preview} budget={values.budget} period={values.budgetPeriod} />
 					<RecentOrders filter={{ categoryId: category.id }} to={`/orders?category=${category.id}`} total={category.orders} />
 					<Removing category={category} onDelete={() => setDeleting(true)}
 						merge={{
@@ -298,7 +329,7 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 					</div>
 					<div className="sp-stack">
 						<Sum value={values.name.trim() || '-'}>{phrase('field.name')}</Sum>
-						<Sum value={values.budget ? currency(values.budget, 0) : phrase('vendors.none')}>{phrase('categories.limit')}</Sum>
+						<Sum value={values.budget ? phrase('category.limitFor', { amount: currency(values.budget, 0), period: values.budgetPeriod }) : phrase('vendors.none')}>{phrase('categories.limit')}</Sum>
 					</div>
 				</Card>
 			)
@@ -318,13 +349,14 @@ function CategoryFields({ category, loading = false, loadingId, onGone }) {
 	)
 }
 
-/** This month against the limit, and what the category has carried (5f). The limit is the
-    form's own value, so the bar answers the number being typed. */
-function CategorySummary({ category, preview, budget }) {
+/** This month or this year against the limit, and what the category has carried (5f). The limit
+    and its period are the form's own values, so the bar answers what is being typed. */
+function CategorySummary({ category, preview, budget, period }) {
 	const phrase = usePhrase()
 	const month = useApi(getCategoryPage, [{ ids: category.id, with: 'month', pageSize: 1 }])
-	const spend = month.data?.categories[0]?.monthSpend
-	const pace = monthPace()
+	const spent = month.data?.categories[0]
+	const spend = spent ? periodSpend(spent, period) : undefined
+	const pace = periodPace(period)
 	const limit = budget > 0 ? budget : null
 	const over = limit !== null && spend > limit
 	return (
@@ -335,7 +367,7 @@ function CategorySummary({ category, preview, budget }) {
 				<Stacked>
 					<span className="sp-title sp-truncate">{preview.name}</span>
 					<span className="sp-meta">
-						{plural(category.orders, 'order')}{spend === undefined ? null : <>{dot}{phrase('category.thisMonth', { amount: currency(spend, 0) })}</>}
+						{plural(category.orders, 'order')}{spend === undefined ? null : <>{dot}{phrase('category.thisPeriod', { amount: currency(spend, 0), period })}</>}
 					</span>
 				</Stacked>
 			</div>

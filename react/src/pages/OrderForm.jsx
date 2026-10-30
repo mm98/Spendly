@@ -510,8 +510,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const scannedVendor = useApi(getVendorPage, [{ name: draft.vendor, pageSize: 0 }], { enabled: Boolean(scan && creating && draft.vendor) })
 	const offeredFrom = useApi(getVendorPage, [{ name: offer?.vendor, pageSize: 1, shape: 'brief' }], { enabled: Boolean(offer) }).data?.vendors[0]?.id ?? null
 	const carrying = useApi(getVendorOrdersCarrying, [offeredFrom ?? '', offer?.names ?? []], { enabled: Boolean(offer && offeredFrom) }).data?.orders ?? 0
-	// a category over its monthly limit carries its dot on an order of this month (8b)
-	const overNames = (useApi(getOverLimitCategories).data ?? []).filter(() => draft.date?.slice(0, 7) === today().slice(0, 7)).map(c => c.name.toLowerCase())
+	// a category over its limit carries its dot on an order of this month, or of this year for a yearly limit (8b)
+	const overNames = (useApi(getOverLimitCategories).data ?? [])
+		.filter(c => draft.date?.slice(0, c.budgetPeriod === 'year' ? 4 : 7) === today().slice(0, c.budgetPeriod === 'year' ? 4 : 7)).map(c => c.name.toLowerCase())
 	const trails = Object.fromEntries(draft.categories.filter(n => overNames.includes(n.toLowerCase())).map(n => [n, <OverLimitDot key={n} />]))
 	// a category taken out of the field is not offered again on this order
 	const [dismissed, setDismissed] = useState([])
@@ -1331,7 +1332,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				<span className="sp-stack sp-gap-6">
 					<span className="sp-title sp-ink-warning">{limitTitle(l)}</span>
 					<span className="sp-meta sp-ink-warning">
-						{phrase('form.limit.body', { spent: amount(l.after, 0), budget: currency(l.budget, 0), month: monthName })}
+						{phrase('form.limit.body', { spent: amount(l.after, 0), budget: currency(l.budget, 0), period: l.budgetPeriod === 'year' ? draft.date.slice(0, 4) : monthName })}
 					</span>
 				</span>
 			</ListItem>

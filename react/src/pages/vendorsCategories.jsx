@@ -31,8 +31,13 @@ export { SWATCHES, swatchOf, storedColour, CategoryMark } from '../app/categoryM
 /** A stored colour as the colour picker's value: one of the eight by name, or the colour itself. */
 export { swatchOf as pickedColour } from '../app/categoryMark.jsx'
 
-/** Where the month stands today, as a share of it: the gauge's pace marker. */
-export function monthPace(now = new Date()) {
+/** Where the month or the year a limit is for stands today, as a share of it: the gauge's pace marker. */
+export function periodPace(period = 'month', now = new Date()) {
+	if (period === 'year') {
+		const day = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(now.getFullYear(), 0, 1)) / 86400000) + 1
+		const days = new Date(now.getFullYear(), 1, 29).getDate() === 29 ? 366 : 365
+		return { day, days, at: (day / days) * 100 }
+	}
 	const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
 	return { day: now.getDate(), days, at: (now.getDate() / days) * 100 }
 }

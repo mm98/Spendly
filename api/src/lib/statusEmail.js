@@ -221,6 +221,8 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 		limits_shown: write.count(limits.length),
 		limits: firstFlagged(limits.map(c => ({
 			name: c.name, spent: write.money(c.spend), limit: write.money(c.budget), limit_period: c.budgetPeriod, limit_year: last.slice(0, 4),
+			// status.limitSpent names a month for a week; a yearly row is its year so far, so it names none
+			...(c.budgetPeriod === 'year' ? { period_kind: 'month' } : {}),
 			over_pct: String(Math.round((c.spend / c.budget - 1) * 100)), fill_pct: Math.round(c.budget / c.spend * 100)
 		}))),
 		...(weekly ? { budget: false } : budgetOf(userId, period, write, language)),

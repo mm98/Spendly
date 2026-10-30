@@ -50,6 +50,9 @@ const FLOWS = [
 ]
 
 const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
+/** How many times a limit counts in a period of `months` months (4a): a monthly one once a month, a yearly
+    one by the share of its year, so a twelfth for a month. */
+const limitTimes = (category, months) => (category.budgetPeriod === 'year' ? months / 12 : months)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
 const TOP = 8
 // inside a crumb the Spend and Average help name the level above by its kind (4b, 4c)
@@ -497,13 +500,11 @@ export default function Statistics() {
 	const category = categoryCrumb && crumbCategories?.find(c => c.id === categoryCrumb.value)
 	// a limit counts only for a category that spent in this period, as the Limits card draws it
 	const spentIn = new Set((view.split ?? []).filter(entry => entry.amount > 0).map(entry => entry.id))
-	const limit = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
-		: categoryCrumb ? category?.budget ?? 0
-			: (categories.data ?? []).reduce((sum, c) => sum + (c.budget > 0 && spentIn.has(c.id) ? c.budget : 0), 0)
-	// a bar of days or weeks gets its share of the monthly limit, so the line stands where a month on limit would be
-	const stepDays = { day: 1, week: 7 }[chart.unit]
-	const windowDays = Math.round((viewToMs - viewFromMs) / DAY_MS) + 1
-	const limitPerStep = chart.unit === 'month' ? limit : stepDays ? (limit * view.budgets.months * stepDays) / windowDays : 0
+	// the line is drawn only where the chart's step is a limit's own period: a monthly limit on a chart by month
+	const onStep = c => c?.budget > 0 && c.budgetPeriod === chart.unit
+	const limitPerStep = flow === 'refunds' || vendorCrumb || statusCrumb ? 0
+		: categoryCrumb ? (onStep(category) ? category.budget : 0)
+			: (categories.data ?? []).reduce((sum, c) => sum + (onStep(c) && spentIn.has(c.id) ? c.budget : 0), 0)
 	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
 	const narrowed = records.length ? phrase('stats.narrowed', { names: records.join(dot), one: String(records.length === 1) }) : null
 
@@ -528,7 +529,7 @@ export default function Statistics() {
 		/* The card beside the chart is the first breakdown the path has not already narrowed. */
 		const side = !categoryCrumb
 			? <CategoryRows key={`category ${same}`} view={view} onOpen={drillTo('category')} hint />
-			: category?.budget > 0 && chart.unit === 'month' && flow !== 'refunds'
+			: category?.budget > 0 && category.budgetPeriod === 'month' && chart.unit === 'month' && flow !== 'refunds'
 				? <LimitByMonth key={`by month ${same}`} chart={chart} category={category} touch={touch} />
 				: !vendorCrumb
 					? <VendorsCard key={`vendors ${same}`} view={view} name={sliceName} touch={touch} onOpen={drillTo('vendor')} />
@@ -773,7 +774,7 @@ function DrilledKpis({ view, parent, above, versusAll, period, category, flow, t
 	// a category's limit, held once for each month of the stretch the figures cover, as the Limits card holds it
 	let limit = null
 	if (category?.budget > 0 && flow !== 'refunds') {
-		const allowed = category.budget * view.budgets.months
+		const allowed = category.budget * limitTimes(category, view.budgets.months)
 		limit = { spent: view.spent, allowed, help: phrase('stats.limitHelp', { period, over: String(view.spent > allowed) }), over: view.spent > allowed }
 	}
 	return [
@@ -1207,7 +1208,7 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 	// a longer period holds each limit once for each month it covers, a part month by its share of days (4a)
 	const months = view?.budgets.months
 	const note = span.unit === 'month' && span.count === 1 ? phrase('stats.limitNoteMonth')
-		: phrase('stats.limitNote', { period, span: plural(span.count, span.unit) })
+		: phrase('stats.limitNote', { period, unit: span.unit, count: span.count })
 	if (!view || !limited) {
 		return (
 			<Card aria-busy="true" footer={footer}>
@@ -1234,7 +1235,7 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 	const spendOf = new Map(view.split.map(entry => [entry.id, entry.amount]))
 	const limits = limited.map(category => {
 		const spend = spendOf.get(category.id) ?? 0
-		const allowed = category.budget * months
+		const allowed = category.budget * limitTimes(category, months)
 		return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
 	})
 	// a limit is a ceiling: a category that spent nothing has no bar
