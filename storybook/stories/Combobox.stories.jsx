@@ -251,7 +251,7 @@ export const ClosingAtTheEdge = {
 		await userEvent.click(canvas.getByRole('combobox'))
 		const panel = canvasElement.querySelector('.sp-combobox__panel')
 		const root = canvasElement.querySelector('.sp-combobox')
-		await waitFor(() => expect(panel.style.right).toBe('0px'))
+		await waitFor(() => expect(panel).toHaveAttribute('data-hang', 'end'))
 		const open = panel.getBoundingClientRect()
 		await expect(open.right).toBeLessThanOrEqual(document.documentElement.clientWidth)
 		// npm test skips every move; this check needs the fade itself
@@ -266,6 +266,7 @@ export const ClosingAtTheEdge = {
 			await waitFor(() => expect(root).not.toHaveAttribute('data-closing'))
 			// the fade leaves its own opacity behind; what must go is the placement
 			await waitFor(() => expect([panel.style.position, panel.style.left, panel.style.right, panel.style.width]).toEqual(['', '', '', '']))
+			await expect(panel).not.toHaveAttribute('data-hang')
 		} finally {
 			MotionGlobalConfig.skipAnimations = skipped
 		}
