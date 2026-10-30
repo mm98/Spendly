@@ -64,18 +64,24 @@ for (const root of ROOTS) {
 			findings.push(`${file}:${lineOf(text, m.index)}  opens a new tab without rel="noopener"`);
 		}
 
-		/* The other door to a new context. Its third argument is the one that closes it. */
+		/* The other door to a new context. A third argument asks some browsers for a popup
+		   window, so the link back is cut on the tab it returns: `tab.opener = null`. */
 		for (const m of text.matchAll(/\bwindow\.open\s*\(/g)) {
 			const tail = text.slice(m.index, m.index + 400);
-			if (/noopener/.test(tail.slice(0, tail.indexOf(")") + 1 || 400))) continue;
-			findings.push(`${file}:${lineOf(text, m.index)}  window.open without noopener`);
+			const call = tail.slice(0, tail.indexOf(")") + 1 || 400);
+			if (/,[^,]*,/.test(call)) {
+				findings.push(`${file}:${lineOf(text, m.index)}  window.open with a third argument opens a popup window`);
+				continue;
+			}
+			if (/\.opener\s*=\s*null/.test(tail)) continue;
+			findings.push(`${file}:${lineOf(text, m.index)}  window.open without cutting tab.opener`);
 		}
 	}
 }
 
 for (const line of findings) console.error(line);
 if (findings.length) {
-	console.error(`\n${findings.length} link(s) open a new tab without rel="noopener".`);
+	console.error(`\n${findings.length} link(s) open a new tab without cutting the link back, or as a popup window.`);
 	process.exit(1);
 }
 console.log("Every link that opens a new tab carries rel=\"noopener\".");

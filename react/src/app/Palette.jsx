@@ -330,7 +330,9 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 		if (entry.run) { entry.run(); cancel(); return }
 		if (entry.read) forgetOlder(...entry.read, opened)
 		if (newTab) {
-			window.open(window.location.origin + window.location.pathname + '#' + entry.to, '_blank', 'noopener')
+			// a third argument to window.open asks some browsers for a popup window instead of a tab
+			const tab = window.open(window.location.origin + window.location.pathname + '#' + entry.to, '_blank')
+			if (tab) tab.opener = null
 			return
 		}
 		if (touch) { navigate(entry.to, { replace: true }); return }
