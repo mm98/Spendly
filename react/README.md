@@ -134,6 +134,8 @@ the current sizes.
 - `public/theme.js` runs before the first paint and sets the theme, so a dark reader never sees
   a light frame. It is a file, not inline code, because the API's security policy runs no inline
   script.
+- Vite copies `public/` as written, so the build minifies its copy of `theme.js` in place
+  (`minifyPublicScripts` in `vite.config.js`); the source keeps its comments.
 
 ## Lighthouse
 
