@@ -154,14 +154,14 @@ Everything that needs you, on one page.
 
 ![Vendors, with their orders and spend](docs/vendors.png)
 
-![Categories, with this month against each limit](docs/categories.png)
+![Categories, with this month or this year against each limit](docs/categories.png)
 
 - **Vendors** - search, sort, archive, and merge two into one. A vendor has a
   picture, a colour, other names it matches on receipts, default categories, and "Leave out of
   statistics" for one-off shops. **Possible duplicates** are found by name or VAT number.
-- **Categories** - an icon from a large library, a colour, and a **monthly limit**. Each row shows
-  this month against its limit. Spendly warns you when a limit you type would have been passed in
-  most of the last 12 months.
+- **Categories** - an icon from a large library, a colour, and a **limit** for each month or for the
+  whole year. Each row shows this month or this year against its limit. Spendly warns you when a
+  monthly limit you type would have been passed in most of the last 12 months.
 - **Spend** for a vendor or a category is money paid, as in Statistics' "Expenses only". A returned
   order and an order of the kind Sold are listed and counted as orders, but add nothing to it. The
   same holds for the total over the order list.

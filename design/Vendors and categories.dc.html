@@ -527,13 +527,14 @@
     <span class="doc-badge" id="5d">5d</span>
     <span class="doc-section__title">Categories - overview</span>
   </div>
-  <div class="doc-lede">The same shape as <a href="#5a">5a</a>, answering a different question. A vendor list asks how much and how recently; a category list asks what the limit is and how close this month is to it - so its columns lead with the month rather than the year. A row opens the category in <a href="#5f">5f</a>.</div>
+  <div class="doc-lede">The same shape as <a href="#5a">5a</a>, answering a different question. A vendor list asks how much and how recently; a category list asks what the limit is and how close its current month or year is to it - so its columns lead with that period. A row opens the category in <a href="#5f">5f</a>.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>The row menu holds every action the edit page does, and only the ones that can run.</b> Open in the order list, Edit, Merge into… and Delete - so a user working down the list never has to select a row first. A vendor with orders shows Archive and no Delete, exactly as its edit page does; nothing lives only in the menu, and nothing lives only in the edit page.</div>
     <div class="doc-note"><b>Same components as 5a, different content.</b> List to an edit page, figures in the page's rail. If you built the vendor screen, this is the same components with a different record type - not a second implementation.</div>
     <div class="doc-note"><b>Over the limit fills amber and states the overage in words.</b> The bar caps at 100%, so it cannot say how far past it went - see <a href="#5i">5i</a>. Amber informs; nothing about being over stops the user doing anything.</div>
-    <div class="doc-note"><b>The pace marker is a reference line, not a threshold.</b> At <code>day / daysInMonth</code>, it exists because a flat monthly limit is unreadable against a partial month.</div>
+    <div class="doc-note"><b>Each row is measured against its own period.</b> A limit is set for a month or for a year (<a href="#5i">5i</a>), so THIS PERIOD is the current calendar month for a monthly limit and the current calendar year for a yearly one, and the limit cell names it under the amount: "a month", "a year". Textiles above is yearly: 41.900 kr. spent since 1 January against 60.000 kr. A category with no limit is measured on the current month. Sort, the over and near tests and the amber all use the row's own period.</div>
+    <div class="doc-note"><b>The pace marker is a reference line, not a threshold.</b> At <code>day / daysInPeriod</code>: day 20 of 31 for a monthly limit (65%), day 293 of 365 for a yearly one (80%). It exists because a flat limit is unreadable against a partial period.</div>
     <div class="doc-note"><b>Bookmarks use these categories too.</b> There is one set of categories in the app; a bookmark carries them the way an order does, and the Bookmarks filter in <a href="Bookmarks.dc.html#22b">22b</a> lists the ones bookmarks use. A category typed into a bookmark in <a href="Bookmarks.dc.html#22c">22c</a> lands in this list.</div>
     <div class="doc-note"><b>A category is never archived.</b> Unlike a vendor it is a label the user invented, so there is nothing to keep out of the way - its three exits are rename, merge into another category, and delete, all in <a href="#5f">5f</a>. Delete is not gated behind a merge: the field is optional on an order, so a category can be removed outright.</div>
   </div>
@@ -570,8 +571,8 @@
           <thead>
             <tr>
               <th scope="col" class="sp-col-title">CATEGORY</th>
-              <th scope="col" class="sp-col-amount">THIS MONTH</th>
-              <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+              <th scope="col" class="sp-col-amount">THIS PERIOD</th>
+              <th scope="col" class="sp-col-amount">LIMIT</th>
               <th class="sp-col-menu" aria-label="Row actions"></th>
             </tr>
           </thead>
@@ -593,7 +594,7 @@
                 </span>
                 <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu sp-anchor" data-open="true"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu" aria-expanded="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
                 <menu class="sp-menu sp-menu--floating" role="menu" aria-label="Decor">
                   <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" /><path d="M11 13l9 -9" /><path d="M15 4h5v5" /></svg><span>Open in the order list</span></button></li>
@@ -620,7 +621,7 @@
                 </span>
                 <span class="sp-meta sp-ink-warning"><b class="sp-strong">12.740 kr.</b> · ahead of pace</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">14.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">14.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
             <tr>
@@ -639,7 +640,7 @@
                 </span>
                 <span class="sp-meta">17.320 kr. · 6.680 left</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
             <tr>
@@ -667,13 +668,13 @@
               </div></td>
               <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
                 <span class="sp-gauge sp-gauge--thin">
-                  <meter value="40" min="0" max="100" aria-label="Share of the limit used"></meter>
-                  <span class="sp-gauge__fill" data-fill="40"></span>
-                  <span class="sp-gauge__marker" data-at="65"></span>
+                  <meter value="70" min="0" max="100" aria-label="Share of the limit used"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                  <span class="sp-gauge__marker" data-at="80"></span>
                 </span>
-                <span class="sp-meta">3.180 kr. · 4.820 left</span>
+                <span class="sp-meta">41.900 kr. · 18.100 left</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">8.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">60.000 kr.</span><span class="sp-meta">a year</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
           </tbody>
@@ -734,13 +735,13 @@
   </div>
 <div class="doc-notes">
     <span class="doc-notes__label">URL filters - over the limit, near the limit, has a limit, and a month</span>
-    <div class="doc-note"><b>Four filters that exist only in the URL.</b> The page has no control for any of them. <code>flag=over-limit</code> cuts the list to the categories over their limit; <code>flag=near-limit</code> cuts it to the categories at or past the "Tell me early" share of their limit and not over it; <code>flag=limited</code> cuts it to the categories that have a limit; <code>month=2026-08</code> keeps only the categories with spend in that month, and every figure on the list is measured against that month; a category with no spend in it is not listed. Together they list the categories over their limit in that month, the over test using that month's spend. Either or both arrive from a link.</div>
+    <div class="doc-note"><b>Four filters that exist only in the URL.</b> The page has no control for any of them. <code>flag=over-limit</code> cuts the list to the categories over their limit, each in its own current period; <code>flag=near-limit</code> cuts it to the categories at or past the "Tell me early" share of their limit and not over it; <code>flag=limited</code> cuts it to the categories that have a limit; <code>month=2026-08</code> keeps only the categories with spend in that month, and every figure on the list is measured against that month; a category with no spend in it is not listed. Together they list the categories over their limit in that month, the over test using that month's spend. Either or both arrive from a link.</div>
     <div class="doc-note"><b>Each applied URL filter shows as a removable crumb</b> above the list, the same <code>sp-crumb</code> in <code>sp-filters</code> the order list uses (<a href="Order list.dc.html#2b">2b</a>), so the user can see why the list is short and get back to all of it. Removing a crumb drops that parameter. Search and sort keep working.</div>
     <div class="doc-note"><b><code>flag=limited</code> shows the removable tag "Has a limit"</b>, the same <code>sp-crumb</code> as "Over the limit". With no category that has a limit, the list reads "No category has a limit".</div>
-    <div class="doc-note"><b><code>flag=near-limit</code> shows the removable tag "Near the limit"</b>, the same <code>sp-crumb</code> as "Over the limit". A category over its limit is not in this list; it is in the over-limit one. When the list is empty it reads "No category is near its limit this month".</div>
-    <div class="doc-note"><b>Which links open this list filtered.</b> Needs a look's "N over their limit" opens <code>/categories?flag=over-limit</code>, on Home and on a phone; the toolbar count matches the count on Home. Needs a look's "near its limit" row opens <code>/categories?flag=near-limit</code>. Edit on category on the Monthly limit card (<a href="Order statistics.dc.html#4a">4a</a>) opens <code>/categories?flag=limited</code>. "All N" in Categories this month on Home opens <code>/categories?month=2026-08</code>, so the list holds the same N categories the button counts. A link that shows a number opens a list with exactly that many items; if it cannot, the number is not shown.</div>
-    <div class="doc-note"><b>With a month set, the column names it</b> - AUGUST in place of THIS MONTH - and the pace marker goes, since the month is over. The limit column shows the limit as it stands today.</div>
-    <div class="doc-note"><b>When nothing matches</b> the list shows its empty state and the crumbs stay. With the over-limit filter it reads "No category is over its limit in August 2026"; with the month filter alone, "No category has spend in August 2026". With no month set the text ends "this month" instead: "No category is over its limit this month". On a phone the crumb row sits above the category cards in <a href="Mobile screens.dc.html#7a">7a</a> (Categories).</div>
+    <div class="doc-note"><b><code>flag=near-limit</code> shows the removable tag "Near the limit"</b>, the same <code>sp-crumb</code> as "Over the limit". A category over its limit is not in this list; it is in the over-limit one. When the list is empty it reads "No category is near its limit".</div>
+    <div class="doc-note"><b>Which links open this list filtered.</b> Needs a look's "N over their limit" opens <code>/categories?flag=over-limit</code>, on Home and on a phone; the toolbar count matches the count on Home. Needs a look's "near its limit" row opens <code>/categories?flag=near-limit</code>. Edit on category on the Limits card (<a href="Order statistics.dc.html#4a">4a</a>) opens <code>/categories?flag=limited</code>. "All N" in Categories this month on Home opens <code>/categories?month=2026-08</code>, so the list holds the same N categories the button counts. A link that shows a number opens a list with exactly that many items; if it cannot, the number is not shown.</div>
+    <div class="doc-note"><b>With a month set, the column names it</b> - AUGUST in place of THIS PERIOD - and a monthly limit is measured on that month alone, with no pace marker, since the month is over. A yearly limit is measured on its year up to the end of that month, January to August, with the marker at 8 of 12 months, and its cell reads "38.200 kr. Jan - Aug · 21.800 left". The limit column shows the limit as it stands today.</div>
+    <div class="doc-note"><b>When nothing matches</b> the list shows its empty state and the crumbs stay. With the over-limit filter it reads "No category is over its limit in August 2026"; with the month filter alone, "No category has spend in August 2026". With no month set the text has no period: "No category is over its limit". On a phone the crumb row sits above the category cards in <a href="Mobile screens.dc.html#7a">7a</a> (Categories).</div>
   </div>
   <div class="doc-specimens">
     <div class="doc-specimen">
@@ -757,8 +758,8 @@
             <thead>
               <tr>
                 <th scope="col" class="sp-col-title">CATEGORY</th>
-                <th scope="col" class="sp-col-amount">THIS MONTH</th>
-                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th scope="col" class="sp-col-amount">THIS PERIOD</th>
+                <th scope="col" class="sp-col-amount">LIMIT</th>
                 <th class="sp-col-menu" aria-label="Row actions"></th>
               </tr>
             </thead>
@@ -780,7 +781,7 @@
                 </span>
                 <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
             </tbody>
@@ -804,7 +805,7 @@
               <tr>
                 <th scope="col" class="sp-col-title">CATEGORY</th>
                 <th scope="col" class="sp-col-amount">AUGUST</th>
-                <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+                <th scope="col" class="sp-col-amount">LIMIT</th>
                 <th class="sp-col-menu" aria-label="Row actions"></th>
               </tr>
             </thead>
@@ -825,7 +826,7 @@
                 </span>
                 <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
             </tbody>
@@ -929,11 +930,20 @@
         </div>
 
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">MONTHLY LIMIT</span></div>
+          <div class="sp-card__head"><span class="sp-section-label">LIMIT</span></div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-f10">Limit</label>
-            <input class="sp-input" id="vc-f10" type="text" placeholder="no limit">
-            <span class="sp-field__help">One amount that applies to every month. Leave empty for no limit.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-field__wrap sp-grow">
+                <input class="sp-input sp-input--unit sp-number" id="vc-f10" type="text" inputMode="decimal" placeholder="no limit">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+              <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+                <label class="sp-segmented__item" data-label="Month"><input type="radio" name="vc-f10-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+                <label class="sp-segmented__item" data-label="Year"><input type="radio" name="vc-f10-period"><span class="sp-label">Year</span></label>
+              </div>
+            </div>
+            <span class="sp-field__help">One amount for each calendar month. Leave empty for no limit.</span>
           </div>
         </div>
         
@@ -960,7 +970,7 @@
                     <span class="sp-sum__value"> - </span>
                   </div>
               <div class="sp-sum">
-                    <span class="sp-ink-2">Monthly limit</span>
+                    <span class="sp-ink-2">Limit</span>
                     <span class="sp-sum__value">none</span>
                   </div>
             
@@ -980,11 +990,11 @@
     <span class="doc-badge" id="5f">5f</span>
     <span class="doc-section__title">Categories - edit</span>
   </div>
-  <div class="doc-lede">The same page as <a href="#5e">5e</a> with the record loaded, at <code>/categories/decor/edit</code>. The limit card gains this month's position against the limit, and the end-of-life card appears.</div>
+  <div class="doc-lede">The same page as <a href="#5e">5e</a> with the record loaded, at <code>/categories/decor/edit</code>. The limit card gains its current month's or year's position against the limit, and the end-of-life card appears.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Changing the limit is retroactive in display only.</b> The bar and every amber notice recompute against the new number immediately, and nothing already saved is rejected or re-validated. A limit is a fact about a month, not a rule about data.</div>
-    <div class="doc-note"><b>The limit is not a series.</b> One amount, applied to every month, with no history of changes - see <a href="#5i">5i</a> for why, and for what to do instead if per-month planning is ever wanted.</div>
+    <div class="doc-note"><b>Changing the limit is retroactive in display only.</b> The bar and every amber notice recompute against the new number immediately, and nothing already saved is rejected or re-validated. A limit is a fact about a period, not a rule about data.</div>
+    <div class="doc-note"><b>The limit is not a series.</b> One amount for each month or for each year, with no history of changes - see <a href="#5i">5i</a> for why, and for what the period switch does to the amount.</div>
     <div class="doc-note"><b>Deleting or merging reaches bookmarks as well.</b> Delete takes the label off bookmarks the same way it does off orders, and Merge moves them to the target category. A bookmark keeps its other categories.</div>
     <div class="doc-note"><b>Renaming does not break references.</b> Orders point at an id. The name is display only, so a rename shows up everywhere at once with no migration.</div>
     <div class="doc-note"><b>Delete is offered whatever the count, because a category is optional on an order.</b> Deleting one takes the label off its 64 orders; each keeps whatever other categories it carries, and any left with none is in a state an order is allowed to be in. A vendor is different on both counts: one per order, and required - so the record can be archived but never removed from under it. Without this, a category made by mistake and attached to one order could never be removed without mislabelling that order.</div>
@@ -1067,11 +1077,20 @@
         </div>
 
         <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">MONTHLY LIMIT</span></div>
+          <div class="sp-card__head"><span class="sp-section-label">LIMIT</span></div>
           <div class="sp-field">
             <label class="sp-field__label" for="vc-f13">Limit</label>
-            <input class="sp-input" id="vc-f13" type="text">
-            <span class="sp-field__help">One amount for every month. Statistics reads this.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-field__wrap sp-grow">
+                <input class="sp-input sp-input--unit sp-number" id="vc-f13" type="text" inputMode="decimal" defaultValue="22.000">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+              <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+                <label class="sp-segmented__item" data-label="Month"><input type="radio" name="vc-f13-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+                <label class="sp-segmented__item" data-label="Year"><input type="radio" name="vc-f13-period"><span class="sp-label">Year</span></label>
+              </div>
+            </div>
+            <span class="sp-field__help">One amount for each calendar month. Statistics reads this.</span>
           </div>
         </div>
         
@@ -1239,14 +1258,17 @@
 <section class="doc-section">
   <div class="doc-section__head">
     <span class="doc-badge" id="5i">5i</span>
-    <span class="doc-section__title">The monthly limit</span>
+    <span class="doc-section__title">The limit</span>
   </div>
-  <div class="doc-lede">One amount on a category, applied to every month. The number itself is a plain amount field - everything interesting is what it renders as, and what it deliberately does not do.</div>
+  <div class="doc-lede">One amount on a category, for each calendar month or each calendar year. The number is an amount field with the period beside it - everything interesting is what it renders as, and what it deliberately does not do.</div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Two periods, Month and Year, and Month is the default.</b> The segmented control sits to the right of the amount, at the field's height, and the help line under them follows it: "One amount for each calendar month." or "One amount for the calendar year, January to December." A month is the calendar month and a year the calendar year, both in the user's timezone; never a rolling 30 or 365 days. A yearly limit is one amount for the whole year, spent as unevenly as the user likes; it is never split into twelve monthly checks.</div>
+    <div class="doc-note"><b>Switching the period of a saved limit converts the amount and warns before Save</b> (<a href="#5f">5f</a>, drawn below). Month to Year multiplies by 12, Year to Month divides by 12 and rounds to whole kroner. The field takes the new amount and keeps its plain help line for the period; under the field the card shows the <code>sp-alert</code>, the same alert as the vendor's usual categories (<a href="#5l">5l</a>), titled with the new limit and noting the saved one: "The limit changes to 264.000 kr. a year" / "It is 22.000 kr. a month now. The change is saved with the category." Typing over the amount keeps the alert and its title follows the typed amount. Switching back to the saved period, with the saved amount, removes it. Nothing is stored until Save, and Save is not blocked.</div>
+    <div class="doc-note"><b>With no saved limit there is nothing to warn about.</b> On a new category (<a href="#5e">5e</a>), or an existing one whose limit is empty, the switch changes only the period: the amount stays as typed, the help line is the plain one for the period, and no alert shows.</div>
     <div class="doc-note"><b>It is one value, not a series.</b> No per-month editing, no history of changes. A series invites a calendar, a &quot;copy last month&quot;, and a question about which month's limit a historical comparison should use - none of which was asked for. If per-month planning is ever wanted, that is a new concept with its own screen, not a change to this field.</div>
     <div class="doc-note"><b>Empty means no limit. Zero means nothing should be spent here.</b> They are different, and both are valid. If you do not want the distinction, reject zero - do not silently convert it.</div>
-    <div class="doc-note"><b>The pace marker exists because the limit is flat and the month is partial.</b> &quot;3.400 of 6.000&quot; on day 20 is unreadable without it. Position is <code>day / daysInMonth</code>; it is a reference line, never a threshold, and never coloured red.</div>
+    <div class="doc-note"><b>The pace marker exists because the limit is flat and the period is partial.</b> &quot;3.400 of 6.000&quot; on day 20 is unreadable without it. Position is <code>day / daysInPeriod</code>: day of the month for a monthly limit, day of the year for a yearly one; it is a reference line, never a threshold, and never coloured red.</div>
     <div class="doc-note"><b>Over the limit fills amber and caps the bar at 100%.</b> A capped bar cannot express how far past it went, so the overage is always stated in words beside it. On a phone there is no adjacent column, so that sentence goes underneath - never omitted.</div>
     <div class="doc-note"><b>A list row splits the amber into two segments.</b> The part up to the limit is <code>--amber-2</code>; the overage beyond it is <code>--amber-3</code>, one step paler, so the row shows both how much the limit was and how far past it went inside the same 100% track. The edit page has room for the sentence instead, and uses the single fill.</div>
     <div class="doc-note"><b>Four fills in total, and no others.</b> <code>--primary</code> under the limit, <code>--amber-2</code> up to a limit that has been passed, <code>--amber-3</code> for the overage segment, and the bare <code>--surface-2</code> track when no limit is set. Red never appears on a limit bar - it would read as a blocked save.</div>
@@ -1288,9 +1310,80 @@
     <div class="sp-card__footer sp-meta">Track is <b>#ebf0ed</b> in every case except no-limit. A bar is <b>8px / radius 4</b> in a list row and <b>10px / radius 5</b> in a rail or a form - the only dimension that changes by context.</div>
   </div>
   
-    <div class="doc-note"><b>Crossing a limit never blocks a save.</b> Keep this check out of the validation layer entirely: once it shares a code path with required fields, it eventually starts blocking. It is a fact about the month, not a rule about the data.</div>
-    <div class="doc-note"><b>Progress is spend in the calendar month of the order date</b>, in the user's timezone, all statuses. Whether cancelled orders count is the open question in BEHAVIOUR.md - answer it once, in one place.</div>
+    <div class="doc-note"><b>Crossing a limit never blocks a save.</b> Keep this check out of the validation layer entirely: once it shares a code path with required fields, it eventually starts blocking. It is a fact about the period, not a rule about the data.</div>
+    <div class="doc-note"><b>Progress is spend in the calendar month or year of the order date</b>, by the limit's period, in the user's timezone, all statuses. Whether cancelled orders count is the open question in BEHAVIOUR.md - answer it once, in one place.</div>
   
+  <div class="doc-specimens">
+      <div class="sp-stack sp-gap-8 doc-w420">
+        <span class="sp-section-label">5F - DECOR SWITCHED FROM MONTH TO YEAR, BEFORE SAVE</span>
+        <div class="sp-card">
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f30">Limit</label>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-field__wrap sp-grow">
+                <input class="sp-input sp-input--unit sp-number" id="vc-f30" type="text" inputMode="decimal" defaultValue="264.000" aria-describedby="vc-f30-help">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+              <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+                <label class="sp-segmented__item" data-label="Month"><input type="radio" name="vc-f30-period"><span class="sp-label">Month</span></label>
+                <label class="sp-segmented__item" data-label="Year"><input type="radio" name="vc-f30-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
+              </div>
+            </div>
+            <span class="sp-field__help" id="vc-f30-help">One amount for the calendar year, January to December.</span>
+          </div>
+          <div class="sp-alert">
+            <span class="sp-alert__mark" aria-hidden="true">!</span>
+            <span class="sp-alert__body">
+              <span class="sp-alert__title">The limit changes to 264.000 kr. a year</span>
+              <span class="sp-alert__note">It is 22.000 kr. a month now. The change is saved with the category.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w420">
+        <span class="sp-section-label">5F - TEXTILES SWITCHED FROM YEAR TO MONTH, BEFORE SAVE</span>
+        <div class="sp-card">
+          <div class="sp-field">
+            <label class="sp-field__label" for="vc-f31">Limit</label>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-field__wrap sp-grow">
+                <input class="sp-input sp-input--unit sp-number" id="vc-f31" type="text" inputMode="decimal" defaultValue="5.000" aria-describedby="vc-f31-help">
+                <span class="sp-field__unit">kr.</span>
+              </span>
+              <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+                <label class="sp-segmented__item" data-label="Month"><input type="radio" name="vc-f31-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+                <label class="sp-segmented__item" data-label="Year"><input type="radio" name="vc-f31-period"><span class="sp-label">Year</span></label>
+              </div>
+            </div>
+            <span class="sp-field__help" id="vc-f31-help">One amount for each calendar month.</span>
+          </div>
+          <div class="sp-alert">
+            <span class="sp-alert__mark" aria-hidden="true">!</span>
+            <span class="sp-alert__body">
+              <span class="sp-alert__title">The limit changes to 5.000 kr. a month</span>
+              <span class="sp-alert__note">It is 60.000 kr. a year now. The change is saved with the category.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-stack sp-gap-8 doc-w330">
+        <span class="sp-section-label">YEARLY - DAY 293 OF 365</span>
+        <div class="sp-card">
+          <div class="sp-stack">
+            <div class="sp-sum">
+                  <span class="sp-ink-2">Textiles</span>
+                  <span class="sp-sum__value">41.900 of 60.000 kr.</span>
+                </div>
+            <span class="sp-gauge">
+              <meter value="70" min="0" max="100" aria-label="Share of the limit used"></meter>
+              <span class="sp-gauge__fill" data-fill="70"></span>
+              <span class="sp-gauge__marker" data-at="80"></span>
+            </span>
+            <span class="sp-meta">18.100 kr. left for 2026.</span>
+          </div>
+        </div>
+      </div>
+    </div>
   <div class="doc-specimens">
       <div class="sp-stack sp-gap-8 doc-w330">
         <span class="sp-section-label">UNDER - DAY 20 OF 31</span>
@@ -1485,12 +1578,12 @@
     <span class="doc-badge" id="5k">5k</span>
     <span class="doc-section__title">Both tables at every width</span>
   </div>
-  <div class="doc-lede">Same rule as <a href="Order list.dc.html#2i">2i</a>: columns are dropped whole, never squeezed until their content wraps. What differs is which column can go, because the two tables answer different questions - a vendor list is about how much and how recently, a category list is about a limit and how close this month is to it. Both tables are the ones <a href="#5a">5a</a> and <a href="#5d">5d</a> draw, at the widths the list column takes.</div>
+  <div class="doc-lede">Same rule as <a href="Order list.dc.html#2i">2i</a>: columns are dropped whole, never squeezed until their content wraps. What differs is which column can go, because the two tables answer different questions - a vendor list is about how much and how recently, a category list is about a limit and how close its current period is to it. Both tables are the ones <a href="#5a">5a</a> and <a href="#5d">5d</a> draw, at the widths the list column takes.</div>
 
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>Vendors drop <i>last order</i>, and nothing else.</b> Orders and saved are not columns at any width - they are the name's second line, where a vendor with 38 orders and one with 2 read as different kinds of vendor without costing a track. That leaves two columns to defend, and the date is the one that can go: it joins the second line at 880 in its short form, so the row still says when you last bought there. <b>Spend never leaves</b> - it is what the list is sorted by.</div>
-    <div class="doc-note"><b>Categories drop the <i>monthly limit</i>.</b> It is the only column that can go, because the gauge in <i>this month</i> is already drawn against it - the limit's own figure is a second statement of something the row shows. It joins the name's second line at 880 rather than vanishing, since a category without its limit is just a name. The order count and the 12-month average are not columns at any width; they are the second line, the same as a vendor's. <b>This month never leaves.</b></div>
+    <div class="doc-note"><b>Categories drop the <i>limit</i>.</b> It is the only column that can go, because the gauge in <i>this period</i> is already drawn against it - the limit's own figure is a second statement of something the row shows. It joins the name's second line at 880 rather than vanishing, since a category without its limit is just a name. The order count and the 12-month average are not columns at any width; they are the second line, the same as a vendor's. <b>This month never leaves.</b></div>
     <div class="doc-note"><b>A category's spend is the full total of every order it is on</b>, also when the order carries other categories, as in Statistics (<a href="Order statistics.dc.html#4a">4a</a>). Its limit, its pace and its over-the-limit state are measured on that same figure. Home's Categories this month (<a href="Home.dc.html#10a">10a</a>) reads the same figure.</div>
     <div class="doc-note"><b>The progress bar is a column, not decoration.</b> It stays at every width and goes full width on the phone, where it becomes the row's primary shape. Over the limit it fills amber and the overage is stated in words underneath - a bar pinned at 100% cannot say how far past it went, and on a phone there is no adjacent column to say it for you.</div>
     <div class="doc-note"><b>The edit page is why these tables can shed columns at all.</b> A row is one click from the full record (<a href="#5c">5c</a>), so anything a narrow table drops is still exact one screen away. The tables become cards at a list column of 640px or less, the order list's rule (<a href="Order list.dc.html#2i">2i</a>); above that the 880 table holds, with the last order or the limit on the second line. Below 900px the edit page's rail moves above its form, as the order page's does (<a href="Responsive reference.dc.html#18a">Responsive reference 18a</a>).</div>
@@ -1612,7 +1705,7 @@
     <div class="sp-stack sp-gap-12 doc-w1280">
       <div class="sp-row-flex sp-gap-12 sp-baseline">
         <span class="sp-section-label">1280px</span>
-        <span class="sp-meta">the full set - this month and its limit beside the name</span>
+        <span class="sp-meta">the full set - this period and its limit beside the name</span>
       </div>
       <div class="doc-w1280">
       <div class="sp-list">
@@ -1623,8 +1716,8 @@
           <thead>
             <tr>
               <th scope="col" class="sp-col-title">CATEGORY</th>
-              <th scope="col" class="sp-col-amount">THIS MONTH</th>
-              <th scope="col" class="sp-col-amount">MONTHLY LIMIT</th>
+              <th scope="col" class="sp-col-amount">THIS PERIOD</th>
+              <th scope="col" class="sp-col-amount">LIMIT</th>
               <th class="sp-col-menu" aria-label="Row actions"></th>
             </tr>
           </thead>
@@ -1646,7 +1739,7 @@
                 </span>
                 <span class="sp-meta sp-ink-warning"><b class="sp-strong">24.100 kr.</b> · 2.100 over</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">22.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
             <tr>
@@ -1665,7 +1758,7 @@
                 </span>
                 <span class="sp-meta">17.320 kr. · 6.680 left</span>
               </div></td>
-              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span></div></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">24.000 kr.</span><span class="sp-meta">a month</span></div></td>
               <td class="sp-col-menu sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
             </tr>
 </tbody>
@@ -1692,7 +1785,7 @@
           <thead>
             <tr>
               <th scope="col" class="sp-col-title">CATEGORY</th>
-              <th scope="col" class="sp-col-amount">THIS MONTH</th>
+              <th scope="col" class="sp-col-amount">THIS PERIOD</th>
               <th class="sp-col-menu" aria-label="Row actions"></th>
             </tr>
           </thead>
@@ -1702,7 +1795,7 @@
                 <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
                 <span class="sp-stacked">
                   <span class="sp-title sp-truncate">Decor</span>
-                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month · limit 22.000 kr.</span>
+                  <span class="sp-meta sp-truncate">64 orders · 19.480 kr. avg. per month · limit 22.000 kr. a month</span>
                 </span>
               </div></td>
               <td class="sp-col-amount"><div class="sp-stack sp-gap-6">
@@ -1721,7 +1814,7 @@
                 <span class="sp-mark sp-mark--medium sp-mark--solid"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
                 <span class="sp-stacked">
                   <span class="sp-title sp-truncate">Seating</span>
-                  <span class="sp-meta sp-truncate">41 orders · 21.140 kr. avg. per month · limit 24.000 kr.</span>
+                  <span class="sp-meta sp-truncate">41 orders · 21.140 kr. avg. per month · limit 24.000 kr. a month</span>
                 </span>
               </div></td>
               <td class="sp-col-amount"><div class="sp-stack sp-gap-6">

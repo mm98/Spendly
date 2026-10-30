@@ -19,7 +19,10 @@
     "limit": "10.000,00 kr.",
     "fill_pct": 79,
     "first": true,
-    "over_pct": "26"
+    "over_pct": "26",
+    "limit_period": "month",
+    "limit_year": "2026",
+    "limit_year_ended": "no"
    },
    {
     "name": "Garden",
@@ -27,7 +30,10 @@
     "limit": "4.000,00 kr.",
     "fill_pct": 92,
     "first": false,
-    "over_pct": "9"
+    "over_pct": "9",
+    "limit_period": "month",
+    "limit_year": "2026",
+    "limit_year_ended": "no"
    }
   ],
   "budget": true,
@@ -211,7 +217,10 @@
     "limit": "10.000,00 kr.",
     "fill_pct": 89,
     "first": true,
-    "over_pct": "13"
+    "over_pct": "13",
+    "limit_period": "month",
+    "limit_year": "2026",
+    "limit_year_ended": "no"
    }
   ],
   "budget": false,

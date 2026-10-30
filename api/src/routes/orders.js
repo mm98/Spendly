@@ -23,6 +23,7 @@ import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/tex
 import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
 import { findLookalikeOrders } from '../lib/orderLookalike.js'
 import { words } from '../lib/phrases.js'
+import { budgetWindows } from '../lib/categoryBudgetPeriod.js'
 
 export const router = Router()
 
@@ -476,10 +477,10 @@ router.get('/often', (req, res) => {
 	res.json({ orders: rows.map((order, i) => ({ ...order, times: often[i].times })) })
 })
 
-/* The monthly limits an order counts against (8b): each category's limit and its month's spend
-   without this order, counted as statistics counts it, where drafts, cancelled orders, money back and orders left out of statistics spend nothing. */
-const selectCategoryLimit = db.prepare('SELECT id, name, budget FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
-const selectCategoryMonthSpend = db.prepare(`
+/* The limits an order counts against (8b): each category's limit and the spend of its month or its
+   year without this order, counted as statistics counts it, where drafts, cancelled orders, money back and orders left out of statistics spend nothing. */
+const selectCategoryLimit = db.prepare('SELECT id, name, budget, budget_period FROM categories WHERE user_id = ? AND name = ? COLLATE NOCASE AND budget > 0')
+const selectCategoryPeriodSpend = db.prepare(`
 	SELECT COALESCE(SUM(ot.total), 0) FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	WHERE oc.category_id = @categoryId AND ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.id <> @exclude
@@ -487,12 +488,11 @@ const selectCategoryMonthSpend = db.prepare(`
 router.get('/limits', (req, res) => {
 	const day = String(req.query.date ?? '')
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: words('order.dateNeeded') })
-	const [year, month] = day.split('-').map(Number)
-	const from = Date.UTC(year, month - 1, 1) / 1000, to = Date.UTC(year, month, 1) / 1000
+	const windows = budgetWindows(day)
 	const names = [req.query.categories ?? []].flat().map(String).filter(Boolean).slice(0, 50)
 	const limits = names.map(name => selectCategoryLimit.get(req.user.id, name)).filter(Boolean).map(c => ({
-		name: c.name, budget: c.budget,
-		spend: selectCategoryMonthSpend.get({ categoryId: c.id, userId: req.user.id, from, to, exclude: String(req.query.exclude ?? '') })
+		name: c.name, budget: c.budget, budgetPeriod: c.budget_period,
+		spend: selectCategoryPeriodSpend.get({ categoryId: c.id, userId: req.user.id, ...windows[c.budget_period], exclude: String(req.query.exclude ?? '') })
 	}))
 	res.json({ month: day.slice(0, 7), limits })
 })

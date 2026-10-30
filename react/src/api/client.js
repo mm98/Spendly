@@ -605,7 +605,7 @@ export async function getNextCategoryColour(signal) {
 	return (await request('/api/categories/colour', { signal })).colour
 }
 
-/** The categories over their monthly limit this month, as who each is and its limit. */
+/** The categories over their limit in their own month or year, as who each is and its limit. */
 export async function getOverLimitCategories(signal) {
 	return (await request('/api/categories/limited?over=yes', { signal })).categories
 }
@@ -615,13 +615,21 @@ export async function getKnownCategoryNames(names, signal) {
 	return (await request('/api/categories/known', { method: 'POST', body: { names }, signal })).known
 }
 
-/** Every category with a monthly limit, as who it is and its limit, by name. */
+/** Every category with a limit, as who it is and its limit, by name. */
 export async function getLimitedCategories(signal) {
 	return (await request('/api/categories/limited', { signal })).categories
 }
 
-/** Whether a category has spent past its monthly limit: `monthSpend`, never the all-time `spend`. */
-export const overBudget = category => category.budget > 0 && category.monthSpend > category.budget
+/** Every category with a limit, by name, with this month's spend (`monthSpend`) and this year's (`yearSpend`). */
+export async function getLimitedCategorySpend(signal) {
+	return (await request('/api/categories/limited?with=spend', { signal })).categories
+}
+
+/** What a category has spent in the period its limit is for: `monthSpend` or `yearSpend`, never the all-time `spend`. */
+export const periodSpend = (category, period = category.budgetPeriod) => (period === 'year' ? category.yearSpend : category.monthSpend) ?? 0
+
+/** Whether a category has spent past its limit in its own month or year. */
+export const overBudget = category => category.budget > 0 && periodSpend(category) > category.budget
 
 /** Category records with this month's spend joined on as `monthSpend`, beside the all-time
     `spend`. `split` is a month window's own category breakdown. */
@@ -1432,6 +1440,8 @@ export async function getSearchNames(spans, signal) {
    A sort's label is a phrase key. ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+// the periods a category's limit can be for, the first the default; mirrors the server's CATEGORY_BUDGET_PERIODS
+export const categoryBudgetPeriods = ['month', 'year']
 /** A kind in the reader's words; the stored value stays as the server has it. */
 export const kindName = kind => phrase(`kind.${String(kind).toLowerCase()}`)
 
@@ -1459,7 +1469,7 @@ export const bookmarkSorts = [
 
 const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getOrderLookalike, getStatuses, getViews]
 const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getCategory, getMonthlySummary]
+const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getLimitedCategorySpend, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getCounts, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 

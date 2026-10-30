@@ -94,7 +94,7 @@
       <div class="sp-card__head"><span class="sp-section-label">CATEGORIES</span></div>
       <div class="sp-empty">
         <span class="sp-heading">No categories yet</span>
-        <span class="sp-meta">Categories group your spend and carry the monthly limit. Scanning creates them as it goes, or add one now.</span>
+        <span class="sp-meta">Categories group your spend and carry a limit. Scanning creates them as it goes, or add one now.</span>
         <button type="button" class="sp-btn sp-btn--small">New category</button>
       </div>
     </div>
@@ -417,13 +417,19 @@
       <div class="sp-card">
         <div class="sp-card__head"><span class="sp-section-label">LIMIT SANITY CHECK</span></div>
         <div class="sp-field">
-        <label class="sp-field__label" for="sc-limit">Monthly limit</label>
-          <span class="sp-field__wrap">
-            <input class="sp-input sp-input--unit sp-number" data-color="warning" id="sc-limit" type="text" inputMode="decimal" defaultValue="4.000">
-            <span class="sp-field__unit">kr. / month</span>
-          </span>
-          <span class="sp-field__help" data-color="warning">Decor averaged 19.480 kr. over the last 12 months. This limit will be passed most months.</span>
-      </div>
+          <label class="sp-field__label" for="sc-limit">Limit</label>
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-field__wrap sp-grow">
+              <input class="sp-input sp-input--unit sp-number" data-color="warning" id="sc-limit" type="text" inputMode="decimal" defaultValue="4.000">
+              <span class="sp-field__unit">kr.</span>
+            </span>
+            <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+              <label class="sp-segmented__item" data-label="Month"><input type="radio" name="sc-limit-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+              <label class="sp-segmented__item" data-label="Year"><input type="radio" name="sc-limit-period"><span class="sp-label">Year</span></label>
+            </div>
+          </div>
+          <span class="sp-field__help" data-color="warning">Decor averaged 19.480 kr. a month over the last 12 months. This limit will be passed most months.</span>
+        </div>
       </div>
     </div>
   </div>

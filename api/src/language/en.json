@@ -81,6 +81,7 @@
 	"builtin.status.returned": "Returned",
 	"builtin.view.awaiting": "Awaiting delivery",
 	"builtin.view.receipt": "Missing receipt",
+	"category.budgetPeriod": "A limit is for a month or for a year.",
 	"category.itemList": "Send the item names as a list of up to 100.",
 	"category.mergeSelf": "A category cannot be merged into itself.",
 	"category.nameMissing": "A category needs a name.",

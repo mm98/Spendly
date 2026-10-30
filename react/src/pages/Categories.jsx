@@ -10,13 +10,13 @@ import { MenuItem, MenuSeparator, useToast, Leaving } from '../components/Overla
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteCategory, getCategoryPages, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory
+	deleteCategory, getCategoryPages, getSettings, invalidateCategoryData, invalidateVendorData, mergeCategory, overBudget, periodSpend
 } from '../api/client.js'
 import { NUMBER_LOCALE, amountRound, currency, dot, monthNames, plural } from '../api/format.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { useListMemory } from '../app/listMemory.js'
 import {
-	Bar, CardMenu, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
+	Bar, CardMenu, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, periodPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 import { usePageSearch } from '../app/afterDraw.js'
 import { phrase, usePhrase } from '../language/phrases.js'
@@ -40,7 +40,8 @@ const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
 /* The month against the limit in the thin bar. Past the limit, a table row splits the track into
    the part up to it and the overage (5i); a phone card fills it, with the overage in words. */
 function MonthGauge({ category, pace, split = false }) {
-	const { monthSpend: spend, budget } = category
+	const { budget } = category
+	const spend = periodSpend(category)
 	if (!(budget > 0)) return <Gauge thin untargeted value={0} aria-label={phrase('categories.noLimitSet')} />
 	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace?.at} aria-label={phrase('categories.shareUsed')} />
 	if (spend > budget) {
@@ -50,28 +51,35 @@ function MonthGauge({ category, pace, split = false }) {
 	return <Gauge thin value={(spend / budget) * 100} marker={pace?.at} aria-label={phrase('categories.shareUsed')} />
 }
 
-function MonthLine({ category, pace }) {
-	const { monthSpend: spend, budget } = category
+/** `months` names the stretch of a yearly limit read back to a named month: "Jan - Aug". */
+function MonthLine({ category, pace, months }) {
+	const { budget } = category
+	const spend = periodSpend(category)
 	if (!(budget > 0)) return <span className="sp-meta">{phrase('categories.spent', { amount: currency(spend, 0) })}</span>
+	const spent = months && category.budgetPeriod === 'year' ? `${currency(spend, 0)} ${months}` : currency(spend, 0)
 	if (spend > budget)
-		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{phrase('categories.over', { amount: amountRound(spend - budget) })}</span>
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{spent}</b>{dot}{phrase('categories.over', { amount: amountRound(spend - budget) })}</span>
 	// ahead of pace only past ten points over the marker (5i)
 	if (pace && (spend / budget) * 100 > pace.at + 10)
-		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{phrase('categories.aheadOfPace')}</span>
-	return <span className="sp-meta">{currency(spend, 0)}{dot}{phrase('categories.left', { amount: amountRound(budget - spend) })}</span>
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{spent}</b>{dot}{phrase('categories.aheadOfPace')}</span>
+	return <span className="sp-meta">{spent}{dot}{phrase('categories.left', { amount: amountRound(budget - spend) })}</span>
 }
+
+/** A limit and the period it is for, as the name's second line says it: "limit 22.000 kr. a month". */
+const limitWords = c => (c.budget > 0 ? phrase('categories.limitOf', { amount: currency(c.budget, 0), period: c.budgetPeriod }) : phrase('categories.noLimit'))
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
 const OVER_LIMIT = 'over-limit'
 const LIMITED = 'limited'
 const NEAR_LIMIT = 'near-limit'
 
-/* A month named in the address measures every row against it, so the pace marker, which belongs to
-   the month in progress, goes. */
+/* A named month drops a monthly row's pace marker, since the month is over; a yearly row is
+   measured on its year up to that month, with the marker at that month's share of the year. */
 const monthWords = month => {
 	const [year, number] = month.split('-').map(Number)
 	const name = monthNames('long', true)[number - 1]
-	return { name, full: `${name} ${year}` }
+	const short = monthNames('short', true)
+	return { name, full: `${name} ${year}`, number, months: number === 1 ? short[0] : `${short[0]} - ${short[number - 1]}` }
 }
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
@@ -104,7 +112,7 @@ export default function Categories() {
 	const near = params.get('flag') === NEAR_LIMIT
 	const month = MONTH.test(params.get('month')) ? params.get('month') : null
 	const named = month ? monthWords(month) : null
-	const pace = named ? null : monthPace()
+	const paceOf = c => (!named ? periodPace(c.budgetPeriod) : c.budgetPeriod === 'year' ? { at: (named.number / 12) * 100 } : null)
 	// a page of rows per Load more, held in the address
 	const { pages, setPages, restored } = useListMemory()
 	const state = useApi(getCategoryPages, [{ query, sort: sort.id, with: 'month', ...(over ? { flag: OVER_LIMIT } : limits ? { flag: LIMITED } : near ? { flag: NEAR_LIMIT, early: settings?.notifyEarly } : {}), ...(month ? { month } : {}) }, step, pages],
@@ -187,7 +195,7 @@ export default function Categories() {
 
 	let body
 	if (!state.data && state.error) body = <Failed what={phrase('categories.yours')} error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisMonth')}
+	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisPeriod')}
 		limit={phrase(sort.id === 'limit-desc' ? 'categories.limitDown' : 'categories.limit')} folded={folded} />
 	else if (!matched && !query && (over || limits || near || month)) body = (
 		<Card>
@@ -217,7 +225,7 @@ export default function Categories() {
 	else if (cards) body = (
 		<>
 			{shown.map(c => {
-				const over = c.budget > 0 && c.monthSpend > c.budget
+				const over = overBudget(c)
 				return (
 					<CardMenu key={c.id} to={`/categories/${c.id}/edit`} label={c.name} open={menuFor === c.id}
 						onOpen={() => { setPicking(null); setMenuFor(c.id) }} onClose={closeMenu} panel={mergePanel(c)} menu={menuItems(c)}>
@@ -225,12 +233,12 @@ export default function Categories() {
 							<CategoryMark category={c} />
 							<Stacked>
 								<span className="sp-heading sp-truncate">{c.name}</span>
-								<span className="sp-meta sp-truncate">{c.budget > 0 ? phrase('categories.limitOf', { amount: currency(c.budget, 0) }) : phrase('categories.noLimit')}</span>
+								<span className="sp-meta sp-truncate">{limitWords(c)}</span>
 							</Stacked>
-							<span className={over ? 'sp-amount sp-ink-warning sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(c.monthSpend, 0)}</span>
+							<span className={over ? 'sp-amount sp-ink-warning sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(periodSpend(c), 0)}</span>
 						</div>
-						<MonthGauge category={c} pace={pace} />
-						{over ? <span className="sp-meta sp-ink-warning">{phrase('categories.overTheLimit', { amount: currency(c.monthSpend - c.budget, 0) })}</span> : null}
+						<MonthGauge category={c} pace={paceOf(c)} />
+						{over ? <span className="sp-meta sp-ink-warning">{phrase('categories.overTheLimit', { amount: currency(periodSpend(c) - c.budget, 0) })}</span> : null}
 					</CardMenu>
 				)
 			})}
@@ -243,7 +251,7 @@ export default function Categories() {
 			<Caption><strong className="sp-data">{plural(matched, 'category')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">{phrase('field.category')}</ListCell>
-				<ListCell width="amount">{named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisMonth')}</ListCell>
+				<ListCell width="amount">{named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisPeriod')}</ListCell>
 				{folded ? null : <ListCell width="amount">{phrase(sort.id === 'limit-desc' ? 'categories.limitDown' : 'categories.limit')}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
@@ -255,19 +263,26 @@ export default function Categories() {
 							<span className="sp-title sp-truncate">{c.name}</span>
 							<span className="sp-meta sp-truncate">
 								{plural(c.orders, 'order')}{dot}{phrase('categories.average', { amount: currency(c.monthAverage ?? 0, 0) })}
-								{folded ? `${dot}${c.budget > 0 ? phrase('categories.limitOf', { amount: currency(c.budget, 0) }) : phrase('categories.noLimit')}` : null}
+								{folded ? `${dot}${limitWords(c)}` : null}
 							</span>
 						</Stacked>
 					</ListCell>,
 					<ListCell key="m">
 						<div className="sp-stack sp-gap-6 sp-right">
-							<MonthGauge category={c} pace={pace} split />
-							<MonthLine category={c} pace={pace} />
+							<MonthGauge category={c} pace={paceOf(c)} split />
+							<MonthLine category={c} pace={paceOf(c)} months={named?.months} />
 						</div>
 					</ListCell>,
 					folded ? null : (
 						<ListCell key="l" cell="amount">
-							{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">{phrase('categories.noLimit')}</span>}
+							{c.budget > 0
+								? (
+									<>
+										<span className="sp-amount">{currency(c.budget, 0)}</span>
+										<span className="sp-meta">{phrase('categories.per', { period: c.budgetPeriod })}</span>
+									</>
+								)
+								: <span className="sp-data sp-ink-5">{phrase('categories.noLimit')}</span>}
 						</ListCell>
 					),
 					<ListCell key="x" cell="menu">

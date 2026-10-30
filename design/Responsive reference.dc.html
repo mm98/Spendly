@@ -305,8 +305,8 @@
             <thead>
               <tr>
                 <th scope="col" class="sp-col-title">Category</th>
-                <th scope="col" class="sp-col-amount">This month</th>
-                <th scope="col" class="sp-col-amount">Monthly limit</th>
+                <th scope="col" class="sp-col-amount">This period</th>
+                <th scope="col" class="sp-col-amount">Limit</th>
                 <th class="sp-col-menu" aria-label="Row actions"></th>
               </tr>
             </thead>
@@ -379,8 +379,18 @@
                   <input class="sp-input" id="rr-f4" type="text" defaultValue="Decor">
                 </div>
             <div class="sp-field">
-                  <label class="sp-field__label" for="rr-f5">Monthly limit</label>
-                  <input class="sp-input sp-number" id="rr-f5" type="text" defaultValue="6.000,00 kr.">
+                  <label class="sp-field__label" for="rr-f5">Limit</label>
+                  <div class="sp-row-flex sp-gap-8">
+                    <span class="sp-field__wrap sp-grow">
+                      <input class="sp-input sp-input--unit sp-number" id="rr-f5" type="text" inputMode="decimal" defaultValue="6.000">
+                      <span class="sp-field__unit">kr.</span>
+                    </span>
+                    <div class="sp-segmented" role="radiogroup" aria-label="Limit period">
+                      <label class="sp-segmented__item" data-label="Month"><input type="radio" name="rr-f5-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+                      <label class="sp-segmented__item" data-label="Year"><input type="radio" name="rr-f5-period"><span class="sp-label">Year</span></label>
+                    </div>
+                  </div>
+                  <span class="sp-field__help">One amount for each calendar month.</span>
                 </div>
             <div class="sp-card__footer sp-card__footer--stack">
               <div class="sp-sum"><span>This month</span><span class="sp-grow"></span><span class="sp-ink-warning sp-strong">7.240 kr.</span></div>

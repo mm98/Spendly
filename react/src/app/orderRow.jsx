@@ -79,24 +79,29 @@ export const columnsFor = width => ({ categories: width > 880 })
 
 const NONE = new Set()
 
-/** The categories over their monthly limit this month (8b), as ids: none until the answer is in.
+/** The categories over their limit in their own month or year (8b): none until the answer is in.
     The same read as the palette's Orders over limit, so the two share their answer. */
 export function useOverLimit(enabled = true) {
-	const over = useApi(getOverLimitCategories, [], { enabled }).data
-	return useMemo(() => (over ? new Set(over.map(c => c.id)) : NONE), [over])
+	return useApi(getOverLimitCategories, [], { enabled }).data ?? null
 }
 
 /* A list that names many categories asks once, here, for every chip in it; a chip with no list
    around it asks for itself. */
 const OverLimitList = createContext(null)
 export function OverLimitProvider({ children }) {
-	return <OverLimitList.Provider value={useOverLimit()}>{children}</OverLimitList.Provider>
+	return <OverLimitList.Provider value={useOverLimit() ?? []}>{children}</OverLimitList.Provider>
 }
+/** The ids of the categories whose dot an order of `date` carries: the dot speaks of this month, or
+    of this year for a yearly limit, so an order of another month or year carries none. */
 export function useOverLimitIds(date) {
 	const given = useContext(OverLimitList)
-	const own = useOverLimit(given === null)
-	// the dot speaks of this month, so an order of another month carries none
-	return date && date.slice(0, 7) !== today().slice(0, 7) ? NONE : given ?? own
+	const over = useOverLimit(given === null) ?? given
+	return useMemo(() => {
+		if (!over?.length) return NONE
+		const now = today()
+		const within = c => !date || date.slice(0, c.budgetPeriod === 'year' ? 4 : 7) === now.slice(0, c.budgetPeriod === 'year' ? 4 : 7)
+		return new Set(over.filter(within).map(c => c.id))
+	}, [over, date])
 }
 
 /** The mark a category over its limit carries wherever it is named (8b, c19). */

@@ -74,7 +74,7 @@
 	"status.lastSpent": "{last_real} of {last_expected} expected",
 	"status.latestOrders": "Latest orders",
 	"status.limitOver": "+{over_pct}% over the limit",
-	"status.limitSpent": "{spent} of {limit}{period_kind, select, week { in {scope_month} so far} other {}}",
+	"status.limitSpent": "{spent} of {limit}{limit_period, select, year {{limit_year_ended, select, yes { in {limit_year}} other { in {limit_year} so far}}} other {{period_kind, select, week { in {scope_month} so far} other {}}}}",
 	"status.limitsHeading": "{limits_count, plural, one {{limits_shown} limit exceeded} other {{limits_shown} limits exceeded}}",
 	"status.needAction": "{kind, select, drafts {{need_count, plural, one {Open draft} other {Open drafts}}} late {{need_count, plural, one {See order} other {See orders}}} other {Review}}",
 	"status.needText": "{kind, select, drafts {{need_count, plural, one {{need_shown} draft} other {{need_shown} drafts}} to finish} late {{need_count, plural, one {{need_shown} order} other {{need_shown} orders}} not delivered after 2 weeks} vendors {{need_count, plural, one {{need_shown} possible duplicate vendor} other {{need_shown} possible duplicate vendors}}} other {{need_count, plural, one {{need_shown} order} other {{need_shown} orders}} without a receipt}}",

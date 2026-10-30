@@ -59,3 +59,7 @@ export const MAX_UPLOAD_MB = 25
 
 // the share of a limit a warning starts at for an account that never chose one; the column's default holds a copy
 export const NOTIFY_EARLY_DEFAULT = 90
+
+/* The periods a category's limit can be for; the first is the default. The column's check
+   (migrations/290_categories_budget_period.sql) and react/src/api/client.js hold copies. */
+export const CATEGORY_BUDGET_PERIODS = ['month', 'year']

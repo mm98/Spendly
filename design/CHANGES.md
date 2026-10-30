@@ -1,76 +1,45 @@
-# Emails in Danish
+# The status email names the period of a yearly limit
 
-## Fixed from handoff_emails_in_danish
+The brief: the package "A category limit for a month or a year" (`handoff_limit_period`, section 5) says the weekly email states each limit for its own period, but `design/emails/` was not changed. A yearly row reads "64.300,00 kr. of 60.000,00 kr." with no period.
 
-**The problem.** The package still called the email files send-ready. Once their words move to the phrase files, the .html and .txt files are templates the server fills in, not finished emails.
+The emails are main's `design/emails/` as of 2026-10-30T13:17Z with only this package's changes. `Auth and first run.dc.html` is the copy from `handoff_limit_period`, which is not on main yet, with this package's note added. Take that package first.
 
-**What changed.** `emails/README.md` opens by saying each file is a template: the server fills in the phrases in the email's language, then the values, and sends the two as multipart/alternative. The templates and the phrase files are what the server keeps a copy of. In Auth and first run 20f, the note "Send-ready files" is now "Templates, not finished emails".
+## 1. status.limitSpent names a yearly limit's year
 
-**Where.** `emails/README.md`, the opening paragraph. Auth and first run 20f, the first note.
+- **The problem:** the phrase only knows the email's period. A yearly row has no period, and in a monthly email it reads as that month's spend.
+- **What changed:** a yearly row names its year in both the weekly and the monthly email: "64.300,00 kr. of 60.000,00 kr. in 2026 so far", in Danish "i 2026 indtil nu". A monthly row is unchanged: "... in October so far" in the weekly email, no period in the monthly email.
 
-**What is still open.** Nothing.
+  English:
 
-Answers `Brief-emails-in-danish.md`: a Danish version of every email, where the files live, and the Danish status subject. The words themselves are not in this package. They are taken out of the layouts and written in English and Danish by Claude Code, to the rules below.
+      {spent} of {limit}{limit_period, select, year {{limit_year_ended, select, yes { in {limit_year}} other { in {limit_year} so far}}} other {{period_kind, select, week { in {scope_month} so far} other {}}}}
 
-## 1. One layout per email, its words in a phrase file per language
+  Danish:
 
-**The problem.** Every email is in English only. The server sends `design/emails` as they are, and `design:check` holds them equal to the drawn files, so the app cannot change a word. A copy of every email per language would mean two layouts to keep equal, and one more for each language added later.
+      {spent} af {limit}{limit_period, select, year {{limit_year_ended, select, yes { i {limit_year}} other { i {limit_year} indtil nu}}} other {{period_kind, select, week { i {scope_month} indtil nu} other {}}}}
 
-**What changed.** Each email keeps the one layout drawn in 20f for every language. Its words move to one phrase file per language, in the ICU message format the app already uses:
+- **Where:** `emails/language/en.json` and `emails/language/da.json`, `status.limitSpent`. It is used by `status.html`, `status.txt`, `status-quiet.html` and `status-quiet.txt`, and their markup does not change. Auth and first run 20f, the weekly email note.
+- **What is still open:** nothing.
 
-- `design/emails/language/en.json` and `design/emails/language/da.json`, one file per language code. The server keeps its copy beside its copy of the emails (`api/src/emails/`), as now.
-- Every class, inline style and Outlook detail stays in the layout. Words that are bold or linked inside a sentence (the address, the passkey name, "Change it in Settings", "Files in Ask") are a tag in the phrase, and the tag's markup is in the layout.
-- The subject is a phrase too, on the first line of each `.txt`, the status and conversation emails included. `<html lang>` is the email's language.
-- The merge fields and Mustache sections stay as they are. The question and the answer in a conversation email are the reader's and Spendly's own words, not phrases.
-- The layout does not change with the language: a longer Danish line wraps inside the same card, button and tile, as a long name does.
-- A further language is one new file, `emails/language/<code>.json`, and nothing in the layouts.
+## 2. Once the year has ended, the row drops "so far"
 
-**Where.** `emails/README.md`, Languages. Auth and first run 20f, notes "Every email is in the account's language" and "The layout does not change with the language". App: `api/src/emails/`, `api/src/lib/emails.js`, and the senders named in the brief.
-
-**What is still open.** Nothing.
-
-## 2. The words the server writes today move into the phrase files
-
-**The problem.** The status and conversation emails get English sentences from the server: your_label, compare, saved_sub, count_sub, limits_heading, scope, over, last_label, difference, next_label, next_rows, orders_link, saving, bookmarks_label, the Needs a look text and action, frequency_line, quiet_heading, quiet_line, subject and preheader (`api/src/lib/statusEmail.js`), and the conversation's subject (`api/src/lib/askChat.js`). The README said "the sentences stay English".
-
-**What changed.** These sentences become phrases, so every word of an email is in one place. The server sends only what the words need: weekly or monthly, the week numbers, month names in the email's language (mid-sentence, and with a capital where a phrase starts with one), the dates and amounts written as now, the counts, which way a comparison went (less, more, the same, no orders before), whether the budget came in under, over or as expected, and which kind each Needs a look row is (drafts, late orders, possible duplicate vendors, orders without a receipt). The README's line "the sentences stay English" is removed.
-
-In the conversation email, `currency_name` is the currency's name in the email's language: "danske kroner" in Danish.
-
-**Where.** `emails/README.md`, Languages, "Words the server writes today", and Ask conversation. Auth and first run 20f. App: `api/src/lib/statusEmail.js`, `api/src/lib/askChat.js` (`currencyName`, the subject).
-
-**What is still open.** Nothing.
-
-## 3. The Danish subjects
-
-**The problem.** The brief asks for the Danish wording of the status subject, weekly and monthly, with and without orders.
-
-**What changed.**
-
-- status, weekly: "Uge 42 i Spendly: 9.870 kr. brugt"
-- status, monthly: "September i Spendly: 61.480 kr. brugt"
-- status-quiet: "Uge 43 i Spendly: intet brugt", "September i Spendly: intet brugt"
-- ask-chat: "Din samtale i Spendly, 21. okt. 2026"
-
-The Danish words follow the app's own Danish: Indstillinger, Spørg, Filer, Statusmail, Ugentlig, Månedlig, Kræver opmærksomhed, Sparet, adgangsnøgle, totrinslogin, gendannelseskode, e-mail.
-
-**Where.** `emails/README.md`, Languages, "Subjects in Danish". Auth and first run 20f, the captions under specimens 5, 6, 7 and 11.
-
-**What is still open.** Nothing.
+- **The problem:** in the December monthly email the year is over, so "so far" is wrong.
+- **What changed:** a new row value, `limit_year_ended`, is `yes` when the email's period ends on 31 December of `limit_year`, and `no` otherwise. That covers the December monthly email and a weekly email whose Sunday is 31 December. Then the row reads "64.300,00 kr. of 60.000,00 kr. in 2026", in Danish "i 2026". `limit_year` is the calendar year of the period's last day, so a week from Monday 29 December to Sunday 4 January measures the new year. It is passed as a string, "2026", so the number format never writes "2.026".
+- **Where:** `emails/README.md`, the status values (`limits[]` gains `limit_period`, `limit_year` and `limit_year_ended`; the `scope_month` line no longer says limits are monthly). `emails/status-sample.json` gives every limit row `limit_period: "month"`, `limit_year: "2026"` and `limit_year_ended: "no"`. App: the status email's row builder, which already carries `limit_period` and `limit_year` and now adds `limit_year_ended`.
+- **What is still open:** nothing.
 
 ## later.md
 
-Read on main before the task. Its one entry, Recently deleted, is an idea kept for later and is not part of this change.
+Read on main before the task. Its only entry, "A deleted record should not be removed for good at once", is marked as an idea for later and is not part of this package.
 
 ## Files
 
-- `README.md` - the design's overview, unchanged.
+- `README.md` - the design overview, unchanged from the project root.
 - `CHANGES.md` - this note.
-- `Auth and first run.dc.html` - 20f: the two language notes and the Danish subjects in the captions.
-- `emails/README.md` - the Languages section, the field notes it changes.
-- `emails/*` - the other email files, unchanged, which 20f loads to draw its specimens.
-- `support.js`, `components.js`, `icons.js`, `view.js` - what the page loads to open from the folder.
-- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/auth-and-first-run.css` - the stylesheets the page links.
+- `emails/language/en.json`, `emails/language/da.json` - `status.limitSpent`.
+- `emails/README.md` - the three row values and the rule.
+- `emails/status-sample.json` - the new row values in the samples.
+- `Auth and first run.dc.html` - 20f note. It is the `handoff_limit_period` copy plus this note.
+- `support.js`, `view.js`, `components.js`, `icons.js`, `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/auth-and-first-run.css` - loaded by the page, main's, unchanged.
 
 ## styles/check.js
 
