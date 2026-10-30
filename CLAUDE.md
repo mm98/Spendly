@@ -28,6 +28,10 @@ A branch is named for the change it carries: a type, a slash, then a short kebab
 (`fix/bookmark-title-charset`, `feat/order-export`). Types: `fix`, `feat`, `docs`, `chore`, `refactor`.
 Never a generated or random name, even when the session hands one over: rename it before pushing.
 
+## Handoff components come from the app
+
+A package's `react_handoff/` is copied from `react/src/components/` on main, not from `design/react_handoff/`. The app's components take their words from `language/phrases.js` (`usePhrase`, `phrase`, ICU messages). A package that ships React components also ships `language/en.json`, `language/da.json` and `view.js`. A component's new words are phrase keys in both files, never literal English.
+
 ## No AI attribution on GitHub
 
 Nothing written to GitHub credits the AI that wrote it: no co-author or session line in a commit, no
