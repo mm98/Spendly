@@ -498,88 +498,9 @@
     </div>
 
 
-  <div class="doc-specimens">
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">The order form, when it looks like an order you have and crosses a limit · Totals card</span>
-      <div class="sp-stack sp-gap-12 doc-w400">
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
-          <div class="sp-list-item sp-list-item--top" data-color="warning">
-          <span class="sp-list-item__count">!</span>
-          <div class="sp-stack sp-gap-6">
-            <span class="sp-title sp-ink-warning">You already have an order like this</span>
-            <span class="sp-meta sp-ink-warning">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
-            <span class="sp-row-flex sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open that order</button></span>
-          </div>
-        </div>
-          <div class="sp-list-item" data-color="warning">
-            <span class="sp-list-item__count">!</span>
-            <div class="sp-stack sp-gap-6">
-              <span class="sp-title sp-ink-warning">This order puts Groceries over its limit</span>
-              <span class="sp-meta sp-ink-warning">6.240 of 6.000 kr. for August. Saving is fine - you will just see it flagged.</span>
-            </div>
-          </div>
-          <div class="sp-stack">
-            <div class="sp-sum">
-            <span class="sp-ink-2">Order total</span>
-            <span class="sp-sum__value">1.198,00 kr.</span>
-            </div>
-          </div>
-          <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
-            <button type="button" class="sp-btn sp-btn--outline">Discard</button>
-            <button type="button" class="sp-btn">Create anyway</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">The same · phone, under the totals</span>
-      <div class="sp-phone sp-touch">
-        <div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
-          <div class="sp-stacked sp-grow">
-            <span class="sp-title sp-truncate">New order</span>
-            <span class="sp-meta sp-truncate">Bilka · 14 Aug</span>
-          </div>
-        </div>
-        <div class="sp-card sp-card--flush">
-          <button type="button" class="sp-list__toolbar sp-list__toolbar--toggle" aria-expanded="false">
-            <span class="sp-stacked">
-              <span class="sp-title sp-truncate">Order details</span>
-              <span class="sp-meta">14 Aug · Groceries · Expense</span>
-            </span>
-            <span class="sp-card__chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
-          </button>
-        </div>
-        <div class="sp-card">
-          <div class="sp-card__head"><span class="sp-section-label">Totals</span></div>
-          <div class="sp-stack">
-            <div class="sp-sum">
-            <span class="sp-ink-2">Order total</span>
-            <span class="sp-sum__value">1.198,00 kr.</span>
-            </div>
-          </div>
-        </div>
-        <div class="sp-list-item sp-list-item--top" data-color="warning">
-          <span class="sp-list-item__count">!</span>
-          <div class="sp-stack sp-gap-6">
-            <span class="sp-title sp-ink-warning">You already have an order like this</span>
-            <span class="sp-meta sp-ink-warning">1.234,00 kr. at Bilka on 12 Aug. You can still create this one.</span>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that order</button>
-          </div>
-        </div>
-        <div class="sp-savebar"><span class="sp-subtitle sp-grow">Total 1.198,00 kr.</span><button type="button" class="sp-btn sp-btn--outline">Discard</button><button type="button" class="sp-btn">Create</button></div>
-      </div>
-    </div>
-  </div>
-
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation - the order form when it looks like an order you have</span>
-    <div class="doc-note"><b>One amber attention row</b>, the limits notice's row from <a href="Duplicate and alerts.dc.html#8b">8b</a> (<a href="Components.dc.html#c23">c23</a>, <code>ListItem color="warning" count="!"</code>), with the same title and line, and <b>Open that order</b> under them. The button makes it <code>variant="top"</code>, so the ! sits on the title's line. It shows when the vendor, a date up to 3 days away and a total within 10% match an order already saved (<code>react/src/pages/OrderForm.jsx</code>, <code>lookalikeNotice</code>).</div>
-    <div class="doc-note"><b>Where it shows:</b> the review of a scan (step 3), a new order typed by hand, a copy (<a href="#3b">3b</a>), and a saved order being edited, where the sentence ends "You can still save this one." It never stops the save: Open that order to see the one he has, or Create to go on. Not shown for the order 3c already named on the same scan.</div>
-    <div class="doc-note"><b>Placement.</b> On desktop both rows sit inside the Totals card, under its head and above the total, as 8b draws the limits notice: the amber row first, then the limits notice. 8b does not change. On a phone they sit under the totals in the same order, above the save bar, the button full width. A row that does not apply is left out, and the other keeps its place.</div>
-    <div class="doc-note"><b>Open that order</b> opens the order it names. A saved order with changes asks first, as any page away does (6d). A new order or a copy that is already a draft is kept, with the usual "Kept in Drafts." toast.</div>
-    <div class="doc-note"><b>Open that order makes no draft</b> from a scan he has not changed: like every scan, it becomes a draft only at his first change or Create (see "A scan is a draft until it is created or discarded" below).</div>
+    <div class="doc-note"><b>The form shows no warning of its own.</b> A new order typed or copied asks on Create, and a saved order being edited asks on Save, with the one dialog in <a href="#3c">3c</a>, "You already have this order". A scan asks the same dialog when its reading is ready, before this review opens, so the review never carries it. The limits notice in the Totals card is <a href="Duplicate and alerts.dc.html#8b">8b</a>'s and does not change.</div>
   </div>
 
   <div class="doc-specimen">
@@ -1030,7 +951,7 @@
     <div class="doc-note"><b>Attachments is the same card in both states,</b> beneath the lines, with the scanned file as its first attachment. Opening it is the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>), as on any order. The file is never shown beside the form.</div>
     <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
     <span class="doc-notes__label">A scan is a draft until it is created or discarded</span>
-    <div class="doc-note"><b>The scan becomes an order with status Draft at his first change in the review, or when he presses Create</b>, as an empty order does. Until then it is the upload and its reading, held 24 hours, and Drafts does not fill with scans nobody looked at. Once a draft, leaving in any way keeps it: Back, another page, closing the tab or the app. There is no Save as draft button and no question on leaving. Leaving a changed review shows the toast "Kept in Drafts", with no Undo, since nothing was lost; leaving an unchanged one says nothing, and adding the same file again within 24 hours opens 3c with Use the reading. Like every draft it moves no money until it is created.</div>
+    <div class="doc-note"><b>The scan becomes an order with status Draft at his first change in the review, or when he presses Create</b>, as an empty order does. Until then it is the upload and its reading, held 24 hours, and Drafts does not fill with scans nobody looked at. Once a draft, leaving in any way keeps it: Back, another page, closing the tab or the app. There is no Save as draft button and no question on leaving. Leaving a changed review shows the toast "Kept in Drafts", with no Undo, since nothing was lost; leaving an unchanged one says nothing, and adding the same file again within 24 hours opens the 3c dialog, whose Create anyway uses the saved reading. Like every draft it moves no money until it is created.</div>
     <div class="doc-note"><b>What is on the screen is what is kept.</b> The review is written to the draft as it is edited: the values as changed, the lines ticked and unticked, and the marks - which values were hard to read, which lines were unsure, which of them have been touched. A draft never removes itself, and its file stays with it for as long as it exists.</div>
     <div class="doc-note"><b>Opening a draft later is step 3 exactly as drawn</b>, on desktop and on a phone: the amber bar with the count still to look at, the ticks, the tones, Jump to first. A value touched before leaving stays cleared. The file is in Attachments, beneath the lines. It opens from Home's Drafts card, the order list (status Draft) and the palette's Drafts.</div>
     <div class="doc-note"><b>Create turns the draft into an order</b> with the status a scan gets today: the account's default status, or the one the document shows when Settings, Defaults lets a scan set it (<a href="Settings and import.dc.html#11a">11a</a>). The button stays <b>Create</b>, the rule on every new record: the draft is not an order until then. <b>Discard</b> is the 6d dialog (<a href="States and confirmations.dc.html#6d">6d</a>), because the file goes with it.</div>
@@ -1338,78 +1259,91 @@
 <section class="doc-section">
   <div class="doc-section__head">
     <span class="doc-badge" id="3c">3c</span>
-    <span class="doc-section__title">Already scanned, or already an order</span>
+    <span class="doc-section__title">You already have this order</span>
   </div>
-  <div class="doc-lede">The file's SHA-256 matches one already stored, so this receipt has been read before. It interrupts between upload and reading because the reading is cached - the answer is already in the database, and re-running the scanner on the same bytes buys nothing. The user never sees a cost; they see that reusing the saved reading is simply the faster path. The same screen has a second state, drawn below: a file that is on an order but was never read. A reading that looks like an order you already have does not stop here: the review opens, with the amber row offering that order (3a).</div>
+  <div class="doc-lede">One dialog for every way an order can repeat one you have: the same receipt file, or an order with the same vendor, a date up to 3 days away and a total within 10%. It opens the first moment the order's vendor, date and total are known - a scan when its reading is ready, an order typed or copied on Create, an edit on Save - and it is the only place this is said.</div>
 
   <div class="sp-stack sp-gap-12">
     <span class="sp-section-label">The flow</span>
     <div class="sp-list oc-flow">
       <div class="doc-table__head"><div>When</div><div>What matches</div><div>What he sees</div><div>Ways on</div><div>Draft</div></div>
-      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, with a saved reading</span><span class="sp-ink-2">3c, Scanned before</span><span class="sp-ink-2">Open that order. Use the reading: the review. Scan again: step 2, then the check after reading. Discard the upload.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, in a draft</span><span class="sp-ink-2">3c, Scanned before, pointing to the draft</span><span class="sp-ink-2">Open that draft. Use the reading. Discard the upload.</span><span class="sp-ink-5">None new: the existing draft is the one opened</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Upload, before reading</span><span class="sp-ink-2">The same file, on an order, never read</span><span class="sp-ink-2">3c, Already on an order</span><span class="sp-ink-2">Open that order. Read the file: step 2, then the review. Discard the upload.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Same vendor, a date up to 3 days away, a total within 10%</span><span class="sp-ink-2">3a step 3, the review, with the amber row</span><span class="sp-ink-2">Open that order. Create. Discard.</span><span class="sp-ink-5">None until his first change or Create</span></div>
-      <div class="doc-table__row"><span class="sp-strong">Reading ends</span><span class="sp-ink-2">Nothing</span><span class="sp-ink-2">3a step 3, the review</span><span class="sp-ink-2">Create. Discard.</span><span class="sp-ink-5">None until his first change or Create</span></div>
-      <div class="doc-table__row"><span class="sp-strong">In the order form</span><span class="sp-ink-2">Same vendor, date and total, on an order typed, copied or edited</span><span class="sp-ink-2">The amber row (3a)</span><span class="sp-ink-2">Open that order, or carry on and create or save.</span><span class="sp-ink-5">As the form already has it</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Scan, on upload</span><span class="sp-ink-2">The same file, with a saved reading</span><span class="sp-ink-2">The dialog, at once: the reading is already there</span><span class="sp-ink-2">Open that order. Create anyway: the review from the saved reading. Read it again: step 2, then the review. Discard.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Scan, on upload</span><span class="sp-ink-2">The same file, on an order, never read</span><span class="sp-ink-2">The dialog, at once</span><span class="sp-ink-2">Open that order. Create anyway: step 2, then the review. Discard.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Scan, reading ready</span><span class="sp-ink-2">Same vendor, a date up to 3 days away, a total within 10%</span><span class="sp-ink-2">The dialog, over step 2</span><span class="sp-ink-2">Open that order. Create anyway: the review. Discard.</span><span class="sp-ink-5">None until his first change or Create in the review</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Scan, reading ready</span><span class="sp-ink-2">Nothing</span><span class="sp-ink-2">3a step 3, the review</span><span class="sp-ink-2">Create. Discard.</span><span class="sp-ink-5">None until his first change or Create</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Typed or copied, on Create</span><span class="sp-ink-2">Same vendor, a date up to 3 days away, a total within 10%</span><span class="sp-ink-2">The dialog, over the form</span><span class="sp-ink-2">Open that order. Create anyway: the order is created. Discard.</span><span class="sp-ink-5">As the form already has it</span></div>
+      <div class="doc-table__row"><span class="sp-strong">Edit, on Save</span><span class="sp-ink-2">The same, against his other orders</span><span class="sp-ink-2">The dialog, over the form</span><span class="sp-ink-2">Open that order. Save anyway. Discard changes.</span><span class="sp-ink-5">Not a draft: the order exists</span></div>
     </div>
   </div>
 
-  <div class="doc-notes">
-    <span class="doc-notes__label">Notes for implementation - the flow</span>
-    <div class="doc-note"><b>Two checks, in order.</b> The file check runs on upload, before reading, and is the only one that stops: it is certain, and it saves a reading. The order check runs when the reading ends and never stops him: the review opens with the amber row, which offers that order beside Create. When the file check has fired and been answered, the amber row does not show for the same order.</div>
-    <div class="doc-note"><b>No draft for a scan nobody has decided on.</b> Every scan becomes a draft at his first change in the review or when he presses Create, never by itself. Open that order and leaving an unchanged review make none; the upload and its reading are held 24 hours, so scanning the file again finds them (the first row).</div>
-  </div>
-
   <div class="doc-specimens">
-    <div class="doc-specimen oc-col">
-      <span class="doc-specimen__label">Stage 2, replaced</span>
-      <div class="sp-card sp-gap-16">
-        <div class="sp-stacked">
-          <span class="sp-heading">This receipt has been scanned before</span>
-          <span class="sp-meta">The same file is already on this order.</span>
-        </div>
-        <div class="sp-list-item sp-list-item--top">
+    <div class="oc-col--narrow sp-stack sp-gap-16">
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">A scan of a file you have, on an order and in a draft</span>
+        <div class="oc-stage">
+          <div class="sp-dialog" role="dialog" aria-label="You already have this order">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-heading">You already have this order</span>
+              <span class="sp-dialog__body">kvittering-indbo-12082026.pdf is already on this order, and in a draft.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
           <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
-          <span class="sp-stack sp-gap-8">
+          <span class="sp-stack sp-gap-8 sp-grow">
             <span class="sp-stacked">
               <span class="sp-title sp-truncate">Indbo Møbler</span>
               <span class="sp-subtitle">SPENDLY-447 · 12 Aug 2026 · 4 lines · Received</span>
             </span>
-            <span class="sp-meta">Scanned 12 Aug, 14:32 · kvittering-indbo-12082026.pdf</span>
-            <span class="sp-row-flex sp-gap-8">
-              <button type="button" class="sp-btn sp-btn--small">Open that order</button>
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Compare the files</button>
-            </span>
+            <span class="sp-meta">Same file · scanned 12 Aug, 14:32</span>
+            <span class="sp-row-flex sp-gap-8 sp-wrap"><button type="button" class="sp-btn sp-btn--small">Open that order</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Compare the files</button></span>
           </span>
-          <span class="sp-grow"></span>
-          <div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div>
+          <div class="sp-stacked sp-cell-amount sp-flex-none"><span class="sp-amount">7.635,00</span></div>
         </div>
-
-        <div class="sp-stack sp-gap-12">
-          <span class="sp-section-label">If that is not what you meant</span>
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">New order from the saved reading</span>
-              <span class="sp-meta">Starts a new order with the same lines, ready for you to check and change.</span>
+            <div class="sp-list-item sp-list-item--top">
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-subtitle">Draft · scanned 14 Aug</span>
+                </span>
+                <span class="sp-row-flex sp-gap-8 sp-wrap"><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open that draft</button></span>
+              </span>
+              <div class="sp-stacked sp-cell-amount sp-flex-none"><span class="sp-amount">7.635,00</span></div>
             </div>
-            <span class="sp-grow"></span>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Use the reading</button>
-          </div>
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">Read it again</span>
-              <span class="sp-meta">Use this if the lines came out wrong last time.</span>
+            <div class="sp-dialog__actions">
+              <button type="button" class="sp-btn sp-btn--outline">Read it again</button>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Discard</button>
+              <button type="button" class="sp-btn sp-btn--outline">Create anyway</button>
             </div>
-            <span class="sp-grow"></span>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Scan again</button>
           </div>
         </div>
-
-        <div class="sp-card__footer sp-card__footer--commits">
-          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
-          <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline">Discard the upload</button>
+      </div>
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">A reading, or an order typed, that looks like one you have</span>
+        <div class="oc-stage">
+          <div class="sp-dialog" role="dialog" aria-label="You already have this order">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-heading">You already have this order</span>
+              <span class="sp-dialog__body">This one is Bilka, 14 Aug, 1.198,00 kr.</span>
+            </div>
+            <div class="sp-list-item sp-list-item--top">
+              <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+              <span class="sp-stack sp-gap-8 sp-grow">
+                <span class="sp-stacked">
+                  <span class="sp-title sp-truncate">Bilka</span>
+                  <span class="sp-subtitle">SPENDLY-512 · 12 Aug 2026 · 6 lines · Received</span>
+                </span>
+                <span class="sp-meta">Same vendor · 2 days earlier</span>
+                <span class="sp-row-flex sp-gap-8 sp-wrap"><button type="button" class="sp-btn sp-btn--small">Open that order</button></span>
+              </span>
+              <div class="sp-stacked sp-cell-amount sp-flex-none"><span class="sp-amount">1.234,00</span></div>
+            </div>
+            <div class="sp-dialog__actions">
+              <button type="button" class="sp-btn sp-btn--outline">Discard</button>
+              <button type="button" class="sp-btn sp-btn--outline">Create anyway</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1417,46 +1351,29 @@
     <div class="oc-notes-col">
       <div class="doc-notes">
         <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Discard the upload</b> deletes the uploaded file and returns to step 1. Nothing is created.</div>
-        <div class="doc-note"><b>Hash on upload, before reading.</b> SHA-256 of the bytes as received, stored on the attachment row and indexed. The check is a single lookup and costs nothing, so it runs on every upload - including the ones that arrive through Import and through the item-photo slot.</div>
-        <div class="doc-note"><b>It replaces the reading stage rather than covering it.</b> A dialog over a progress bar would mean the scan is running behind a question about whether it should. And asking after the proposal exists wastes the read and puts the user in review with a decision they should have made first.</div>
-        <div class="doc-note"><b>Store the reading, not just the hash.</b> The scan output is cached against the file hash, so a repeat upload can produce a full order without a second API call. This is the whole return on the feature: the three legitimate reasons to continue - a repeated purchase on an identical receipt, a re-import after deleting the original, and one receipt covering two orders - are all served for free by the cached reading. None of them needs the scanner to look at the same bytes twice.</div>
-        <div class="doc-note"><b>The cost is ours, so it stays out of the UI.</b> Each scan is a paid API call, which is the reason this screen exists - but a per-action price tag would make the user manage our infrastructure bill, and they cannot act on a figure they did not agree to. The design carries the intent instead: reusing the reading is the primary button and reads as the obvious choice, re-reading is a secondary. No amounts, no warnings, no counters.</div>
-        <div class="doc-note"><b>Never blocks.</b> Re-reading is legitimate when the cached reading was wrong and the model has improved since - the one case where a second call is worth making. It stays one click.</div>
-        <div class="doc-note"><b>Show the matched order, not just the fact.</b> Vendor, reference, date, line count, total, and when it was scanned. "You have already imported this file" without the order is a dead end - the user's next question is always <i>which one</i>, and answering it here saves a trip to the list.</div>
-        <div class="doc-note"><b>A file whose draft still exists</b> is "Scanned before" too, pointing to the draft: the record shows its vendor or file name and scan day, and the first button reads "Open that draft", opening it in the review (<a href="#3a">3a</a> step 3).</div>
-    <div class="doc-note"><b>Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is - and it costs one link.</div>
-        <div class="doc-note"><b>There is no Attach.</b> A matched hash means that order already holds this exact file, so there is nothing to add from here.</div>
-        <div class="doc-note"><b>Multiple matches</b> list up to three orders, newest first, with a count if there are more. Each row carries its own "Open that order".</div>
-        <div class="doc-note"><b class="sp-ink">One primary on this screen: Open that order.</b> The two alternatives are equal-weight rows with outline buttons, and neither carries the primary border. A tinted, bordered option plus its own filled button would be a second primary - and it would recommend the path the user most likely did not want, since a repeated receipt usually means they meant the existing order.</div>
-        <div class="doc-note"><b class="sp-ink">Only the matched order carries a mark.</b> It is a real record, so it shows its photo the way an order row does. The two alternatives are actions, not records - a generic file glyph beside each added nothing the title did not already say, so they are title, description and button only.</div>
-        <div class="doc-note"><b class="sp-ink">The option mark sits on the title's first line</b> (<code>sp-list-item--top</code>), not centred on the block. Centred, it drifts down as the description wraps, and two options with different description lengths stop sharing a mark position.</div>
-        <div class="doc-note"><b class="sp-ink">On a phone every button here is full width and stacked</b> (<code>sp-btn--block</code>), primary first. Small buttons left at their own width stack into a ragged column of two different lengths. See the phone frame in <b>7a</b>.</div>
-      </div>
-
-      <div class="doc-card">
-        <span class="doc-eyebrow">What the hash does and does not catch</span>
-        <div class="doc-note"><b>Catches:</b> the same file uploaded twice - the common case, where a receipt was already forwarded once and lands in the uploads folder again, or a phone photo is re-picked from the library.</div>
-        <div class="doc-note"><b>Misses:</b> a second photo of the same paper receipt, the same PDF re-saved by a different reader, or a re-download that changed one byte of metadata. All are different bytes and therefore a different hash.</div>
-        <div class="doc-note">So this is <b>not</b> duplicate-order detection, and must not be presented as such. The fuzzy check on vendor plus date plus total - the one behind "2 rows look like orders you already have" in Import (11b) and the possible-duplicates list in 5c - is the separate mechanism that catches those, and it runs later, on the proposed order rather than on the file. On a scan it runs when the reading ends and shows as the amber row in the review, which does not stop him and makes no draft until he changes something or creates; on an order typed, copied or edited it is the same row (<a href="#3a">3a</a>, the order form when it looks like an order you have).</div>
-        <div class="doc-note">Both can fire on one upload. When they do, this screen comes first - it is certain, and it is the only one of the two that can run before the scanner is called at all.</div>
+        <div class="doc-note"><b>One dialog, one rule.</b> It opens the first moment the order's vendor, date and total are known: on a scan when the reading is ready (a same-file match is known on upload, and its saved reading is already there), on an order typed or copied when he presses Create, on an edit when he presses Save. It replaces the 3c screen that took the place of step 2, and the amber row that was in the Totals card (<a href="#3a">3a</a>). Nothing else in the app says an order repeats one you have.</div>
+        <div class="doc-note"><b>What it lists, in one list:</b> orders holding the same file first, newest first, then look-alike orders, then a draft holding the same file. Up to three orders, with "and 2 more" in the body when there are more. An order that is both is listed once, as the same file. Each row is the record as 3c drew it: mark, vendor, the facts line, then why it matched - "Same file · scanned 12 Aug, 14:32", "Same file" when it was never read, or "Same vendor · 2 days earlier" - and the amount.</div>
+        <div class="doc-note"><b>Open that order and Open that draft always open in a new window</b> (a link with <code>target="_blank"</code> and <code>rel="noopener"</code>), on desktop and on a phone. The scan or the form and this dialog stay as they are behind it: he looks at the order he has, comes back, and picks Create anyway or Discard. The dialog does not close and nothing is created or discarded by opening one. The button looks as drawn, with no icon: the register's external-link means a same-tab jump (<a href="Icon legend.dc.html">Icon legend</a>).</div>
+        <div class="doc-note"><b>Open that order</b> on the first row is the dialog's one primary; every other row's Open is outline, and a draft's reads <b>Open that draft</b>, opening it in the review (<a href="#3a">3a</a> step 3). <b>Compare the files</b> sits on same-file rows only, opening both in the viewer (<a href="Dark mode and image viewer.dc.html#12b">12b</a>) side by side.</div>
+        <div class="doc-note"><b>The foot:</b> <b>Create anyway</b> and <b>Discard</b>, both outline. On a scan, Create anyway opens the review from the saved reading, or reads the file first when there is none; on a typed or copied order it creates the order. On an edit they read <b>Save anyway</b> and <b>Discard changes</b>. <b>Read it again</b> sits on the left only when a listed same-file record has a saved reading, and goes to step 2.</div>
+        <div class="doc-note"><b>Discard</b> on a scan deletes the upload and returns to step 1. On a typed or copied order it throws the new order away, as the form's own Discard does. Escape closes the dialog back to where he was: on a form the form, unsaved; on a scan step 1, with the upload kept 24 hours.</div>
+        <div class="doc-note"><b>Asked once.</b> Once answered, the dialog does not open again for the same orders on the same scan or form. It opens again only when a change makes the order match a different one.</div>
+        <div class="doc-note"><b>Every order that holds the file is found.</b> An order with no vendor and a file that sits on one of an order's lines both count as holding it; a scan of either opens this dialog rather than going straight to the review. An order with no vendor is named by its reference.</div>
+        <div class="doc-note"><b>Store the reading, not just the hash.</b> SHA-256 of the bytes as received, on the upload and the attachment, with the reading kept against it, so Create anyway on the same file costs no second reading. The cost is ours and stays out of the UI: no amounts, no counters.</div>
+        <div class="doc-note"><b>On a phone it is a sheet</b> holding the same list, every button full width and stacked, primary first: each row's buttons under it, then Create anyway, Read it again and Discard.</div>
       </div>
     </div>
   </div>
 
   <div class="doc-specimens sp-touch">
     <div class="doc-specimen">
-      <span class="doc-specimen__label">Stage 2, replaced · phone</span>
+      <span class="doc-specimen__label">The dialog · phone</span>
       <div class="sp-phone sp-touch">
-        <div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
-          <div class="sp-stacked sp-grow">
-            <span class="sp-title sp-truncate">Scanned before</span>
-            <span class="sp-meta sp-truncate">kvittering-indbo-12082026.pdf</span>
-          </div>
-        </div>
-        <span class="sp-meta">The same file is already on this order.</span>
-        <div class="sp-card sp-gap-16">
+        <div class="sp-scrim"></div>
+        <div class="sp-sheet" role="dialog" aria-label="You already have this order">
+          <span class="sp-sheet__handle" aria-hidden="true"></span>
+          <span class="sp-heading">You already have this order</span>
+          <span class="sp-dialog__body">kvittering-indbo-12082026.pdf is already on this order, and in a draft.</span>
           <div class="sp-list-item sp-list-item--top">
             <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
             <div class="sp-stacked sp-grow">
@@ -1465,126 +1382,19 @@
             </div>
           </div>
           <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
-        </div>
-        <span class="sp-section-label">If that is not what you meant</span>
-        <div class="sp-card sp-gap-16">
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">New order from the saved reading</span>
-              <span class="sp-meta">Starts a new order with the same lines, ready for you to check and change.</span>
-            </div>
-          </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Use the reading</button></div>
-        </div>
-        <div class="sp-card sp-gap-16">
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">Read it again</span>
-              <span class="sp-meta">Use this if the lines came out wrong last time.</span>
-            </div>
-          </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Scan again</button></div>
-        </div>
-        <div class="sp-stack sp-gap-8">
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard the upload</button>
-          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="doc-notes">
-    <span class="doc-notes__label">Notes for implementation - 3c on a phone</span>
-    <div class="doc-note"><b>The same screen as the phone frame in <a href="Mobile screens.dc.html#7a">7a</a></b>, drawn here beside the screen it belongs to. Back and the title Scanned before, with the file name under it. Each choice is its own card with its button full width under the text, and Discard the upload closes the page. The line under the top bar says what matched, as the heading's second line does on desktop. The never-read state below is drawn here only; 7a shows the first.</div>
-  </div>
-
-  <div class="doc-specimens">
-    <div class="doc-specimen oc-col">
-      <span class="doc-specimen__label">The file is on an order but was never read</span>
-      <div class="sp-card sp-gap-16">
-        <div class="sp-stacked">
-          <span class="sp-heading">This receipt is already on an order</span>
-          <span class="sp-meta">The same file is already on this order.</span>
-        </div>
-        <div class="sp-list-item sp-list-item--top">
-          <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
-          <span class="sp-stack sp-gap-8">
-            <span class="sp-stacked">
-              <span class="sp-title sp-truncate">Indbo Møbler</span>
-              <span class="sp-subtitle">SPENDLY-447 · 12 Aug 2026 · 4 lines · Received</span>
-            </span>
-            <span class="sp-meta">kvittering-indbo-12082026.pdf</span>
-            <span class="sp-row-flex sp-gap-8">
-              <button type="button" class="sp-btn sp-btn--small">Open that order</button>
-              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Compare the files</button>
-            </span>
-          </span>
-          <span class="sp-grow"></span>
-          <div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div>
-        </div>
-
-        <div class="sp-stack sp-gap-12">
-          <span class="sp-section-label">If that is not what you meant</span>
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">New order from this file</span>
-              <span class="sp-meta">Reads the file and starts a new order, ready for you to check and change.</span>
-            </div>
-            <span class="sp-grow"></span>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Read the file</button>
-          </div>
-        </div>
-
-        <div class="sp-card__footer sp-card__footer--commits">
-          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
-          <span class="sp-grow"></span>
-          <button type="button" class="sp-btn sp-btn--outline">Discard the upload</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="doc-notes">
-    <span class="doc-notes__label">Notes for implementation - a file on an order that was never read</span>
-    <div class="doc-note"><b>When it shows.</b> A file added to an order by hand (Attachments, <a href="Order editing layouts.dc.html#1d">1d</a>) is scanned. The hash matches, but there is no saved reading. Heading "This receipt is already on an order", phone title "Already on an order" - the words the app uses now, confirmed (<code>react/src/pages/OrderNew.jsx</code>, <code>SeenBefore</code>).</div>
-    <div class="doc-note"><b>One way on: New order from this file</b>, button Read the file. It sends the file to the scanner as a first reading and goes on to step 2, then the review. The file line shows only the file's name, with no Scanned time, since there was no scan.</div>
-  </div>
-
-  <div class="doc-specimens sp-touch">
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">Never read · phone</span>
-      <div class="sp-phone sp-touch">
-        <div class="sp-topbar sp-topbar--touch">
-          <button type="button" class="sp-icon-btn sp-icon-btn--outline" aria-label="Back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg></button>
-          <div class="sp-stacked sp-grow">
-            <span class="sp-title sp-truncate">Already on an order</span>
-            <span class="sp-meta sp-truncate">kvittering-indbo-12082026.pdf</span>
-          </div>
-        </div>
-        <span class="sp-meta">The same file is already on this order.</span>
-        <div class="sp-card sp-gap-16">
           <div class="sp-list-item sp-list-item--top">
             <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
             <div class="sp-stacked sp-grow">
               <span class="sp-title sp-truncate">Indbo Møbler</span>
-              <span class="sp-meta">SPENDLY-447 · 12/08/2026 · 4 lines · 7.635,00 kr.</span>
+              <span class="sp-meta">Draft · scanned 14 Aug · 7.635,00 kr.</span>
             </div>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
-        </div>
-        <span class="sp-section-label">If that is not what you meant</span>
-        <div class="sp-card sp-gap-16">
-          <div class="sp-list-item sp-list-item--top">
-            <div class="sp-stacked">
-              <span class="sp-title sp-truncate">New order from this file</span>
-              <span class="sp-meta">Reads the file and starts a new order, ready for you to check and change.</span>
-            </div>
+          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that draft</button></div>
+          <div class="sp-stack sp-gap-8">
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Create anyway</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read it again</button>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read the file</button></div>
-        </div>
-        <div class="sp-stack sp-gap-8">
-          <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard the upload</button>
-          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
         </div>
       </div>
     </div>
