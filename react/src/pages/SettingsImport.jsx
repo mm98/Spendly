@@ -377,7 +377,7 @@ function UndoImport({ id, onCancel, onConfirm }) {
 	const c = counts.data
 	let body
 	if (c) {
-		const made = [[c.vendors, 'vendor'], [c.categories, 'category', 'categories']].filter(([n]) => n > 0).map(([n, noun, many]) => plural(n, noun, many))
+		const made = [[c.vendors, 'vendor'], [c.categories, 'category']].filter(([n]) => n > 0).map(([n, noun]) => plural(n, noun))
 		const also = made.length ? `${c.orders ? ', and' : ''} the ${made.join(' and ')} it created that nothing else uses now` : ''
 		const what = c.orders ? `its ${ordersWord(c.orders)} and ${plural(c.lines, 'item line')}${also}` : also.replace(/^, and /, '')
 		const day = dayShortMonth(new Date(c.createdAt * 1000).toISOString().slice(0, 10))

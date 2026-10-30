@@ -1060,7 +1060,7 @@ function OrderFacets({ bare = false, f, update, custom, setCustom, amountScale, 
 							? <SearchInput value={findCategory} onChange={setFindCategory} placeholder="Find a category…" aria-label="Find a category" />
 							: null}
 						{categoryValues.total > 20
-							? <Announce>{findCategory ? (categoryValues.matched ? plural(categoryValues.matched, 'category', 'categories') : 'No category by that name.') : ''}</Announce>
+							? <Announce>{findCategory ? (categoryValues.matched ? plural(categoryValues.matched, 'category') : 'No category by that name.') : ''}</Announce>
 							: null}
 						{findCategory && !categoryValues.matched ? <span className="sp-subtitle">No category by that name.</span> : null}
 						{categoriesListed.length

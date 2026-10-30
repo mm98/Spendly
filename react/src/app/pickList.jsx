@@ -3,6 +3,7 @@ import { ComboboxEmpty, ComboboxGroup, ComboboxSeparator } from '../components/C
 import { useApi } from '../api/useApi.js'
 import { getCategoryPage, getRecentCategoryNames, getRecentVendorNames, getSettings, getVendorPage } from '../api/client.js'
 import { amount } from '../api/format.js'
+import { phrase } from '../language/phrases.js'
 
 /** A picker's first page (Rows per page) for the typed text, found by the server: `rows`, how many
     match (`matched`), and how many the untyped list holds (`total`). */
@@ -22,7 +23,7 @@ export function usePickList(kind, find, request) {
 /** What a picker says under its first page when more match: how many, and that typing finds them. */
 export function moreText(rows, matched, noun) {
 	const more = (matched ?? 0) - (rows?.length ?? 0)
-	return more > 0 ? `${amount(more, 0)} more ${noun}. Type part of a name to find one.` : null
+	return more > 0 ? phrase('pick.more', { noun, count: more, shown: amount(more, 0) }) : null
 }
 
 /** That line as the last row of a list of options. */
@@ -46,7 +47,7 @@ export function groupPicks(rows, recent, typed, rest, { byName = false } = {}) {
 		.map(name => rows.find(r => r.name === name) ?? (byName && (!needle || name.toLowerCase().includes(needle)) ? { id: `recent ${name}`, name } : null))
 		.filter(r => r && !r.favourite)
 	const others = rows.filter(r => !r.favourite && !recents.some(x => x.name === r.name))
-	return [['Favourites', favourites], ['Recent', recents], [rest, others]].filter(([, xs]) => xs.length)
+	return [[phrase('pick.favourites'), favourites], [phrase('pick.recent'), recents], [rest, others]].filter(([, xs]) => xs.length)
 }
 
 /** The headings for a picker drawn as rows in a popover rather than as a combobox. */

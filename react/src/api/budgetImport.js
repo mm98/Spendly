@@ -1,11 +1,12 @@
 import { readWorkbook } from './xlsx.js'
+import { phrase } from '../language/phrases.js'
 
 /* The budget workbook's layout: a sheet per year named by the year, months across one row, and left of
    January the account, the row's name and the group heading. A sheet named Accounts lists the accounts. */
 
 const SECTIONS = { income: /^(indtægter|income)$/i, expense: /^(udgifter|expenses|costs)$/i }
 const ACCOUNT_SHEET = /^(accounts?|konti|konto)$/i
-const FALLBACK_GROUP = { income: 'Income', expense: 'Costs' }
+const FALLBACK_GROUP = { income: 'budget.group.income', expense: 'budget.group.costs' }
 
 const round2 = n => Math.round(Number((n * 100).toPrecision(15))) / 100
 const text = cell => (typeof cell?.value === 'string' ? cell.value.trim() : '')
@@ -34,7 +35,7 @@ function readYear(rows) {
 			if (section) { kind = section; group = null } else if (label) groups.push(group = { kind, name: label, lines: [] })
 			continue
 		}
-		if (!group) groups.push(group = { kind, name: FALLBACK_GROUP[kind], lines: [] })
+		if (!group) groups.push(group = { kind, name: phrase(FALLBACK_GROUP[kind]), lines: [] })
 		const months = Array.from({ length: 12 }, (_, m) => {
 			const cell = row[head.column + m]
 			if (!cell) return { expected: null, real: null }

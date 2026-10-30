@@ -15,6 +15,7 @@ import {
 	DATE_LABELS, DATE_SHAPES, FIELDS, NONE, REQUIRED, dateFormatsOf, decimalOf, fieldsFor, unknownCategories
 } from '../api/orderImport.js'
 import { landing } from './SettingsParts.jsx'
+import { phrase } from '../language/phrases.js'
 
 const SHAPES = [
 	{ value: 'line', label: 'one item line' },
@@ -22,7 +23,7 @@ const SHAPES = [
 ]
 // a line's own fields, which a whole order has no place for (11b)
 const ITEM_ONLY = ['quantity', 'price']
-const label = id => FIELDS.find(f => f.id === id)?.label ?? "Don't import"
+const label = id => phrase(FIELDS.find(f => f.id === id)?.label ?? 'import.field.none')
 const sampleOf = (body, i) => {
 	const values = [...new Set(body.map(r => String(r[i] ?? '').trim()).filter(Boolean))].slice(0, 3)
 	return values.length ? values.join(', ') + '…' : 'Empty'
@@ -81,12 +82,12 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 			<ListItem color="warning">
 				<Icon name="alert-circle" />
 				<span className="sp-subtitle sp-ink-warning sp-grow">
-					{facts.dateFormat === 'excel' ? 'Dates are read as Excel dates.' : <>Dates are read as <b className="sp-nowrap">{DATE_SHAPES[facts.dateFormat]}</b>.</>}
+					{phrase('import.datesReadAs', { shape: phrase(DATE_SHAPES[facts.dateFormat]), b: words => <b className="sp-nowrap">{words}</b> })}
 					{facts.dateFormats.length === 1 ? ' Every date in the file matched that shape.' : facts.dateFormats.length > 1 ? ' The dates could be read another way too. Check that this is right.' : ''}
 				</span>
 				<Combobox variant="sort" value="Change" aria-label="How the dates are written">
 					{knownFormats.map(f => (
-						<ComboboxOption key={f} selected={f === facts.dateFormat} onSelect={() => onChange({ dateFormat: f, dateChosen: true })}>{DATE_LABELS[f]}</ComboboxOption>
+						<ComboboxOption key={f} selected={f === facts.dateFormat} onSelect={() => onChange({ dateFormat: f, dateChosen: true })}>{phrase(DATE_LABELS[f])}</ComboboxOption>
 					))}
 				</Combobox>
 			</ListItem>
@@ -136,7 +137,7 @@ export function MapStep({ box, file, rows, mapping, onChange, onReplace, onPrevi
 						: <span className="sp-row-flex sp-gap-8">{label(id)}{fields.find(f => f.id === id)?.optional ? <span className="sp-meta">optional</span> : null}{shape === 'order' && id === 'total' ? <Pill color="success">New</Pill> : null}</span>}>
 					{fields.map(f => (
 						<ComboboxOption key={f.id} selected={f.id === id} onSelect={() => setColumn(i, f.id)}
-							meta={REQUIRED[shape].includes(f.id) ? 'required' : f.optional ? 'optional' : undefined}>{f.label}</ComboboxOption>
+							meta={REQUIRED[shape].includes(f.id) ? phrase('field.required') : f.optional ? phrase('field.optional') : undefined}>{phrase(f.label)}</ComboboxOption>
 					))}
 					<ComboboxOption selected={idle} onSelect={() => setColumn(i, NONE)}>Don't import</ComboboxOption>
 				</Combobox>

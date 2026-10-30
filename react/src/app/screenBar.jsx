@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { IconButton } from '../components/Button.jsx'
+import { phrase } from '../language/phrases.js'
 
 /* On a phone a screen one level down swaps the search field for Back and a title. The shell
    holds the slot and hides the search while a screen fills it, and the tab bar on a task. */
@@ -17,7 +18,7 @@ export function ScreenBar({ onBack, title, meta, end, place = false }) {
 	if (!slot) return null
 	return createPortal(
 		<>
-			<IconButton variant="outline" icon="chevron-left" aria-label="Back" onClick={onBack} />
+			<IconButton variant="outline" icon="chevron-left" aria-label={phrase('action.back')} onClick={onBack} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{title}</span>
 				{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}

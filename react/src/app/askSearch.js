@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { askFilters, failureMessage, getAsk } from '../api/client.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import { useToast } from '../components/Overlays.jsx'
+import { phrase } from '../language/phrases.js'
 
 /* Ask in a list's search (Order list 2b): a sentence sent with Enter comes back as `list`'s filters
    (lib/ask.js FILTER_LISTS), named as the assistant's tools name them. Leaving the page ends the mode. */
@@ -41,7 +42,7 @@ export function useAskSearch(list, onFilters) {
 			.catch(error => {
 				if (control.signal.aborted) return
 				if (error.status === 422) setUnread(true)
-				else if (error.status !== 429) toast({ message: failureMessage(error, 'Spendly could not answer that just now.'), color: 'danger' })
+				else if (error.status !== 429) toast({ message: failureMessage(error, phrase('chat.failed')), color: 'danger' })
 			})
 			.finally(() => { running.current = null; setWorking(false) })
 	}, [text, list, onFilters, toast])

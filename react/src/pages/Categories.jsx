@@ -237,7 +237,7 @@ export default function Categories() {
 	else body = (
 		<List data={shown} total={matched} onLoadMore={() => setPages(pages + 1)} recordKey={c => c.id} noun="categories" pageSize={step}
 			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
-			<Caption><strong className="sp-data">{plural(matched, 'category', 'categories')}</strong></Caption>
+			<Caption><strong className="sp-data">{plural(matched, 'category')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}</ListCell>

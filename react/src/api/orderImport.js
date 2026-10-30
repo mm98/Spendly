@@ -3,6 +3,7 @@
 
 import { readWorkbook } from './xlsx.js'
 import { DATE_FORMATS, dateFormatsFor, guessDecimal, parseCsv, readAmount, readDate, readText } from './bankStatement.js'
+import { phrase } from '../language/phrases.js'
 
 /** The rows of the file's first sheet, as plain text cells; the first row is the column names. */
 export async function readSheet(file) {
@@ -18,16 +19,16 @@ export async function readSheet(file) {
 
 /* What a column can be. `line` fields belong to "one item line" rows, `order` to "a whole order". */
 export const FIELDS = [
-	{ id: 'vendor', label: 'Vendor', line: true, order: true, words: /butik|vendor|shop|store|leverand|forhandler|seller|merchant/ },
-	{ id: 'date', label: 'Order date', line: true, order: true, words: /dato|date|købt|ordered|bestilt/ },
-	{ id: 'title', label: 'Item name', line: true, words: /vare|item|produkt|product|navn|name|beskriv|descr|title|titel/ },
-	{ id: 'quantity', label: 'Quantity', line: true, words: /antal|qty|quantity|stk|amount of|mængde/ },
-	{ id: 'price', label: 'Unit price', line: true, words: /pris|price|stykpris|unit/ },
-	{ id: 'total', label: 'Order total', order: true, words: /beløb|total|sum|i alt|amount|pris|price/ },
-	{ id: 'description', label: 'Description', order: true, optional: true, words: /vare|item|beskriv|descr|text|tekst|note/ },
-	{ id: 'category', label: 'Category', line: true, order: true, words: /kategori|category|gruppe|group|type/ },
-	{ id: 'reference', label: 'Order ref', line: true, order: true, words: /ordre|order|ref|nummer|number|no\.?$|nr\.?$|id$/ },
-	{ id: 'shipping', label: 'Shipping', line: true, order: true, words: /fragt|levering|shipping|delivery|porto/ }
+	{ id: 'vendor', label: 'import.field.vendor', line: true, order: true, words: /butik|vendor|shop|store|leverand|forhandler|seller|merchant/ },
+	{ id: 'date', label: 'import.field.date', line: true, order: true, words: /dato|date|købt|ordered|bestilt/ },
+	{ id: 'title', label: 'import.field.title', line: true, words: /vare|item|produkt|product|navn|name|beskriv|descr|title|titel/ },
+	{ id: 'quantity', label: 'import.field.quantity', line: true, words: /antal|qty|quantity|stk|amount of|mængde/ },
+	{ id: 'price', label: 'import.field.price', line: true, words: /pris|price|stykpris|unit/ },
+	{ id: 'total', label: 'import.field.total', order: true, words: /beløb|total|sum|i alt|amount|pris|price/ },
+	{ id: 'description', label: 'import.field.description', order: true, optional: true, words: /vare|item|beskriv|descr|text|tekst|note/ },
+	{ id: 'category', label: 'import.field.category', line: true, order: true, words: /kategori|category|gruppe|group|type/ },
+	{ id: 'reference', label: 'import.field.reference', line: true, order: true, words: /ordre|order|ref|nummer|number|no\.?$|nr\.?$|id$/ },
+	{ id: 'shipping', label: 'import.field.shipping', line: true, order: true, words: /fragt|levering|shipping|delivery|porto/ }
 ]
 export const NONE = 'none'
 export const REQUIRED = { line: ['vendor', 'date', 'title'], order: ['vendor', 'date', 'total'] }
@@ -67,8 +68,9 @@ export function dateFormatsOf(values) {
 	if (filled.length && filled.filter(isSerial).length * 2 > filled.length) return ['excel']
 	return dateFormatsFor(filled.map(String))
 }
-export const DATE_LABELS = { excel: 'Dates from Excel', ...Object.fromEntries(DATE_FORMATS.map(f => [f.id, f.label])) }
-export const DATE_SHAPES = { ymd: 'YYYY-MM-DD', dmy: 'DD-MM-YYYY', mdy: 'MM-DD-YYYY', excel: 'Excel dates' }
+// phrase keys, as the labels of DATE_FORMATS are
+export const DATE_LABELS = { excel: 'dateOrder.excel', ...Object.fromEntries(DATE_FORMATS.map(f => [f.id, f.label])) }
+export const DATE_SHAPES = { ymd: 'dateShape.ymd', dmy: 'dateShape.dmy', mdy: 'dateShape.mdy', excel: 'dateShape.excel' }
 
 const dateOf = (value, format) => (isSerial(value) ? fromSerial(value) : format === 'excel' ? null : readDate(String(value), format))
 const amountOf = (value, decimal) => (typeof value === 'number' ? Math.round(value * 100) / 100 : readAmount(value, decimal))
@@ -111,33 +113,33 @@ export function buildOrders(body, mapping, { status, kind } = {}) {
 		const vendor = text(cell(row, 'vendor'))
 		const rawDate = cell(row, 'date')
 		const date = rawDate === '' ? null : dateOf(rawDate, mapping.dateFormat)
-		const problem = !vendor ? 'no vendor' : rawDate === '' ? 'no date' : !date ? 'a date that cannot be read' : null
+		const problem = !vendor ? phrase('import.skip.noVendor') : rawDate === '' ? phrase('import.skip.noDate') : !date ? phrase('import.skip.badDate') : null
 		if (problem) return skipped.push({ rows: [line], reason: problem })
 
 		if (mapping.shape === 'order') {
 			const total = amountOf(cell(row, 'total'), mapping.decimal)
-			if (total == null) return skipped.push({ rows: [line], reason: 'no total' })
-			if (total < 0) return skipped.push({ rows: [line], reason: 'a total below zero' })
+			if (total == null) return skipped.push({ rows: [line], reason: phrase('import.skip.noTotal') })
+			if (total < 0) return skipped.push({ rows: [line], reason: phrase('import.skip.negativeTotal') })
 			const shipping = amountOf(cell(row, 'shipping'), mapping.decimal) ?? 0
 			orders.push({
 				rows: [line],
 				draft: {
 					vendor, date, kind, status, reference: text(cell(row, 'reference')), shipping: Math.max(0, shipping),
 					categories: categoryOf(row),
-					items: [{ title: text(cell(row, 'description')).slice(0, 120) || 'Imported order', quantity: 1, price: Math.max(0, total - Math.max(0, shipping)) }]
+					items: [{ title: text(cell(row, 'description')).slice(0, 120) || phrase('import.importedOrder'), quantity: 1, price: Math.max(0, total - Math.max(0, shipping)) }]
 				}
 			})
 			return
 		}
 
 		const title = text(cell(row, 'title'))
-		if (!title) return skipped.push({ rows: [line], reason: 'no item name' })
+		if (!title) return skipped.push({ rows: [line], reason: phrase('import.skip.noTitle') })
 		const price = amountOf(cell(row, 'price'), mapping.decimal)
-		if (price == null) return skipped.push({ rows: [line], reason: 'no price' })
-		if (price < 0) return skipped.push({ rows: [line], reason: 'a price below zero' })
+		if (price == null) return skipped.push({ rows: [line], reason: phrase('import.skip.noPrice') })
+		if (price < 0) return skipped.push({ rows: [line], reason: phrase('import.skip.negativePrice') })
 		const quantityRaw = amountOf(cell(row, 'quantity'), mapping.decimal)
 		const quantity = quantityRaw == null ? 1 : quantityRaw
-		if (!(quantity > 0)) return skipped.push({ rows: [line], reason: 'a quantity that is not above zero' })
+		if (!(quantity > 0)) return skipped.push({ rows: [line], reason: phrase('import.skip.badQuantity') })
 		const reference = text(cell(row, 'reference'))
 		const key = mapping.group === 'reference' && reference ? `ref ${vendor.toLowerCase()} ${reference}` : `day ${vendor.toLowerCase()} ${date}`
 		let order = groups.get(key)
@@ -162,7 +164,7 @@ const csvCell = v => (/[";\n\r]/.test(String(v)) ? `"${String(v).replace(/"/g, '
 export function skippedCsv(header, body, skipped) {
 	const why = new Map()
 	for (const s of skipped) for (const line of s.rows) why.set(line, s.reason)
-	const lines = [[...header, 'Why it was skipped']]
+	const lines = [[...header, phrase('import.whySkipped')]]
 	body.forEach((row, i) => { if (why.has(i + 2)) lines.push([...row, why.get(i + 2)]) })
 	return '﻿' + lines.map(r => r.map(csvCell).join(';')).join('\r\n') + '\r\n'
 }
@@ -211,16 +213,17 @@ function zipStored(files) {
 }
 
 const escapeXml = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-const TEMPLATE_ROWS = [
-	['Order ref', 'Vendor', 'Order date', 'Item name', 'Quantity', 'Unit price', 'Category', 'Shipping'],
-	['1001', 'Example shop', '2026-08-12', 'Vase, large', 1, 349.5, 'Decor', 39],
-	['1001', 'Example shop', '2026-08-12', 'Candle', 2, 59, 'Decor', '']
+// the language in use names the columns, in words guessMapping knows in either language
+const templateRows = () => [
+	['reference', 'vendor', 'date', 'title', 'quantity', 'price', 'category', 'shipping'].map(id => phrase(`import.field.${id}`)),
+	['1001', phrase('import.example.shop'), '2026-08-12', phrase('import.example.vase'), 1, 349.5, phrase('import.example.decor'), 39],
+	['1001', phrase('import.example.shop'), '2026-08-12', phrase('import.example.candle'), 2, 59, phrase('import.example.decor'), '']
 ]
 
 /** Spendly_import_template.xlsx: the columns named as the mapping guesses them, and one example order. */
 export function templateWorkbook() {
 	const letter = i => String.fromCharCode(65 + i)
-	const rows = TEMPLATE_ROWS.map((row, r) => `<row r="${r + 1}">${row.map((v, c) => (v === '' ? ''
+	const rows = templateRows().map((row, r) => `<row r="${r + 1}">${row.map((v, c) => (v === '' ? ''
 		: typeof v === 'number' ? `<c r="${letter(c)}${r + 1}"><v>${v}</v></c>`
 		: `<c r="${letter(c)}${r + 1}" t="inlineStr"><is><t>${escapeXml(v)}</t></is></c>`)).join('')}</row>`).join('')
 	const main = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'

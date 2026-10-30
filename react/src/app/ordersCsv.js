@@ -1,10 +1,12 @@
 import { getOrderLines, getOrders } from '../api/client.js'
 import { quantity, today } from '../api/format.js'
+import { phrase } from '../language/phrases.js'
 
 /* One row per item line, the order's fields repeated on each: the columns an import reads back (16b).
    Semicolons and a decimal comma, as a Danish spreadsheet reads them; the mark at the start says UTF-8. */
-const HEAD = ['Date', 'Vendor', 'Status', 'Kind', 'Reference', 'Categories', 'Note', 'Shipping', 'Discount', 'Order total',
-	'Item', 'Quantity', 'Price', 'Retail price', 'Item note']
+// named in the language in use, in words the import's guess knows in either language
+const HEAD = ['export.column.date', 'export.column.vendor', 'export.column.status', 'export.column.kind', 'export.column.reference', 'export.column.categories', 'export.column.note', 'export.column.shipping', 'export.column.discount', 'export.column.orderTotal',
+	'export.column.item', 'export.column.quantity', 'export.column.price', 'export.column.retailPrice', 'export.column.itemNote']
 
 const cell = v => {
 	const s = String(v ?? '')
@@ -17,7 +19,7 @@ export function linesCsv(lines, statusName) {
 		l.date, l.vendor, statusName(l.status), l.kind, l.reference, l.categories, l.note, money(l.shipping), money(l.discount), money(l.total),
 		l.title, l.quantity == null ? '' : quantity(l.quantity), money(l.price), money(l.retail), l.itemNote
 	])
-	return '﻿' + [HEAD, ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
+	return '﻿' + [HEAD.map(key => phrase(key)), ...rows].map(r => r.map(cell).join(';')).join('\r\n') + '\r\n'
 }
 
 /** Hands the reader the file to keep. */

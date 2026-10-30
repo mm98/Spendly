@@ -5,6 +5,7 @@ import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate, peek } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
 import { noteServerBuild, writeSettled, writeStarted } from './build.js'
+import { phrase } from '../language/phrases.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -46,15 +47,13 @@ const THINGS = [
 	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
 	[/^\/api\/categories\/[^/?]+/, 'category'],
 	[/^\/api\/bookmarks\/(?!preview|categories)[^/?]+/, 'bookmark'],
-	[/^\/api\/budget\/lines\//, 'budget row'],
-	[/^\/api\/budget\/groups\//, 'budget group'],
+	[/^\/api\/budget\/lines\//, 'budgetRow'],
+	[/^\/api\/budget\/groups\//, 'budgetGroup'],
 	[/^\/api\/budget\/accounts\//, 'account']
 ]
 
 /** What a record that is gone says: a save names the loss, never the record's id. */
-const goneMessage = (thing, method) => (method === 'GET' ? `This ${thing} does not exist. It may have been deleted.`
-	: method === 'DELETE' ? `This ${thing} was already deleted in another window.`
-	: `This ${thing} was deleted in another window. Your changes cannot be saved.`)
+const goneMessage = (thing, method) => phrase(method === 'GET' ? 'gone.missing' : method === 'DELETE' ? 'gone.deleted' : 'gone.lost', { thing })
 
 const qs = params => {
 	const usp = new URLSearchParams()

@@ -1,3 +1,4 @@
+import { phrase } from '../language/phrases.js'
 // A bank's CSV export, read in the browser and checked against the budget; the file is never stored.
 
 // A byte that is not valid UTF-8 means the older Windows encoding many banks still export in.
@@ -48,9 +49,9 @@ export function parseCsv(text) {
 /* ---- dates ---- */
 
 export const DATE_FORMATS = [
-	{ id: 'ymd', label: 'Year first: 2026-09-30', re: /^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$/, order: [1, 2, 3] },
-	{ id: 'dmy', label: 'Day first: 30-09-2026', re: /^(\d{1,2})[-./](\d{1,2})[-./](\d{2}|\d{4})$/, order: [3, 2, 1] },
-	{ id: 'mdy', label: 'Month first: 09/30/2026', re: /^(\d{1,2})[-./](\d{1,2})[-./](\d{2}|\d{4})$/, order: [3, 1, 2] }
+	{ id: 'ymd', label: 'dateOrder.ymd', re: /^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$/, order: [1, 2, 3] },
+	{ id: 'dmy', label: 'dateOrder.dmy', re: /^(\d{1,2})[-./](\d{1,2})[-./](\d{2}|\d{4})$/, order: [3, 2, 1] },
+	{ id: 'mdy', label: 'dateOrder.mdy', re: /^(\d{1,2})[-./](\d{1,2})[-./](\d{2}|\d{4})$/, order: [3, 1, 2] }
 ]
 
 /** "2026-09-30" from the cell, or null when the cell is not a real date in that format. */
@@ -165,10 +166,10 @@ const moneyScore = values => values.filter(v => /\d[.,]\d{2}(?!\d)/.test(v)).len
 /* What a column that names an account, a person or a payment holds, said in words instead of its
    values (21h): by its name in the header first, else by the shape of every filled cell. */
 const DESCRIBED = [
-	{ said: 'An account number', name: /konto|account|iban|reg\.?nr|regnr/, value: v => /^[A-Z]{2}\d{2}[\dA-Z ]{10,}$/.test(v) || /^\d{4}[- ]\d{6,10}$/.test(v) },
-	{ said: 'A MobilePay number', name: /mobilepay/ },
-	{ said: 'A name', name: /navn|name|modtager|afsender|payee|payer/ },
-	{ said: 'A reference number', name: /reference|^ref|kvittering|transaktions?id|^id$/, value: v => /^\d{8,}$/.test(v) || /\d-\d/.test(v) }
+	{ said: 'column.account', name: /konto|account|iban|reg\.?nr|regnr/, value: v => /^[A-Z]{2}\d{2}[\dA-Z ]{10,}$/.test(v) || /^\d{4}[- ]\d{6,10}$/.test(v) },
+	{ said: 'column.mobilePay', name: /mobilepay/ },
+	{ said: 'column.name', name: /navn|name|modtager|afsender|payee|payer/ },
+	{ said: 'column.reference', name: /reference|^ref|kvittering|transaktions?id|^id$/, value: v => /^\d{8,}$/.test(v) || /\d-\d/.test(v) }
 ]
 
 /** How the column table shows a column it does not read: a description instead of values that identify
@@ -179,7 +180,7 @@ export function describeColumn(cells, name = '') {
 	const named = String(name).toLocaleLowerCase('da')
 	const found = DESCRIBED.find(d => (named && d.name.test(named)) || (d.value && filled.every(d.value)))
 	if (!found) return null
-	return filled.length < cells.length ? `${found.said}, or empty` : found.said
+	return phrase(filled.length < cells.length ? 'column.orEmpty' : 'column.full', { said: phrase(found.said) })
 }
 
 // A first row is names, not a payment, when none of its cells reads as a date.

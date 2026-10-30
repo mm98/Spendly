@@ -11,6 +11,7 @@ import { setTheme, useTheme } from './theme.js'
 import { forgetRecent, noteRecent, readRecent } from './recent.js'
 import { useScanPicker } from './scanPicker.jsx'
 import { vendorName } from './orderRow.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 export { forgetRecent }
 
@@ -41,7 +42,7 @@ const orderRow = (o, touch) => ({
 })
 const vendorRow = v => ({
 	key: 'recent-vendor-' + v.id, icon: 'building-store', name: v.name, open: true, read: [getVendor, [v.id]],
-	meta: 'vendor' + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
+	meta: phrase('palette.vendor') + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
 })
 
 const rowsOf = (list, answers, touch) => list.flatMap((r, i) => (answers[i] == null ? []
@@ -105,7 +106,7 @@ function shape(needle, list, hits, vendors, touch) {
 		})
 		.map(i => ({
 			key: 'item-' + i.id, thumb: true, plain: true, name: i.title, to: `/orders/${o.id}`,
-			meta: 'in ' + [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot)
+			meta: phrase('palette.in', { place: [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot) })
 		})))
 	return {
 		needle,
@@ -119,12 +120,12 @@ function shape(needle, list, hits, vendors, touch) {
 			const s = stats.get(v.id)
 			const facts = s ? [plural(s.orders, 'order'), touch ? null : currency(s.spend, 0)].filter(Boolean) : []
 			// the alias leads: it is why a name without the typed text is here at all (9d)
-			const matched = v.alias ? 'matched ' + v.alias : null
+			const matched = v.alias ? phrase('palette.matched', { alias: v.alias }) : null
 			return {
 				key: 'vendor-' + v.id, icon: 'building-store', name: v.name, to: `/vendors/${v.id}/edit`,
 				// a vendor that looks like another one says so in place of its figures (9b)
 				meta: s?.duplicateOf
-					? <>{matched ? matched + dot : null}<span className="sp-field__help" data-color="warning">possible duplicate</span></>
+					? <>{matched ? matched + dot : null}<span className="sp-field__help" data-color="warning">{phrase('palette.duplicate')}</span></>
 					: [matched, ...facts].filter(Boolean).join(dot)
 			}
 		}),
@@ -135,11 +136,11 @@ function shape(needle, list, hits, vendors, touch) {
 		// what can be done for the one vendor the text names (9b, 4b)
 		vendorActions: (hits.vendors.length === 1 ? hits.vendors : []).flatMap(v => [
 			{
-				key: 'vendor-new-' + v.id, icon: 'plus', plain: true, name: <>New order for <b>{v.name}</b></>,
+				key: 'vendor-new-' + v.id, icon: 'plus', plain: true, name: phrase('palette.newOrderFor', { name: v.name, b: words => <b>{words}</b> }),
 				to: '/orders/new?vendor=' + encodeURIComponent(v.name)
 			},
 			{
-				key: 'vendor-stats-' + v.id, icon: 'chart-bar', plain: true, name: <>See <b>{v.name}</b> in Statistics</>,
+				key: 'vendor-stats-' + v.id, icon: 'chart-bar', plain: true, name: phrase('palette.seeInStatistics', { name: v.name, b: words => <b>{words}</b> }),
 				to: '/statistics?crumbs=vendor:' + encodeURIComponent(v.id)
 			}
 		])
@@ -173,35 +174,35 @@ function useSearch(needle, touch) {
 /* ---- actions: only what the app does today, nothing destructive, nothing about the page behind ---- */
 
 const GO = [
-	['Home', 'home', '/'],
-	['Orders', 'receipt', '/orders'],
-	['Budget', 'wallet', '/budget'],
-	['Vendors', 'building-store', '/vendors'],
-	['Categories', 'category', '/categories'],
-	['Bookmarks', 'heart', '/bookmarks'],
-	['Statistics', 'chart-bar', '/statistics'],
-	['Ask', 'message-circle', '/ask'],
-	['Settings', 'settings', '/settings']
+	['page.home', 'home', '/'],
+	['page.orders', 'receipt', '/orders'],
+	['page.budget', 'wallet', '/budget'],
+	['page.vendors', 'building-store', '/vendors'],
+	['page.categories', 'category', '/categories'],
+	['page.bookmarks', 'heart', '/bookmarks'],
+	['page.statistics', 'chart-bar', '/statistics'],
+	['page.ask', 'message-circle', '/ask'],
+	['page.settings', 'settings', '/settings']
 ]
 
 // `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
 const actionsFor = (theme, onShortcuts, overLimit, drafts, scan, asks) => [
 	scan
-		? { key: 'scan', icon: 'camera', name: 'Scan a receipt', kbd: 'S', run: scan, first: true, action: true }
-		: { key: 'scan', icon: 'camera', name: 'Scan a receipt', meta: 'Available once your email is confirmed', off: true, first: true, action: true },
-	{ key: 'new', icon: 'plus', name: 'New order', kbd: 'N', to: '/orders/new', first: true, action: true },
-	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
+		? { key: 'scan', icon: 'camera', name: phrase('keys.scan'), kbd: 'S', run: scan, first: true, action: true }
+		: { key: 'scan', icon: 'camera', name: phrase('keys.scan'), meta: phrase('shell.scanHeld'), off: true, first: true, action: true },
+	{ key: 'new', icon: 'plus', name: phrase('page.newOrder'), kbd: 'N', to: '/orders/new', first: true, action: true },
+	{ key: 'import', icon: 'upload', name: phrase('palette.import'), to: '/settings/import' },
 	// Ask only while the server has it set up (9d)
-	...GO.filter(([, , to]) => asks || to !== '/ask').map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
-	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
-	{ key: 'add-category', icon: 'category', name: 'Add a category', to: '/categories/new' },
+	...GO.filter(([, , to]) => asks || to !== '/ask').map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: phrase('keys.goTo', { name: phrase(name) }), to })),
+	{ key: 'add-vendor', icon: 'building-store', name: phrase('palette.addVendor'), to: '/vendors/new' },
+	{ key: 'add-category', icon: 'category', name: phrase('palette.addCategory'), to: '/categories/new' },
 	theme === 'dark'
-		? { key: 'theme', icon: 'sun', name: 'Switch to light mode', run: () => setTheme('light'), first: true }
-		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true },
+		? { key: 'theme', icon: 'sun', name: phrase('palette.light'), run: () => setTheme('light'), first: true }
+		: { key: 'theme', icon: 'moon', name: phrase('palette.dark'), run: () => setTheme('dark'), first: true },
 	// filters rather than pages, offered only while a category is over its limit or a draft exists (9d)
-	...(overLimit ? [{ key: 'over-limit', icon: 'alert-triangle', name: 'Orders over limit this month', to: overLimit }] : []),
-	...(drafts ? [{ key: 'drafts', icon: 'file-text', name: 'Drafts', to: '/orders?status=Draft' }] : []),
-	...(onShortcuts ? [{ key: 'keys', icon: 'keyboard', name: 'Keyboard shortcuts', kbd: '?', run: onShortcuts }] : [])
+	...(overLimit ? [{ key: 'over-limit', icon: 'alert-triangle', name: phrase('palette.overLimit'), to: overLimit }] : []),
+	...(drafts ? [{ key: 'drafts', icon: 'file-text', name: phrase('palette.drafts'), to: '/orders?status=Draft' }] : []),
+	...(onShortcuts ? [{ key: 'keys', icon: 'keyboard', name: phrase('keys.title'), kbd: '?', run: onShortcuts }] : [])
 ].map(a => ({ ...a, plain: true }))
 
 /* The month's orders in every category over its limit, as Home's notice opens them. */
@@ -226,47 +227,47 @@ function groupsFor(text, found, recent, actions) {
 	if (!needle) {
 		if (recent === null) return []
 		return [
-			...(recent.length ? [{ key: 'recent', label: 'Jump back in', entries: recent }] : []),
-			{ key: 'actions', label: 'Actions', entries: defaults }
+			...(recent.length ? [{ key: 'recent', label: phrase('palette.recent'), entries: recent }] : []),
+			{ key: 'actions', label: phrase('list.actions'), entries: defaults }
 		]
 	}
 
 	const named = actions.filter(a => (' ' + a.name.toLowerCase()).includes(' ' + lower)).slice(0, SHOWN)
 		.map(a => ({ ...a, match: needle }))
 	const offered = [...(found?.vendorActions ?? []), ...named]
-	const actionGroup = offered.length ? [{ key: 'actions', label: 'Actions', entries: offered }] : []
+	const actionGroup = offered.length ? [{ key: 'actions', label: phrase('list.actions'), entries: offered }] : []
 	// until the first answer arrives the list keeps what it held, so it never blanks (9d)
 	if (!found) return named.length ? actionGroup : groupsFor('', null, recent, actions)
 
 	const all = to => ({ key: 'all-' + to, all: true, to })
 	// every group ends in something to act on, never a heading alone (c24)
 	if (found.failed) return [
-		{ key: 'failed', label: 'Could not search right now. Try again.', entries: [{ ...all(ordersTo(needle)), name: 'Search all orders' }] },
-		...(named.length ? actionGroup : [{ key: 'actions', label: 'Actions', entries: defaults }])
+		{ key: 'failed', label: phrase('palette.failed'), entries: [{ ...all(ordersTo(needle)), name: phrase('palette.searchAll') }] },
+		...(named.length ? actionGroup : [{ key: 'actions', label: phrase('list.actions'), entries: defaults }])
 	]
 
 	const records = [
 		found.orders.length && {
-			key: 'orders', label: countLabel('Orders', found.ordersCount),
+			key: 'orders', label: countLabel(phrase('page.orders'), found.ordersCount),
 			entries: [...found.orders, ...(found.ordersCount > SHOWN
-				? [{ ...all(ordersTo(found.needle)), name: `See all ${found.ordersCount} in Orders` }] : [])]
+				? [{ ...all(ordersTo(found.needle)), name: phrase('palette.allOrders', { count: amount(found.ordersCount, 0) }) }] : [])]
 		},
 		found.vendors.length && {
-			key: 'vendors', label: countLabel('Vendors', found.vendorsCount),
+			key: 'vendors', label: countLabel(phrase('page.vendors'), found.vendorsCount),
 			// the vendor list searches on a desktop only; a phone's has no search field
 			entries: [...found.vendors, ...(found.vendorsCount > SHOWN && !found.touch
-				? [{ ...all('/vendors?q=' + encodeURIComponent(found.needle)), name: `See all ${found.vendorsCount} in Vendors` }] : [])]
+				? [{ ...all('/vendors?q=' + encodeURIComponent(found.needle)), name: phrase('palette.allVendors', { count: amount(found.vendorsCount, 0) }) }] : [])]
 		},
 		found.items.length && {
-			key: 'items', label: countLabel('Items', found.itemsCount),
+			key: 'items', label: countLabel(phrase('palette.items'), found.itemsCount),
 			// no page lists items on their own: the orders list finds the orders that hold them
 			entries: [...found.items, ...(found.itemsCount > SHOWN
-				? [{ ...all(ordersTo(found.needle)), key: 'all-items', name: `See the orders with these ${found.itemsCount} items` }] : [])]
+				? [{ ...all(ordersTo(found.needle)), key: 'all-items', name: phrase('palette.allItems', { count: amount(found.itemsCount, 0) }) }] : [])]
 		}
 	].filter(Boolean).map(g => ({ ...g, entries: g.entries.map(e => ({ ...e, match: found.needle })) }))
 
 	if (!records.length && !offered.length) return [
-		{ key: 'none', label: `No matches for ${found.needle}`, entries: [{ ...all(ordersTo(found.needle)), name: 'Search all orders' }] }
+		{ key: 'none', label: phrase('palette.none', { text: found.needle }), entries: [{ ...all(ordersTo(found.needle)), name: phrase('palette.searchAll') }] }
 	]
 	// actions come first only when the text is the start of a command's name
 	return named.some(a => a.name.toLowerCase().startsWith(lower)) ? [...actionGroup, ...records] : [...records, ...actionGroup]
@@ -283,6 +284,7 @@ function resultCount(found) {
 /** The command palette (9d, c24): over the page on a desktop, the whole screen on a phone (7b),
     where a result replaces the search's step in the history. `onClose` closes it without acting. */
 export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const theme = useTheme()
 	const [text, setText] = useState(query)
@@ -375,7 +377,7 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 				if (e.all) return <PaletteAll key={e.key} {...events}>{e.name}</PaletteAll>
 				return (
 					<PaletteRow key={e.key} icon={e.icon} thumb={e.thumb} plain={e.plain} action={e.action} match={e.match} meta={e.meta}
-						value={e.value} note={e.open && at === index ? 'Open' : undefined} kbd={e.kbd} disabled={e.off} aria-disabled={e.off ? 'true' : undefined} {...events}>
+						value={e.value} note={e.open && at === index ? phrase('action.open') : undefined} kbd={e.kbd} disabled={e.off} aria-disabled={e.off ? 'true' : undefined} {...events}>
 						{e.name}
 					</PaletteRow>
 				)
@@ -393,10 +395,10 @@ export function Palette({ query = '', touch = false, onShortcuts, onClose }) {
 			count={needle ? resultCount(found) : null}
 			activeId={flat.length ? idOf(index) : undefined}
 			inputRef={input}
-			placeholder={touch ? 'Search' : 'Search orders, vendors, items - or type a command'}
-			label="Search or run a command"
-			foot={['↑↓ move', '↵ open', `${MAC ? '⌘↵' : 'Ctrl ↵'} new tab`, 'esc close']}
-			aria-label="Search everything"
+			placeholder={phrase(touch ? 'shell.search' : 'palette.placeholder')}
+			label={phrase('palette.label')}
+			foot={[phrase('palette.footMove'), phrase('palette.footOpen'), phrase('palette.footNewTab', { keys: MAC ? '⌘↵' : 'Ctrl ↵' }), phrase('palette.footClose')]}
+			aria-label={phrase('palette.everything')}
 			onKeyDown={keys}
 		>
 			{body}

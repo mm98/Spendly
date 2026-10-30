@@ -94,7 +94,7 @@ export function DemoCard() {
 				<ListItem color="success">
 					<Icon name="check" />
 					<span className="sp-subtitle sp-ink-accent">
-						{orders(made.orders)} created across {plural(made.vendors, 'vendor')} and {plural(made.categories, 'category', 'categories')}.
+						{orders(made.orders)} created across {plural(made.vendors, 'vendor')} and {plural(made.categories, 'category')}.
 					</span>
 				</ListItem>
 			</Card>

@@ -8,23 +8,24 @@ import { useApi } from '../api/useApi.js'
 import { currency, morePhotos, plural, today } from '../api/format.js'
 import { Saving } from './saving.jsx'
 import { TONES, useStatuses, useStatusTypes } from './statuses.js'
+import { phrase } from '../language/phrases.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, the vendor's
     image faded, or the empty photo mark of c2. Hidden from a screen reader: the vendor names it. */
 export function OrderPhoto({ order }) {
 	// the vendor's image stands in as the photo, faded, and counts as no photo (17e)
 	if (!order.photo && order.vendorImage) return (
-		<Mark size="medium" fill="photo" goods faded aria-label={`Image of ${order.vendor?.name ?? 'the vendor'}`} aria-hidden="true">
+		<Mark size="medium" fill="photo" goods faded aria-label={order.vendor?.name ? phrase('orderRow.imageOf', { name: order.vendor.name }) : phrase('orderRow.vendorImage')} aria-hidden="true">
 			<img src={vendorImageUrl(order.vendorImage.vendorId, order.vendorImage.hash, 'square-256')} alt="" />
 		</Mark>
 	)
-	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true"><Icon name="photo" size={16} /></Mark>
+	if (!order.photo) return <Mark size="medium" fill="empty" aria-label={phrase('orderRow.noPhoto')} aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	const more = order.photoCount > 1 ? morePhotos(order.photoCount - 1) : null
 	// a draft's photo is one sent to it, or one a copy carried from its order
 	const { key, orderId = order.id, itemId, attachmentId } = order.photo
 	const src = key ? scanThumbnailUrl(key) : itemAttachmentThumbnailUrl(orderId, itemId, attachmentId)
 	return (
-		<Mark size="medium" fill="photo" goods count={more} aria-label={`Photo from ${order.vendor?.name ?? 'this order'}`} aria-hidden="true">
+		<Mark size="medium" fill="photo" goods count={more} aria-label={order.vendor?.name ? phrase('orderRow.photoFrom', { name: order.vendor.name }) : phrase('orderRow.photo')} aria-hidden="true">
 			<img src={src} alt="" />
 		</Mark>
 	)
@@ -40,7 +41,7 @@ export function OrderFiles({ count }) {
 /** The note mark beside the paperclip: only when the order has a note, which it shows on hover. */
 export function OrderNote({ note }) {
 	if (!note) return null
-	return <Mark size="small" role="img" aria-label={`Note: ${note}`} title={note}><Icon name="note" size={12} /></Mark>
+	return <Mark size="small" role="img" aria-label={phrase('orderRow.note', { note })} title={note}><Icon name="note" size={12} /></Mark>
 }
 
 /* A cancelled order did not happen, so its amount is struck and says it is not counted, where a
@@ -50,12 +51,12 @@ export function OrderAmount({ order }) {
 	// a draft whose lines have no prices yet has no total, and its cell stays empty (10a)
 	if (order.total == null) return null
 	if (typeOf(order.status) === 'cancelled')
-		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">not counted</span></>
+		return <><span className="sp-amount sp-void">{currency(order.total)}</span><span className="sp-amount-secondary">{phrase('orderRow.notCounted')}</span></>
 	return <><span className="sp-amount">{currency(order.total)}</span><Saving value={order.saved} /></>
 }
 
 /** What a row is called: its vendor, or for a draft its file, or "New order" while it has neither (10a). */
-export const vendorName = order => order.vendor?.name || order.draft?.file?.name || (order.draft ? 'New order' : 'No vendor')
+export const vendorName = order => order.vendor?.name || order.draft?.file?.name || phrase(order.draft ? 'page.newOrder' : 'orderRow.noVendor')
 
 /** The line under an order's vendor: how many items it has. */
 export const orderLine = order => plural(order.itemCount, 'item')
@@ -100,14 +101,14 @@ export function useOverLimitIds(date) {
 
 /** The mark a category over its limit carries wherever it is named (8b, c19). */
 export function OverLimitDot() {
-	return <span className="sp-combobox__dot" data-dot="problem" role="img" aria-label="over its limit this month" title="Over its limit this month" />
+	return <span className="sp-combobox__dot" data-dot="problem" role="img" aria-label={phrase('orderRow.overLimit')} title={phrase('orderRow.overLimitTitle')} />
 }
 
 /* Two categories fit a row; past two the first stands for the rest, its count carrying their mark (2b,
    8b). One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
 export function CategoryChips({ categories, date }) {
 	const over = useOverLimitIds(date)
-	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
+	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">{phrase('orderRow.noCategory')}</Chip></div>
 	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
 	const rest = categories.slice(shown.length)
 	return (

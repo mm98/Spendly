@@ -18,8 +18,8 @@ const src = join(root, 'src')
 const folder = join(src, 'language')
 // the folders whose every word comes from the language files; a folder joins once its words have moved
 const TEXT_FREE = ['components']
-// a name, not a word to translate
-const NAMES = new Set(['Spendly'])
+// a name, a symbol, or words the server sends and the code compares: not words to translate
+const NAMES = new Set(['Spendly', 'kr.', 'No change you can see.'])
 const findings = []
 const fail = (where, detail) => findings.push(`${where}: ${detail}`)
 
@@ -57,15 +57,24 @@ for (const [p, text] of code) {
 		named.add(key)
 		if (!(key in english)) fail(relative(root, p), `phrase('${key}') is not in en.json`)
 	}
+	for (const [, noun] of text.matchAll(/plural\([^()]*?, '([a-z ]+)'\)/g)) {
+		const key = 'count.' + noun.replace(/ (\w)/g, (_, c) => c.toUpperCase())
+		if (!(key in english)) fail(relative(root, p), `plural(…, '${noun}') has no ${key} in en.json`)
+	}
 }
 // a key the code holds in a list, rather than passing straight to phrase(), is named as a string
 const all = code.map(([, text]) => text).join('\n')
-for (const key of Object.keys(english)) if (!named.has(key) && !all.includes(`'${key}'`)) fail('en.json', `${key} is not used anywhere`)
+// plural(n, 'item line') names count.itemLine
+const nounOf = key => `'${key.slice('count.'.length).replace(/[A-Z]/g, c => ' ' + c.toLowerCase())}'`
+for (const key of Object.keys(english)) {
+	if (named.has(key) || all.includes(`'${key}'`) || (key.startsWith('count.') && all.includes(nounOf(key)))) continue
+	fail('en.json', `${key} is not used anywhere`)
+}
 
 // what a reader would read: a word of two letters or more, never a name from NAMES
 const words = text => /[A-Za-z]{2,}/.test(text) && !NAMES.has(text.trim())
 // two words or more starting with a capital, or words ending a sentence
-const sentence = text => /^[A-Z][a-z']*[ ,][A-Za-z]/.test(text) || /[a-z]{2}[.…?!]$/.test(text)
+const sentence = text => !NAMES.has(text) && (/^[A-Z][a-z']*[ ,][A-Za-z]/.test(text) || /^[A-Za-z][^/]* [^/]*[a-z]{2}[.…?!]$/.test(text))
 const ATTRIBUTES = /^(aria-label|title|placeholder|alt|data-tip|label)$/
 const visit = (node, at) => {
 	if (!node || typeof node !== 'object') return
@@ -90,11 +99,12 @@ const visit = (node, at) => {
 	if (node.type === 'AssignmentPattern' && node.right?.type === 'Literal' && typeof node.right.value === 'string' && /^[A-Z][a-z]/.test(node.right.value) && words(node.right.value)) at(node, node.right.value)
 	// a sentence anywhere else: a message kept in a constant, a toast, a fallback
 	else if (node.type === 'Literal' && typeof node.value === 'string' && sentence(node.value)) at(node, node.value)
-	else if (node.type === 'TemplateLiteral' && node.quasis.some(q => sentence(q.value.cooked))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
+	else if (node.type === 'TemplateLiteral' && sentence(node.quasis.map(q => q.value.cooked).join('x'))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
 	if (node.type === 'JSXAttribute' || node.type === 'TemplateLiteral') return
 	// a message for a developer, in the console or in an error the code throws
 	if (node.type === 'CallExpression' && node.callee?.object?.name === 'console') return
-	if ((node.type === 'NewExpression' || node.type === 'CallExpression') && /Error$/.test(node.callee?.name ?? '')) return
+	if ((node.type === 'NewExpression' || node.type === 'CallExpression') && /(Error|Exception)$/.test(node.callee?.name ?? '')) return
+	if (node.type === 'CallExpression' && node.callee?.type === 'Super') return
 	for (const k in node) {
 		// where a module comes from, and the name of a key, are code
 		if (k === 'type' || k === 'source' || (k === 'key' && node.type === 'Property' && !node.computed)) continue

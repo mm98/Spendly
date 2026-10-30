@@ -1,6 +1,8 @@
 /* Numbers follow the reader's chosen locale, as dates do: "24.418,57 kr." in Danish, "24,418.57 kr."
    in English. Ore where a figure can be checked against a receipt, whole kroner in a summary. */
 
+import { phrase } from '../language/phrases.js'
+
 const browserLocale = () => new Intl.NumberFormat().resolvedOptions().locale
 
 /** The locale every figure is written in, for a library control that formats or reads numbers itself. */
@@ -209,18 +211,17 @@ export const isToday = seconds => localDayOf(seconds) === today()
     once it is not this one (Ask 24a). */
 export const dayWords = seconds => {
 	const day = localDayOf(seconds)
-	if (day === today()) return 'Today'
+	if (day === today()) return phrase('calendar.today')
 	const before = new Date()
 	before.setDate(before.getDate() - 1)
-	if (day === localDayOf(before.getTime() / 1000)) return 'Yesterday'
+	if (day === localDayOf(before.getTime() / 1000)) return phrase('calendar.yesterday')
 	return dayShortMonth(day)
 }
 
 /** When a message was sent: "14:32" today, and its day in front before today ("Yesterday 20:40", "12 Oct 20:40"). */
 export const messageTime = seconds => {
 	const clock = clockFormat().format(new Date(seconds * 1000))
-	const day = dayWords(seconds)
-	return day === 'Today' ? clock : `${day} ${clock}`
+	return isToday(seconds) ? clock : `${dayWords(seconds)} ${clock}`
 }
 
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */
@@ -258,5 +259,6 @@ export const sep = ' • '
 /** The separator between facts on one line of the interface: "3 items · 1.240,00 kr.". */
 export const dot = ' · '
 
-/** "1 item", "3 items", "1.500 orders": singular below 2, thousands grouped as every figure is. */
-export const plural = (n, noun, pluralNoun = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : pluralNoun}`
+/** "1 item", "3 items", "1.500 orders" in the language in use, thousands grouped as every figure is.
+    `noun` names its phrase under count.*: 'order', 'item line'. */
+export const plural = (n, noun) => phrase(`count.${noun.replace(/ (\w)/g, (_, c) => c.toUpperCase())}`, { count: n, shown: amount(n, 0) })

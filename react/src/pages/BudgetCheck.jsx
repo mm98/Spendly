@@ -22,6 +22,7 @@ import {
 	DATE_FORMATS, checkPayments, dateFormatsFor, describeColumn, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
 	realAmounts
 } from '../api/bankStatement.js'
+import { phrase } from '../language/phrases.js'
 
 /* A bank's CSV export checked against the budget (21g, 21h). The file is read here and never
    sent; only the choices made about its payments are saved. */
@@ -237,8 +238,8 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 						onPick={id => set(i, id)} />
 					{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
 						<Field label="Every date can be read two ways. Which is right?">
-							<PickOnly value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
-								options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label, selected: f.id === dateFormat }))}
+							<PickOnly value={phrase(DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? '')}
+								options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: phrase(f.label), selected: f.id === dateFormat }))}
 								onPick={id => onChange({ dateFormat: id })} />
 						</Field>
 					) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
