@@ -1,5 +1,5 @@
 import { expect, fn, userEvent } from 'storybook/test'
-import { Kbd, Empty, EmptyTitle, EmptyBody, Skeleton, Spinner, Redacted, AddRow, Hold, LinkOut } from '../../react/src/components/Utilities.jsx'
+import { Kbd, Empty, EmptyTitle, EmptyBody, Skeleton, Spinner, Redacted, AddRow, Hold } from '../../react/src/components/Utilities.jsx'
 import { Card, Cards } from '../../react/src/components/Card.jsx'
 import { Button } from '../../react/src/components/Button.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
@@ -11,7 +11,7 @@ const text = description => ({ control: 'text', description })
 export default {
 	title: 'States/Empty, loading and keys',
 	component: Empty,
-	subcomponents: { EmptyTitle, EmptyBody, Kbd, Skeleton, Spinner, Redacted, AddRow, Hold, LinkOut }
+	subcomponents: { EmptyTitle, EmptyBody, Kbd, Skeleton, Spinner, Redacted, AddRow, Hold }
 }
 
 export const EmptyStates = {
@@ -106,17 +106,5 @@ export const AddARow = {
 	play: async ({ args, canvas }) => {
 		await userEvent.click(canvas.getByRole('button', { name: /Add a line/ }))
 		await expect(args.onClick).toHaveBeenCalledOnce()
-	}
-}
-
-export const NameToAnotherSite = {
-	parameters: { variantsOf: LinkOut },
-	args: { children: 'Arla Letmælk 1 L', label: 'Netto\'s offer paper', href: 'https://www.tilbudsugen.dk/dk/ai-basket?q=m%C3%A6lk', nameClass: 'sp-title' },
-	argTypes: { children: text('The name'), label: text('Where it goes'), href: text('The other site\'s address'), nameClass: text('The name\'s own role') },
-	render: args => <LinkOut {...args} />,
-	play: async ({ args, canvas }) => {
-		const link = canvas.getByRole('link', { name: `${args.children}, ${args.label}, opens in a new tab` })
-		await expect(link).toHaveAttribute('target', '_blank')
-		await expect(link).toHaveAttribute('href', args.href)
 	}
 }

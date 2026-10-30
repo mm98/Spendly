@@ -43,7 +43,6 @@ const swatchOf = name => {
     @param {keyof typeof FILL} [props.fill] `default` is a light tint, `solid` a full colour, `plain` no fill, `photo` a picture, `empty` an empty frame to drop a picture in, `none` a grey box, `add` a frame that adds a picture.
     @param {string} [props.swatch] a colour of the set, or a colour value; only a solid mark is painted
     @param {boolean} [props.round] A circle rather than a rounded square.
-    @param {boolean} [props.logo] The shop's place on an offer: two medium marks wide. A logo image as the child sits whole on white; a name as the child fills the box as a vendor mark does.
     @param {boolean} [props.goods] The picture shows goods (an item, an order) rather than paper. The light theme tones it.
     @param {boolean} [props.faded] The picture stands in for a missing one, such as the vendor's picture in place of an item's photo. It is drawn faded.
     @param {number} [props.count] A count drawn over the mark, such as 3 more pictures.
@@ -58,8 +57,6 @@ export function Mark({
 	fill = 'default',
 	swatch,
 	round = false,
-	// the shop's place on an offer (c2): two marks wide, a logo inside on white
-	logo = false,
 	// a photo of goods (an item, an order, a bookmark) rather than paper, which the light theme tones (17b)
 	goods = false,
 	// a vendor's image standing in for a missing item photo (17e): the photo, faded
@@ -91,7 +88,6 @@ export function Mark({
 		pick(SIZE, size, 'size', 'Mark'),
 		pick(FILL, fill, 'fill', 'Mark'),
 		round && 'sp-mark--round',
-		logo && 'sp-mark--logo',
 		goods && 'sp-mark--goods',
 		faded && 'sp-mark--faded'
 	)

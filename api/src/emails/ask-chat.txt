@@ -10,9 +10,7 @@ Answered from your Spendly data as it was then. Amounts in {{currency_name}}.
 {{/items}}{{/list}}{{#table}}{{#rows}}- {{#cells}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}{{^last}}, {{/last}}{{/cells}}
 {{/rows}}{{/table}}{{#files}}{{#items}}- {{title}}{{#failed}}: could not be made, {{reason}}{{/failed}}{{^failed}} ({{kind}}, {{size}}, {{#attached}}attached{{/attached}}{{^attached}}too big to attach, download it from Files in Ask until {{kept_until}}: {{files_url}}{{/attached}}){{/failed}}
 {{/items}}{{/files}}{{#chart}}Chart: {{title}}, {{meta}}. {{values}}
-{{/chart}}{{#offers}}{{#items}}- {{name}}, {{shop}} · until {{until}}{{#members}} · {{members}}{{/members}}: {{price}}{{#per_unit}}, {{per_unit}}{{/per_unit}} ({{url}})
-{{/items}}Offers from {{source_name}} ({{source_url}})
-{{/offers}}{{/blocks}}
+{{/chart}}{{/blocks}}
 {{/mine}}{{/messages}}Open this chat: {{chat_url}}
 
 You sent this to yourself from Ask, to {{email}}.
