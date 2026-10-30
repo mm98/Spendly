@@ -1,5 +1,6 @@
 import { db } from '../db.js'
 import { emailMessage } from './emails.js'
+import { emailLanguageOf } from './phrases.js'
 import { inBackground, linkTo, mailAvailable, publicLink, sendMail } from './mail.js'
 
 /* The notices an account is sent when something about signing in changes (20f): its password, or
@@ -21,7 +22,7 @@ function changedAt(req, locale) {
 function notify(req, userId, name, valuesFor) {
 	if (!mailAvailable()) return null
 	const { email, locale, colour_scheme: scheme } = selectAccount.get(userId)
-	return inBackground(sendMail(emailMessage(name, email, { email, changed_at: changedAt(req, locale), ...valuesFor(email) }, { scheme })))
+	return inBackground(sendMail(emailMessage(name, email, { email, changed_at: changedAt(req, locale), ...valuesFor(email) }, { scheme, language: emailLanguageOf(userId) })))
 }
 
 // `req` is null when the server's owner runs a command, with no request behind it
@@ -41,8 +42,8 @@ export const sendTwoStepOff = (req, userId) => notify(req, userId, 'two-step-off
 export const sendRecoveryCodeUsed = (req, userId, codesLeft) =>
 	notify(req, userId, 'recovery-code-used', () => ({ action_url: settingsLink(req), codes_left: String(codesLeft) }))
 
-/** Sent to the address the account had, in its locale, both read before the account was deleted. */
-export function sendAccountDeleted(req, { email, locale, colour_scheme: scheme }) {
+/** Sent to the address the account had, in its locale and language, read before the account was deleted. */
+export function sendAccountDeleted(req, { email, locale, colour_scheme: scheme, language }) {
 	if (!mailAvailable()) return null
-	return inBackground(sendMail(emailMessage('account-deleted', email, { email, changed_at: changedAt(req, locale) }, { scheme })))
+	return inBackground(sendMail(emailMessage('account-deleted', email, { email, changed_at: changedAt(req, locale) }, { scheme, language })))
 }

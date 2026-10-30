@@ -1,13 +1,13 @@
-Subject: A passkey was added to your Spendly account
+Subject: {{@passkeyAdded.subject}}
 
-A passkey was added
+{{@passkeyAdded.heading}}
 
-A passkey named {{passkey_name}} was added to {{email}} on {{changed_at}}. It can now sign in to your account.
+{{@passkeyAdded.body}}
 
-Review my passkeys:
+{{@passkeyAdded.button}}:
 {{action_url}}
 
-If this was you, there's nothing to do. If it wasn't, remove it in Settings and reset your password.
+{{@passkeyAdded.note}}
 
 --
-We write to you whenever a passkey is added to your account.
+{{@passkeyAdded.footer}}

@@ -79,12 +79,13 @@ export const draftPhotoUrl = line => {
 
 /** A draft made by hand, opened again as it was left: the edit screen, not created yet (3a). */
 function Kept({ id }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const kept = useApi(getDraft, [id])
 	const blank = useApi(getOrderDraft)
 	const form = kept.data?.id === id ? kept.data.form : null
 	const seed = useMemo(() => (form && blank.data ? { ...fromBlank(blank.data), ...form.values, lines: form.lines ?? [], files: form.files ?? [] } : null), [form, blank.data])
-	if (kept.error || blank.error) return <OrderFailed what="This draft" error={kept.error ?? blank.error} retry={kept.error ? kept.refresh : blank.refresh} />
+	if (kept.error || blank.error) return <OrderFailed what={phrase('order.failedDraft')} error={kept.error ?? blank.error} retry={kept.error ? kept.refresh : blank.refresh} />
 	if (kept.data?.file) return <Navigate replace to={`/orders/new?source=scan&doc=${kept.data.file.key}`} state={{ upload: { ...kept.data.file, draftId: id } }} />
 	if (!seed) return <Waiting />
 	const away = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/', { replace: true }))
@@ -99,9 +100,10 @@ const fromBlank = blank => ({
 
 /** An empty order, or one an Undo on its saved page sent back as `restored` (3a). */
 function Blank({ vendor, restored, onDraft }) {
+	const phrase = usePhrase()
 	const blank = useApi(getOrderDraft)
 	if (restored) return <OrderForm mode="new" region seed={restored} onDraft={onDraft} />
-	if (blank.error) return <OrderFailed what="The new order" error={blank.error} retry={blank.refresh} />
+	if (blank.error) return <OrderFailed what={phrase('order.failedNew')} error={blank.error} retry={blank.refresh} />
 	if (!blank.data) return <Waiting />
 	return <OrderForm mode="new" region seed={{ ...fromBlank(blank.data), vendor }} onDraft={onDraft} />
 }
@@ -132,7 +134,7 @@ function Copy({ id, onDraft }) {
 			})
 		}
 	}, [order.data, blank.data, id])
-	if (order.error || blank.error) return <OrderFailed what="The order to copy" error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
+	if (order.error || blank.error) return <OrderFailed what={phrase('order.failedCopy')} error={order.error ?? blank.error} retry={order.error ? order.refresh : blank.refresh} />
 	if (!seed) return <Waiting />
 	return (
 		<OrderForm mode="new" region seed={seed}

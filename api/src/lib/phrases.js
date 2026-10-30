@@ -71,6 +71,13 @@ export function languageOf(req) {
 	return storedOr(req.user?.id, req)
 }
 
+/** The language an email to the account is written in: its choice, else the language of the request
+    being answered, else English. */
+export function emailLanguageOf(userId) {
+	const stored = userId ? readLanguage.get(userId)?.language : null
+	return CODES.includes(stored) ? stored : currentLanguage()
+}
+
 /** An account's language for words sent with no app open, such as an email: its choice, else the
     browser of the request behind it, else English. */
 export function storedOr(userId, req) {

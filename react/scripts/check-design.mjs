@@ -71,7 +71,7 @@ for (const name of ['schemes.css', 'tokens.css'])
 // the server sends the design's emails as they are, so its copies match file for file
 // except a fix the build made, each one written in later.md and removed here once design/ carries it
 const EMAIL_FIXES = []
-const emailsOf = dir => readdirSync(dir).filter(n => /\.(html|txt)$/.test(n)).sort()
+const emailsOf = dir => [...readdirSync(dir).filter(n => /\.(html|txt)$/.test(n)), ...readdirSync(join(dir, 'language')).map(n => `language/${n}`)].sort()
 const designEmails = join(root, '../design/emails'), apiEmails = join(root, '../api/src/emails')
 for (const name of new Set([...emailsOf(designEmails), ...emailsOf(apiEmails)]))
 	if (!EMAIL_FIXES.includes(name) && (() => { try { return read(join(designEmails, name)) !== read(join(apiEmails, name)) } catch { return true } })())

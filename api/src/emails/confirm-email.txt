@@ -1,13 +1,13 @@
-Subject: Confirm your email for Spendly
+Subject: {{@confirm.subject}}
 
-Confirm your email
+{{@confirm.heading}}
 
-Hi {{name}}, open this link to confirm {{email}}. If you're not signed in on that device, sign in afterwards.
+{{@confirm.body}}
 
-Confirm my email:
+{{@confirm.button}}:
 {{action_url}}
 
-It works once and expires in 24 hours.
+{{@confirm.note}}
 
 --
-Someone created a Spendly account with this address. If it wasn't you, ignore this email and the account stays unconfirmed.
+{{@confirm.footer}}

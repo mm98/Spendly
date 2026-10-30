@@ -1,7 +1,8 @@
 import { db } from '../db.js'
 import { CURRENCIES } from './constants.js'
 import { fromEpoch, toEpoch } from './dates.js'
-import { emailMessage } from './emails.js'
+import { emailMessage, emailPhrase } from './emails.js'
+import { emailLanguageOf } from './phrases.js'
 import { inBackground, mailAvailable, publicLink, sendMail } from './mail.js'
 import { readYear } from './budget.js'
 import { draftCount } from './orderDrafts.js'
@@ -97,7 +98,6 @@ export function writerFor({ locale, currency }) {
 	const shortMonths = parts => parts.map(p => (p.type === 'month' && english ? p.value.slice(0, 3) : p.value))
 	const dateOf = day => new Date(toEpoch(day) * 1000)
 	const format = options => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options })
-	const head = text => text.charAt(0).toLocaleUpperCase(locale) + text.slice(1)
 	const range = (options, from, last, between) => format(options).formatRangeToParts(dateOf(from), dateOf(last))
 		.map(p => (p.type === 'literal' && p.source === 'shared' ? { ...p, value: p.value.replace(/\s*–\s*/, between) } : p))
 	return {
@@ -105,8 +105,6 @@ export function writerFor({ locale, currency }) {
 		count: n => figure(n, 0),
 		// "1,5": a size, with no more decimals than it has, at most two
 		quantity: n => figure(n, Number.isInteger(n) ? 0 : Number.isInteger(n * 10) ? 1 : 2),
-		month: day => head(format({ month: 'long' }).format(dateOf(day))),
-		monthYear: day => head(format({ month: 'long', year: 'numeric' }).format(dateOf(day))),
 		// "30 Sep", with the year once it is not the year the email is about
 		dayMonth: (day, year) => shortMonths(format({ day: 'numeric', month: 'short', ...(day.startsWith(year) ? {} : { year: 'numeric' }) })
 			.formatToParts(dateOf(day))).join(''),
@@ -114,12 +112,10 @@ export function writerFor({ locale, currency }) {
 		date: day => shortMonths(format({ day: 'numeric', month: 'short', year: 'numeric' }).formatToParts(dateOf(day))).join(''),
 		// "12 - 18 Oct 2026"
 		days: (from, last) => shortMonths(range({ day: 'numeric', month: 'short', year: 'numeric' }, from, last, ' - ')).join(''),
-		// "19 and 25 October"
-		between: (from, last) => range({ day: 'numeric', month: 'long' }, from, last, ' and ').map(p => p.value).join('')
+		// ["19", "25 October"]: the two ends of a range, written as one, for a sentence to join
+		between: (from, last) => range({ day: 'numeric', month: 'long' }, from, last, '\u0000').map(p => p.value).join('').split('\u0000')
 	}
 }
-
-const plural = (n, one, many, write) => `${write(n)} ${n === 1 ? one : many}`
 
 /* ---- what the email says ---- */
 
@@ -140,10 +136,11 @@ const siteOf = url => {
 	try { return new URL(/^[a-z][a-z0-9+.-]*:/i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, '') } catch { return String(url ?? '') }
 }
 
-const percentOver = (spend, limit) => `+${Math.round((spend / limit - 1) * 100)}% over the limit`
+// a month's name in the email's language, as a sentence writes it
+const monthIn = (language, day) => new Intl.DateTimeFormat(language, { timeZone: 'UTC', month: 'long' }).format(new Date(toEpoch(day) * 1000))
 const firstFlagged = rows => rows.map((row, i) => ({ ...row, first: i === 0 }))
 
-function budgetOf(userId, period, write) {
+function budgetOf(userId, period, write, language) {
 	const costsIn = day => {
 		const sheet = readYear(userId, Number(day.slice(0, 4)))
 		if (!sheet) return null
@@ -162,36 +159,34 @@ function budgetOf(userId, period, write) {
 	const difference = Math.round((last.real - last.expected) * 100) / 100
 	return {
 		budget: true,
-		last_label: `${write.month(period.from)} costs`,
 		last_real: write.money(last.real),
 		last_expected: write.money(last.expected),
-		difference: !difference ? 'As expected' : `${write.money(Math.abs(difference))} ${difference < 0 ? 'under' : 'over'}`,
+		difference_way: !difference ? 'same' : difference < 0 ? 'under' : 'over',
+		difference_amount: write.money(Math.abs(difference)),
 		under: difference <= 0,
 		last_pct: last.expected > 0 ? Math.min(100, Math.round(last.real / last.expected * 100)) : 100,
-		next_label: `Expected in ${write.month(period.to)}`,
+		next_month: monthIn(language, period.to),
 		next_expected: write.money(next.expected),
-		next_rows: next.rows ? plural(next.rows, 'row', 'rows', write.count) : 'No rows yet'
+		next_rows_count: next.rows,
+		next_rows_shown: write.count(next.rows)
 	}
 }
 
 function needsOf(userId, day, write, link) {
 	const rows = []
+	const row = (kind, count, url) => rows.push({ kind, need_count: count, need_shown: write.count(count), url })
 	const draftKey = keyOfType(userId, 'draft')
 	const drafts = draftCount(userId) + (draftKey ? countDraftOrders.get(userId, draftKey).c : 0)
-	if (drafts) rows.push({ text: `${plural(drafts, 'draft', 'drafts', write.count)} to finish`, action: drafts === 1 ? 'Open draft' : 'Open drafts',
-		url: link(`/orders?status=${encodeURIComponent(draftKey ?? 'Draft')}`) })
+	if (drafts) row('drafts', drafts, link(`/orders?status=${encodeURIComponent(draftKey ?? 'Draft')}`))
 	const things = attentionCounts(userId, day)
-	if (things.late?.count) rows.push({ text: `${plural(things.late.count, 'order', 'orders', write.count)} not delivered after 2 weeks`,
-		action: things.late.count === 1 ? 'See order' : 'See orders', url: link(`/orders?status=${encodeURIComponent(things.late.status)}&to=${things.late.to}`) })
-	if (things.vendors?.count) rows.push({ text: `${plural(things.vendors.count, 'possible duplicate vendor', 'possible duplicate vendors', write.count)}`,
-		action: 'Review', url: link('/vendors?flag=possible-duplicate') })
-	if (things.receipt?.count) rows.push({ text: `${plural(things.receipt.count, 'order', 'orders', write.count)} without a receipt`,
-		action: 'Review', url: link('/orders?receipt=missing') })
+	if (things.late?.count) row('late', things.late.count, link(`/orders?status=${encodeURIComponent(things.late.status)}&to=${things.late.to}`))
+	if (things.vendors?.count) row('vendors', things.vendors.count, link('/vendors?flag=possible-duplicate'))
+	if (things.receipt?.count) row('receipt', things.receipt.count, link('/orders?receipt=missing'))
 	return rows
 }
 
-/** The template and its values for one account's email about `period`, with `stopUrl` as its Stop these
-    emails link. `locale` is the asking browser's, which a test is written in before any choice stores one. */
+/** The template, its values and its language for one account's email about `period`, with `stopUrl` as its
+    Stop these emails link. `locale` is the asking browser's, which a test is written in before any choice stores one. */
 export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 	const account = selectAccount.get(userId)
 	const write = writerFor({ locale: usableLocale(account.locale, account.status_email_locale, locale), currency: account.currency })
@@ -202,51 +197,45 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 	const to = toEpoch(period.to)
 	const last = addDays(period.to, -1)
 	const week = weekly ? weekNumberOf(period.from) : null
-	const name = weekly ? `Week ${week}` : write.month(period.from)
+	const language = emailLanguageOf(userId)
+	const month = monthIn(language, period.from)
 	const now = periodSummary(userId, from, to, LIST_ROWS)
 
 	// limits are monthly, so a week is measured as the calendar month so far
 	const monthFrom = weekly ? toEpoch(firstOfMonth(last)) : from
 	const limits = limitsPassed(userId, monthFrom, to)
-	const scope = weekly ? ` in ${write.month(last)} so far` : ''
 
 	const common = {
+		period_kind: weekly ? 'week' : 'month',
+		week: String(week ?? ''),
+		days: write.days(period.from, last),
+		period_month: month.charAt(0).toLocaleUpperCase(language) + month.slice(1),
+		period_month_in: month,
+		year: period.from.slice(0, 4),
+		scope_month: monthIn(language, last),
 		app_url: link('/'), settings_url: link('/settings/account'), unsubscribe_url: stopUrl,
 		categories_url: link('/categories'), orders_url: link(`/orders?from=${period.from}&to=${last}`),
 		bookmarks_url: link('/bookmarks'), budget_url: link('/budget'),
-		your_label: weekly ? 'Your week' : 'Your month',
-		period: weekly ? `Week ${week}, ${write.days(period.from, last)}` : write.monthYear(period.from),
 		limits_any: limits.length > 0,
-		limits_heading: plural(limits.length, 'limit exceeded', 'limits exceeded', write.count),
+		limits_count: limits.length,
+		limits_shown: write.count(limits.length),
 		limits: firstFlagged(limits.map(c => ({
-			name: c.name, spent: write.money(c.spend), limit: write.money(c.budget), scope,
-			over: percentOver(c.spend, c.budget), fill_pct: Math.round(c.budget / c.spend * 100)
+			name: c.name, spent: write.money(c.spend), limit: write.money(c.budget),
+			over_pct: String(Math.round((c.spend / c.budget - 1) * 100)), fill_pct: Math.round(c.budget / c.spend * 100)
 		}))),
-		...(weekly ? { budget: false } : budgetOf(userId, period, write)),
-		needs: firstFlagged(needsOf(userId, period.to, write, link)),
-		frequency_line: weekly ? 'You get this every Monday because Weekly is on in Status email.'
-			: 'You get this on the 1st of every month because Monthly is on in Status email.'
+		...(weekly ? { budget: false } : budgetOf(userId, period, write, language)),
+		needs: firstFlagged(needsOf(userId, period.to, write, link))
 	}
 	common.needs_any = common.needs.length > 0
 
-	if (!now.orders) return {
-		template: 'status-quiet',
-		values: {
-			...common,
-			subject: `${name} in Spendly: nothing spent`,
-			preheader: weekly ? `No orders in week ${week}.` : `No orders in ${name}.`,
-			quiet_heading: weekly ? 'Nothing spent this week' : `Nothing spent in ${name}`,
-			quiet_line: weekly ? `No orders were added between ${write.between(period.from, last)}.` : `No orders were added in ${name}.`
-		}
+	if (!now.orders) {
+		const [betweenFrom, betweenTo] = write.between(period.from, last)
+		return { template: 'status-quiet', language, values: { ...common, between_from: betweenFrom, between_to: betweenTo } }
 	}
 
 	const before = weekly ? { from: from - 7 * DAY, to: from } : { from: toEpoch(firstOfMonth(period.from, -1)), to: from }
 	const earlier = periodSummary(userId, before.from, before.to, 0)
-	const beforeName = weekly ? `week ${weekNumberOf(fromEpoch(before.from))}` : write.month(fromEpoch(before.from))
 	const difference = Math.round(now.spent) - Math.round(earlier.spent)
-	const compare = !earlier.orders ? `No orders in ${beforeName}`
-		: !difference ? `Same as ${beforeName}`
-			: `${write.money(Math.abs(difference), 0)} ${difference < 0 ? 'less' : 'more'} than ${beforeName}`
 
 	const top = now.split.slice(0, LIST_ROWS)
 	const year = period.from.slice(0, 4)
@@ -255,28 +244,30 @@ export function statusEmailFor(userId, period, stopUrl, { locale } = {}) {
 
 	return {
 		template: 'status',
+		language,
 		values: {
 			...common,
-			subject: `${name} in Spendly: ${write.money(now.spent, 0)} spent`,
-			preheader: `${write.money(now.spent, 0)} spent, saved ${write.money(saving(now.saved))}`
-				+ (limits.length ? `, ${common.limits_heading}.` : '.'),
 			spent: write.money(now.spent, 0),
-			compare,
+			saved_amount: write.money(saving(now.saved)),
+			compare: !earlier.orders ? 'none' : !difference ? 'same' : difference < 0 ? 'less' : 'more',
+			compare_amount: write.money(Math.abs(difference), 0),
+			before_week: weekly ? String(weekNumberOf(fromEpoch(before.from))) : '',
+			before_month: monthIn(language, fromEpoch(before.from)),
 			saved_fig: write.money(saving(now.saved), 0),
 			has_saving: Math.round(now.saved) > 0,
-			saved_sub: `on ${write.count(now.saving)} of ${plural(now.orders, 'order', 'orders', write.count)}`,
+			saving_count: write.count(now.saving),
+			orders_count: now.orders,
+			orders_shown: write.count(now.orders),
 			count: write.count(now.orders),
-			count_sub: `${write.count(now.delivered)} delivered`,
+			delivered: write.count(now.delivered),
 			categories_any: top.length > 0,
 			categories: firstFlagged(top.map(c => ({ name: c.name, amount: write.money(c.amount), pct: Math.round(c.amount / top[0].amount * 100) }))),
 			orders_any: now.latest.length > 0,
-			orders_link: now.orders === 1 ? 'See the order' : `All ${write.count(now.orders)} orders`,
 			orders: firstFlagged(now.latest.map(o => ({
-				vendor: o.vendor, category: o.category ?? 'No category', date: write.dayMonth(fromEpoch(o.date), year),
-				amount: write.money(o.total), saving: `Saved ${write.money(saving(o.saved))}`, has_saving: saving(o.saved) > 0
+				vendor: o.vendor, category: o.category ?? '', has_category: o.category != null, date: write.dayMonth(fromEpoch(o.date), year),
+				amount: write.money(o.total), saving: write.money(saving(o.saved)), has_saving: saving(o.saved) > 0
 			}))),
 			bookmarks_any: bookmarks.length > 0,
-			bookmarks_label: weekly ? 'Bookmarked this week' : `Bookmarked in ${name}`,
 			bookmarks: firstFlagged(bookmarks.map(b => ({ name: b.name, vendor: siteOf(b.url), price: b.price != null ? write.money(b.price) : '' })))
 		}
 	}
@@ -301,11 +292,11 @@ const STOP_KIND = 'status-stop'
 export async function sendStatusEmail(userId, period, { test = false, locale } = {}) {
 	const { email, colour_scheme: scheme } = selectAccount.get(userId)
 	const token = issueToken(userId, STOP_KIND, email)
-	const { template, values } = statusEmailFor(userId, period, publicLink(`/email/stop/${token}`), { locale })
-	const message = emailMessage(template, email, values, { scheme })
+	const { template, values, language } = statusEmailFor(userId, period, publicLink(`/email/stop/${token}`), { locale })
+	const message = emailMessage(template, email, values, { scheme, language })
 	await sendMail({
 		...message,
-		subject: test ? `Test: ${message.subject}` : message.subject,
+		subject: test ? emailPhrase(language, 'email.test', { subject: message.subject }) : message.subject,
 		headers: { 'List-Unsubscribe': `<${publicLink(`/auth/status-email/stop/${token}`, { api: true })}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
 	})
 }

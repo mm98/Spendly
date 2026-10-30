@@ -14,7 +14,7 @@ import { seedAccountDefaults } from '../seed.js'
 import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 import { openTicket, twoStepOn } from '../lib/twoStep.js'
 import { securityLog } from '../lib/securityLog.js'
-import { words } from '../lib/phrases.js'
+import { emailLanguageOf, words } from '../lib/phrases.js'
 
 export const router = Router()
 
@@ -82,7 +82,7 @@ async function sendLink(req, user, kind, email) {
 	// a name is optional; the part before the @ stands in for it, as everywhere else in the app
 	const values = { name: user.name || email.split('@')[0], email, action_url: linkTo(req, `/${kind}/${token}`) }
 	try {
-		await sendMail(emailMessage(LINK_EMAILS[kind], email, values, { scheme: selectScheme.get(user.id)?.colour_scheme }))
+		await sendMail(emailMessage(LINK_EMAILS[kind], email, values, { scheme: selectScheme.get(user.id)?.colour_scheme, language: emailLanguageOf(user.id) }))
 	} catch (e) {
 		settleToken(user.id, kind, token, false)
 		throw e

@@ -1,17 +1,17 @@
-{{subject}}
+{{@chat.subject}}
 
-Ask: your conversation, {{date}}
-Answered from your Spendly data as it was then. Amounts in {{currency_name}}.
+{{@chat.textHeading}}
+{{@chat.intro}}
 
-{{#messages}}{{#mine}}You: {{question}}
+{{#messages}}{{#mine}}{{@chat.you}}: {{question}}
 {{/mine}}{{^mine}}Spendly:
 {{#blocks}}{{#p}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}
 {{/p}}{{#list}}{{#items}}- {{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}
 {{/items}}{{/list}}{{#table}}{{#rows}}- {{#cells}}{{#runs}}{{text}}{{#url}} ({{url}}){{/url}}{{/runs}}{{^last}}, {{/last}}{{/cells}}
-{{/rows}}{{/table}}{{#files}}{{#items}}- {{title}}{{#failed}}: could not be made, {{reason}}{{/failed}}{{^failed}} ({{kind}}, {{size}}, {{#attached}}attached{{/attached}}{{^attached}}too big to attach, download it from Files in Ask until {{kept_until}}: {{files_url}}{{/attached}}){{/failed}}
-{{/items}}{{/files}}{{#chart}}Chart: {{title}}, {{meta}}. {{values}}
+{{/rows}}{{/table}}{{#files}}{{#items}}- {{title}}{{#failed}}: {{@chat.text.failed}}{{/failed}}{{^failed}} ({{kind}}, {{size}}, {{#attached}}{{@chat.text.attached}}{{/attached}}{{^attached}}{{@chat.text.tooBig}}: {{files_url}}{{/attached}}){{/failed}}
+{{/items}}{{/files}}{{#chart}}{{@chat.chart}}: {{title}}, {{meta}}. {{values}}
 {{/chart}}{{/blocks}}
-{{/mine}}{{/messages}}Open this chat: {{chat_url}}
+{{/mine}}{{/messages}}{{@chat.open}}: {{chat_url}}
 
-You sent this to yourself from Ask, to {{email}}.
-It is sent only when you press Email this chat.
+{{@chat.sentTo}}
+{{@chat.sentWhen}}

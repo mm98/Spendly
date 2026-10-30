@@ -1,6 +1,6 @@
 // Usage: node scripts/check-language-files.mjs
 //
-// The language files in src/language and api/src/language, each set against itself and its code. Every file holds the
+// The language files in src/language, api/src/language and api/src/emails/language, each set against itself and its code. Every file holds the
 // same keys as en.json, and in each phrase only the places English has. A folder in TEXT_FREE holds
 // no words of its own: no text between tags, and no written words in a name, tip or hint attribute
 // or a default prop.
@@ -29,14 +29,14 @@ const placesOf = elements => elements.flatMap(e => {
 		? [e.value, ...inner] : inner
 })
 
-const walk = dir => readdirSync(dir).flatMap(n => {
+const walk = (dir, files = /\.(jsx?|mjs)$/) => readdirSync(dir).flatMap(n => {
 	const p = join(dir, n)
-	return statSync(p).isDirectory() ? walk(p) : /\.(jsx?|mjs)$/.test(n) ? [p] : []
+	return statSync(p).isDirectory() ? walk(p, files) : files.test(n) ? [p] : []
 })
 
 /* One set of language files against each other and against the code that names their keys: the app's,
    and the server's, which writes its own words in the reader's language (api/src/lib/phrases.js). */
-function checkFiles(folder, codeRoot, naming) {
+function checkFiles(folder, codeRoot, naming, codeFiles) {
 	const where = name => relative(root, join(folder, name))
 	const files = Object.fromEntries(readdirSync(folder).filter(n => n.endsWith('.json')).map(n => [n, JSON.parse(readFileSync(join(folder, n), 'utf8'))]))
 	const english = files['en.json']
@@ -54,7 +54,7 @@ function checkFiles(folder, codeRoot, naming) {
 		}
 	}
 
-	const code = walk(codeRoot).filter(p => !p.includes('/components/tabler/')).map(p => [p, readFileSync(p, 'utf8')])
+	const code = walk(codeRoot, codeFiles).filter(p => !p.includes('/components/tabler/')).map(p => [p, readFileSync(p, 'utf8')])
 	const named = new Set()
 	for (const [p, text] of code) {
 		for (const [, key] of text.matchAll(naming)) {
@@ -83,6 +83,8 @@ function checkFiles(folder, codeRoot, naming) {
 const app = checkFiles(join(src, 'language'), src, /phrase\('([^']+)'/g)
 const server = join(root, '..', 'api', 'src')
 const api = checkFiles(join(server, 'language'), server, /(?:\bwords\(|new Words\(|refusal\(\d+, )'([^']+)'/g)
+// the emails' words, named by their layouts and by the server's code
+const emails = checkFiles(join(server, 'emails', 'language'), server, /(?:\{\{@|emailPhrase\(\w+, ')([\w.]+)/g, /\.(js|html|txt)$/)
 const code = app.code
 
 // what a reader would read: a word of two letters or more, never a name from NAMES
@@ -111,6 +113,8 @@ const visit = (node, at) => {
 		collect(node.value)
 		for (const text of strings) at(node, text)
 	}
+	// what failed to load, named in words: `what="The new order"`; a lowercase word is a choice the part makes
+	if (node.type === 'JSXAttribute' && node.name?.name === 'what' && node.value?.type === 'Literal' && /^[A-Z][a-z]/.test(node.value.value)) at(node, node.value.value)
 	// a default prop written in words: `kind = 'Photo'`
 	if (node.type === 'AssignmentPattern' && node.right?.type === 'Literal' && typeof node.right.value === 'string' && /^[A-Z][a-z]/.test(node.right.value) && words(node.right.value)) at(node, node.right.value)
 	// a sentence anywhere else: a message kept in a constant, a toast, a fallback
@@ -141,4 +145,4 @@ if (findings.length) {
 	console.error(`\n${findings.length} finding${findings.length === 1 ? '' : 's'}`)
 	process.exit(1)
 }
-console.log(`language files: ${Object.keys(app.files).length} languages, ${Object.keys(app.english).length} phrases in the app and ${Object.keys(api.english).length} on the server, no findings`)
+console.log(`language files: ${Object.keys(app.files).length} languages, ${Object.keys(app.english).length} phrases in the app, ${Object.keys(api.english).length} on the server and ${Object.keys(emails.english).length} in the emails, no findings`)

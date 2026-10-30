@@ -792,7 +792,7 @@
 
   <div class="doc-notes">
     <span class="doc-notes__label">NOTES FOR IMPLEMENTATION</span>
-    <div class="doc-note"><b class="sp-ink">Send-ready files.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it, sent together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
+    <div class="doc-note"><b class="sp-ink">Templates, not finished emails.</b> <b>emails/confirm-email</b>, <b>reset-password</b>, <b>password-changed</b> and <b>passkey-added</b>, each an .html with a .txt beside it. The server fills in the words in the email's language and then the values, and sends the two together as multipart/alternative. Sender, subjects and merge fields are in <b>emails/README.md</b>. The specimens below render those files with sample values merged in.</div>
     <div class="doc-note"><b class="sp-ink">Built for mail clients, not the browser.</b> Tables and inline styles, no web fonts (Poppins where installed, then Helvetica), a VML button for Outlook, and a dark block that maps to the dark tokens. The card keeps the auth panel's values: 400 wide, 16 padding, the 64 mark, the small button.</div>
     <div class="doc-note"><b class="sp-ink">The emails follow the account's colour scheme</b> (<a href="Settings and import.dc.html#11a">11a</a>): the button, the links and positive figures take the scheme's <code>--primary</code> and <code>--primary-2</code>, the mark tile its <code>--shell-action</code>, and the dark block the scheme's dark values, written in as literals from <code>styles/schemes.css</code> when the email is rendered. An account with no scheme, or with a scheme since removed, gets Emerald. The specimens below are drawn in Emerald.</div>
     <div class="doc-note"><b class="sp-ink">Every link is also written out as text</b> under the button, for clients that strip or block it.</div>
@@ -803,7 +803,8 @@
     <div class="doc-note"><b class="sp-ink">Order in the card:</b> the period, three tiles (Spent with the comparison, Saved, Orders), limits exceeded, Budget (monthly only), top 5 categories, the latest 5 orders, bookmarks added in the period, Needs a look, then Open Spendly. A section with nothing in it is left out, rule and all; the limits box is absent when no limit was passed.</div>
     <div class="doc-note"><b class="sp-ink">Budget shows costs only.</b> Last month's real costs against the expected costs, and the costs expected in the new month. Income and Left over never appear in the email, whatever Show income was last set to in Budget (<a href="Budget.dc.html#21a">21a</a>).</div>
     <div class="doc-note"><b class="sp-ink">A weekly email states limits for the calendar month so far</b>, since limits are monthly: "11.260,00 kr. of 10.000,00 kr. in October so far". A saving is an amount, in the scheme's positive colour, under the order amount; a zero saving is grey.</div>
-    <div class="doc-note"><b class="sp-ink">Dates follow the account's language</b>, as everywhere in the app: in a Danish account the email reads "in Oktober so far" and "12. - 18. okt. 2026" while the sentences around them stay English. Only month and weekday names change; the numbers already follow the account's number format.</div>
+    <div class="doc-note"><b class="sp-ink">Every email is in the account's language</b>, English or Danish, and in English when the server cannot tell. Each email keeps the one layout drawn here for every language; its words come from a phrase file per language, <b>emails/language/en.json</b> and <b>da.json</b>, in the ICU message format the app uses, so a further language is one more file. Dates, month names and amounts follow the account's own language and number format, as in the app. The rules, and the Danish subjects, are in <b>emails/README.md</b>, Languages.</div>
+    <div class="doc-note"><b class="sp-ink">The layout does not change with the language.</b> A longer Danish line wraps inside the same card, button and tile, as a long name does; nothing is sized to the English words.</div>
     <div class="doc-note"><b class="sp-ink">Stop these emails opens 8 to 10</b>, the answer card from 20b: Status emails stopped, Already stopped, or That link has expired after 60 days. A newer email's link works while an older one has expired.</div>
     <div class="doc-note"><b class="sp-ink">The tiles stack below 480px</b>, and the card keeps one column at every width. Stop these emails turns off both Weekly and Monthly without signing in, from a single-use link.</div>
     <div class="doc-note"><b class="sp-ink">Easy to get wrong.</b> Reset sends nothing to an address with no account, while the page says the same either way (20c). Every merged value is HTML-escaped; a name is user input.</div>
@@ -833,17 +834,17 @@
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">5 - STATUS, MONTHLY</div>
       <iframe class="au-email" title="Monthly status" srcDoc="{{ monthlyDoc }}"></iframe>
-      <div class="sp-meta au-w600">Subject: September in Spendly: 61.480 kr. spent. Sent on the 1st when Status email is Monthly.</div>
+      <div class="sp-meta au-w600">Subject: September in Spendly: 61.480 kr. spent. In Danish: September i Spendly: 61.480 kr. brugt. Sent on the 1st when Status email is Monthly.</div>
     </div>
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">6 - STATUS, WEEKLY</div>
       <iframe class="au-email" title="Weekly status" srcDoc="{{ weeklyDoc }}"></iframe>
-      <div class="sp-meta au-w600">Subject: Week 42 in Spendly: 9.870 kr. spent. Sent on Monday when Status email is Weekly.</div>
+      <div class="sp-meta au-w600">Subject: Week 42 in Spendly: 9.870 kr. spent. In Danish: Uge 42 i Spendly: 9.870 kr. brugt. Sent on Monday when Status email is Weekly.</div>
     </div>
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">7 - STATUS, NOTHING SPENT</div>
       <iframe class="au-email" title="Status with nothing spent" srcDoc="{{ quietDoc }}"></iframe>
-      <div class="sp-meta au-w600">Subject: Week 43 in Spendly: nothing spent. Sent in place of 5 or 6 when the period has no orders.</div>
+      <div class="sp-meta au-w600">Subject: Week 43 in Spendly: nothing spent. In Danish: Uge 43 i Spendly: intet brugt. Sent in place of 5 or 6 when the period has no orders.</div>
     </div>
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">8 - STOP THESE EMAILS</div>
@@ -896,7 +897,7 @@
     <div class="sp-stack sp-gap-10">
       <div class="sp-section-label">11 - ASK, A CONVERSATION</div>
       <iframe class="au-email" title="A conversation from Ask" srcDoc="{{ chatDoc }}"></iframe>
-      <div class="sp-meta au-w600">Subject: Your Spendly conversation, 21 Oct 2026. Sent only to the account's own address, when Email this chat is pressed on Ask (24c).</div>
+      <div class="sp-meta au-w600">Subject: Your Spendly conversation, 21 Oct 2026. In Danish: Din samtale i Spendly, 21. okt. 2026. Sent only to the account's own address, when Email this chat is pressed on Ask (24c).</div>
       <div class="doc-note au-w600"><b class="sp-ink">A file in the emailed chat</b> is its title, type and size in the answer's frame, never a link, and the file itself is attached to the email, up to 15 MB in all: its line ends "Attached". A file that would take the email past 15 MB is not attached; its line reads "Too big to attach. Download it from Files in Ask until 2026-11-21.", with Files in Ask linked to <b>/ask/files</b> (<a href="Ask Spendly.dc.html#24e">24e</a>). A file that could not be made reads "Could not be made:" and its reason.</div>
       <div class="doc-note au-w600"><b class="sp-ink">Open this chat</b>, the button at the end, opens this chat on Ask at <b>/ask/:chatId</b>, to read on or ask a follow-up (<a href="Ask Spendly.dc.html#24f">24f</a>). Signed out, it opens sign-in first. A chat that was deleted or is past its 30 days opens Ask's empty page with the toast "That chat is no longer kept."</div>
       <div class="doc-note au-w600"><b class="sp-ink">A chart in the emailed chat</b> is an image of it, under its name and period, attached to the message inline so it shows without a sign-in. Its alt text is the name and every value, for a client that blocks images, and the text version lists the values. Outlook for Windows takes the image at its width attribute. Fields in <b>emails/README.md</b>.</div>
@@ -1215,27 +1216,52 @@ class Component extends DCLogic {
     this.applyView();
     const sample = { name: 'Mikkel', email: 'mikkel@example.net', changed_at: '9 Oct 2026, 14.26', passkey_name: 'iPhone', codes_left: '6' };
     const urls = { confirm: 'https://app.example.net/confirm/7f3a9c', reset: 'https://app.example.net/reset/b21e04', changed: 'https://app.example.net/reset?email=mikkel%40example.net', added: 'https://app.example.net/settings/account', twoOn: 'https://app.example.net/settings/account', twoOff: 'https://app.example.net/settings/account', codeUsed: 'https://app.example.net/settings/account' };
-    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['twoOn', 'two-step-on'], ['twoOff', 'two-step-off'], ['codeUsed', 'recovery-code-used'], ['deleted', 'account-deleted']].forEach(([k, f]) => {
-      fetch('emails/' + f + '.html').then(r => r.text()).then(t => {
-        const v = { ...sample, action_url: urls[k] };
-        this.setState({ [k]: t.replace(/\{\{(\w+)\}\}/g, (m, n) => v[n] ?? m) });
-      });
-    });
     const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    const merge = (tpl, ctx) => tpl
+    // a phrase from emails/language, as the server fills it in: {value}, select, plural, and <tag>words</tag> drawn with the layout's markup
+    const phrase = (msg, ctx, tags) => {
+      let i = 0;
+      const text = stop => { let out = ''; while (i < msg.length && !stop.includes(msg[i])) out += msg[i] === '{' ? arg() : msg[i] === '<' ? tag() : msg[i++]; return out; };
+      const arg = () => {
+        const head = msg.slice(i).match(/^\{\s*(\w+)\s*(?:,\s*(select|plural)\s*,)?/); i += head[0].length;
+        const v = ctx[head[1]];
+        if (!head[2]) { i++; return v == null ? '' : esc(v); }
+        const options = {};
+        for (let m; (m = msg.slice(i).match(/^\s*(=?\w+)\s*\{/)); ) { i += m[0].length; options[m[1]] = text('}'); i++; }
+        i = msg.indexOf('}', i) + 1;
+        return head[2] === 'plural' ? (options['=' + v] ?? (Number(v) === 1 ? options.one : undefined) ?? options.other) : (options[v] ?? options.other);
+      };
+      const tag = () => {
+        const name = msg.slice(i).match(/^<(\w+)>/)[1]; i += name.length + 2;
+        const inner = text('<'); i += name.length + 3;
+        const open = tags[name] ?? '';
+        return open + inner + [...open.matchAll(/<(\w+)/g)].map(m => '</' + m[1] + '>').reverse().join('');
+      };
+      return text('');
+    };
+    const merge = (tpl, ctx, words) => tpl
       .replace(/\{\{([#^])(\w+)\}\}([\s\S]*?)\{\{\/\2\}\}/g, (m, kind, key, inner) => {
         const v = ctx[key];
-        if (kind === '^') return (!v || (Array.isArray(v) && !v.length)) ? merge(inner, ctx) : '';
-        if (Array.isArray(v)) return v.map(it => merge(inner, { ...ctx, ...it })).join('');
-        return v ? merge(inner, ctx) : '';
+        if (kind === '^') return (!v || (Array.isArray(v) && !v.length)) ? merge(inner, ctx, words) : '';
+        if (Array.isArray(v)) return v.map(it => merge(inner, { ...ctx, ...it }, words)).join('');
+        return v ? merge(inner, ctx, words) : '';
       })
-      .replace(/\{\{(\w+)\}\}/g, (m, n) => ctx[n] == null ? '' : esc(ctx[n]));
-    Promise.all(['emails/status.html', 'emails/status-quiet.html', 'emails/status-sample.json'].map(u => fetch(u).then(r => r.text()))).then(([s, q, j]) => {
-      const d = JSON.parse(j);
-      this.setState({ monthly: merge(s, d.monthly), weekly: merge(s, d.weekly), quiet: merge(q, d.quiet) });
+      .replace(/\{\{@([\w.]+)((?:\|\w+=(?:[^|{}]|\{\{\w+\}\})*)*)\}\}|\{\{(\w+)\}\}/g, (m, key, spec, n) => key
+        ? phrase(words[key], ctx, Object.fromEntries(spec.split('|').slice(1).map(s => [s.slice(0, s.indexOf('=')), merge(s.slice(s.indexOf('=') + 1), ctx, words)])))
+        : ctx[n] == null ? '' : esc(ctx[n]));
+    const read = u => fetch(u).then(r => r.text());
+    const english = read('emails/language/en.json').then(JSON.parse);
+    [['confirm', 'confirm-email'], ['reset', 'reset-password'], ['changed', 'password-changed'], ['added', 'passkey-added'], ['twoOn', 'two-step-on'], ['twoOff', 'two-step-off'], ['codeUsed', 'recovery-code-used'], ['deleted', 'account-deleted']].forEach(([k, f]) => {
+      Promise.all([read('emails/' + f + '.html'), english]).then(([t, words]) => {
+        this.setState({ [k]: merge(t, { ...sample, action_url: urls[k], language: 'en' }, words) });
+      });
     });
-    Promise.all(['emails/ask-chat.html', 'emails/ask-chat-sample.json'].map(u => fetch(u).then(r => r.text()))).then(([s, j]) => {
-      this.setState({ chat: merge(s, JSON.parse(j)) });
+    Promise.all(['emails/status.html', 'emails/status-quiet.html', 'emails/status-sample.json'].map(read).concat(english)).then(([s, q, j, words]) => {
+      const d = JSON.parse(j);
+      const en = { language: 'en' };
+      this.setState({ monthly: merge(s, { ...d.monthly, ...en }, words), weekly: merge(s, { ...d.weekly, ...en }, words), quiet: merge(q, { ...d.quiet, ...en }, words) });
+    });
+    Promise.all(['emails/ask-chat.html', 'emails/ask-chat-sample.json'].map(read).concat(english)).then(([s, j, words]) => {
+      this.setState({ chat: merge(s, { ...JSON.parse(j), language: 'en' }, words) });
     });
   }
   size(el) {

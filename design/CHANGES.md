@@ -1,67 +1,77 @@
-# Language setting
+# Emails in Danish
 
-## Fixed from handoff_language_setting
+## Fixed from handoff_emails_in_danish
 
-Language and formats now comes before Appearance: the second row of the Settings section nav, the second card of the pane, the Settings list row on a phone, and the c22 and c35 specimens (`Settings and import 11a`, `Mobile screens 11a`, `Components c22`, `c35`). App: `react/src/pages/Settings.jsx`, the order of the sections and their cards.
+**The problem.** The package still called the email files send-ready. Once their words move to the phrase files, the .html and .txt files are templates the server fills in, not finished emails.
 
-Answers point 1 of the brief "a Language setting, and how components get their text": the Language control in Settings. The rest of the brief is code, for Claude Code; the decisions it needs are recorded in section 3, so nothing is left to ask.
+**What changed.** `emails/README.md` opens by saying each file is a template: the server fills in the phrases in the email's language, then the values, and sends the two as multipart/alternative. The templates and the phrase files are what the server keeps a copy of. In Auth and first run 20f, the note "Send-ready files" is now "Templates, not finished emails".
 
-later.md on main was read first. It has one entry, Recently deleted, kept for later at the user's decision. This package settles no entry.
-
-## 1. Language in Settings
-
-**The problem.** Spendly is to show its text in English or Danish, as a setting of its own, and Settings had nowhere to choose it.
-
-**What changed.** Language is the first field of the card, full width, with Currency and Date and time format side by side under it. It is a combobox, the same as Currency, with these three options in this order:
-
-- "Match my browser (English)" - the bracket names what the browser resolves to: the first of the browser's languages (`navigator.languages`) that is English or Danish, else English.
-- "English"
-- "Dansk"
-
-"English" and "Dansk" are always written in their own language, whatever language is in use. The help line under the field reads "The language Spendly's words are shown in. Currency, dates and times keep their own format."
-
-A pick applies at once, as Theme does, and is kept with Save. Language is stored apart from Currency and Date and time format: Danish money and dates with English text is a valid combination.
-
-**Where.** `Settings and import 11a`, the card and its implementation note. Phone: the card is the same on the pane's own page; its row in the Settings list is `Mobile screens 11a`. App: `react/src/pages/Settings.jsx`.
+**Where.** `emails/README.md`, the opening paragraph. Auth and first run 20f, the first note.
 
 **What is still open.** Nothing.
 
-## 2. The card is now Language and formats
+Answers `Brief-emails-in-danish.md`: a Danish version of every email, where the files live, and the Danish status subject. The words themselves are not in this package. They are taken out of the layouts and written in English and Danish by Claude Code, to the rules below.
 
-**The problem.** With Language in it, the title "Money, dates and times" no longer named what the card holds.
+## 1. One layout per email, its words in a phrase file per language
 
-**What changed.** The card's title is "LANGUAGE AND FORMATS", and the Settings section nav row and the phone's Settings list row read "Language and formats". It is still the longest label in the section nav, so the nav's 224 width and its comment hold.
+**The problem.** Every email is in English only. The server sends `design/emails` as they are, and `design:check` holds them equal to the drawn files, so the app cannot change a word. A copy of every email per language would mean two layouts to keep equal, and one more for each language added later.
 
-**Where.**
-- `Settings and import 11a`: the section nav row, the card head and the note.
-- `Mobile screens 11a`: the Settings list row.
-- `Components c22` and `c35`: the specimen rows, and the c35 note.
-- `styles/components.css`: the comment above `.sp-section-nav`. No rule changed.
-- App: `react/src/pages/Settings.jsx`, the pane's name in the section nav and on its card.
+**What changed.** Each email keeps the one layout drawn in 20f for every language. Its words move to one phrase file per language, in the ICU message format the app already uses:
+
+- `design/emails/language/en.json` and `design/emails/language/da.json`, one file per language code. The server keeps its copy beside its copy of the emails (`api/src/emails/`), as now.
+- Every class, inline style and Outlook detail stays in the layout. Words that are bold or linked inside a sentence (the address, the passkey name, "Change it in Settings", "Files in Ask") are a tag in the phrase, and the tag's markup is in the layout.
+- The subject is a phrase too, on the first line of each `.txt`, the status and conversation emails included. `<html lang>` is the email's language.
+- The merge fields and Mustache sections stay as they are. The question and the answer in a conversation email are the reader's and Spendly's own words, not phrases.
+- The layout does not change with the language: a longer Danish line wraps inside the same card, button and tile, as a long name does.
+- A further language is one new file, `emails/language/<code>.json`, and nothing in the layouts.
+
+**Where.** `emails/README.md`, Languages. Auth and first run 20f, notes "Every email is in the account's language" and "The layout does not change with the language". App: `api/src/emails/`, `api/src/lib/emails.js`, and the senders named in the brief.
 
 **What is still open.** Nothing.
 
-## 3. Decisions for the code side
+## 2. The words the server writes today move into the phrase files
 
-These were answered in this project's chat. Nothing in them needed drawing.
+**The problem.** The status and conversation emails get English sentences from the server: your_label, compare, saved_sub, count_sub, limits_heading, scope, over, last_label, difference, next_label, next_rows, orders_link, saving, bookmarks_label, the Needs a look text and action, frequency_line, quiet_heading, quiet_line, subject and preheader (`api/src/lib/statusEmail.js`), and the conversation's subject (`api/src/lib/askChat.js`). The README said "the sentences stay English".
 
-- **Before sign-in** (Sign in, Register, Reset password): the language follows the browser, by the same rule as Match my browser, and is English for any other language. These pages have no switch.
-- **How a component gets its text:** the component reads its own text from the shared language files by key. The text props a component already takes (such as `doing`, `hint`, `commit`, `kind`, `word`, `placeholder`) still override it.
-- **Numbers inside a text:** a number goes into a message already formatted by "Money, dates and times". The message's plural choice reads the raw count.
-- **Sentences built from pieces:** a sentence that splices in a word a page passes, such as `noun` in `List` and `Picker` ("Select all 5 orders on this page") or `what` in `LineEditor` ("Move the row up"), becomes whole sentences. The message then chooses between them by that word, using ICU `select`. `countOf` in `Combobox.jsx` builds "6 vendors" the same way. The brief's table does not list it, but it needs the same treatment.
-- **Danish wording:** `da.json` is left for Carsten. A key missing from `da.json` shows the English text.
-- **Storybook:** one Language switch in the toolbar (English, Dansk), for every story.
+**What changed.** These sentences become phrases, so every word of an email is in one place. The server sends only what the words need: weekly or monthly, the week numbers, month names in the email's language (mid-sentence, and with a capital where a phrase starts with one), the dates and amounts written as now, the counts, which way a comparison went (less, more, the same, no orders before), whether the budget came in under, over or as expected, and which kind each Needs a look row is (drafts, late orders, possible duplicate vendors, orders without a receipt). The README's line "the sentences stay English" is removed.
+
+In the conversation email, `currency_name` is the currency's name in the email's language: "danske kroner" in Danish.
+
+**Where.** `emails/README.md`, Languages, "Words the server writes today", and Ask conversation. Auth and first run 20f. App: `api/src/lib/statusEmail.js`, `api/src/lib/askChat.js` (`currencyName`, the subject).
+
+**What is still open.** Nothing.
+
+## 3. The Danish subjects
+
+**The problem.** The brief asks for the Danish wording of the status subject, weekly and monthly, with and without orders.
+
+**What changed.**
+
+- status, weekly: "Uge 42 i Spendly: 9.870 kr. brugt"
+- status, monthly: "September i Spendly: 61.480 kr. brugt"
+- status-quiet: "Uge 43 i Spendly: intet brugt", "September i Spendly: intet brugt"
+- ask-chat: "Din samtale i Spendly, 21. okt. 2026"
+
+The Danish words follow the app's own Danish: Indstillinger, Spørg, Filer, Statusmail, Ugentlig, Månedlig, Kræver opmærksomhed, Sparet, adgangsnøgle, totrinslogin, gendannelseskode, e-mail.
+
+**Where.** `emails/README.md`, Languages, "Subjects in Danish". Auth and first run 20f, the captions under specimens 5, 6, 7 and 11.
+
+**What is still open.** Nothing.
+
+## later.md
+
+Read on main before the task. Its one entry, Recently deleted, is an idea kept for later and is not part of this change.
 
 ## Files
 
+- `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `README.md` - the design's overview, unchanged from the project root.
-- `Settings and import.dc.html` - sections 1 and 2.
-- `Mobile screens.dc.html` - section 2, the phone's Settings row.
-- `Components.dc.html` - section 2, the c22 and c35 specimens and the c35 note.
-- `styles/components.css` - section 2, one comment.
-- `support.js`, `components.js`, `view.js`, `icons.js`, `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/settings.css`, `styles/pages/mobile-screens.css`, `styles/pages/budget.css`, `assets/two-step-qr.svg` - loaded by the three pages, unchanged from main.
+- `Auth and first run.dc.html` - 20f: the two language notes and the Danish subjects in the captions.
+- `emails/README.md` - the Languages section, the field notes it changes.
+- `emails/*` - the other email files, unchanged, which 20f loads to draw its specimens.
+- `support.js`, `components.js`, `icons.js`, `view.js` - what the page loads to open from the folder.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`, `styles/pages/auth-and-first-run.css` - the stylesheets the page links.
 
-Every file is main's `design/` copy as of 2026-10-30T08:04Z, with only the changes above.
+## styles/check.js
 
-`styles/check.js`: 0 findings across 28 pages.
+0 finding(s) across 28 pages

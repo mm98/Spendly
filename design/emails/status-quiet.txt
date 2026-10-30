@@ -1,22 +1,22 @@
-{{subject}}
+{{@statusQuiet.subject}}
 
-{{your_label}}: {{period}}
+{{@status.yourLabel}}: {{@status.period}}
 
-{{quiet_heading}}
-{{quiet_line}}
+{{@statusQuiet.heading}}
+{{@statusQuiet.line}}
 
-{{#limits_any}}{{limits_heading}}
-{{#limits}}- {{name}}: {{spent}} of {{limit}}{{scope}}, {{over}}
+{{#limits_any}}{{@status.limitsHeading}}
+{{#limits}}- {{name}}: {{@status.limitSpent}}, {{@status.limitOver}}
 {{/limits}}
-{{/limits_any}}{{#budget}}Budget
-- {{last_label}}: {{last_real}} of {{last_expected}} expected, {{difference}}
-- {{next_label}}: {{next_expected}}, {{next_rows}}
+{{/limits_any}}{{#budget}}{{@status.budget}}
+- {{@status.lastLabel}}: {{@status.lastSpent}}, {{@status.difference}}
+- {{@status.nextLabel}}: {{next_expected}}, {{@status.nextRows}}
 
-{{/budget}}{{#needs_any}}Needs a look
-{{#needs}}- {{text}}: {{url}}
+{{/budget}}{{#needs_any}}{{@status.needs}}
+{{#needs}}- {{@status.needText}}: {{url}}
 {{/needs}}
-{{/needs_any}}Open Spendly: {{app_url}}
+{{/needs_any}}{{@status.openSpendly}}: {{app_url}}
 
-{{frequency_line}}
-Change it in Settings: {{settings_url}}
-Stop these emails: {{unsubscribe_url}}
+{{@status.frequency}}
+{{@status.changeInSettings}}: {{settings_url}}
+{{@status.stopEmails}}: {{unsubscribe_url}}
