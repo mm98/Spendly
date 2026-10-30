@@ -27,19 +27,21 @@ import {
 } from '../api/client.js'
 import { NUMBER_LOCALE, currency, dot, plural, shortDate } from '../api/format.js'
 import { Bar, CategoryMark, ConfirmDelete, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const SORT_LABEL = {
-	'added-desc': 'Newest first',
-	'added-asc': 'Oldest first',
-	'price-desc': 'Price high to low',
-	'price-asc': 'Price low to high',
-	'name-asc': 'Name A - Z'
+	'added-desc': 'bookmarks.sort.addedDesc',
+	'added-asc': 'bookmarks.sort.addedAsc',
+	'price-desc': 'bookmarks.sort.priceDesc',
+	'price-asc': 'bookmarks.sort.priceAsc',
+	'name-asc': 'sort.arrow.nameAsc'
 }
 const SORTS = bookmarkSorts.map(s => ({ id: s.id, label: SORT_LABEL[s.id] ?? s.label }))
-const SHOWN = [{ value: 'open', label: 'Open' }, { value: 'archived', label: 'Archived' }]
+const SHOWN = [{ value: 'open', label: 'bookmarks.shown.open' }, { value: 'archived', label: 'library.shown.archived' }]
 const NONE = 'none'
 
 export default function Bookmarks() {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -101,8 +103,8 @@ export default function Bookmarks() {
 
 	const { used, withoutCount } = counts
 	const idOf = name => getCategoryPage({ name, pageSize: 1, shape: 'brief' }).then(r => r.categories[0]?.id, () => null)
-	const categoryName = category === NONE ? 'Without category' : chosen.data?.categories[0]?.name ?? ''
-	const sortLabel = SORTS.find(s => s.id === sort).label
+	const categoryName = category === NONE ? phrase('bookmarks.withoutCategory') : chosen.data?.categories[0]?.name ?? ''
+	const sortLabel = phrase(SORTS.find(s => s.id === sort).label)
 
 	const refresh = () => { list.refresh(); counts.refresh() }
 
@@ -117,16 +119,16 @@ export default function Bookmarks() {
 			refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
 			refresh()
 			toast({
-				message: `${bookmark.name} ${to ? 'archived' : 'is back on your list'}.`,
-				undo: { label: 'Undo', onClick: () => setBookmarkArchived(bookmark.id, !to).then(refresh) }
+				message: phrase(to ? 'bookmarks.archived' : 'bookmarks.back', { name: bookmark.name }),
+				undo: { label: phrase('action.undo'), onClick: () => setBookmarkArchived(bookmark.id, !to).then(refresh) }
 			})
 		} catch (e) {
 			if (isGone(e)) {
 				refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
 				refresh()
-				return toast({ message: `${bookmark.name} no longer exists.` })
+				return toast({ message: phrase('bookmarks.gone', { name: bookmark.name }) })
 			}
-			sayFailure(toast, e, 'That did not change. Try again.')
+			sayFailure(toast, e, phrase('library.notChanged'))
 		}
 	}
 
@@ -137,9 +139,9 @@ export default function Bookmarks() {
 			refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
 			setDeleting(null)
 			refresh()
-			toast({ message: `${bookmark.name} deleted.` })
+			toast({ message: phrase('bookmarks.deleted', { name: bookmark.name }) })
 		} catch (e) {
-			sayFailure(toast, e, 'That did not delete. Try again.')
+			sayFailure(toast, e, phrase('bookmarks.notDeleted'))
 		} finally {
 			setBusy(false)
 		}
@@ -147,7 +149,7 @@ export default function Bookmarks() {
 
 	const choose = next => () => write(next)
 	const categoryOptions = [
-		<ComboboxOption key="any" selected={!category} onSelect={choose({ category: '' })}>Any category</ComboboxOption>,
+		<ComboboxOption key="any" selected={!category} onSelect={choose({ category: '' })}>{phrase('bookmarks.anyCategory')}</ComboboxOption>,
 		used.length ? <ComboboxSeparator key="used" /> : null,
 		...used.map(c => (
 			<ComboboxOption key={c.id} selected={category === c.id} mark={<CategoryMark category={c} size="small" />} meta={c.bookmarks}
@@ -156,16 +158,16 @@ export default function Bookmarks() {
 		<MoreMatches key="more" rows={counts.page.rows} matched={counts.page.matched} noun="categories" />,
 		withoutCount > 0 ? <ComboboxSeparator key="without" /> : null,
 		withoutCount > 0
-			? <ComboboxOption key={NONE} selected={category === NONE} meta={withoutCount} onSelect={choose({ category: NONE })}>Without category</ComboboxOption>
+			? <ComboboxOption key={NONE} selected={category === NONE} meta={withoutCount} onSelect={choose({ category: NONE })}>{phrase('bookmarks.withoutCategory')}</ComboboxOption>
 			: null,
 		<ComboboxSeparator key="edit" />,
-		<ComboboxOption key="edit-categories" mark={<Icon name="pencil" size={13} />} onSelect={() => navigate('/categories')}>Edit categories</ComboboxOption>
+		<ComboboxOption key="edit-categories" mark={<Icon name="pencil" size={13} />} onSelect={() => navigate('/categories')}>{phrase('bookmarks.editCategories')}</ComboboxOption>
 	]
 
 	const sortControl = (
-		<Combobox variant={touch ? 'default' : 'sort'} aria-label="Sort" value={sortLabel} prefix={touch ? null : 'Sort'}>
+		<Combobox variant={touch ? 'default' : 'sort'} aria-label={phrase('sort.label')} value={sortLabel} prefix={touch ? null : phrase('sort.label')}>
 			{SORTS.map(s => (
-				<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => write({ sort: s.id })}>{s.label}</ComboboxOption>
+				<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => write({ sort: s.id })}>{phrase(s.label)}</ComboboxOption>
 			))}
 		</Combobox>
 	)
@@ -176,7 +178,7 @@ export default function Bookmarks() {
 	}
 	// the button says how many of the filters it holds are set (Mobile screens 7b)
 	const held = (category ? 1 : 0) + (archived ? 1 : 0)
-	const filtersLabel = held ? `Filters${dot}${held}` : 'Filters'
+	const filtersLabel = held ? `${phrase('bookmarks.filters')}${dot}${held}` : phrase('bookmarks.filters')
 	const head = touch
 		? (
 			<ListItem variant="card" ref={column}>
@@ -185,18 +187,18 @@ export default function Bookmarks() {
 				</span>
 				{sortControl}
 				<span className="sp-flex-none">
-					<Button to="/bookmarks/new" iconStart="plus" aria-label="New bookmark" />
+					<Button to="/bookmarks/new" iconStart="plus" aria-label={phrase('bookmarks.new')} />
 				</span>
 			</ListItem>
 		)
 		: (
 			<Controls ref={column}>
 				<SearchInput value={query} onChange={q => write({ q })}
-					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks" />
+					placeholder={phrase('bookmarks.search')} aria-label={phrase('bookmarks.searchLabel')} />
 				{folded
 					? <Button {...filtersButtonProps}>{filtersLabel}</Button>
 					: (
-						<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category"
+						<Combobox variant="sort" aria-label={phrase('field.category')} value={category ? categoryName : phrase('bookmarks.any')} prefix={phrase('field.category')}
 							{...(counts.searched ? { searchable: true, search: findCategory, onSearch: setFindCategory, noun: 'categories' } : {})}>
 							{categoryOptions}
 						</Combobox>
@@ -205,20 +207,20 @@ export default function Bookmarks() {
 				{folded
 					? null
 					: (
-						<Segmented name="bookmarks-shown" options={SHOWN} value={archived ? 'archived' : 'open'}
+						<Segmented name="bookmarks-shown" options={SHOWN.map(o => ({ ...o, label: phrase(o.label) }))} value={archived ? 'archived' : 'open'}
 							onChange={v => write({ archived: v === 'archived' ? 'yes' : '' })}
-							role="radiogroup" aria-label="Which bookmarks" />
+							role="radiogroup" aria-label={phrase('bookmarks.which')} />
 					)}
-				<Button to="/bookmarks/new">New bookmark</Button>
+				<Button to="/bookmarks/new">{phrase('bookmarks.new')}</Button>
 			</Controls>
 		)
 
 	// what a control not on screen holds is a crumb too: on a phone the search, and with the sheet
 	// the view switch; Clear all clears what the crumbs show
 	const crumbs = [
-		touch && query ? <Crumb key="q" name={`the search for "${query}"`} onRemove={() => write({ q: '' })}>{`"${query}"`}</Crumb> : null,
+		touch && query ? <Crumb key="q" name={phrase('bookmarks.theSearch', { query })} onRemove={() => write({ q: '' })}>{`"${query}"`}</Crumb> : null,
 		category ? <Crumb key="category" name={categoryName} onRemove={() => write({ category: '' })}>{categoryName}</Crumb> : null,
-		sheeted && archived ? <Crumb key="archived" name="Archived" onRemove={() => write({ archived: '' })}>Archived</Crumb> : null
+		sheeted && archived ? <Crumb key="archived" name={phrase('library.shown.archived')} onRemove={() => write({ archived: '' })}>{phrase('library.shown.archived')}</Crumb> : null
 	].filter(Boolean)
 	const clearCrumbs = touch ? clearAll : folded ? () => write({ category: '', archived: '' }) : () => write({ category: '' })
 
@@ -236,16 +238,16 @@ export default function Bookmarks() {
 	const data = list.data
 	let body
 	if (list.error) {
-		body = <Failed what="Your bookmarks" error={list.error} onRetry={refresh} />
+		body = <Failed what={phrase('bookmarks.yours')} error={list.error} onRetry={refresh} />
 	} else if (!data) {
 		body = <BookmarksLoading size={step} />
 	} else if (data.total === 0) {
 		body = (
 			<Card>
 				<Empty>
-					<EmptyTitle>No bookmarks yet</EmptyTitle>
-					<EmptyBody>Save the things you are thinking about buying, with a link to the shop and the price it asked.</EmptyBody>
-					<Button size="small" to="/bookmarks/new">New bookmark</Button>
+					<EmptyTitle>{phrase('bookmarks.empty.none')}</EmptyTitle>
+					<EmptyBody>{phrase('bookmarks.empty.noneBody')}</EmptyBody>
+					<Button size="small" to="/bookmarks/new">{phrase('bookmarks.new')}</Button>
 				</Empty>
 			</Card>
 		)
@@ -255,19 +257,18 @@ export default function Bookmarks() {
 		const ever = chosen.data?.categories[0]?.bookmarks ?? 0
 		const filtered = Boolean(query || category || archived)
 		const why = query && category && category !== NONE
-			? `Nothing in ${categoryName} matches "${query}". ${categoryName} holds ${plural(holds, 'bookmark')}.`
-			: query && category ? `Nothing without a category matches "${query}".`
-			: query ? `Nothing matches "${query}".`
-			: category === NONE ? `Every bookmark without a category is ${archived ? 'open' : 'archived'}.`
-			: category ? (ever ? `Every bookmark in ${categoryName} is ${archived ? 'open' : 'archived'}.` : `${categoryName} holds no bookmarks.`)
-			: archived ? 'You have not archived any bookmarks.'
-			: 'Every bookmark you have is archived.'
+			? phrase('bookmarks.why.inCategory', { category: categoryName, query, bookmarks: plural(holds, 'bookmark') })
+			: query && category ? phrase('bookmarks.why.withoutCategory', { query })
+			: query ? phrase('bookmarks.why.query', { query })
+			: category === NONE ? phrase('bookmarks.why.noneAll', { archived: String(Boolean(archived)) })
+			: category ? (ever ? phrase('bookmarks.why.categoryAll', { category: categoryName, archived: String(Boolean(archived)) }) : phrase('bookmarks.why.categoryEmpty', { category: categoryName }))
+			: phrase(archived ? 'bookmarks.why.noArchived' : 'bookmarks.why.allArchived')
 		body = (
 			<Card>
 				<Empty>
-					<EmptyTitle>No bookmarks match these filters</EmptyTitle>
+					<EmptyTitle>{phrase('bookmarks.empty.filtered')}</EmptyTitle>
 					<EmptyBody>{why}</EmptyBody>
-					{filtered ? <Button variant="outline" size="small" onClick={clearAll}>Clear filters</Button> : null}
+					{filtered ? <Button variant="outline" size="small" onClick={clearAll}>{phrase('bookmarks.clearFilters')}</Button> : null}
 				</Empty>
 			</Card>
 		)
@@ -285,11 +286,11 @@ export default function Bookmarks() {
 							onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}
 							onLongPress={() => setMenuFor(bookmark.id)}
 							href={href ?? undefined}
-							hrefLabel={href ? `Open ${bookmark.name} at ${site}` : undefined}
+							hrefLabel={href ? phrase('bookmarks.openAt', { name: bookmark.name, site }) : undefined}
 							photos={bookmark.photoId
 								? [<img key="p" src={(touch ? bookmarkPhotoLightUrl : bookmarkPhotoWideUrl)(bookmark.id, bookmark.photoId)} alt="" loading="lazy" />]
 								: []}
-							empty="No picture"
+							empty={phrase('bookmarks.noPicture')}
 							title={bookmark.name}
 							subtitle={site}
 							headChips
@@ -297,27 +298,27 @@ export default function Bookmarks() {
 								? [
 									<Chip key={bookmark.categories[0]} onClick={() => idOf(bookmark.categories[0]).then(id => { if (id && id !== category) write({ category: id }) })}>{bookmark.categories[0]}</Chip>,
 									bookmark.categories.length > 1
-										? <Chip key="more" aria-label={`Also ${bookmark.categories.slice(1).join(', ')}`}>{`+${bookmark.categories.length - 1}`}</Chip>
+										? <Chip key="more" aria-label={phrase('bookmarks.also', { names: bookmark.categories.slice(1).join(', ') })}>{`+${bookmark.categories.length - 1}`}</Chip>
 										: null
 								]
 								: undefined}
-							meta={<span className="sp-subtitle">Added {shortDate(bookmark.createdAt)}</span>}
+							meta={<span className="sp-subtitle">{phrase('bookmarks.added', { date: shortDate(bookmark.createdAt) })}</span>}
 							amount={bookmark.price != null ? currency(bookmark.price, 0) : null}
 							menu={{
 								open,
-								label: `Bookmark menu, ${bookmark.name}`,
+								label: phrase('bookmarks.menu', { name: bookmark.name }),
 								onToggle: () => setMenuFor(open ? null : bookmark.id),
 								onClose: closeMenus,
 								children: open
 									? (
-										<Menu position="floating" aria-label={`${bookmark.name} actions`}>
+										<Menu position="floating" aria-label={phrase('bookmarks.actions', { name: bookmark.name })}>
 											{href
-												? <MenuItem icon="external-link" title={new URL(href).hostname} onClick={() => { closeMenus(); window.open(href, '_blank', 'noopener') }}><span>Open at {site}</span></MenuItem>
+												? <MenuItem icon="external-link" title={new URL(href).hostname} onClick={() => { closeMenus(); window.open(href, '_blank', 'noopener') }}><span>{phrase('bookmarks.openAtSite', { site })}</span></MenuItem>
 												: null}
-											<MenuItem icon="pencil" onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}>Edit bookmark</MenuItem>
-											<MenuItem icon="archive" onClick={() => archive(bookmark, !bookmark.archived)}>{bookmark.archived ? 'Unarchive' : 'Archive'}</MenuItem>
+											<MenuItem icon="pencil" onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}>{phrase('bookmarks.edit')}</MenuItem>
+											<MenuItem icon="archive" onClick={() => archive(bookmark, !bookmark.archived)}>{phrase(bookmark.archived ? 'library.unarchive' : 'library.archive')}</MenuItem>
 											<MenuSeparator />
-											<MenuItem icon="trash" danger onClick={() => { closeMenus(); setDeleting(bookmark) }}>Delete bookmark</MenuItem>
+											<MenuItem icon="trash" danger onClick={() => { closeMenus(); setDeleting(bookmark) }}>{phrase('bookmarks.delete')}</MenuItem>
 										</Menu>
 									)
 									: null
@@ -337,7 +338,7 @@ export default function Bookmarks() {
 			<Leaving>{sheet}</Leaving>
 			<Leaving>{deleting
 				? (
-					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete bookmark" busy={busy}
+					<ConfirmDelete title={phrase('library.deleteTitle', { name: deleting.name })} action={phrase('bookmarks.delete')} busy={busy}
 						onConfirm={() => remove(deleting)} onCancel={() => setDeleting(null)}>
 						{bookmarkDeleteNote(deleting)}
 					</ConfirmDelete>
@@ -349,6 +350,7 @@ export default function Bookmarks() {
 
 /** The phone's filters (Mobile screens 22a, c12): a sheet over the list, applied together. */
 function FilterSheet({ draft, setDraft, onClose, onApply }) {
+	const phrase = usePhrase()
 	// the categories of the view the sheet is set to, which can differ from the list behind it
 	const [find, setFind] = useState('')
 	const { used, withoutCount, page, searched } = useCategoryCounts(draft.archived, find)
@@ -357,24 +359,24 @@ function FilterSheet({ draft, setDraft, onClose, onApply }) {
 	useFocusTrap(box)
 	const pick = next => setDraft(d => ({ ...d, ...next }))
 	return (
-		<Sheet role="dialog" aria-modal="true" aria-label="Filters" ref={box}
+		<Sheet role="dialog" aria-modal="true" aria-label={phrase('bookmarks.filters')} ref={box}
 			onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
-			<span className="sp-heading">Filters</span>
-			<FieldGroup facet legend="Show">
-				<Segmented name="bookmarks-shown-sheet" options={SHOWN} value={draft.archived ? 'archived' : 'open'}
-					onChange={v => pick({ archived: v === 'archived' })} role="radiogroup" aria-label="Which bookmarks" />
+			<span className="sp-heading">{phrase('bookmarks.filters')}</span>
+			<FieldGroup facet legend={phrase('bookmarks.show')}>
+				<Segmented name="bookmarks-shown-sheet" options={SHOWN.map(o => ({ ...o, label: phrase(o.label) }))} value={draft.archived ? 'archived' : 'open'}
+					onChange={v => pick({ archived: v === 'archived' })} role="radiogroup" aria-label={phrase('bookmarks.which')} />
 			</FieldGroup>
 			{used.length || withoutCount || find
 				? (
-					<FieldGroup facet legend="Category">
-						{searched ? <SearchInput value={find} onChange={setFind} placeholder="Find a category…" aria-label="Find a category" /> : null}
+					<FieldGroup facet legend={phrase('field.category')}>
+						{searched ? <SearchInput value={find} onChange={setFind} placeholder={phrase('bookmarks.findCategory')} aria-label={phrase('bookmarks.findCategoryLabel')} /> : null}
 						<Filters>
 							{used.map(c => (
 								<Chip key={c.id} variant="facet" value={c.id} selected={draft.category === c.id}
 									onSelect={on => pick({ category: on ? c.id : '' })}>{c.name}</Chip>
 							))}
 							{withoutCount
-								? <Chip variant="facet" value={NONE} selected={draft.category === NONE} onSelect={on => pick({ category: on ? NONE : '' })}>Without category</Chip>
+								? <Chip variant="facet" value={NONE} selected={draft.category === NONE} onSelect={on => pick({ category: on ? NONE : '' })}>{phrase('bookmarks.withoutCategory')}</Chip>
 								: null}
 						</Filters>
 						{moreText(page.rows, page.matched, 'categories') ? <span className="sp-subtitle">{moreText(page.rows, page.matched, 'categories')}</span> : null}
@@ -382,8 +384,8 @@ function FilterSheet({ draft, setDraft, onClose, onApply }) {
 				)
 				: null}
 			<div className="sp-row-flex sp-gap-8">
-				<Button variant="outline" size="small" onClick={() => pick({ category: '', archived: false })}>Clear all</Button>
-				<Button size="small" onClick={onApply}>Apply</Button>
+				<Button variant="outline" size="small" onClick={() => pick({ category: '', archived: false })}>{phrase('list.clearAll')}</Button>
+				<Button size="small" onClick={onApply}>{phrase('action.apply')}</Button>
 			</div>
 		</Sheet>
 	)
@@ -403,8 +405,9 @@ const LOADING_WIDTHS = [['62pc', '44pc'], ['48pc', '36pc'], ['55pc', '30pc']]
 
 /* A page of cards held at the loaded cards' size (6b), so nothing moves when the bookmarks land. */
 function BookmarksLoading({ size }) {
+	const phrase = usePhrase()
 	return (
-		<List body="cards" aria-busy="true" aria-label="Loading your bookmarks">
+		<List body="cards" aria-busy="true" aria-label={phrase('bookmarks.loading')}>
 			{Array.from({ length: size }, (_, i) => {
 				const [title, shop] = LOADING_WIDTHS[i % LOADING_WIDTHS.length]
 				return (
@@ -412,7 +415,7 @@ function BookmarksLoading({ size }) {
 						title={<Bar role="sp-title" w={title} h="13" />}
 						subtitle={<Bar role="sp-subtitle" w={shop} h="11" />}
 						headChips
-						chips={<Held shape={<Chip onClick={noop}>Decor</Chip>} />}
+						chips={<Held shape={<Chip onClick={noop}>{phrase('bookmarks.sampleCategory')}</Chip>} />}
 						meta={<Bar role="sp-subtitle" w="96" h="11" />}
 						amount={<Bar role="sp-amount" w="64" h="20" end />} />
 				)

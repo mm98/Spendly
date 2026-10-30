@@ -29,9 +29,11 @@ import {
 	CategoryTokens, CommitBar, ConfirmDelete, EndLoading, GoneNotice, MergeButton, MergeDialog, MergePicker, RecentLoading, RecentOrders, RecordPage, SWATCHES,
 	SummaryLoading, archiveVendor, deleteNote, focusFirst, hold, isGone, pickedColour, sayFailure, storedColour, useLeaveGuard
 } from './vendorsCategories.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** A vendor, created (5b) or edited (5c): one page, one form, one rail. */
 export default function VendorForm() {
+	const phrase = usePhrase()
 	const { id } = useParams()
 	// once deleted or merged, that record is not read again (the page is on its way out); another one is
 	const [gone, setGone] = useState(null)
@@ -42,8 +44,8 @@ export default function VendorForm() {
 	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed what="This vendor" error={record.error} onRetry={record.refresh}
-					back={{ to: list, label: 'Open Vendors' }} />
+				<Failed what={phrase('vendor.this')} error={record.error} onRetry={record.refresh}
+					back={{ to: list, label: phrase('vendor.openList') }} />
 			</div>
 		)
 		return <VendorFields key="loading" vendor={LOADING} loading loadingId={id} onGone={going} />
@@ -58,6 +60,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
 
 function VendorFields({ vendor, loading = false, loadingId, onGone }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const list = useListReturn('vendors')
@@ -120,12 +123,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// the other vendor a name already files under, compared as receipts are matched (5h); none when it cannot be asked
 	const owner = text => getVendorPage({ name: text, except: vendor?.id, pageSize: 1 }).then(r => r.vendors[0] ?? null, () => null)
 	const nameProblem = async name => {
-		if (!name.trim()) return 'Give the vendor a name.'
+		if (!name.trim()) return phrase('vendor.nameMissing')
 		const taken = await owner(name)
 		if (!taken) return null
 		return vendorKey(taken.name) === vendorKey(name)
-			? lower(taken.name) === lower(name) ? `You already have a vendor called ${taken.name}.` : `${taken.name} already has that name. Pick a different name.`
-			: `Another vendor, ${taken.name}, already matches "${name.trim()}". Pick a different name.`
+			? phrase(lower(taken.name) === lower(name) ? 'vendor.nameTaken' : 'vendor.nameSame', { name: taken.name })
+			: phrase('vendor.nameMatched', { name: taken.name, typed: name.trim() })
 	}
 	// on leaving the field: the vendor most like this one, when the two look like one shop (5j)
 	const lookAlike = async name => {
@@ -149,9 +152,9 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	   stopped where it is typed: another vendor's alias can be moved here, its name cannot. */
 	const refusal = async alias => {
 		const taken = await owner(alias)
-		if (taken && vendorKey(taken.name) === vendorKey(alias)) return { message: `Another vendor is called ${taken.name}. Pick a different one.` }
-		if (taken) return { message: `${taken.name} already matches "${alias}". Move it here, or pick a different one.`, offer: { alias, holder: taken } }
-		if (vendorKey(alias) === vendorKey(values.name)) return { message: `"${alias}" already matches ${values.name.trim()}. Capitals, punctuation and endings like Inc or ApS do not count.` }
+		if (taken && vendorKey(taken.name) === vendorKey(alias)) return { message: phrase('vendor.alias.isName', { name: taken.name }) }
+		if (taken) return { message: phrase('vendor.alias.held', { name: taken.name, alias }), offer: { alias, holder: taken } }
+		if (vendorKey(alias) === vendorKey(values.name)) return { message: phrase('vendor.alias.same', { alias, name: values.name.trim() }) }
 		return null
 	}
 	// several names arrive at once from a pasted list: each is checked, and the first refused one is shown
@@ -196,10 +199,10 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		// the image follows the vendor it belongs to; a refusal there keeps the vendor and says why
 		const sendImage = saved => (image.file
 			? putVendorImage(saved.id, image.file).then(() => null, e => (e.status === 400
-				? `${saved.name} was saved without its image. ${refusalOf(e.body?.reason).help}`
-				: `${saved.name} was saved, but its image did not upload. Open the vendor and add it again.`))
+				? phrase('vendor.image.refused', { name: saved.name, help: refusalOf(e.body?.reason).help })
+				: phrase('vendor.image.notSent', { name: saved.name })))
 			: image.drop
-				? removeVendorImage(saved.id).then(() => null, () => `${saved.name} was saved, but its image was not removed. Try again.`)
+				? removeVendorImage(saved.id).then(() => null, () => phrase('vendor.image.notRemoved', { name: saved.name }))
 				: Promise.resolve(null))
 		written
 			.then(async saved => {
@@ -215,7 +218,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				writing.current = false
 				setSaving(false)
 				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
-				const message = failureMessage(e, 'The vendor was not saved. Check the connection and try again.')
+				const message = failureMessage(e, phrase('vendor.notSaved'))
 				if (!message) return
 				const about = !e?.status || e.status >= 500 ? null
 					: message.startsWith(`You already have a vendor called ${name}.`) || message.endsWith('Pick a different name.')
@@ -239,7 +242,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			.catch(e => {
 				setBusy(false)
 				if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
-				sayFailure(toast, e, 'That did not change. Try again.')
+				sayFailure(toast, e, phrase('library.notChanged'))
 			})
 	}
 
@@ -251,13 +254,13 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			.then(() => {
 				invalidateVendorData()
 				invalidateCategoryData()
-				toast({ message: `${vendor.name} is merged into ${target.name}.` })
+				toast({ message: phrase('library.merged', { source: vendor.name, target: target.name }) })
 				leave()
 			})
 			.catch(e => {
 				setBusy(false)
 				onGone(false)
-				sayFailure(toast, e, 'The vendors were not merged. Try again.')
+				sayFailure(toast, e, phrase('vendors.notMerged'))
 			})
 	}
 
@@ -274,7 +277,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			.catch(e => {
 				setBusy(false)
 				onGone(false)
-				sayFailure(toast, e, 'The vendor was not deleted. Try again.')
+				sayFailure(toast, e, phrase('vendors.notDeleted'))
 			})
 	}
 
@@ -283,70 +286,69 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const cards = (
 		<>
 			<Card>
-				<CardHeader name="The vendor" />
-				<Field id="vendor-name" label="Name"
-					message={errors.name ?? (editing ? undefined : 'The name you will recognise in a list. Receipts can spell it differently.')}
+				<CardHeader name={phrase('vendor.card.vendor')} />
+				<Field id="vendor-name" label={phrase('field.name')}
+					message={errors.name ?? (editing ? undefined : phrase('vendor.nameHelp'))}
 					messageType={errors.name ? 'danger' : 'hint'}>
 					{h(<TextField value={values.name} autoFocus={!touch} onChange={v => { set('name', v); setClose(null) }}
 						onBlur={checkName}
-						placeholder={editing ? undefined : 'Where you bought it'} />)}
+						placeholder={editing ? undefined : phrase('vendor.namePlaceholder')} />)}
 				</Field>
 				{close
 					? (
-						<Alert color="warning" mark="!" action={<Button variant="outline" size="small" to={`/vendors/${close.id}/edit`}>Open {close.name}</Button>}>
-							You already have {close.name}, a name very like this one. If it is the same shop, use that vendor instead.
+						<Alert color="warning" mark="!" action={<Button variant="outline" size="small" to={`/vendors/${close.id}/edit`}>{phrase('vendor.openNamed', { name: close.name })}</Button>}>
+							{phrase('vendor.close', { name: close.name })}
 						</Alert>
 					)
 					: null}
-				<Field id="vendor-image" label="Image"
-					message={image.problem?.help ?? (image.src ? 'Shown on this vendor\'s orders that have no item photo.'
-						: 'Shown on this vendor\'s orders that have no item photo. A logo, the shop, anything you know it by.')}
+				<Field id="vendor-image" label={phrase('vendor.image')}
+					message={image.problem?.help ?? phrase(image.src ? 'vendor.imageHelp' : 'vendor.imageHelpEmpty')}
 					messageType={image.problem ? 'danger' : 'hint'}>
-					{h(<Slot start size="large" kind={null} name="the image" accept={VENDOR_IMAGE_TYPES}
+					{h(<Slot start size="large" kind={null} name={phrase('vendor.theImage')} accept={VENDOR_IMAGE_TYPES}
 						src={image.src} problem={image.problem?.banner} inspect={() => null} onFile={takeImage} onRemove={removeImage} />)}
 				</Field>
 			</Card>
 
 			<Card>
-				<CardHeader name="Aliases" />
-				<Field id="vendor-aliases" label="Also matches"
+				<CardHeader name={phrase('library.aliases')} />
+				<Field id="vendor-aliases" label={phrase('vendor.alsoMatches')}
 					message={errors.aliases ?? (fromScan && !editing && values.aliases.includes(fromScan.name)
-						? 'Other names this vendor uses on receipts. The name the scan read is already here - keep it so the next receipt files itself.'
-						: 'Other names this vendor uses on receipts. Capitals, punctuation and endings like Inc or ApS do not count.')}
+						? phrase('vendor.aliasesHelpScan')
+						: phrase('vendor.aliasesHelp'))}
 					messageType={errors.aliases ? 'danger' : 'hint'}
 					after={offer
 						? (
 							<div className="sp-row-flex sp-gap-8">
-								<Button variant="outline" size="small" onClick={moveHere}>Move it here</Button>
-								<Button variant="outline" size="small" onClick={keepThere}>Keep it on {offer.holder.name}</Button>
+								<Button variant="outline" size="small" onClick={moveHere}>{phrase('vendor.moveHere')}</Button>
+								<Button variant="outline" size="small" onClick={keepThere}>{phrase('vendor.keepOn', { name: offer.holder.name })}</Button>
 							</div>
 						)
 						: null}>
-					{h(<Combobox multiple value={values.aliases} onChange={changeAliases} placeholder="Add…" aria-label="Add a name" marked={marked} />)}
+					{h(<Combobox multiple value={values.aliases} onChange={changeAliases} placeholder={phrase('library.tokens.placeholder')} aria-label={phrase('vendor.addName')} marked={marked} />)}
 				</Field>
-				<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">
+				<Field label={phrase('vendor.colour')} message={phrase('vendor.colourHelp')}>
 					{h(<Picker swatches={Object.keys(SWATCHES)} custom customIcon={<Icon name="plus" />}
 						value={values.colour} onChange={v => set('colour', v)} />)}
 				</Field>
-				<Choice variant="described" description="Leads the list wherever you pick a vendor."
+				<Choice variant="described" description={phrase('vendor.favouriteHelp')}
 					control={h(<Check checked={values.favourite} onChange={ev => set('favourite', ev.target.checked)} />)}>
-					Favourite
+					{phrase('vendor.favourite')}
 				</Choice>
 			</Card>
 
 			<Card>
-				<CardHeader name="Defaults for its orders" />
-				<Field id="vendor-defaults" label="Default categories"
-					message="Suggested on a new order from this vendor. Not applied automatically.">
-					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />)}
+				<CardHeader name={phrase('vendor.defaults')} />
+				<Field id="vendor-defaults" label={phrase('vendor.defaultCategories')}
+					message={phrase('vendor.defaultCategoriesHelp')}>
+					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder={phrase('vendors.none')} />)}
 				</Field>
 				<div className="sp-field">
 					<label className="sp-row-flex sp-gap-12">
 						{h(<Switch id={statsSwitch} aria-describedby={`${statsSwitch}-help`} checked={values.defaultExcludeFromStats}
 							onChange={ev => set('defaultExcludeFromStats', ev.target.checked)} />)}
-						<span className="sp-data">Leave out of statistics</span>
+						<span className="sp-data">{phrase('form.leaveOut')}</span>
 					</label>
-					<span className="sp-field__help" id={`${statsSwitch}-help`}>For a vendor of one-off purchases, like a car dealer. A new order from this vendor starts with Leave out of statistics on, and you can still change it on the order.</span>
+					<span className="sp-field__help" id={`${statsSwitch}-help`}>{phrase('vendor.leaveOutHelp')}</span>
 				</div>
 			</Card>
 		</>
@@ -355,8 +357,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
 	const bar = touch || !editing || changed
 		? (
-			<CommitBar status={!editing ? 'Nothing saved yet' : changed ? 'Unsaved changes' : null} quiet={!editing}
-				onCancel={() => navigate(fromScan && !editing ? fromScan.to : list)} onSave={lost ? null : save} commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save vendor' : 'Create'}
+			<CommitBar status={!editing ? phrase('form.state.nothingYet') : changed ? phrase('form.state.unsaved') : null} quiet={!editing}
+				onCancel={() => navigate(fromScan && !editing ? fromScan.to : list)} onSave={lost ? null : save} commit={phrase(touch ? (editing ? 'action.save' : 'action.create') : editing ? 'vendor.save' : 'action.create')}
 				saving={saving} disabled={loading} />
 		)
 		: null
@@ -368,12 +370,12 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const rail = loading
 		? (
 			<>
-				<SummaryLoading label="Vendor summary" sums={[['Spend this year', '76'], ['Median order', '76'], ['Saved', '76'], ['Returned', '64']]}
-					action="See more in statistics" />
+				<SummaryLoading label={phrase('vendor.summary')} sums={[[phrase('vendor.spendYear'), '76'], [phrase('vendor.median'), '76'], [phrase('vendor.saved'), '76'], [phrase('vendor.returned'), '64']]}
+					action={phrase('library.seeMoreStatistics')} />
 				{!known || known.orders ? <RecentLoading /> : null}
-				<EndLoading label="End of its life" title={end.title} body={end.body}
-					action={<Button variant="outline">{known?.archived ? 'Unarchive' : 'Archive vendor'}</Button>}
-					after={<Button variant="outline" size="small" fullWidth>Merge into…</Button>} />
+				<EndLoading label={phrase('vendor.end')} title={end.title} body={end.body}
+					action={<Button variant="outline">{known?.archived ? 'Unarchive' : phrase('vendor.archive')}</Button>}
+					after={<Button variant="outline" size="small" fullWidth>{phrase('library.mergeInto')}</Button>} />
 			</>
 		)
 		: editing
@@ -392,30 +394,30 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			)
 			: (
 				<Card>
-					<CardHeader name="Vendor summary" />
+					<CardHeader name={phrase('vendor.summary')} />
 					<div className="sp-row-flex sp-gap-12">
-						<VendorMark name={name || 'New vendor'} colour={storedColour(values.colour)} />
+						<VendorMark name={name || phrase('vendors.new')} colour={storedColour(values.colour)} />
 						<Stacked>
-							<span className="sp-title sp-truncate">{name || 'New vendor'}</span>
-							<span className="sp-meta">Nothing saved yet</span>
+							<span className="sp-title sp-truncate">{name || phrase('vendors.new')}</span>
+							<span className="sp-meta">{phrase('form.state.nothingYet')}</span>
 						</Stacked>
 					</div>
 					<div className="sp-stack">
-						<Sum value={name || '-'}>Name</Sum>
-						<Sum value={values.aliases.length}>Aliases</Sum>
-						<Sum value={values.defaultCategories.length}>Default categories</Sum>
+						<Sum value={name || '-'}>{phrase('field.name')}</Sum>
+						<Sum value={values.aliases.length}>{phrase('library.aliases')}</Sum>
+						<Sum value={values.defaultCategories.length}>{phrase('vendor.defaultCategories')}</Sum>
 					</div>
 				</Card>
 			)
 
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Vendors' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: phrase('vendor.openList') }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			<Leaving>{guard.prompt}</Leaving>
 			<Leaving>{deleting
 				? (
-					<ConfirmDelete title={`Delete ${vendor.name}?`} action="Delete vendor" busy={busy}
+					<ConfirmDelete title={phrase('library.deleteTitle', { name: vendor.name })} action={phrase('vendors.delete')} busy={busy}
 						onConfirm={remove} onCancel={() => setDeleting(false)}>
 						{deleteNote(vendor)}
 					</ConfirmDelete>
@@ -431,31 +433,28 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 /** What the end-of-life card says (5c): archiving always works and can be undone; only a vendor
     with no orders can be deleted. */
 const endWords = ({ orders, archived = false }) => {
-	if (archived) return {
-		title: 'This vendor is archived',
-		body: orders
-			? `It is out of the vendor list and the order list's filters. Its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} it as their vendor.`
-			: 'It is out of the vendor list and the order list\'s filters. Deleting removes it outright.'
-	}
+	const counted = { orders: plural(orders, 'order'), count: orders }
+	if (archived) return { title: phrase('vendor.end.archived'), body: phrase('vendor.end.archivedBody', counted) }
 	return orders
-		? { title: 'A vendor with orders cannot be deleted', body: `Every order must name a vendor, so its ${plural(orders, 'order')} ${orders === 1 ? 'keeps' : 'keep'} this one. Archiving takes it out of the list and the order list's filters, and leaves the orders as they are. If it is the same shop as another vendor, merge it into that one.` }
-		: { title: 'Nothing points at this vendor any more', body: 'Archiving keeps it out of the way; deleting removes it outright.' }
+		? { title: phrase('vendor.end.hasOrders'), body: phrase('vendor.end.hasOrdersBody', counted) }
+		: { title: phrase('vendor.end.free'), body: phrase('vendor.end.freeBody') }
 }
 
 /** The end-of-life card (5c): Archive, or Unarchive once archived, and Delete at zero orders; under
     them Merge into… (5d), whose picker `merge` holds. */
 function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
+	const phrase = usePhrase()
 	const { title, body } = endWords(vendor)
 	const footer = [
 		vendor.archived
-			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>Unarchive</Button>
-			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>Archive vendor</Button>,
-		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>Delete</Button>
+			? <Button key="archive" variant="outline" disabled={busy} onClick={onUnarchive}>{phrase('library.unarchive')}</Button>
+			: <Button key="archive" variant="outline" disabled={busy} onClick={onArchive}>{phrase('vendor.archive')}</Button>,
+		vendor.orders ? null : <Button key="delete" color="danger" onClick={onDelete}>{phrase('action.delete')}</Button>
 	].filter(Boolean)
 	return (
 		<Card footer={footer} footerLayout={footer.length > 1 ? 'split' : 'fill'} footerCommits
-			after={<MergeButton merge={merge} size="small" disabled={busy}>Merge into…</MergeButton>}>
-			<CardHeader name="End of its life" />
+			after={<MergeButton merge={merge} size="small" disabled={busy}>{phrase('library.mergeInto')}</MergeButton>}>
+			<CardHeader name={phrase('vendor.end')} />
 			<Well>
 				<span className="sp-title">{title}</span>
 				<span className="sp-subtitle">{body}</span>
@@ -466,6 +465,7 @@ function EndOfLife({ vendor, busy, onArchive, onUnarchive, onDelete, merge }) {
 
 /** What the vendor has cost, beside the fields that describe it (5c). */
 function VendorSummary({ vendor, name, colour }) {
+	const phrase = usePhrase()
 	const year = useApi(getVendorYear, [vendor.id])
 	const { keyOf } = useStatusTypes()
 	const returnedKey = keyOf('returned')
@@ -473,21 +473,21 @@ function VendorSummary({ vendor, name, colour }) {
 	const thisYear = year.data ?? null
 	return (
 		<Card>
-			<CardHeader name="Vendor summary" />
+			<CardHeader name={phrase('vendor.summary')} />
 			<div className="sp-row-flex sp-gap-12">
 				<VendorMark name={name} colour={colour} />
 				<Stacked>
 					<span className="sp-title sp-truncate">{name}</span>
-					<span className="sp-meta sp-truncate">{plural(vendor.orders, 'order')}{vendor.createdByScan ? `${dot}created by receipt scan` : null}</span>
+					<span className="sp-meta sp-truncate">{plural(vendor.orders, 'order')}{vendor.createdByScan ? <>{dot}{phrase('vendors.byScan')}</> : null}</span>
 				</Stacked>
 			</div>
 			<div className="sp-stack">
-				<Sum value={thisYear === null ? '' : currency(thisYear.amount, 0)}>Spend this year</Sum>
-				<Sum value={thisYear === null ? '' : currency(thisYear.median, 0)}>Median order</Sum>
-				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>Saved</Sum>
-				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
+				<Sum value={thisYear === null ? '' : currency(thisYear.amount, 0)}>{phrase('vendor.spendYear')}</Sum>
+				<Sum value={thisYear === null ? '' : currency(thisYear.median, 0)}>{phrase('vendor.median')}</Sum>
+				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>{phrase('vendor.saved')}</Sum>
+				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>{phrase('vendor.returned')}</Sum>
 			</div>
-			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>See more in statistics</Button>
+			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>{phrase('library.seeMoreStatistics')}</Button>
 		</Card>
 	)
 }

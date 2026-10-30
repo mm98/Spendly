@@ -90,6 +90,8 @@ const visit = (node, at) => {
 			if (Array.isArray(n)) return n.forEach(collect)
 			// a call, a key looked up or a value compared is code, not words on screen
 			if (n.type === 'CallExpression' || n.type === 'BinaryExpression') return
+			// an element drawn in the attribute is read as any other element is
+			if (n.type === 'JSXElement' || n.type === 'JSXFragment') return visit(n, at)
 			if (n.type === 'MemberExpression') return collect(n.object)
 			if (n.type === 'Literal' && typeof n.value === 'string' && words(n.value)) strings.push(n.value)
 			if (n.type === 'TemplateLiteral' && n.quasis.some(q => words(q.value.cooked))) strings.push(n.quasis.map(q => q.value.cooked).join('…'))

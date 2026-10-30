@@ -22,12 +22,14 @@ import { useListReturn } from '../app/listMemory.js'
 import {
 	CategoryTokens, CommitBar, ConfirmDelete, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
 } from './vendorsCategories.jsx'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const rule = name => BOOKMARK_FIELDS.find(f => f.name === name).check
 const checks = { url: rule('bookmark-url'), name: rule('bookmark-name') }
 const lower = list => list.map(n => n.toLowerCase()).sort().join('\n')
 
 export default function BookmarkForm() {
+	const phrase = usePhrase()
 	const { id } = useParams()
 	// once deleted, the record is not read again: the page is on its way out
 	const [gone, setGone] = useState(false)
@@ -37,8 +39,8 @@ export default function BookmarkForm() {
 	if (id && existing.data?.id !== id) {
 		if (existing.error) return (
 			<div className="sp-stack sp-gap-12">
-				<Failed what="This bookmark" error={existing.error} onRetry={existing.refresh}
-					back={{ to: list, label: 'Open Bookmarks' }} />
+				<Failed what={phrase('bookmark.this')} error={existing.error} onRetry={existing.refresh}
+					back={{ to: list, label: phrase('bookmark.openList') }} />
 			</div>
 		)
 		return <BookmarkFields key="loading" bookmark={LOADING} loading onGone={setGone} />
@@ -50,6 +52,7 @@ export default function BookmarkForm() {
 const LOADING = { id: null, url: '', name: '', price: null, categories: [], archived: false, photoId: null, createdAt: null }
 
 function BookmarkFields({ bookmark, loading = false, onGone }) {
+	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
 	const editing = Boolean(bookmark)
@@ -131,12 +134,12 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			if (picked) await addBookmarkPhoto(saved.id, picked.file)
 			else if (cleared && bookmark?.photoId) await removeBookmarkPhoto(saved.id)
 			else if (offered) await addBookmarkPhotoFromUrl(saved.id, offered.address)
-			if (!editing) toast({ message: `${saved.name} added.` })
+			if (!editing) toast({ message: phrase('bookmark.addedToast', { name: saved.name }) })
 			leave()
 		} catch (e) {
 			setSaving(false)
 			if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
-			sayFailure(toast, e, 'That did not save. Try again.')
+			sayFailure(toast, e, phrase('bookmark.notSaved'))
 		}
 	}
 
@@ -145,13 +148,13 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			await setBookmarkArchived(bookmark.id, !archived)
 			setArchived(!archived)
 			toast({
-				message: `${bookmark.name} ${archived ? 'is back on your list' : 'archived'}.`,
-				undo: { label: 'Undo', onClick: () => setBookmarkArchived(bookmark.id, archived) }
+				message: phrase(archived ? 'bookmarks.back' : 'bookmarks.archived', { name: bookmark.name }),
+				undo: { label: phrase('action.undo'), onClick: () => setBookmarkArchived(bookmark.id, archived) }
 			})
 			leave()
 		} catch (e) {
 			if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
-			sayFailure(toast, e, 'That did not change. Try again.')
+			sayFailure(toast, e, phrase('library.notChanged'))
 		}
 	}
 
@@ -160,13 +163,13 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 		onGone(true)
 		try {
 			await deleteBookmark(bookmark.id).catch(e => { if (!isGone(e)) throw e })
-			toast({ message: `${bookmark.name} deleted.` })
+			toast({ message: phrase('bookmarks.deleted', { name: bookmark.name }) })
 			leave()
 		} catch (e) {
 			onGone(false)
 			setBusy(false)
 			setConfirming(false)
-			sayFailure(toast, e, 'That did not delete. Try again.')
+			sayFailure(toast, e, phrase('bookmarks.notDeleted'))
 		}
 	}
 
@@ -183,13 +186,13 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 				choose(file)
 			}}
 		>
-			<CardHeader name="The bookmark" />
-			<Field label="Picture" id="bookmark-picture">
-				{h(<Slot start src={picture} kind="Photo" name="the picture" onFile={choose}
+			<CardHeader name={phrase('bookmark.card')} />
+			<Field label={phrase('bookmark.picture')} id="bookmark-picture">
+				{h(<Slot start src={picture} kind={phrase('slot.photo')} name={phrase('bookmark.thePicture')} onFile={choose}
 					onRemove={() => { setPicked(null); setOffered(null); setCleared(true) }} />)}
 			</Field>
-			<Field label="Link" id="bookmark-url"
-				message={errors.url || (editing ? 'The page you would buy it on.' : 'Paste the address first. The name and picture are taken from the page.')}
+			<Field label={phrase('bookmark.link')} id="bookmark-url"
+				message={errors.url || phrase(editing ? 'bookmark.linkHelp' : 'bookmark.linkHelpNew')}
 				messageType={errors.url ? 'danger' : 'hint'}>
 				{h(<TextField value={url} inputMode="url" autoFocus={!touch}
 					onChange={setUrl}
@@ -202,14 +205,14 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 						setUrl(clean)
 					}} />)}
 			</Field>
-			<Field label="Name" id="bookmark-name" message={errors.name || undefined} messageType={errors.name ? 'danger' : 'hint'}>
+			<Field label={phrase('field.name')} id="bookmark-name" message={errors.name || undefined} messageType={errors.name ? 'danger' : 'hint'}>
 				{h(<TextField value={name} onChange={setName} onBlur={ev => mark('name', ev.target.value)} />)}
 			</Field>
 			<div className="sp-fields">
-				<Field label="Price" id="bookmark-price" unit={currencySymbol()} message="Leave it empty if you have not looked it up.">
+				<Field label={phrase('bookmark.price')} id="bookmark-price" unit={currencySymbol()} message={phrase('bookmark.priceHelp')}>
 					{h(<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale={NUMBER_LOCALE} />)}
 				</Field>
-				<Field label="Categories" id="bookmark-categories" message="Type a name that is not on the list to add a new category.">
+				<Field label={phrase('field.categories')} id="bookmark-categories" message={phrase('bookmark.categoriesHelp')}>
 					{h(<CategoryTokens value={chosen} onChange={setChosen} />)}
 				</Field>
 			</div>
@@ -217,30 +220,30 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	)
 	const summaryCard = (
 		<Card>
-			<CardHeader name="Bookmark summary" />
+			<CardHeader name={phrase('bookmark.summary')} />
 			<div className="sp-stack">
-				<Sum value={v(site || '-', '88')}>Shop</Sum>
-				<Sum value={v(chosen.length ? chosen.join(', ') : '-', '104')}>Categories</Sum>
-				{editing ? <Sum value={loading ? v(null, '76') : shortDate(bookmark.createdAt)}>Added</Sum> : null}
-				<Sum value={v(price != null ? currency(price, 0) : '-', '64')}>Price</Sum>
+				<Sum value={v(site || '-', '88')}>{phrase('bookmark.shop')}</Sum>
+				<Sum value={v(chosen.length ? chosen.join(', ') : '-', '104')}>{phrase('field.categories')}</Sum>
+				{editing ? <Sum value={loading ? v(null, '76') : shortDate(bookmark.createdAt)}>{phrase('bookmark.added')}</Sum> : null}
+				<Sum value={v(price != null ? currency(price, 0) : '-', '64')}>{phrase('bookmark.price')}</Sum>
 			</div>
 			{loading
-				? hold(<Button variant="outline" size="small">Open the shop</Button>)
+				? hold(<Button variant="outline" size="small">{phrase('bookmark.openShop')}</Button>)
 				: href
-					? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">Open {site}</span></Button>
+					? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">{phrase('vendor.openNamed', { name: site })}</span></Button>
 					: null}
 		</Card>
 	)
 	const endOfLife = editing
 		? (
 			<Card footerLayout="split" footerCommits footer={[
-				h(<Button key="archive" variant="outline" onClick={() => guard.ask(archive)}>{archived ? 'Unarchive' : 'Archive'}</Button>),
-				h(<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>)
+				h(<Button key="archive" variant="outline" onClick={() => guard.ask(archive)}>{phrase(archived ? 'library.unarchive' : 'library.archive')}</Button>),
+				h(<Button key="delete" color="danger" onClick={() => setConfirming(true)}>{phrase('action.delete')}</Button>)
 			]}>
-				<CardHeader name="End of its life" />
+				<CardHeader name={phrase('vendor.end')} />
 				<Well>
-					<span className="sp-title">Nothing else points at a bookmark</span>
-					<span className="sp-subtitle">Archiving keeps it off your list; deleting removes it outright.</span>
+					<span className="sp-title">{phrase('bookmark.end')}</span>
+					<span className="sp-subtitle">{phrase('bookmark.endBody')}</span>
 				</Well>
 			</Card>
 		)
@@ -248,9 +251,9 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	// a phone always shows its save bar, since it stands in the tab bar's place (Mobile 5b)
 	const bar = touch || !editing || dirty
 		? (
-			<CommitBar status={!editing ? 'Nothing saved yet' : dirty ? 'Unsaved changes' : null} quiet={!editing}
+			<CommitBar status={!editing ? phrase('form.state.nothingYet') : dirty ? phrase('form.state.unsaved') : null} quiet={!editing}
 				onCancel={() => navigate(list)} onSave={lost ? null : save}
-				commit={touch ? (editing ? 'Save' : 'Create') : editing ? 'Save bookmark' : 'Add bookmark'} saving={saving} disabled={loading} />
+				commit={phrase(touch ? (editing ? 'action.save' : 'action.create') : editing ? 'bookmark.save' : 'bookmark.add')} saving={saving} disabled={loading} />
 		)
 		: null
 	const prompt = (
@@ -258,7 +261,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			<Leaving>{guard.prompt}</Leaving>
 			<Leaving>{confirming
 				? (
-					<ConfirmDelete title={`Delete ${bookmark.name}?`} action="Delete bookmark" busy={busy}
+					<ConfirmDelete title={phrase('library.deleteTitle', { name: bookmark.name })} action={phrase('bookmarks.delete')} busy={busy}
 						onConfirm={remove} onCancel={() => setConfirming(false)}>
 						{bookmarkDeleteNote(bookmark)}
 					</ConfirmDelete>
@@ -270,7 +273,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	// a phone has no rail: the form, then the end-of-life card, then the bar it commits from (Mobile 5b)
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Bookmarks' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: phrase('bookmark.openList') }} /> : null}
 				cards={form} rail={<>{summaryCard}{endOfLife}</>} alone={endOfLife} bar={bar} />
 			<Leaving>{prompt}</Leaving>
 		</>

@@ -19,14 +19,15 @@ import {
 	Bar, CardMenu, CategoryMark, DeleteCategory, Held, MergeDialog, MergePicker, RowMenu, SortControl, isGone, monthPace, sayFailure, useRefocus
 } from './vendorsCategories.jsx'
 import { usePageSearch } from '../app/afterDraw.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 // the server orders the list (api/src/lib/categoryList.js)
 const SORTS = [
-	{ id: 'name-asc', label: 'Name A - Z' },
-	{ id: 'month-desc', label: 'This month ↓' },
-	{ id: 'month-asc', label: 'This month ↑' },
-	{ id: 'limit-desc', label: 'Limit ↓' },
-	{ id: 'orders-desc', label: 'Orders ↓' }
+	{ id: 'name-asc', label: 'sort.arrow.nameAsc' },
+	{ id: 'month-desc', label: 'sort.arrow.monthDesc' },
+	{ id: 'month-asc', label: 'sort.arrow.monthAsc' },
+	{ id: 'limit-desc', label: 'sort.arrow.limitDesc' },
+	{ id: 'orders-desc', label: 'sort.arrow.ordersDesc' }
 ]
 // at this width of the list or under, the monthly limit joins the name's second line (5k)
 const FOLD = 880
@@ -40,24 +41,24 @@ const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
    the part up to it and the overage (5i); a phone card fills it, with the overage in words. */
 function MonthGauge({ category, pace, split = false }) {
 	const { monthSpend: spend, budget } = category
-	if (!(budget > 0)) return <Gauge thin untargeted value={0} aria-label="No limit set" />
-	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace?.at} aria-label="Share of the limit used" />
+	if (!(budget > 0)) return <Gauge thin untargeted value={0} aria-label={phrase('categories.noLimitSet')} />
+	if (spend > budget && !split) return <Gauge thin passed value={100} marker={pace?.at} aria-label={phrase('categories.shareUsed')} />
 	if (spend > budget) {
 		const upTo = (budget / spend) * 100
-		return <Gauge thin value={upTo} over={100 - upTo} marker={pace?.at} aria-label="Share of the limit used" />
+		return <Gauge thin value={upTo} over={100 - upTo} marker={pace?.at} aria-label={phrase('categories.shareUsed')} />
 	}
-	return <Gauge thin value={(spend / budget) * 100} marker={pace?.at} aria-label="Share of the limit used" />
+	return <Gauge thin value={(spend / budget) * 100} marker={pace?.at} aria-label={phrase('categories.shareUsed')} />
 }
 
 function MonthLine({ category, pace }) {
 	const { monthSpend: spend, budget } = category
-	if (!(budget > 0)) return <span className="sp-meta">{currency(spend, 0)} spent</span>
+	if (!(budget > 0)) return <span className="sp-meta">{phrase('categories.spent', { amount: currency(spend, 0) })}</span>
 	if (spend > budget)
-		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{phrase('categories.over', { amount: amountRound(spend - budget) })}</span>
 	// ahead of pace only past ten points over the marker (5i)
 	if (pace && (spend / budget) * 100 > pace.at + 10)
-		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}ahead of pace</span>
-	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{phrase('categories.aheadOfPace')}</span>
+	return <span className="sp-meta">{currency(spend, 0)}{dot}{phrase('categories.left', { amount: amountRound(budget - spend) })}</span>
 }
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
@@ -75,6 +76,7 @@ const monthWords = month => {
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
 export default function Categories() {
+	const phrase = usePhrase()
 	const pageSearch = usePageSearch()
 	const touch = useShellShape() === 'touch'
 	const toast = useToast()
@@ -132,11 +134,11 @@ export default function Categories() {
 		: null
 	const menuItems = c => (
 		<>
-			<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>Open in the order list</MenuItem>
-			<MenuItem icon="pencil" to={`/categories/${c.id}/edit`}>Edit category</MenuItem>
-			<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>Merge into…</MenuItem>
+			<MenuItem icon="external-link" to={`/orders?category=${c.id}`}>{phrase('library.openInOrders')}</MenuItem>
+			<MenuItem icon="pencil" to={`/categories/${c.id}/edit`}>{phrase('categories.edit')}</MenuItem>
+			<MenuItem icon="arrows-join" onClick={() => { setMenuFor(null); setPicking(c.id) }}>{phrase('library.mergeInto')}</MenuItem>
 			<MenuSeparator />
-			<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>Delete</MenuItem>
+			<MenuItem icon="trash" danger onClick={() => { setMenuFor(null); setDeleting(c) }}>{phrase('action.delete')}</MenuItem>
 		</>
 	)
 
@@ -151,7 +153,7 @@ export default function Categories() {
 				state.refresh()
 				setDeleting(null)
 			})
-			.catch(e => sayFailure(toast, e, 'The category was not deleted. Try again.'))
+			.catch(e => sayFailure(toast, e, phrase('categories.notDeleted')))
 			.finally(() => setBusy(false))
 	}
 
@@ -164,50 +166,51 @@ export default function Categories() {
 				invalidateCategoryData()
 				invalidateVendorData()
 				state.refresh()
-				toast({ message: `${source.name} is merged into ${target.name}.` })
+				toast({ message: phrase('library.merged', { source: source.name, target: target.name }) })
 				setMerging(null)
 			})
-			.catch(e => sayFailure(toast, e, 'The categories were not merged. Try again.'))
+			.catch(e => sayFailure(toast, e, phrase('categories.notMerged')))
 			.finally(() => setBusy(false))
 	}
 
 	const bar = (
 		<Controls ref={column}>
 			{touch ? null : (
-				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder="Search categories" aria-label="Search categories" inputRef={pageSearch} />
+				<SearchInput value={query} onChange={q => write(q, sort.id)} placeholder={phrase('categories.search')} aria-label={phrase('categories.search')} inputRef={pageSearch} />
 			)}
 			<SortControl sorts={SORTS} value={sort.id} onChange={id => write(query, id)} />
 			{touch
-				? <Button to="/categories/new" iconStart="plus" aria-label="New category" />
-				: <Button to="/categories/new">New category</Button>}
+				? <Button to="/categories/new" iconStart="plus" aria-label={phrase('categories.new')} />
+				: <Button to="/categories/new">{phrase('categories.new')}</Button>}
 		</Controls>
 	)
 
 	let body
-	if (!state.data && state.error) body = <Failed what="Your categories" error={state.error} onRetry={state.refresh} />
-	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}
-		limit={sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'} folded={folded} />
+	if (!state.data && state.error) body = <Failed what={phrase('categories.yours')} error={state.error} onRetry={state.refresh} />
+	else if (!state.data) body = <CategoriesLoading cards={cards} size={step} month={named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisMonth')}
+		limit={phrase(sort.id === 'limit-desc' ? 'categories.limitDown' : 'categories.limit')} folded={folded} />
 	else if (!matched && !query && (over || limits || near || month)) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>{limits ? 'No category has a limit' : near ? 'No category is near its limit this month' : `${over ? 'No category is over its limit' : 'No category has spend'} ${named ? `in ${named.full}` : 'this month'}`}</EmptyTitle>
+				<EmptyTitle>{limits ? phrase('categories.empty.noLimits') : near ? phrase('categories.empty.near')
+					: phrase(over ? 'categories.empty.over' : 'categories.empty.spend', { named: named ? 'yes' : 'no', month: named?.full })}</EmptyTitle>
 			</Empty>
 		</Card>
 	)
 	else if (!matched && !query) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>No categories yet</EmptyTitle>
-				<EmptyBody>Categories group your spend and carry the monthly limit. Add one now, or type a new one on an order.</EmptyBody>
-				<Button size="small" to="/categories/new">New category</Button>
+				<EmptyTitle>{phrase('categories.empty.none')}</EmptyTitle>
+				<EmptyBody>{phrase('categories.empty.noneBody')}</EmptyBody>
+				<Button size="small" to="/categories/new">{phrase('categories.new')}</Button>
 			</Empty>
 		</Card>
 	)
 	else if (!matched) body = (
 		<Card>
 			<Empty>
-				<EmptyTitle>No category matches "{query}"</EmptyTitle>
-				<Button variant="outline" size="small" onClick={() => write('', sort.id)}>Clear search</Button>
+				<EmptyTitle>{phrase('categories.empty.noMatch', { query })}</EmptyTitle>
+				<Button variant="outline" size="small" onClick={() => write('', sort.id)}>{phrase('orders.clearSearch')}</Button>
 			</Empty>
 		</Card>
 	)
@@ -222,12 +225,12 @@ export default function Categories() {
 							<CategoryMark category={c} />
 							<Stacked>
 								<span className="sp-heading sp-truncate">{c.name}</span>
-								<span className="sp-meta sp-truncate">{c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}</span>
+								<span className="sp-meta sp-truncate">{c.budget > 0 ? phrase('categories.limitOf', { amount: currency(c.budget, 0) }) : phrase('categories.noLimit')}</span>
 							</Stacked>
 							<span className={over ? 'sp-amount sp-ink-warning sp-nowrap' : 'sp-amount sp-nowrap'}>{currency(c.monthSpend, 0)}</span>
 						</div>
 						<MonthGauge category={c} pace={pace} />
-						{over ? <span className="sp-meta sp-ink-warning">{currency(c.monthSpend - c.budget, 0)} over the limit.</span> : null}
+						{over ? <span className="sp-meta sp-ink-warning">{phrase('categories.overTheLimit', { amount: currency(c.monthSpend - c.budget, 0) })}</span> : null}
 					</CardMenu>
 				)
 			})}
@@ -239,9 +242,9 @@ export default function Categories() {
 			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
 			<Caption><strong className="sp-data">{plural(matched, 'category')}</strong></Caption>
 			<ListHead>
-				<ListCell width="title">Category</ListCell>
-				<ListCell width="amount">{named?.name ?? (sort.id.startsWith('month-') ? sort.label : 'This month')}</ListCell>
-				{folded ? null : <ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>}
+				<ListCell width="title">{phrase('field.category')}</ListCell>
+				<ListCell width="amount">{named?.name ?? phrase(sort.id.startsWith('month-') ? sort.label : 'categories.thisMonth')}</ListCell>
+				{folded ? null : <ListCell width="amount">{phrase(sort.id === 'limit-desc' ? 'categories.limitDown' : 'categories.limit')}</ListCell>}
 				<ListCell width="menu" />
 			</ListHead>
 			<ListRow>
@@ -251,8 +254,8 @@ export default function Categories() {
 						<Stacked>
 							<span className="sp-title sp-truncate">{c.name}</span>
 							<span className="sp-meta sp-truncate">
-								{plural(c.orders, 'order')}{dot}{currency(c.monthAverage ?? 0, 0)} avg. per month
-								{folded ? `${dot}${c.budget > 0 ? `limit ${currency(c.budget, 0)}` : 'no limit'}` : null}
+								{plural(c.orders, 'order')}{dot}{phrase('categories.average', { amount: currency(c.monthAverage ?? 0, 0) })}
+								{folded ? `${dot}${c.budget > 0 ? phrase('categories.limitOf', { amount: currency(c.budget, 0) }) : phrase('categories.noLimit')}` : null}
 							</span>
 						</Stacked>
 					</ListCell>,
@@ -264,11 +267,11 @@ export default function Categories() {
 					</ListCell>,
 					folded ? null : (
 						<ListCell key="l" cell="amount">
-							{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">no limit</span>}
+							{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">{phrase('categories.noLimit')}</span>}
 						</ListCell>
 					),
 					<ListCell key="x" cell="menu">
-						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
+						<RowMenu noun="category" label={c.name} open={menuFor === c.id}
 							onToggle={() => { setPicking(null); setMenuFor(menuFor === c.id ? null : c.id) }}
 							onClose={closeMenu} panel={mergePanel(c)}>
 							{menuItems(c)}
@@ -280,9 +283,9 @@ export default function Categories() {
 	)
 
 	const crumbs = [
-		over ? <Crumb key="over" onRemove={() => write(query, sort.id, { over: false, limits, near, month })}>Over the limit</Crumb> : null,
-		near ? <Crumb key="near" onRemove={() => write(query, sort.id, { over, limits, near: false, month })}>Near the limit</Crumb> : null,
-		limits ? <Crumb key="limits" onRemove={() => write(query, sort.id, { over, limits: false, near, month })}>Has a limit</Crumb> : null,
+		over ? <Crumb key="over" onRemove={() => write(query, sort.id, { over: false, limits, near, month })}>{phrase('categories.crumb.over')}</Crumb> : null,
+		near ? <Crumb key="near" onRemove={() => write(query, sort.id, { over, limits, near: false, month })}>{phrase('categories.crumb.near')}</Crumb> : null,
+		limits ? <Crumb key="limits" onRemove={() => write(query, sort.id, { over, limits: false, near, month })}>{phrase('categories.crumb.limited')}</Crumb> : null,
 		named ? <Crumb key="month" onRemove={() => write(query, sort.id, { over, limits, near, month: null })}>{named.full}</Crumb> : null
 	].filter(Boolean)
 
@@ -306,7 +309,7 @@ const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc',
 /* A page of rows held at the loaded rows' places (6b), so nothing moves when the categories land. */
 function CategoriesLoading({ cards, size, month, limit, folded }) {
 	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
-	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label="No limit set" />} />
+	const gauge = <Held shape={<Gauge thin untargeted value={0} aria-label={phrase('categories.noLimitSet')} />} />
 	if (cards) return rows.map(({ id, w }) => (
 		<Card key={id} aria-busy="true">
 			<div className="sp-cell-flex">
@@ -321,7 +324,7 @@ function CategoriesLoading({ cards, size, month, limit, folded }) {
 		<List data={rows} recordKey={r => r.id} noun="categories" pageSize={size} aria-busy="true">
 			<Caption><Bar role="sp-data" w="82" h="13" /></Caption>
 			<ListHead>
-				<ListCell width="title">Category</ListCell>
+				<ListCell width="title">{phrase('field.category')}</ListCell>
 				<ListCell width="amount">{month}</ListCell>
 				{folded ? null : <ListCell width="amount">{limit}</ListCell>}
 				<ListCell width="menu" />

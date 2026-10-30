@@ -22,7 +22,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark, VendorMark } from '../app/categoryMark.jsx'
 import { OrderAmount, vendorName } from '../app/orderRow.jsx'
 import { MoreMatches, groupPicks, pickGroups, usePickList, useRecent } from '../app/pickList.jsx'
-import { usePhrase } from '../language/phrases.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
@@ -57,11 +57,12 @@ export function SortControl({ sorts, value, onChange }) {
 /** A row's kebab and its menu, named by its row (c9); a click inside stays out of the row. `panel`
     draws a popover an item opened (5a) in the menu's place: `box => <MergePicker anchor={box} />`. */
 export function RowMenu({ noun, label, open, onToggle, onClose, panel, children }) {
+	const phrase = usePhrase()
 	const box = useRef(null)
 	useDismiss(box, open || !!panel, onClose)
 	return (
 		<Anchor ref={box} open={open || !!panel} onClick={ev => ev.stopPropagation()}>
-			<IconButton icon="dots-vertical" aria-label={`${noun} menu, ${label}`} aria-haspopup="menu"
+			<IconButton icon="dots-vertical" aria-label={phrase('library.rowMenu', { noun, label })} aria-haspopup="menu"
 				aria-expanded={open || panel ? 'true' : 'false'} onClick={onToggle} />
 			<Leaving>{panel ? panel(box) : null}</Leaving>
 			{panel ? null : <Menu position="floating" aria-label={label}>{children}</Menu>}
@@ -159,11 +160,12 @@ export function RecordPage({ notice, cards, rail, alone = rail, bar }) {
 /** A form's commit bar: the save bar in the tab bar's place on a phone (r13, Mobile 5b), the sticky
     row under the form elsewhere (c27). Without `onSave` there is nothing left to save. */
 export function CommitBar({ status, quiet = false, onCancel, onSave, commit, saving = false, disabled = false }) {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const buttons = (
 		<>
-			<Button variant="outline" onClick={onCancel}>Cancel</Button>
-			{onSave ? <Button onClick={onSave} disabled={saving || disabled}>{saving ? 'Saving…' : commit}</Button> : null}
+			<Button variant="outline" onClick={onCancel}>{phrase('action.cancel')}</Button>
+			{onSave ? <Button onClick={onSave} disabled={saving || disabled}>{saving ? phrase('action.saving') : commit}</Button> : null}
 		</>
 	)
 	if (touch) return <SaveBar><span className={quiet ? 'sp-subtitle sp-grow sp-ink-5' : 'sp-subtitle sp-grow'}>{status}</span>{buttons}</SaveBar>
@@ -200,16 +202,17 @@ export function SummaryLoading({ label, sums, action, children }) {
 }
 
 export function RecentLoading() {
+	const phrase = usePhrase()
 	return (
 		<Card aria-busy="true">
-			<CardHeader name="Recent orders" />
+			<CardHeader name={phrase('library.recentOrders')} />
 			{['62pc', '48pc'].map(w => (
 				<ListItem key={w}>
 					<Stacked><Bar role="sp-title" w={w} h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
 					<Bar role="sp-title" w="88" h="13" end />
 				</ListItem>
 			))}
-			<Held shape={<Button variant="outline" size="small">See all orders</Button>} />
+			<Held shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} />
 		</Card>
 	)
 }
@@ -237,12 +240,13 @@ export function sayFailure(toast, error, fallback) {
 
 /** An irreversible delete, confirmed in a dialog that names what goes (6d). */
 export function ConfirmDelete({ title, action, busy, onConfirm, onCancel, children }) {
+	const phrase = usePhrase()
 	return (
 		<Dialog onCancel={onCancel}>
 			<DialogTitle>{title}</DialogTitle>
 			<DialogBody>{children}</DialogBody>
 			<DialogActions>
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<Button variant="outline" onClick={onCancel}>{phrase('action.cancel')}</Button>
 				<span className="sp-grow" />
 				<Button color="danger" disabled={busy} onClick={onConfirm}>{action}</Button>
 			</DialogActions>
@@ -252,33 +256,30 @@ export function ConfirmDelete({ title, action, busy, onConfirm, onCancel, childr
 
 /** What deleting a vendor takes with it. Only a vendor with no orders can be deleted. */
 export const deleteNote = vendor => {
-	const n = vendor.aliases?.length ?? 0
-	if (!n) return 'It has no orders.'
-	return n === 1
-		? 'It has no orders. The other name it matches on receipts goes with it.'
-		: `It has no orders. The ${n} other names it matches on receipts go with it.`
+	return phrase('library.vendorDeleteNote', { count: vendor.aliases?.length ?? 0 })
 }
 
 /** What deleting a category does (5d, 5f): the label comes off what carries it, and its limit goes.
     `alone` is how many of its orders carry no other category. */
 export function categoryDeleteNote({ orders = 0, alone = 0, bookmarks = 0, budget = 0 }) {
 	const parts = []
-	if (orders) parts.push(`The label comes off ${plural(orders, 'order')}${alone
-		? `; ${alone === orders && orders === 1 ? 'it carries' : `${alone} of them ${alone === 1 ? 'carries' : 'carry'}`} no other category`
-		: ''}.`)
-	if (bookmarks) parts.push(`It also comes off ${plural(bookmarks, 'bookmark')}.`)
-	if (!orders && !bookmarks) parts.push('No order or bookmark carries it.')
-	if (budget > 0) parts.push(`Its limit of ${currency(budget, 0)} goes with it.`)
+	if (orders) parts.push(alone
+		? phrase('library.categoryDelete.ordersAlone', { orders: plural(orders, 'order'), all: String(alone === orders && orders === 1), alone })
+		: phrase('library.categoryDelete.orders', { orders: plural(orders, 'order') }))
+	if (bookmarks) parts.push(phrase('library.categoryDelete.bookmarks', { bookmarks: plural(bookmarks, 'bookmark') }))
+	if (!orders && !bookmarks) parts.push(phrase('library.categoryDelete.none'))
+	if (budget > 0) parts.push(phrase('library.categoryDelete.limit', { amount: currency(budget, 0) }))
 	return parts.join(' ')
 }
 
 /** Deleting a category, confirmed in a dialog (6d) that reads the record first, so it can say how
     many orders are left with no category. The button names what goes, and only that. */
 export function DeleteCategory({ category, busy, onConfirm, onCancel }) {
+	const phrase = usePhrase()
 	const record = useApi(getCategory, [category.id])
 	const known = record.data?.id === category.id ? record.data : null
 	return (
-		<ConfirmDelete title={`Delete ${category.name}?`} action="Delete category" busy={busy || !known}
+		<ConfirmDelete title={phrase('library.deleteTitle', { name: category.name })} action={phrase('library.deleteCategory')} busy={busy || !known}
 			onConfirm={onConfirm} onCancel={onCancel}>
 			{categoryDeleteNote(known ?? category)}
 		</ConfirmDelete>
@@ -291,10 +292,10 @@ export function archiveVendor({ vendor, to, update, toast, done }) {
 	return update(vendor.id, { archived: to }).then(() => {
 		done()
 		toast({
-			message: to ? `${vendor.name} is archived.` : `${vendor.name} is back in the list.`,
+			message: phrase(to ? 'library.archived' : 'library.unarchived', { name: vendor.name }),
 			undo: {
-				label: 'Undo',
-				onClick: () => update(vendor.id, { archived: !to }).then(done, e => sayFailure(toast, e, 'That did not change back. Try again.'))
+				label: phrase('action.undo'),
+				onClick: () => update(vendor.id, { archived: !to }).then(done, e => sayFailure(toast, e, phrase('library.notChangedBack')))
 			}
 		})
 	})
@@ -308,6 +309,7 @@ const mergeRequest = (kind, source) => (kind === 'vendor'
 /** Merge into… (5a, 5d): a popover hung from `anchor` (a sheet on a phone) that picks the target;
     picking is the action, so it has no buttons, and 5j's dialog compares next. */
 export function MergePicker({ kind, source, anchor, position = 'end', onPick, onClose }) {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const panel = useRef(null)
 	const sheet = useRef(null)
@@ -332,20 +334,18 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 	}
 	const markOf = o => (vendor ? <VendorMark name={o.name} colour={o.colour} size="small" /> : <CategoryMark category={o} size="small" />)
 	const orders = source.orders ?? 0
-	const moving = orders ? `Its ${plural(orders, 'order')} ${orders === 1 ? 'moves' : 'move'} to the ${vendor ? 'vendor' : 'category'} you pick` : null
+	const moved = { orders: plural(orders, 'order'), count: orders, moving: orders ? 'yes' : 'no', name: source.name }
 	const head = (
 		<>
-			<span className="sp-title sp-truncate">Merge {source.name} into</span>
-			<span className="sp-subtitle">{vendor
-				? `${moving ? `${moving}, its` : 'Its'} name becomes an alias there, and this record is deleted.`
-				: `${moving ? `${moving}, and` : 'It is merged into the category you pick, and'} ${source.name} is deleted.`}</span>
+			<span className="sp-title sp-truncate">{phrase('library.merge.into', { name: source.name })}</span>
+			<span className="sp-subtitle">{phrase(vendor ? 'library.merge.vendorHead' : 'library.merge.categoryHead', moved)}</span>
 		</>
 	)
-	const search = <SearchInput value={find} onChange={setFind} placeholder={targets.total == null ? `Search ${noun}…` : `Search ${amount(targets.total, 0)} ${noun}…`} aria-label={`Search ${noun}`} />
+	const search = <SearchInput value={find} onChange={setFind} placeholder={targets.total == null ? phrase('library.merge.search', { kind }) : phrase('library.merge.searchCount', { kind, count: amount(targets.total, 0) })} aria-label={phrase('library.merge.searchLabel', { kind })} />
 	const list = (
-		<Menu position="plain" aria-label={vendor ? 'Vendor to merge into' : 'Category to merge into'}>
+		<Menu position="plain" aria-label={phrase('library.merge.target', { kind })}>
 			{!targets.rows ? null : shown.length
-				? pickGroups(groupPicks(shown, recent, find, vendor ? 'Other vendors' : 'Other categories'), o => (
+				? pickGroups(groupPicks(shown, recent, find, phrase(vendor ? 'form.otherVendors' : 'library.otherCategories')), o => (
 					<MenuItem key={o.id} onClick={() => { back(); onPick(o) }}>
 						{markOf(o)}
 						<span className="sp-truncate">{o.name}</span>
@@ -354,19 +354,19 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 						<Icon name="chevron-right" size={13} />
 					</MenuItem>
 				), { head: name => <MenuLabel>{name}</MenuLabel>, rule: <MenuSeparator /> })
-				: <ComboboxEmpty role="none">{targets.total ? `No ${vendor ? 'vendor' : 'category'} matches "${find.trim()}".` : `There are no other ${noun} yet.`}</ComboboxEmpty>}
+				: <ComboboxEmpty role="none">{targets.total ? phrase('library.merge.noMatch', { kind, find: find.trim() }) : phrase('library.merge.noOthers', { kind })}</ComboboxEmpty>}
 			<MoreMatches role="none" rows={targets.rows} matched={targets.matched} noun={noun} />
 		</Menu>
 	)
 	if (!touch) return (
-		<Popover ref={panel} position={position} role="dialog" aria-label={`Merge ${source.name} into`} onKeyDown={keys} head={head} search={search}>
+		<Popover ref={panel} position={position} role="dialog" aria-label={phrase('library.merge.into', { name: source.name })} onKeyDown={keys} head={head} search={search}>
 			{list}
 		</Popover>
 	)
 	// on a phone the same parts fill a sheet from the bottom edge
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) { back(); onClose() } }}>
-			<Sheet ref={sheet} role="dialog" aria-modal="true" aria-label={`Merge ${source.name} into`} tabIndex={-1} onKeyDown={keys}>
+			<Sheet ref={sheet} role="dialog" aria-modal="true" aria-label={phrase('library.merge.into', { name: source.name })} tabIndex={-1} onKeyDown={keys}>
 				<div className="sp-popover__head">{head}</div>
 				{search}
 				<div className="sp-popover__list" ref={panel}>{list}</div>
@@ -395,6 +395,7 @@ export function MergeButton({ merge, size = 'standard', disabled = false, childr
 /** Merging a vendor or a category into another (5j): the result is shown before the button, which
     carries the count. `initial` is the target a picker already chose; the source is never offered. */
 export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onCancel }) {
+	const phrase = usePhrase()
 	const [picked, setPicked] = useState(initial)
 	const [query, setQuery] = useState('')
 	const vendor = kind === 'vendor'
@@ -410,18 +411,17 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 		: 0
 	return (
 		<Dialog onCancel={onCancel}>
-			<DialogTitle>{vendor ? 'Merge a vendor' : 'Merge a category'}</DialogTitle>
+			<DialogTitle>{phrase('library.merge.title', { kind })}</DialogTitle>
 			<Field id="merge-target"
-				label={vendor
-					? <>Move everything from <b className="sp-ink sp-break">{source.name}</b> into</>
-					: <>Merge <b className="sp-ink sp-break">{source.name}</b> and its <b className="sp-ink">{plural(source.orders, 'order')}</b> into</>}
-				message={vendor
-					? `"${source.name}" becomes an alias, so the next receipt printing that name files here.`
-					: 'Every category except this one. Totals and charts count them under the one you pick.'}>
+				label={phrase(vendor ? 'library.merge.vendorLabel' : 'library.merge.categoryLabel', {
+					name: source.name, orders: plural(source.orders, 'order'),
+					b: words => <b className="sp-ink sp-break">{words}</b>, n: words => <b className="sp-ink">{words}</b>
+				})}
+				message={vendor ? phrase('library.merge.vendorHelp', { name: source.name }) : phrase('library.merge.categoryHelp')}>
 				<Combobox searchable search={query} onSearch={setQuery} noun={vendor ? 'vendors' : 'categories'}
-					placeholder={vendor ? 'Choose a vendor' : 'Choose a category'}
+					placeholder={phrase(vendor ? 'form.chooseVendor' : 'library.chooseCategory')}
 					value={picked ? picked.name : ''} lead={picked ? markOf(picked) : undefined}>
-					{pickGroups(groupPicks(shown, recent, query, vendor ? 'Other vendors' : 'Other categories'), o => (
+					{pickGroups(groupPicks(shown, recent, query, phrase(vendor ? 'form.otherVendors' : 'library.otherCategories')), o => (
 						<ComboboxOption key={o.id} selected={o.id === picked?.id} mark={markOf(o)} meta={plural(o.orders, 'order')}
 							onSelect={() => { setPicked(o); setQuery('') }}>{o.name}</ComboboxOption>
 					))}
@@ -432,11 +432,11 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 				? (
 					<div className="sp-list">
 						<table className="sp-table sp-table--compact sp-table--static">
-							<thead><tr><th /><th>Source</th><th>Result</th></tr></thead>
+							<thead><tr><th /><th>{phrase('library.merge.source')}</th><th>{phrase('library.merge.result')}</th></tr></thead>
 							<tbody>
-								<tr><td className="sp-ink-2">Name</td><td className="sp-ink-5"><span className="sp-truncate">{source.name}</span></td><td className="sp-strong"><span className="sp-truncate">{picked.name}</span></td></tr>
-								<tr><td className="sp-ink-2">Aliases</td><td className="sp-ink-5">{source.aliases?.length ?? 0}</td><td className="sp-strong">{aliasCount}</td></tr>
-								<tr><td className="sp-ink-2">Orders</td><td className="sp-ink-5">{source.orders}</td><td className="sp-strong">{source.orders + picked.orders}</td></tr>
+								<tr><td className="sp-ink-2">{phrase('field.name')}</td><td className="sp-ink-5"><span className="sp-truncate">{source.name}</span></td><td className="sp-strong"><span className="sp-truncate">{picked.name}</span></td></tr>
+								<tr><td className="sp-ink-2">{phrase('library.aliases')}</td><td className="sp-ink-5">{source.aliases?.length ?? 0}</td><td className="sp-strong">{aliasCount}</td></tr>
+								<tr><td className="sp-ink-2">{phrase('page.orders')}</td><td className="sp-ink-5">{source.orders}</td><td className="sp-strong">{source.orders + picked.orders}</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -445,17 +445,17 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 			{picked && !vendor
 				? (
 					<Well color="danger">
-						<span className="sp-title">{source.name} is deleted once its orders have moved</span>
+						<span className="sp-title">{phrase('library.merge.deletedOnce', { name: source.name })}</span>
 						{after == null ? <Held shape={mergeResult(source, picked, source.orders + picked.orders)} /> : mergeResult(source, picked, after)}
 					</Well>
 				)
 				: null}
-			<DialogBody>This cannot be undone.</DialogBody>
+			<DialogBody>{phrase('library.noUndo')}</DialogBody>
 			<DialogActions>
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
+				<Button variant="outline" onClick={onCancel}>{phrase('action.cancel')}</Button>
 				<span className="sp-grow" />
 				<Button {...(vendor ? {} : { color: 'danger' })} disabled={busy || !picked} onClick={() => onConfirm(picked)}>
-					Merge {plural(source.orders, 'order')}
+					{phrase('library.merge.button', { orders: plural(source.orders, 'order') })}
 				</Button>
 			</DialogActions>
 		</Dialog>
@@ -464,25 +464,27 @@ export function MergeDialog({ kind, source, initial = null, busy, onConfirm, onC
 
 const mergeResult = (source, target, orders) => (
 	<span className="sp-subtitle">
-		{target.name} ends with {plural(orders, 'order')}. An order carrying both keeps one label, not two.
-		{source.budget > 0 ? ` ${source.name}'s limit of ${currency(source.budget, 0)} goes with it` : ''}
-		{source.budget > 0 && target.budget > 0 ? `; ${target.name}'s stays at ${currency(target.budget, 0)}${fullStop()}` : source.budget > 0 ? '.' : ''}
+		{phrase('library.merge.result.orders', { name: target.name, orders: plural(orders, 'order') })}
+		{source.budget > 0
+			? ' ' + phrase('library.merge.result.limit', { source: source.name, amount: currency(source.budget, 0), kept: target.budget > 0 ? 'yes' : 'no', target: target.name, targetAmount: currency(target.budget, 0), stop: fullStop() })
+			: ''}
 	</span>
 )
 
 /** What deleting a bookmark takes with it, and the way to keep it instead. */
-export const bookmarkDeleteNote = bookmark => `${bookmark.photoId ? 'The bookmark and its picture are' : 'The bookmark is'} removed. To keep it off the list without losing it, archive it instead.`
+export const bookmarkDeleteNote = bookmark => phrase('library.bookmarkDeleteNote', { photo: bookmark.photoId ? 'yes' : 'no' })
 
 /** "Leave without saving?", asked before what is not saved is lost (9c). `body` says what that is. */
 export function LeaveDialog({ body, onStay, onLeave }) {
+	const phrase = usePhrase()
 	return (
 		<Dialog onCancel={onStay}>
-			<DialogTitle>Leave without saving?</DialogTitle>
+			<DialogTitle>{phrase('library.leave.title')}</DialogTitle>
 			<DialogBody>{body}</DialogBody>
 			<DialogActions>
-				<Button variant="outline" onClick={onStay}>Keep editing</Button>
+				<Button variant="outline" onClick={onStay}>{phrase('form.keepEditing')}</Button>
 				<span className="sp-grow" />
-				<Button color="danger" onClick={onLeave}>Leave</Button>
+				<Button color="danger" onClick={onLeave}>{phrase('library.leave.action')}</Button>
 			</DialogActions>
 		</Dialog>
 	)
@@ -493,6 +495,7 @@ export function LeaveDialog({ body, onStay, onLeave }) {
     lets a save leave. `ask(go)` asks the same question before an action that leaves, and runs `go`
     only on Leave. */
 export function useLeaveGuard(dirty, { within, search = false, names = [], uploading = 0, body } = {}) {
+	const phrase = usePhrase()
 	const released = useRef(false)
 	const [asking, setAsking] = useState(null)
 	const live = useRef(dirty)
@@ -514,7 +517,7 @@ export function useLeaveGuard(dirty, { within, search = false, names = [], uploa
 	}
 	const prompt = blocker.state === 'blocked' || asking
 		? <LeaveDialog onStay={stay} onLeave={go}
-			body={body ?? `Your changes ${names.length ? `in ${names.join(' and in ')}` : 'on this page'} are not saved.${uploading ? ` ${uploading === 1 ? '1 file is' : `${uploading} files are`} still uploading.` : ''} If you leave now, they are lost.`} />
+			body={body ?? phrase('library.leave.body', { where: names.length ? 'named' : 'page', names: names.join(phrase('library.leave.andIn')), uploading })} />
 		: null
 	const ask = action => (live.current && !released.current ? setAsking(() => action) : action())
 	return { prompt, ask, release: () => { released.current = true } }
@@ -530,14 +533,15 @@ export function focusFirst(ids) {
 
 /** The two newest orders behind a record, and the way to all of them (5c, 5f). */
 export function RecentOrders({ filter, to, total }) {
+	const phrase = usePhrase()
 	const recent = useApi(getOrders, [{ ...filter, pageSize: 2 }])
 	const orders = recent.data?.orders ?? []
 	if (!total || !orders.length) return null
 	return (
 		<Card>
-			<CardHeader name="Recent orders" />
+			<CardHeader name={phrase('library.recentOrders')} />
 			{orders.map(order => <RecentOrder key={order.id} order={order} />)}
-			<Button variant="outline" size="small" to={to}>See all {plural(total, 'order')}</Button>
+			<Button variant="outline" size="small" to={to}>{phrase('library.seeAll', { orders: plural(total, 'order') })}</Button>
 		</Card>
 	)
 }
@@ -557,6 +561,7 @@ function RecentOrder({ order }) {
 /** Categories typed as tokens and picked from the one set; a name it does not hold is offered as
     Create "…" and becomes a category when the form is saved (22c). */
 export function CategoryTokens({ value, onChange, ...rest }) {
+	const phrase = usePhrase()
 	const [typing, setTyping] = useState('')
 	const query = typing.trim()
 	const offered = usePickList('category', query, {})
@@ -574,15 +579,15 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 		onChange(out)
 	}
 	const matches = (offered.rows ?? []).filter(c => !value.some(n => same(n, c.name)))
-	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, 'Other categories', { byName: true })
+	const groups = groupPicks(matches, useRecent('category').filter(n => !value.some(v => same(v, n))), query, phrase('library.otherCategories'), { byName: true })
 	const exists = value.some(n => same(n, query)) || Boolean(exact)
 	return (
-		<Combobox multiple value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
+		<Combobox multiple value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder={phrase('library.tokens.placeholder')} aria-label={phrase('library.tokens.label')} {...rest}>
 			{[
 				...pickGroups(groups, c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
 				<MoreMatches key="more" rows={offered.rows} matched={offered.matched} noun="categories" />,
 				query && !exists
-					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
+					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>{phrase('form.createNamed', { name: query })}</ComboboxOption>
 					: null
 			]}
 		</Combobox>

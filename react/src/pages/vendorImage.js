@@ -1,3 +1,4 @@
+import { phrase } from '../language/phrases.js'
 /* A vendor's image (Images and files 17e): what the form refuses before sending it, in the words
    of the field's banner and help line. The server checks the same rules again. */
 
@@ -7,12 +8,14 @@ const MIN_SIDE = 128
 const MAX_SIDE = 8000
 const MAX_PIXELS = 40_000_000
 
+// read when shown, so a refusal kept on the page follows a change of language
+const refusal = (banner, help, values) => ({ get banner() { return phrase(banner) }, get help() { return phrase(help, values) } })
 export const REFUSALS = {
-	type: { banner: 'Not supported', help: 'Use a PNG, JPEG, WebP or SVG file.' },
-	large: { banner: 'Too large', help: 'The image is over 5 MB. Use a smaller file.' },
-	huge: { banner: 'Too large', help: 'The image is too large to use. Use one under 8000 px.' },
-	small: { banner: 'Too small', help: 'The image needs to be at least 128 px on its shorter side.' },
-	failed: { banner: 'Failed', help: 'This file could not be read. Try another.' }
+	type: refusal('vendorImage.unsupported', 'vendorImage.type'),
+	large: refusal('file.tooLarge', 'vendorImage.large', { most: MAX_MB }),
+	huge: refusal('file.tooLarge', 'vendorImage.huge', { most: String(MAX_SIDE) }),
+	small: refusal('vendorImage.tooSmall', 'vendorImage.small', { least: MIN_SIDE }),
+	failed: refusal('form.failed', 'vendorImage.failed')
 }
 
 const ascii = text => [...text].map(c => c.charCodeAt(0))
