@@ -945,7 +945,7 @@ export async function getOrderLimits(date, categories, exclude, signal) {
 	return request(`/api/orders/limits?${usp}`, { signal })
 }
 
-/** The order one from `vendor` on `date` for `total` may repeat, leaving out `exclude`: `{ order }`. */
+/** The orders one from `vendor` on `date` for `total` may repeat, leaving out `exclude`: `{ count, orders }`, the nearest few. */
 export async function getOrderLookalike(vendor, date, total, exclude, signal) {
 	const usp = new URLSearchParams({ vendor, date, total: String(total) })
 	if (exclude) usp.set('exclude', exclude)

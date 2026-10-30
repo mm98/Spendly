@@ -43,6 +43,7 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, pagesOf, totalsOf
 } from './OrderParts.jsx'
 import { CategoryTokens, useLeaveGuard } from './vendorsCategories.jsx'
+import { OrderRepeats } from './OrderRepeats.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 import { useAfterDraw } from '../app/afterDraw.js'
 
@@ -149,7 +150,7 @@ const takeAway = address => {
 	return kept?.address === address ? kept : null
 }
 
-/** `origin` is `{ copy, draftId }` or `{ scan, draftId, shownOrders }`, the last the orders 3c showed for the scan;
+/** `origin` is `{ copy, draftId }` or `{ scan, draftId, shownOrders }`, the last the records the dialog in 3c showed for the scan;
     `region` draws the split for a route whose body is not one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
 export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
 	const navigate = useNavigate()
@@ -619,6 +620,9 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		form: { orderId: createdAs ?? orderId, draft: { ...target, lines: undefined }, lines: kept.map(({ newPhoto, ...l }) => l) }
 	})
 
+	// the orders the dialog in 3c already showed for this scan or form
+	const answered = useRef(new Set(origin.shownOrders ?? []))
+	const [repeats, setRepeats] = useState(null)
 	const save = async () => {
 		const target = draft
 		const loose = typeOf(target.status) === 'draft'
@@ -650,6 +654,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 				return afterDraw(() => focusFirst('.sp-line-editor'))
 			}
 			if (!kept.length) return afterDraw(() => focusFirst('[data-add]'))
+		}
+		// an order that looks like one you have asks first, and once for the same orders (3c)
+		const vendorNow = target.vendor.trim()
+		const totalNow = Math.round(totalsOf(kept, target.shipping, target.discount).total * 100) / 100
+		if (vendorNow && /^\d{4}-\d{2}-\d{2}$/.test(target.date ?? '') && totalNow > 0) {
+			const alike = await getOrderLookalike(vendorNow, target.date, totalNow, createdAs ?? orderId ?? '').catch(() => null)
+			const fresh = alike?.orders.filter(o => !answered.current.has(o.id)) ?? []
+			if (fresh.length) return setRepeats({ count: alike.count - (alike.orders.length - fresh.length), orders: fresh, self: { vendor: vendorNow, date: target.date, total: totalNow } })
 		}
 		// a draft still being made is the one this order is created from
 		clearTimeout(keepSoon.current)
@@ -1324,27 +1336,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		))
 		: null
 
-	// the same purchase entered twice, by scan, by hand or by copy: amber beside the limits, never in the way
-	const vendorTyped = (draft.vendor ?? '').trim()
-	const lookalike = useApi(getOrderLookalike, [vendorTyped, draft.date, Math.round(sums.total * 100) / 100, orderId ?? ''],
-		{ enabled: Boolean(vendorTyped) && dated && sums.total > 0 }).data?.order
-	// not for the order 3c already showed on this scan (3c, the flow)
-	const lookalikeNotice = lookalike && vendorTyped && dated && sums.total > 0 && !origin.shownOrders?.includes(lookalike.id)
-		? (
-			<ListItem color="warning" count="!" variant="top">
-				<span className="sp-stack sp-gap-6">
-					<span className="sp-title sp-ink-warning">You already have an order like this</span>
-					<span className="sp-meta sp-ink-warning">
-						{money(lookalike.total)} at {vendorTyped} on {dayShortMonth(lookalike.date)}. You can still {creating ? 'create' : 'save'} this one.
-					</span>
-					{touch
-						? <Button variant="outline" fullWidth to={`/orders/${lookalike.id}`}>Open that order</Button>
-						: <span className="sp-row-flex sp-gap-8"><Button variant="outline" size="small" to={`/orders/${lookalike.id}`}>Open that order</Button></span>}
-				</span>
-			</ListItem>
-		)
-		: null
-
 	const leaveWord = creating || touch ? 'Discard' : 'Cancel'
 	const commitWord = saving ? 'Saving…' : crossed.length ? (creating ? 'Create anyway' : 'Save anyway') : creating ? 'Create' : 'Save'
 	const leaveButton = <Button key="leave" variant="outline" onClick={discard}>{leaveWord}</Button>
@@ -1361,7 +1352,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			after={crossed.length && !stacked && !touch ? <span className="sp-meta">You can still save. Nothing is blocked.</span> : null}
 		>
 			{scan ? <CardHeader name="Totals" /> : null}
-			{touch ? null : lookalikeNotice}{touch ? null : limitNotice}
+			{touch ? null : limitNotice}
 			<div className="sp-stack">
 				{scan
 					? <>
@@ -1552,6 +1543,15 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 		)
 		: null
 
+	const answerRepeats = then => () => {
+		for (const o of repeats.orders) answered.current.add(o.id)
+		setRepeats(null)
+		then()
+	}
+	const repeatsAsk = repeats
+		? <OrderRepeats alike={repeats} self={repeats.self} editing={!creatingNow} onCreate={answerRepeats(save)} onDiscard={answerRepeats(discard)} onCancel={() => setRepeats(null)} />
+		: null
+
 	const createdNotice = created
 		? (
 			<Created created={created} touch={touch} orderId={orderId}
@@ -1563,14 +1563,14 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12" ref={column}>
-			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{lookalikeNotice}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
+			{createdNotice}{lostNotice}{notice}{detailsCard}{itemsCard}{attachmentsCard}{scan ? totalsCard : null}{limitNotice}{touchBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{repeatsAsk}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving>
 		</div>
 	)
 	// folded, one column holds everything so the bar can stay at the bottom of the whole page (c27)
 	const main = stacked
-		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></div>
+		? <div className="sp-stack sp-gap-12" ref={column}>{createdNotice}{lostNotice}{detailsCard}{itemsCard}{attachmentsCard}{totalsCard}{stickyBar}<Leaving>{sheet}</Leaving><Leaving>{dialog}</Leaving><Leaving>{repeatsAsk}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></div>
 		: <div className="sp-stack sp-gap-12" ref={column}>{lostNotice}{itemsCard}{attachmentsCard}</div>
-	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}<Leaving>{dialog}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></Panel>
+	const rail = stacked ? null : <Panel>{detailsCard}{totalsCard}<Leaving>{dialog}</Leaving><Leaving>{repeatsAsk}</Leaving><Leaving>{confirmRemoval}</Leaving><Leaving>{compareAsk}</Leaving>{viewer}<Leaving>{guard.prompt}</Leaving></Panel>
 	if (!region) return <>{stacked ? null : createdNotice}{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }

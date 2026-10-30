@@ -2497,18 +2497,6 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
-		"SELECT id, date, total FROM orders WHERE user_id = @userId AND vendor_id = @vendorId AND date BETWEEN @from AND @to AND id <> @except AND abs(total - @total) <= abs(total) * @share + 0.005 ORDER BY abs(date - @target), abs(total - @total) LIMIT 1": {
-			"plan": [
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": [
-				"idx_orders_user_vendor"
-			]
-		},
 		"SELECT id, email, name FROM users WHERE id = ?": {
 			"plan": [
 				"SEARCH users USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -3223,11 +3211,12 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind FROM order_attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id WHERE a.sha256 = @sha256 AND o.user_id = @userId ORDER BY o.date DESC, o.created_at DESC": {
+		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.order_item_id AS item_id, a.name AS file_name, a.kind AS file_kind, a.read_at FROM order_attachments a LEFT JOIN order_items i ON i.id = a.order_item_id JOIN orders o ON o.id = coalesce(a.order_id, i.order_id) LEFT JOIN vendors v ON v.id = o.vendor_id WHERE a.sha256 = @sha256 AND o.user_id = @userId ORDER BY o.date DESC, o.created_at DESC, a.order_item_id IS NOT NULL": {
 			"plan": [
 				"SEARCH a USING INDEX idx_order_attachments_sha256 (sha256=?)",
+				"SEARCH i USING INDEX sqlite_autoindex_order_items_1 (id=?) LEFT-JOIN",
 				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)",
-				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN",
 				"USE TEMP B-TREE FOR ORDER BY"
 			],
 			"findings": [
@@ -3235,7 +3224,27 @@
 			],
 			"indexes": [
 				"idx_order_attachments_sha256",
+				"sqlite_autoindex_order_items_1",
 				"sqlite_autoindex_orders_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, v.colour AS vendor_colour, (SELECT a.id FROM order_attachments a WHERE a.order_id = o.id AND a.thumbnail IS NOT NULL ORDER BY a.rowid LIMIT 1) AS thumbnail_id, count(*) OVER () AS matches FROM orders o JOIN vendors v ON v.id = o.vendor_id WHERE o.user_id = @userId AND o.vendor_id = @vendorId AND o.date BETWEEN @from AND @to AND o.id <> @except AND abs(o.total - @total) <= abs(o.total) * @share + 0.005 ORDER BY abs(o.date - @target), abs(o.total - @total) LIMIT 3": {
+			"plan": [
+				"CO-ROUTINE (subquery-3)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"SEARCH o USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=? AND date>? AND date<?)",
+				"SCAN (subquery-3)",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH a USING INDEX idx_order_attachments_order (order_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_order_attachments_order",
+				"idx_orders_user_vendor",
 				"sqlite_autoindex_vendors_1"
 			]
 		},
@@ -5070,7 +5079,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 13
+			"readers": 14
 		},
 		"idx_order_attachments_sha256": {
 			"table": "order_attachments",
