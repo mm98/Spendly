@@ -10,7 +10,8 @@ export function readPage({ json, width, height, shown = 0, hidden = 0 }) {
 // An invoice often stores its columns one after another: its lines go back into rows by height, columns by spaces.
 function inRows(blocks) {
 	const lines = blocks.flatMap(b => b.lines ?? [])
-		.map(l => ({ x: l.bbox.x, w: l.bbox.w, h: l.bbox.h, top: l.bbox.y, bottom: l.bbox.y + l.bbox.h, text: String(l.text ?? '').trim() }))
+		// some PDFs give every line no height, which would put each word on a row of its own
+		.map(l => ({ x: l.bbox.x, w: l.bbox.w, h: l.bbox.h, top: l.bbox.y, bottom: l.bbox.y + Math.max(l.bbox.h, l.font?.size ?? 0), text: String(l.text ?? '').trim() }))
 		.filter(l => l.text)
 	if (!lines.length) return ''
 	const sideways = l => l.h > l.w && [...l.text].length > 2
