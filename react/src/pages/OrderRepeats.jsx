@@ -92,10 +92,10 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 	}
 	// the draft is named by its vendor, or its file while no vendor was read
 	const nameOf = o => (o.why === 'draft' ? o.vendor || o.file?.name || upload?.name : o.vendor)
-	// Open opens in a new window, so the dialog and what is behind it stay as they are (3c)
+	// Open opens a new tab, so the dialog and what is behind it stay as they are (3c)
 	const open = (o, first) => (
 		<Button key="open" variant={first ? 'solid' : 'outline'} size={touch ? undefined : 'small'} fullWidth={touch}
-			to={`/orders/${o.id}`} target="_blank" rel="noopener">
+			href={`#/orders/${o.id}`} target="_blank" rel="noopener">
 			{phrase(o.why === 'draft' ? 'repeats.openDraft' : 'repeats.openOrder')}
 		</Button>
 	)
