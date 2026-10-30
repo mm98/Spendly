@@ -18,6 +18,6 @@ The bar above a list: search first, then pickers and the one button, each at its
 <Controls>
 	<SearchInput value={q} onChange={setQ} placeholder="Search orders…" aria-label="Search orders" />
 	<Button variant="outline">Filters</Button>
-	<Combobox variant="sort-end" prefix="Sort" value="Newest first">{sortOptions}</Combobox>
+	<Combobox variant="sort" prefix="Sort" value="Newest first">{sortOptions}</Combobox>
 </Controls>
 ```

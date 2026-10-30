@@ -163,7 +163,7 @@ export default function Bookmarks() {
 	]
 
 	const sortControl = (
-		<Combobox variant={touch ? 'end' : 'sort'} aria-label="Sort" value={sortLabel} prefix={touch ? null : 'Sort'}>
+		<Combobox variant={touch ? 'default' : 'sort'} aria-label="Sort" value={sortLabel} prefix={touch ? null : 'Sort'}>
 			{SORTS.map(s => (
 				<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => write({ sort: s.id })}>{s.label}</ComboboxOption>
 			))}

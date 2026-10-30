@@ -14,9 +14,6 @@ import { singular } from './format.js'
 const VARIANT = {
 	default: null,
 	sort: 'sp-combobox--sort',
-	// a sort control last in its bar opens leftward, so its panel stays inside the window
-	'sort-end': 'sp-combobox--sort sp-combobox--end',
-	end: 'sp-combobox--end',
 	stretch: 'sp-combobox--stretch',
 	// a pick field whose values are short: at most the field width, not the whole form column (11a)
 	narrow: 'sp-combobox--narrow'
@@ -107,7 +104,7 @@ export const roomOf = root => {
 }
 
 // the panel back in its own spot under the field: no inline placement, not turned upwards
-const unplace = list => { list.removeAttribute('style'); delete list.dataset.place }
+const unplace = list => { list.removeAttribute('style'); delete list.dataset.place; delete list.dataset.hang }
 
 /** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
     the window count as none), scrolling inside when neither has, lifted out of a box that would cut it.
@@ -129,8 +126,10 @@ export function usePanelPlace(root, panel, open, size, onAway) {
 			if (drawn.right > view.right + 0.5 || drawn.left < view.left - 0.5) {
 				const rightward = view.right - at.left
 				const leftward = at.right - view.left
+				// hung from the right edge it is data-hang="end" (c5), the state a drawing shows
+				if (leftward > rightward) list.dataset.hang = 'end'
 				Object.assign(list.style, leftward > rightward
-					? { left: 'auto', right: '0px', width: drawn.width + 'px' }
+					? { width: drawn.width + 'px' }
 					: { left: '0px', right: 'auto', width: drawn.width + 'px' })
 				drawn = list.getBoundingClientRect()
 			}
@@ -231,7 +230,7 @@ export function countOf(options, noun = 'options') {
     field's right end, the chips keeping clear of it.
     @param {object} props
     @param {boolean} [props.multiple] The field holds several values, drawn as chips. `value` is then the list of them.
-    @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `end` opens its panel from the right edge; `stretch` lets the trigger grow with its value; `narrow` is at most the field width.
+    @param {keyof typeof VARIANT} [props.variant] `default`; `sort` is the small pick-only control above a list; `stretch` lets the trigger grow with its value; `narrow` is at most the field width.
     @param {boolean} [props.fullWidth] Take all the room the control is given: the width of its column, or what is left in its row.
     @param {import('react').ReactNode | string[]} [props.value] What the closed control shows: the chosen value's name. With `multiple`, the values.
     @param {(value: string[]) => void} [props.onChange] With `multiple`: called with the values after one is added or removed.

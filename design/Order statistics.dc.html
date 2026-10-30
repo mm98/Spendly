@@ -2717,6 +2717,7 @@
     <div class="doc-note"><b>It filters, it does not change definitions.</b> Median order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
     <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
     <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
+    <div class="doc-note"><b>Its list is the field's width</b> (<a href="Components.dc.html#c5">c5</a>) and grows only for an option that does not fit, up to 288. It is the <code>default</code> combobox: at the bar's right end the room is on the left, so the list hangs from the field's right edge and grows leftward, drawn here as <code>data-hang="end"</code>, which <code>place()</code> sets.</div>
     <div class="doc-note"><b>The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>
     <div class="doc-note"><b>Budget limits only apply under <code>expenses</code> and <code>net</code>.</b> A limit compared against refunds is meaningless, so the limit cards and the pace marker come out under <code>refunds</code>.</div>
     <div class="doc-note"><b>Not a multi-select.</b> Two of three checked is either <code>net</code> or a single value, so checkboxes would offer a state that has no answer.</div>
@@ -2728,12 +2729,12 @@
       <div class="os-menu-stage doc-frame">
         <div class="sp-topbar">
             <span class="sp-grow"></span>
-            <div class="sp-combobox sp-combobox--end" data-open="true">
+            <div class="sp-combobox" data-open="true">
               <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-label="Lens">
                 <span class="sp-grow">Expenses only</span>
                 <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
               </button>
-              <ul class="sp-combobox__panel" role="listbox" aria-label="Which orders">
+              <ul class="sp-combobox__panel" role="listbox" aria-label="Which orders" data-hang="end">
                 <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true">
                   <span class="sp-stack sp-grow">
                     <span class="sp-data">Expenses only</span>
