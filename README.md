@@ -95,14 +95,13 @@ Everything that needs you, on one page.
     a return is Returned.
   - The vendor is found by VAT number, web address or name, and a new name it was printed with is
     saved as one of its other names.
-  - A file that was scanned before, or is already on an order, is recognised, and you choose what
-    to do with it.
+  - A file that is already on an order or in a draft is recognised before it is read again.
 - **Empty order** - type it in yourself.
 - **Copy an order** - same vendor, same lines, today's date. Orders you repeat often are listed
   first.
-- **Already have it?** - a scanned, new or edited order warns when you have an order from the same
-  vendor up to 3 days away, with a total up to 10% higher or lower, and opens that order for you. It
-  is only a warning: you can still save.
+- **Already have it?** - when a scanned, new or edited order repeats one you have, by the same file
+  or by the same vendor, a near date and a near total, one question asks first. You can open the
+  order you have in a new window, create or save anyway, or discard.
 - **Drafts** - an order you start or scan is kept as a draft from your first change, so you can come
   back to it.
 - **Import** - bring in many orders at once from a spreadsheet (CSV, XLSX or JSON). See

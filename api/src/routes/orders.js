@@ -21,7 +21,7 @@ import { restoreOrder, trashOrder } from '../lib/orderTrash.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } from '../lib/orderDrafts.js'
-import { findLookalikeOrder } from '../lib/orderLookalike.js'
+import { findLookalikeOrders } from '../lib/orderLookalike.js'
 
 export const router = Router()
 
@@ -496,12 +496,11 @@ router.get('/limits', (req, res) => {
 	res.json({ month: day.slice(0, 7), limits })
 })
 
-/* The order an order being entered may repeat (lib/orderLookalike.js): `{ order }`, null when none.
+/* The orders an order being entered may repeat (lib/orderLookalike.js): `{ count, orders }`.
    `vendor` is a name, matched as a receipt's is; `exclude` is the order being edited. */
 router.get('/lookalike', (req, res) => {
 	const vendorId = resolveVendor(req.user.id, String(req.query.vendor ?? '').trim())?.id ?? null
-	const order = findLookalikeOrder(req.user.id, vendorId, String(req.query.date ?? ''), Number(req.query.total), String(req.query.exclude ?? ''))
-	res.json({ order })
+	res.json(findLookalikeOrders(req.user.id, vendorId, String(req.query.date ?? ''), Number(req.query.total), String(req.query.exclude ?? '')))
 })
 
 router.get('/:id', (req, res) => {

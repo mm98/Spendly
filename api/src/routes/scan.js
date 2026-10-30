@@ -32,12 +32,15 @@ const selectScanReading = db.prepare(`SELECT ai_read_json AS read_json, read_at 
 const selectFileReading = db.prepare(`SELECT a.read_json, a.read_at FROM order_attachments a JOIN orders o ON o.id = a.order_id
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId AND a.read_json IS NOT NULL LIMIT 1`)
 const readingOf = (userId, sha256) => selectScanReading.get({ userId, sha256 }) ?? selectFileReading.get({ userId, sha256 })
-/* The orders that already hold a file with these bytes as their own attachment, newest first (3c). */
+/* The orders that already hold a file with these bytes, on the order or on one of its lines, newest
+   first (3c). An order with no vendor holds it too; it is named by its reference. */
 const selectOrdersWithFile = db.prepare(`
-	SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind
-	FROM order_attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id
+	SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.order_item_id AS item_id,
+		a.name AS file_name, a.kind AS file_kind, a.read_at
+	FROM order_attachments a LEFT JOIN order_items i ON i.id = a.order_item_id
+	JOIN orders o ON o.id = coalesce(a.order_id, i.order_id) LEFT JOIN vendors v ON v.id = o.vendor_id
 	WHERE a.sha256 = @sha256 AND o.user_id = @userId
-	ORDER BY o.date DESC, o.created_at DESC`)
+	ORDER BY o.date DESC, o.created_at DESC, a.order_item_id IS NOT NULL`)
 
 // a draft scanned from these bytes
 const selectDraftWithFile = db.prepare(`SELECT d.id FROM uploads u JOIN order_drafts d ON d.upload_id = u.id
@@ -46,7 +49,9 @@ const selectDraftWithFile = db.prepare(`SELECT d.id FROM uploads u JOIN order_dr
 /** What is already known about these bytes: when they were read, the orders that hold them and the
     draft scanned from them (3c). Nothing is known of a file no order or draft holds and that was never read. */
 function seenBefore(userId, sha256) {
-	const orders = selectOrdersWithFile.all({ sha256, userId })
+	// an order holding the file twice, as its receipt and on a line, is one match: its receipt
+	const listed = new Set()
+	const orders = selectOrdersWithFile.all({ sha256, userId }).filter(o => !listed.has(o.id) && listed.add(o.id))
 	const read = readingOf(userId, sha256)
 	const holder = selectDraftWithFile.get(userId, sha256)?.id
 	const [draft] = holder ? draftsAsOrders(userId, holder) : []
@@ -57,7 +62,8 @@ function seenBefore(userId, sha256) {
 		count: orders.length,
 		orders: orders.slice(0, 3).map(o => ({
 			id: o.id, reference: o.reference, date: fromEpoch(o.date), itemCount: o.item_count, status: o.status,
-			total: o.total, vendor: o.vendor, file: { id: o.attachment_id, name: o.file_name, kind: o.file_kind }
+			total: o.total, vendor: o.vendor ?? o.reference, readAt: o.read_at ? new Date(o.read_at * 1000).toISOString() : null,
+			file: { id: o.attachment_id, itemId: o.item_id ?? null, name: o.file_name, kind: o.file_kind }
 		}))
 	}
 }
