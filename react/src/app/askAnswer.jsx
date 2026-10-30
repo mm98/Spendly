@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { ChatChart, ChatFigures, ChatFile, ChatFiles, ChatShares } from '../components/Chat.jsx'
 import { Bars, ChartTip, Donut, Legend, LegendItem, ShareRow, Shares } from '../components/Data.jsx'
 import { amount, currency, dot, plural, shortDate } from '../api/format.js'
-import { OfferName, ShopMark, credit, offerPrice, offerUnitPrice } from './askOffers.jsx'
 
 /* An answer from Ask, in the small format lib/ask.js asks for: paragraphs, "- "
    lists, "|" tables, [text](order:ID) and [text](orders:FILTERS) links, {{number}} amounts, and a place
@@ -160,32 +159,6 @@ export function AnswerChart({ chart, onOpen }) {
 	return Drawing ? <Drawing chart={chart} onOpen={onOpen} /> : null
 }
 
-// one offer of a block (Ask 24d 11): a file's row with the price where Download sits; only the name is a link
-function OfferRow({ offer, source }) {
-	const perUnit = offerUnitPrice(offer)
-	return (
-		<div className="sp-chat__file">
-			<ShopMark offer={offer} />
-			<span className="sp-stacked">
-				<OfferName offer={offer} source={source} nameClass="sp-chat__file-name sp-truncate" />
-				<span className="sp-meta">{offer.shop}{dot}until {shortDate(offer.to)}{offer.membersOnly ? <>{dot}Members only</> : null}</span>
-			</span>
-			<span className="sp-stacked sp-cell-amount sp-chat__price">
-				<span className="sp-amount">{offerPrice(offer)}</span>
-				{perUnit ? <span className="sp-amount-secondary">{perUnit}</span> : null}
-			</span>
-		</div>
-	)
-}
-
-// a block of offers: its rows, none when nothing was on offer, then where they come from, once
-const OfferBlock = ({ block }) => (
-	<>
-		{block.offers.length ? <ChatFiles>{block.offers.map((offer, i) => <OfferRow key={i} offer={offer} source={block.source} />)}</ChatFiles> : null}
-		<span className="sp-meta">{credit(block.source)}</span>
-	</>
-)
-
 /* What a maker of api/src/format made, as the app draws a run of its place marks: the ids in the order the
    answer names them, and the maker's own items by id. */
 const PLACES = {
@@ -198,8 +171,7 @@ const PLACES = {
 			</ChatFiles>
 		]
 	},
-	chart: (ids, charts, { key, onOpen }) => ids.map(id => charts?.[id]).map((chart, i) => (chart ? <AnswerChart key={`${key}-${i}`} chart={chart} onOpen={onOpen} /> : null)),
-	offers: (ids, blocks, { key }) => ids.map(id => blocks?.[id]).map((block, i) => (block ? <OfferBlock key={`${key}-${i}`} block={block} /> : null))
+	chart: (ids, charts, { key, onOpen }) => ids.map(id => charts?.[id]).map((chart, i) => (chart ? <AnswerChart key={`${key}-${i}`} chart={chart} onOpen={onOpen} /> : null))
 }
 const PLACE = new RegExp(`^\\s*\\{\\{(${Object.keys(PLACES).join('|')}):([\\w-]{1,64})\\}\\}\\s*$`)
 

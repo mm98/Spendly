@@ -28,7 +28,6 @@ import { router as viewsRouter } from './routes/views.js'
 import { router as mcpRouter } from './routes/mcp.js'
 import { router as mcpTokensRouter } from './routes/mcpTokens.js'
 import { router as askRouter, downloadFile } from './routes/ask.js'
-import { LOGO_ORIGINS } from './offers/index.js'
 import { requireAuth, sessionUser } from './lib/auth.js'
 import { readCache } from './lib/readCache.js'
 import { readTodayHeader } from './lib/dates.js'
@@ -47,7 +46,7 @@ const CSP = [
 	   an injected <style> element is not. */
 	"style-src 'self'",
 	"style-src-attr 'unsafe-inline'",
-	`img-src 'self' data: blob: ${LOGO_ORIGINS.join(' ')}`.trim(),
+	"img-src 'self' data: blob:",
 	"font-src 'self'",
 	"connect-src 'self'",
 	"manifest-src 'self'",
