@@ -1,139 +1,41 @@
-# A scanned receipt that looks like an order you already have
+# Every dropdown list follows "The list is the field's width"
 
-## Fixed from handoff_scan_lookalike_fixed_2
+Answers Brief-combobox-list-width.md. The brief left a choice: keep `--end` without its fixed width, or remove it. This package removes it.
 
-**The problem.** handoff_scan_lookalike_fixed_2 held the pages from the package before it, not the changed ones, so none of the changes below were in its files.
+## 1. `end` and `sort-end` are removed
 
-**What changed.** The four pages are the current ones: Order create, Actions inventory, States and confirmations, and Images and files. Nothing else changed.
+**The problem.** `.sp-combobox--end` fixed its list at 288 wide and always grew it to the left, whatever the field's width and whatever the room. Every other list is the field's width and grows only for an option that does not fit.
 
-## Fixed from handoff_scan_lookalike_fixed
+**What changed.** The default list already grows toward the side with more room when it would pass the window edge (`place()`), so `--end` had no job left. `end` and `sort-end` are gone from `VARIANT`; a control that used `end` uses `default`, one that used `sort-end` uses `sort`. Its list is the field's width, grows only for an option that does not fit, up to 288, and grows leftward only when the left has more room.
 
-This package also answers the brief "the yellow row and the limits notice on desktop".
-
-### The amber row and the limits notice on desktop
-
-**The problem.** The package put the amber row "under the Totals card, above the limits notice". But 8b, and the app, put the limits notice inside the Totals card, above the total. So when both showed, the limits notice was above the amber row, in a different container.
-
-**What changed.** On desktop both rows sit inside the Totals card, under its head and above the total, in the phone's order: the amber row first, then the limits notice. 8b does not change. The amber row is now the limits notice's row exactly, with the same title and the same amber meta line:
-- title "You already have an order like this"
-- meta line "1.234,00 kr. at Bilka on 12 Aug. You can still create this one."
-- Open that order under them, which makes it `variant="top"`
-
-The phone keeps both rows under the totals, amber first, above the save bar. A row that does not apply is left out.
-
-**Where.** Order create 3a, "The order form, when it looks like an order you have and crosses a limit" (Totals card, and phone). `react/src/pages/OrderForm.jsx`: `lookalikeNotice` moves into `totalsCard`, before `limitNotice`, on desktop.
-
-**What is still open.** Nothing.
-
-### No scan becomes a draft by itself
-
-**The problem.** A scan with no match still became a draft when its reading ended, even if the reader never looked at it.
-
-**What changed.** Every scan becomes a draft at his first change in the review, or when he presses Create, as an empty order does. Until then it is the upload and its reading, held 24 hours and cleaned up after that. Leaving an unchanged review says nothing. Adding the same file again within 24 hours opens 3c with Use the reading. A changed review left behind is kept, with "Kept in Drafts." as before.
-
-The same rule covers a failed reading (6e) and a scan without a reader key.
+The list hung from the field's right edge is now a state of the panel, `data-hang="end"`, so a drawing can show it with the same rule the app uses. `place()` sets it, in place of the inline `left: auto; right: 0` it set before, and keeps setting the measured width inline. `unplace()` removes it with `data-place`.
 
 **Where.**
-- Order create 3a: the lede, "A scan is a draft until it is created or discarded", and the amber row notes.
-- Order create 3c: the flow table's Draft column and its notes.
-- States and confirmations 6e.
-- Actions inventory: Discard.
-- Images and files: the scan's file and the 24-hour cleanup.
-- App: `react/src/pages/OrderNew.jsx` (`Scanned`), `react/src/pages/OrderForm.jsx` (draft at the first change for a scan too), and the server's scan and upload cleanup.
+- `styles/components.css`: the "DRAFT c5 variant" block and `.sp-combobox--end .sp-combobox__panel` are replaced by `.sp-combobox__panel[data-hang="end"] { left: auto; right: 0; }`.
+- `react_handoff/Combobox.jsx`: `end` and `sort-end` removed from `VARIANT`, and from the `variant` description in the JSDoc; `place()` sets `data-hang="end"`; `unplace()` clears it.
+- `Components c5`, the notes "The list is the field's width" (no longer names `--end`) and "A closing list fades where it stood" (states the side-with-room rule and `data-hang`).
+- `Order statistics 4e`: the lens on the bar is the `default` combobox, drawn open with `data-hang="end"`, and a new note says why.
+- `playground-registry.js`: `end` removed from the Combobox variant control.
+- App: `react/src/pages/SettingsImportMap.jsx`, the three `sort-end` lists (the "Change" list for how dates are written, the "grouped by" list, the category list per imported value) become `sort`. `react/src/pages/Bookmarks.jsx`, the phone Sort, `end` becomes `default`. `react/src/pages/Orders.jsx` already uses `sort` (#669). The Order statistics lens, wherever it is built with `end`, becomes `default`.
+- Storybook: `storybook/stories/Combobox.stories.jsx`, the `end` story is removed; the variant control follows `VARIANT`.
 
 **What is still open.** Nothing.
-
-## Fixed from handoff_scan_lookalike
-
-**The problem.** That package left one point open. Step 2 said "If you leave, the scan is kept in Drafts on Home." This was untrue when the reading then matched an order, because such a scan makes no draft. The slow-reading card in 6e said the same, and so did the rule "a scan is a draft from upload".
-
-**What changed.** A scan is held as the upload and its reading until the reading ends. It becomes a draft then, unless the reading looks like an order you already have. In that case it becomes a draft at his first change or Create. The words now say what is true in every case:
-- Step 2 (desktop and phone): "Usually 5 - 10 seconds. If you leave, the reading carries on, and adding the same file again picks it up."
-- 6e, Reading is taking longer than usual: "You can leave this page. The reading carries on, and adding the same file again picks it up."
-- Adding the same file again opens 3c. With no match that is the draft's "Open that draft"; with a match it is "Use the reading".
-
-**Where.**
-- Order create 3a: the lede, step 2 on desktop and phone with the phone notes, and the note "A scan is a draft until it is created or discarded".
-- Order create 3a, the amber row notes.
-- States and confirmations 6e.
-- Actions inventory: Discard (reading) and Discard.
-- App: `react/src/pages/OrderNew.jsx` (`Reading`: the hint under the steps and the slow card), and the server's scan, which makes the draft when the reading ends rather than on upload.
-
-**What is still open.** Nothing.
-
-This answers the brief "a scanned receipt that looks like an order you already have". Two rules run through every point: a match never blocks the reader, and a scan he has not decided on never becomes a draft.
 
 ## later.md
 
-Read on main before the task. Its one entry, Recently deleted, is an idea kept for later and not a design fix, so nothing in it is settled here.
-
-## 1. The flow: already scanned, or already an order
-
-**The problem.** The two checks were drawn in different places, or not at all. 3c covered the same file. The fuzzy check on vendor, date and total was described only as something that "runs later". A scan that matched an order went straight to a review that was already a draft.
-
-**What changed.** 3c is renamed "Already scanned, or already an order". It opens with a flow table that sets out every way in: what matches, what the reader sees, his ways on, and when a draft is made.
-- Same file, with a saved reading: 3c Scanned before, as now.
-- Same file, in a draft: 3c pointing to the draft, as now.
-- Same file, on an order, never read: 3c's new state (point 3).
-- Reading ends, same vendor, a date up to 3 days away, a total within 10%: the review opens with the amber row (point 2).
-- Reading ends, nothing matches: the review, as now.
-- An order typed, copied or edited that matches: the amber row.
-
-Only the file check stops the reader, since it is certain and saves a reading. The order check never stops him. Once the file check has been answered, the amber row does not show for the same order on that scan.
-
-**Where.** Order create 3c, "The flow" table and its notes, plus the 3c card "What the hash does and does not catch". New page rule `.oc-flow` in `styles/pages/order-create.css` (in `@layer base`).
-
-**What is still open.** Nothing.
-
-## 2. A scan that looks like an order you have, and the amber row in the order form
-
-**The problem.** The app went to the review, where a draft already existed. It showed one amber line, "You already have an order like this...", with no way to open the order it named. The line was not drawn anywhere in `design/`.
-
-**What changed.**
-- The review is not blocked. The amber row, the attention row c23 (`ListItem color="warning" count="!" variant="top"`), reads "You already have an order like this" and "1.234,00 kr. at Bilka on 12 Aug. You can still create this one." The words end "save this one" when an order is being edited. Under them is an outline button, "Open that order", small on desktop and full width on a phone. So the reader can open the order he has, or just press Create.
-- **A scan with this row is not a draft yet.** The review opens on the reading held with the upload. It becomes a draft at his first change, as an empty order does, or when he presses Create. Opening that order, or leaving the review unchanged, makes no draft and shows no message. The upload and its reading are held 24 hours, so scanning the same file again opens 3c with "Use the reading". Any other scan is a draft from the upload, as before.
-- If he leaves during step 2 and the reading then matches, no draft is made either.
-- The row shows in the review of a scan, a new order typed by hand, a copy, and a saved order being edited.
-- On desktop it sits in the side column under the Totals card, above the limits notice when both show. On a phone it sits under the totals, above the save bar.
-- When "Open that order" is pressed on a saved order with changes, the reader is asked before leaving, as on any page (6d). A new order or a copy that is already a draft is kept, with the "Kept in Drafts." toast.
-
-**Where.** Order create 3a, "The order form, when it looks like an order you have" (side column and phone), with notes. The app files:
-- `react/src/pages/OrderForm.jsx`: `lookalikeNotice` gains the button and `variant="top"`, and hides for the order 3c already named.
-- `react/src/pages/OrderNew.jsx`: `Scanned`, a matched scan opens the review without a draft.
-- The scan on the server: it must not make the draft before the check.
-
-**What is still open.** Nothing. The step 2 words are settled above.
-
-## 3. 3c for a file that is on an order but was never read
-
-**The problem.** A file added to an order by hand was never read. Scanning it opened 3c, whose words assume a scan and a saved reading.
-
-**What changed.** A new state of 3c uses the app's current words, confirmed:
-- Heading "This receipt is already on an order"; phone title "Already on an order".
-- The matched order, as 3c draws it, with "Open that order" and "Compare the files". The file line shows only the file's name.
-- One way on: "New order from this file", "Reads the file and starts a new order, ready for you to check and change.", button "Read the file". It goes to step 2 as a first reading, then the review.
-- The footer is 3c's.
-
-**Where.** Order create 3c, "The file is on an order but was never read" and its phone frame. `react/src/pages/OrderNew.jsx`, `SeenBefore`.
-
-**What is still open.** Nothing.
-
-## Also drawn: 3c's heading
-
-The app shows a heading and a line under it on 3c ("This receipt has been scanned before", "The same file is already on this order."). On a phone it shows the line under the top bar. The drawing now shows them too, so both 3c states share one shape. The app does not change.
+No entry in later.md is a design fix. The one entry, a deleted record kept for a while, is an idea for later and stays as it is.
 
 ## Files
 
-- `Order create.dc.html`: the changed page (3a, 3c).
-- `Actions inventory.dc.html`, `styles/pages/actions-inventory.css`: Discard rows, with what leaving keeps.
-- `States and confirmations.dc.html`, `styles/pages/states.css`: 6e, the slow-reading card and leaving a failed reading.
-- `Images and files.dc.html`, `styles/pages/images-and-files.css`: the scan file and the 24-hour cleanup.
-- `README.md`: the design's overview, unchanged.
-- `support.js`, `components.js`, `view.js`: what the page loads.
-- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css`: the shared stylesheets, unchanged.
-- `styles/pages/order-create.css`: the page's stylesheet, with `.oc-flow` added.
-- `styles/check.js`: the checker.
+- `README.md` - the design's overview, unchanged.
+- `CHANGES.md` - this note.
+- `Components.dc.html` - c5 notes.
+- `Order statistics.dc.html` - 4e drawing and note.
+- `styles/components.css` - the removed variant and the `data-hang` state.
+- `react_handoff/Combobox.jsx` - `VARIANT`, JSDoc, `place()` and `unplace()`.
+- `playground-registry.js` - the Combobox variant control.
+- `support.js`, `components.js`, `view.js`, `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/order-statistics.css` - what the two pages load to open from the folder.
 
 ## styles/check.js
 
-0 finding(s) across 28 pages
+0 finding(s) across 28 pages.
