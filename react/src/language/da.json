@@ -1969,7 +1969,7 @@
 	"stats.ordersIn": "Ordrerne i {name}",
 	"stats.other": "Andet",
 	"stats.otherCount": "{noun, select, vendors {{shown} andre leverandører} other {{shown} andre kategorier}}",
-	"stats.overBudget": "{amount} over budget",
+	"stats.overBudget": "{amount} over budgettet",
 	"stats.paceDay": "Dag {day} af {days} - forventet tempo",
 	"stats.paid": "Betalt",
 	"stats.period": "Periode",
