@@ -154,7 +154,7 @@ Everything that needs you, on one page.
 
 ![Vendors, with their orders and spend](docs/vendors.png)
 
-![Categories, with this month against each limit](docs/categories.png)
+![Categories, with this month or this year against each limit](docs/categories.png)
 
 - **Vendors** - search, sort, archive, and merge two into one. A vendor has a
   picture, a colour, other names it matches on receipts, default categories, and "Leave out of
