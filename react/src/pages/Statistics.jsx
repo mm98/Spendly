@@ -25,37 +25,37 @@ import { useScanPicker } from '../app/scanPicker.jsx'
 import { getCategoryPage, getCounts, getCurrentUser, getLimitedCategories, getSettings, getSliceOrderPages, getStatsSlice, getVendorPage } from '../api/client.js'
 import { peek, useApi } from '../api/useApi.js'
 import {
-	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, shortDate, today
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, monthNames, percent, plural, shortDate, today
 } from '../api/format.js'
 import {
 	DAY_MS, MOST_CRUMBS, RANGES, boundsOf, chartOf, crumbsIn, dayAndMonth, filterOf, isTime, isoOf, nameOf, readCrumbs,
 	reanchor, scaleFor, stepLabel, todayUtc, unitOf, utcOf, validId, windowIdAt, writeCrumbs, yearEarlier
 } from './statisticsWindows.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 const PRESETS = [
-	{ value: 'days30', label: '30 days' },
-	{ value: 'week', label: 'Week' },
-	{ value: 'month', label: 'Month' },
-	{ value: 'quarter', label: 'Quarter' },
-	{ value: 'year', label: 'Year' },
-	{ value: 'custom', label: 'Custom' }
+	{ value: 'days30', label: 'stats.preset.days30' },
+	{ value: 'week', label: 'stats.preset.week' },
+	{ value: 'month', label: 'stats.preset.month' },
+	{ value: 'quarter', label: 'stats.preset.quarter' },
+	{ value: 'year', label: 'stats.preset.year' },
+	{ value: 'custom', label: 'period.custom' }
 ]
 
 /* The lens (4e): which orders the page adds up. In the address as flow=, and never a crumb. */
 const FLOWS = [
-	{ value: 'expenses', label: 'Expenses only', help: 'What you paid.' },
-	{ value: 'refunds', label: 'Refunds only', help: 'Returned and sold orders.' },
-	{ value: 'net', label: 'Net of refunds', help: 'What you paid, less what came back.' }
+	{ value: 'expenses', label: 'stats.flow.expenses', help: 'stats.flow.expensesHelp' },
+	{ value: 'refunds', label: 'stats.flow.refunds', help: 'stats.flow.refundsHelp' },
+	{ value: 'net', label: 'stats.flow.net', help: 'stats.flow.netHelp' }
 ]
 
 const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
-const counted = (n, noun, nouns = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : nouns}`
 const TOP = 8
 // inside a crumb the Spend and Average help name the level above by its kind (4b, 4c)
-const OF_WINDOW = { year: 'the year', quarter: 'the quarter', month: 'the month', week: 'the week' }
-const OF_CRUMB = { month: 'this month', week: 'this week', vendor: 'this vendor', category: 'this category', status: 'these orders' }
-const VERSUS = { month: 'all months', week: 'all weeks', vendor: 'all vendors', category: 'all categories', status: 'all statuses' }
+const OF_WINDOW = { year: 'stats.of.year', quarter: 'stats.of.quarter', month: 'stats.of.month', week: 'stats.of.week' }
+const OF_CRUMB = { month: 'stats.of.thisMonth', week: 'stats.of.thisWeek', vendor: 'stats.of.thisVendor', category: 'stats.of.thisCategory', status: 'stats.of.theseOrders' }
+const VERSUS = { month: 'stats.all.months', week: 'stats.all.weeks', vendor: 'stats.all.vendors', category: 'stats.all.categories', status: 'stats.all.statuses' }
 // the table pages by the row count set in Settings, as every order list does
 const usePageSize = () => useApi(getSettings).data?.pageSize ?? null
 // the most lines a card lists once opened, whatever an account holds; always more than the resting cap
@@ -117,11 +117,11 @@ function crumbLabel(crumb, { vendors, categories, windowYear }, inText = false) 
 		const month = monthNames('long', !inText)[Number(crumb.value.slice(5)) - 1]
 		return crumb.value.slice(0, 4) === windowYear ? month : `${month} ${crumb.value.slice(0, 4)}`
 	}
-	if (crumb.kind === 'week') return `Week ${Number(crumb.value.slice(6))}`
-	if (crumb.kind === 'vendor') return vendors?.find(v => v.id === crumb.value)?.name ?? 'This vendor'
+	if (crumb.kind === 'week') return phrase('stats.weekNumber', { week: Number(crumb.value.slice(6)) })
+	if (crumb.kind === 'vendor') return vendors?.find(v => v.id === crumb.value)?.name ?? phrase('vendor.this')
 	if (crumb.kind === 'category') {
-		if (crumb.value === 'none') return 'Without category'
-		return categories?.find(c => c.id === crumb.value)?.name ?? 'This category'
+		if (crumb.value === 'none') return phrase('bookmarks.withoutCategory')
+		return categories?.find(c => c.id === crumb.value)?.name ?? phrase('category.this')
 	}
 	return crumb.value
 }
@@ -138,6 +138,7 @@ function ordersLink(slice, crumbs) {
 /* ---- the page ---- */
 
 export default function Statistics() {
+	usePhrase()
 	const shape = useShellShape()
 	const touch = shape === 'touch'
 	// Layout rules: below 900 the paired cards stack
@@ -296,8 +297,8 @@ export default function Statistics() {
 			<PeriodWindow
 				unit={range}
 				label={stepLabel(range, id)}
-				previousLabel={range === 'days30' ? 'The 30 days before' : `Previous ${range}`}
-				nextLabel={range === 'days30' ? 'The 30 days after' : `Next ${range}`}
+				previousLabel={phrase('stats.previous', { range })}
+				nextLabel={phrase('stats.next', { range })}
 				onPrevious={older ? () => show(range, older) : undefined}
 				onNext={newer ? () => show(range, newer) : undefined}
 			/>
@@ -309,19 +310,19 @@ export default function Statistics() {
 	}
 	const shown = draft ? 'custom' : range
 	// on a phone the period is one select with its window beside the name, between the arrows (Mobile screens 7b)
-	const unitName = range === 'days30' ? '30 days' : range === 'custom' ? 'period' : range
+	const presets = PRESETS.map(p => ({ ...p, label: phrase(p.label) }))
 	const picker = (
 		<div className="sp-window sp-window--select">
-			<button type="button" className="sp-window__btn" aria-label={`Earlier ${unitName}`}
+			<button type="button" className="sp-window__btn" aria-label={phrase('stats.earlier', { range })}
 				disabled={!older} onClick={older ? () => show(range, older) : undefined}>
 				<Icon name="chevron-left" size={15} />
 			</button>
-			<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${PRESETS.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label="Period">
-				{PRESETS.map(p => (
+			<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${presets.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label={phrase('stats.period')}>
+				{presets.map(p => (
 					<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
 				))}
 			</Combobox>
-			<button type="button" className="sp-window__btn" aria-label={`Later ${unitName}`}
+			<button type="button" className="sp-window__btn" aria-label={phrase('stats.later', { range })}
 				disabled={!newer} onClick={newer ? () => show(range, newer) : undefined}>
 				<Icon name="chevron-right" size={15} />
 			</button>
@@ -339,7 +340,7 @@ export default function Statistics() {
 								{picker}
 								<label className="sp-row-flex sp-gap-8">
 									<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />
-									<span className="sp-data">Include {counted(view.leftOut, 'left-out order')}</span>
+									<span className="sp-data">{phrase('stats.include', { orders: plural(view.leftOut, 'left out order') })}</span>
 								</label>
 							</div>
 						)
@@ -353,7 +354,7 @@ export default function Statistics() {
 				{announce}
 				<PeriodPicker
 					name="statistics-period"
-					presets={PRESETS}
+					presets={presets}
 					value={shown}
 					at={range === 'days30' ? to : from}
 					from={draft ? draft.from : from}
@@ -368,7 +369,7 @@ export default function Statistics() {
 					extra={view?.leftOut
 						? (
 							<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
-								Include {counted(view.leftOut, 'left-out order')}
+								{phrase('stats.include', { orders: plural(view.leftOut, 'left out order') })}
 							</Choice>
 						)
 						: null}
@@ -376,7 +377,7 @@ export default function Statistics() {
 					<Selected>
 						{span => (
 							<Choice control={<Switch checked={compareOn} onChange={ev => write({ compare: ev.target.checked })} />}>
-								Compare with {nameOf(range, yearEarlier(range, idOfSpan(range, span.selected)), true)}
+								{phrase('stats.compareWith', { period: nameOf(range, yearEarlier(range, idOfSpan(range, span.selected)), true) })}
 							</Choice>
 						)}
 					</Selected>
@@ -389,7 +390,7 @@ export default function Statistics() {
 	useLayoutEffect(() => {
 		if (!refocus.current || drilled) return
 		refocus.current = false
-		;(document.querySelector('input[name="statistics-period"]:checked') ?? document.querySelector('button[aria-label="Period"]'))?.focus()
+		;(document.querySelector('input[name="statistics-period"]:checked') ?? document.querySelector(`button[aria-label="${phrase('stats.period')}"]`))?.focus()
 	}, [drilled])
 	const scan = useScanPicker()
 	const held = useApi(getCurrentUser).data?.emailConfirmed === false
@@ -416,7 +417,7 @@ export default function Statistics() {
 			<>
 				{period}
 				{crumbsBar}
-				<Failed what="Your statistics" error={stats.error} onRetry={retry} />
+				<Failed what={phrase('stats.yours')} error={stats.error} onRetry={retry} />
 			</>
 		)
 	}
@@ -433,8 +434,8 @@ export default function Statistics() {
 				{period}
 				{crumbsBar}
 				<Empty dashed>
-					<EmptyTitle>{view.leftOut === 1 ? 'The one order here is left out of statistics' : `All ${amount(view.leftOut, 0)} orders here are left out of statistics`}</EmptyTitle>
-					<EmptyBody>Turn on Include above to count {view.leftOut === 1 ? 'it' : 'them'}.</EmptyBody>
+					<EmptyTitle>{phrase('stats.allLeftOut', { count: view.leftOut, shown: amount(view.leftOut, 0) })}</EmptyTitle>
+					<EmptyBody>{phrase('stats.allLeftOutBody', { count: view.leftOut })}</EmptyBody>
 				</Empty>
 			</>
 		)
@@ -448,14 +449,14 @@ export default function Statistics() {
 					{period}
 					<Card variant="flush">
 						<Empty>
-							<Mark size="large" aria-hidden="true" aria-label="Receipt"><Icon name="receipt" size={26} /></Mark>
-							<EmptyTitle>No orders yet</EmptyTitle>
-							<EmptyBody>Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.</EmptyBody>
+							<Mark size="large" aria-hidden="true" aria-label={phrase('home.receipt')}><Icon name="receipt" size={26} /></Mark>
+							<EmptyTitle>{phrase('orders.noneYet')}</EmptyTitle>
+							<EmptyBody>{phrase('orders.noneYetRead')}</EmptyBody>
 							<div className="sp-row-flex sp-gap-8">
 								{held
-									? <Button size="small" disabled data-tip="Available once your email is confirmed">Scan a receipt</Button>
-									: <Button size="small" onClick={scan.open}>Scan a receipt</Button>}
-								<Button variant="outline" size="small" to="/orders/new?source=empty">Empty order</Button>
+									? <Button size="small" disabled data-tip={phrase('home.afterConfirm')}>{phrase('orders.scan')}</Button>
+									: <Button size="small" onClick={scan.open}>{phrase('orders.scan')}</Button>}
+								<Button variant="outline" size="small" to="/orders/new?source=empty">{phrase('orders.empty')}</Button>
 							</div>
 						</Empty>
 					</Card>
@@ -466,9 +467,9 @@ export default function Statistics() {
 			<>
 				{period}
 				<Empty dashed>
-					<EmptyTitle>{flow === 'refunds' ? `No returned or sold orders in ${nameInText}` : `No orders in ${nameInText}`}</EmptyTitle>
-					<EmptyBody>Choose another period above, or add an order.</EmptyBody>
-					<Button variant="outline" to="/orders/new">New order</Button>
+					<EmptyTitle>{phrase('stats.noOrdersIn', { refunds: String(flow === 'refunds'), period: nameInText })}</EmptyTitle>
+					<EmptyBody>{phrase('stats.noOrdersBody')}</EmptyBody>
+					<Button variant="outline" to="/orders/new">{phrase('page.newOrder')}</Button>
 				</Empty>
 			</>
 		)
@@ -484,8 +485,8 @@ export default function Statistics() {
 	const was = pastAnswer?.data.window ?? null
 	const failedNotice = comparing && past.error
 		? (
-			<Alert color="danger" mark="!" title={`${wasName} did not load`} action={<Button variant="outline" size="small" onClick={retry}>Try again</Button>}>
-				The figures are shown without the comparison.
+			<Alert color="danger" mark="!" title={phrase('stats.didNotLoad', { name: wasName })} action={<Button variant="outline" size="small" onClick={retry}>{phrase('action.tryAgain')}</Button>}>
+				{phrase('stats.withoutComparison')}
 			</Alert>
 		)
 		: null
@@ -504,7 +505,7 @@ export default function Statistics() {
 	const windowDays = Math.round((viewToMs - viewFromMs) / DAY_MS) + 1
 	const limitPerStep = chart.unit === 'month' ? limit : stepDays ? (limit * view.budgets.months * stepDays) / windowDays : 0
 	const records = crumbs.filter(c => !isTime(c)).map(c => crumbLabel(c, labels))
-	const narrowed = records.length ? `${records.join(dot)}${records.length === 1 ? ' only' : ''}` : null
+	const narrowed = records.length ? phrase('stats.narrowed', { names: records.join(dot), one: String(records.length === 1) }) : null
 
 	// an order added while paging shifts the pages by one, so a row can arrive twice
 	const viewRows = answerFor(readAnswers, viewRange, viewId)?.data
@@ -523,7 +524,7 @@ export default function Statistics() {
 
 	if (drilled) {
 		const parentView = answerFor(parentAnswers, viewRange, viewId)?.data.window
-		const above = crumbs.length > 1 ? OF_CRUMB[crumbs.at(-2).kind] : OF_WINDOW[viewRange] ?? 'the period'
+		const above = crumbs.length > 1 ? OF_CRUMB[crumbs.at(-2).kind] : OF_WINDOW[viewRange] ?? 'stats.of.period'
 		/* The card beside the chart is the first breakdown the path has not already narrowed. */
 		const side = !categoryCrumb
 			? <CategoryRows key={`category ${same}`} view={view} onOpen={drillTo('category')} hint />
@@ -587,10 +588,10 @@ function quickRanges(firstOrder) {
 	const firstOf = (year, month) => isoOf(Date.UTC(year, month - 1, 1))
 	const earliest = isoOf(todayUtc() - (MOST_RANGE_DAYS - 1) * DAY_MS)
 	return [
-		{ label: 'This month', value: [firstOf(y, m), now] },
-		{ label: 'Last month', value: [firstOf(m === 1 ? y - 1 : y, m === 1 ? 12 : m - 1), isoOf(Date.UTC(y, m - 1, 0))] },
-		{ label: 'Year to date', value: [`${y}-01-01`, now] },
-		...(firstOrder ? [{ label: 'All time', value: [firstOrder > earliest ? (firstOrder < now ? firstOrder : now) : earliest, now] }] : [])
+		{ label: phrase('period.thisMonth'), value: [firstOf(y, m), now] },
+		{ label: phrase('stats.lastMonth'), value: [firstOf(m === 1 ? y - 1 : y, m === 1 ? 12 : m - 1), isoOf(Date.UTC(y, m - 1, 0))] },
+		{ label: phrase('stats.yearToDate'), value: [`${y}-01-01`, now] },
+		...(firstOrder ? [{ label: phrase('stats.allTime'), value: [firstOrder > earliest ? (firstOrder < now ? firstOrder : now) : earliest, now] }] : [])
 	]
 }
 
@@ -614,8 +615,8 @@ function CrumbsBar({ root, crumbs, labels, link, onTruncate, onDrop, onReset }) 
 	}, [focusAt, path, root])
 	return (
 		<Card variant="path" ref={bar}>
-			<CardHeader name="Showing" actions={[{ label: 'Reset', onClick: onReset }, { label: 'Open in orders', to: link }]} />
-			<Crumbs root={root} aria-label="Showing">
+			<CardHeader name={phrase('stats.showing')} actions={[{ label: phrase('orders.reset'), onClick: onReset }, { label: phrase('stats.openInOrders'), to: link }]} />
+			<Crumbs root={root} aria-label={phrase('stats.showing')}>
 				{crumbs.map((c, i) => {
 					const label = crumbLabel(c, labels)
 					return i === crumbs.length - 1
@@ -667,7 +668,7 @@ const hold = (w, h = '13', shape = 'line') => <span className="sp-row-flex"><Ske
 /** A skeleton over the outline button it stands in for, which is kept unseen beneath it so its size holds. */
 const buttonHold = key => (
 	<span className="os-hold" key={key}>
-		<span className="os-ghost" aria-hidden="true"><Button variant="outline" size="small">Show all</Button></span>
+		<span className="os-ghost" aria-hidden="true"><Button variant="outline" size="small">{phrase('stats.showAll')}</Button></span>
 		<span className="os-over"><Skeleton shape="fill" /></span>
 	</span>
 )
@@ -675,9 +676,9 @@ const buttonHold = key => (
 function busyParts({ unit, name, cardName, period, span, running, touch, comparing, categories, known, drilled, flow }) {
 	// the account's categories bound a breakdown's length before its window answers
 	return {
-		kpis: (drilled ? ['Spend', 'Orders', 'Median order', 'Saved'] : ['Total spend', 'Orders', 'Median order', 'Saved']).map(label => (
+		kpis: (drilled ? ['stats.kpi.spend', 'stats.kpi.orders', 'stats.kpi.median', 'stats.kpi.saved'] : ['stats.kpi.totalSpend', 'stats.kpi.orders', 'stats.kpi.median', 'stats.kpi.saved']).map(label => (
 			<Card key={label} aria-busy="true">
-				{touch ? null : <CardHeader name={label} />}<Stat bare label={touch ? label : undefined} figure={hold('104', '22')} />
+				{touch ? null : <CardHeader name={phrase(label)} />}<Stat bare label={touch ? phrase(label) : undefined} figure={hold('104', '22')} />
 				{comparing ? <Skeleton shape="pill" /> : null}
 				{!touch && !drilled ? <Bars variant="spark" loading /> : null}
 			</Card>
@@ -707,7 +708,7 @@ function Spark({ columns, value, format, label }) {
 				height: share(Math.max(0, values[i]), most),
 				muted: !column.running,
 				future: column.future,
-				tip: column.future ? undefined : <ChartTip title={column.name} value={format(values[i])} note={counted(column.orders, 'order')} />
+				tip: column.future ? undefined : <ChartTip title={column.name} value={format(values[i])} note={plural(column.orders, 'order')} />
 			}))} />
 	)
 }
@@ -717,7 +718,7 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 	const shown = chart.steps
 	const spark = (value, format, label) => (touch ? null : <Spark columns={shown} value={value} format={format} label={label} />)
 	// the header names the step its bars are drawn in (4a); a phone tile has no bars
-	const per = label => (touch ? label : `${label}${dot}by ${chart.unit}`)
+	const per = key => (touch ? phrase(key) : `${phrase(key)}${dot}${phrase('stats.byUnit', { unit: chart.unit })}`)
 	const money = n => currency(n, 0)
 	const compared = line => (was ? line(was) : waiting ? <Skeleton shape="pill" /> : null)
 	// a phone tile draws the figure without its currency (Mobile screens 7a), so a million still fits on one line
@@ -727,36 +728,36 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
 	const cost = (now, then) => (!then || now === then ? 'default' : now > then ? 'danger' : 'success')
 	return [
 		<Card key="spend">
-			{touch ? null : <CardHeader name={per('Total spend')} />}<Stat bare label={touch ? per('Total spend') : undefined} figure={figure(view.spent)} />
+			{touch ? null : <CardHeader name={per('stats.kpi.totalSpend')} />}<Stat bare label={touch ? per('stats.kpi.totalSpend') : undefined} figure={figure(view.spent)} />
 			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)} by={by}>{rise(view.spent, then.spent)}</Change>)}
-			{spark(c => c.spend, money, `Total spend in each ${chart.unit}`)}
+			{spark(c => c.spend, money, phrase('stats.spark.spend', { unit: chart.unit }))}
 		</Card>,
 		<Card key="orders">
-			{touch ? null : <CardHeader name={per('Orders')} />}<Stat bare label={touch ? per('Orders') : undefined} figure={amount(view.orders, 0)} />
+			{touch ? null : <CardHeader name={per('stats.kpi.orders')} />}<Stat bare label={touch ? per('stats.kpi.orders') : undefined} figure={amount(view.orders, 0)} />
 			{compared(then => (
 				<Change tone={view.orders > then.orders ? 'success' : 'default'} against={amount(then.orders, 0)} by={by}>
 					{signed(view.orders - then.orders, amount(Math.abs(view.orders - then.orders), 0))}
 				</Change>
 			))}
-			{spark(c => c.orders, n => amount(n, 0), `Orders in each ${chart.unit}`)}
+			{spark(c => c.orders, n => amount(n, 0), phrase('stats.spark.orders', { unit: chart.unit }))}
 		</Card>,
 		<Card key="median">
-			{touch ? null : <CardHeader name={per('Median order')} />}<Stat bare label={touch ? per('Median order') : undefined} figure={figure(view.median)} />
+			{touch ? null : <CardHeader name={per('stats.kpi.median')} />}<Stat bare label={touch ? per('stats.kpi.median') : undefined} figure={figure(view.median)} />
 			{compared(then => (
 				<Change state={then.median && Math.round(view.median) !== Math.round(then.median) ? 'progress' : undefined} against={currency(then.median, 0)} by={by}>
 					{rise(view.median, then.median)}
 				</Change>
 			))}
-			{spark(c => c.median, money, `Median order in each ${chart.unit}`)}
+			{spark(c => c.median, money, phrase('stats.spark.median', { unit: chart.unit }))}
 		</Card>,
 		<Card key="saved">
-			{touch ? null : <CardHeader name={per('Saved')} />}<Stat bare label={touch ? per('Saved') : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
+			{touch ? null : <CardHeader name={per('stats.kpi.saved')} />}<Stat bare label={touch ? per('stats.kpi.saved') : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
 			{compared(then => (
 				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)} by={by}>
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
 				</Change>
 			))}
-			{spark(c => c.saved, money, `Saved in each ${chart.unit}`)}
+			{spark(c => c.saved, money, phrase('stats.spark.saved', { unit: chart.unit }))}
 		</Card>
 	]
 }
@@ -765,23 +766,23 @@ function Kpis({ view, chart, was, by, waiting, touch }) {
     Categories overlap, so a category's spend is no share of the level above (4b). */
 function DrilledKpis({ view, parent, above, versusAll, period, category, flow, touch, shareOfAbove }) {
 	const figure = n => (touch ? amount(n, 0) : currency(n, 0))
-	const of = shareOfAbove && parent && parent.spent > 0 && view.spent >= 0 ? `${percent(share(view.spent, parent.spent), 0)} of ${above}` : null
+	const of = shareOfAbove && parent && parent.spent > 0 && view.spent >= 0 ? phrase('stats.shareOf', { share: percent(share(view.spent, parent.spent), 0), above: phrase(above) }) : null
 	const higher = parent && parent.median > 0 ? view.median - parent.median : null
 	const versus = higher == null || Math.round(view.median) === Math.round(parent.median)
-		? null : `${signed(higher, percent(Math.abs(share(higher, parent.median)), 0))} vs ${versusAll}`
+		? null : phrase('stats.versusAll', { change: signed(higher, percent(Math.abs(share(higher, parent.median)), 0)), all: phrase(versusAll) })
 	// a category's limit, held once for each month of the stretch the figures cover, as the Limits card holds it
 	let limit = null
 	if (category?.budget > 0 && flow !== 'refunds') {
 		const allowed = category.budget * view.budgets.months
-		limit = { spent: view.spent, allowed, help: `${period}, ${view.spent > allowed ? 'over' : 'under'}`, over: view.spent > allowed }
+		limit = { spent: view.spent, allowed, help: phrase('stats.limitHelp', { period, over: String(view.spent > allowed) }), over: view.spent > allowed }
 	}
 	return [
-		<Card key="spend">{touch ? null : <CardHeader name="Spend" />}<Stat bare label={touch ? 'Spend' : undefined} figure={figure(view.spent)} help={of} /></Card>,
-		<Card key="orders">{touch ? null : <CardHeader name="Orders" />}<Stat bare label={touch ? 'Orders' : undefined} figure={amount(view.orders, 0)} /></Card>,
-		<Card key="median">{touch ? null : <CardHeader name="Median order" />}<Stat bare label={touch ? 'Median order' : undefined} figure={figure(view.median)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
+		<Card key="spend">{touch ? null : <CardHeader name={phrase('stats.kpi.spend')} />}<Stat bare label={touch ? phrase('stats.kpi.spend') : undefined} figure={figure(view.spent)} help={of} /></Card>,
+		<Card key="orders">{touch ? null : <CardHeader name={phrase('stats.kpi.orders')} />}<Stat bare label={touch ? phrase('stats.kpi.orders') : undefined} figure={amount(view.orders, 0)} /></Card>,
+		<Card key="median">{touch ? null : <CardHeader name={phrase('stats.kpi.median')} />}<Stat bare label={touch ? phrase('stats.kpi.median') : undefined} figure={figure(view.median)} help={versus} helpColor={higher > 0 ? 'warning' : 'default'} /></Card>,
 		limit
-			? <Card key="limit">{touch ? null : <CardHeader name="Against the limit" />}<Stat bare label={touch ? 'Against the limit' : undefined} figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
-			: <Card key="saved">{touch ? null : <CardHeader name="Saved" />}<Stat bare label={touch ? 'Saved' : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>
+			? <Card key="limit">{touch ? null : <CardHeader name={phrase('stats.kpi.limit')} />}<Stat bare label={touch ? phrase('stats.kpi.limit') : undefined} figure={`${amount(limit.spent, 0)} / ${amount(limit.allowed, 0)}`} help={limit.help} helpColor={limit.over ? 'warning' : 'default'} /></Card>
+			: <Card key="saved">{touch ? null : <CardHeader name={phrase('stats.kpi.saved')} />}<Stat bare label={touch ? phrase('stats.kpi.saved') : undefined} color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} /></Card>
 	]
 }
 
@@ -791,7 +792,7 @@ function Change({ tone = 'default', state, against, by, children }) {
 	return (
 		<div className="sp-row-flex sp-gap-8">
 			<Pill color={tone} state={state}>{children}</Pill>
-			<span className="sp-meta">vs {against}{by ? ` by ${by}` : ''}</span>
+			<span className="sp-meta">{phrase('stats.versus', { against, by: by ?? '', dated: String(!!by) })}</span>
 		</div>
 	)
 }
@@ -811,7 +812,7 @@ function useFit(bars, layout) {
 // on a phone twelve months are cut to their first letter (Mobile screens 7a); the bar keeps its full name
 const tickOf = (chart, column, touch) => (touch && chart.unit === 'month' && chart.steps.length > 6 ? column.tick.slice(0, 1) : column.tick)
 
-const SHAPES = [{ value: 'Stacked', label: 'Stacked' }, { value: 'Total', label: 'Total' }]
+const SHAPES = [{ value: 'Stacked', label: 'stats.shape.stacked' }, { value: 'Total', label: 'stats.shape.total' }]
 
 /** A column's spend split by the window's top three categories and the rest, each a share of the bar. */
 function segmentsOf(column) {
@@ -829,11 +830,11 @@ function SpendTip({ column, categories, opens }) {
 	const rows = categories
 		? [
 			...categories.map((c, i) => ({ key: c.id, series: i + 1, name: c.name, value: amount(parts[i] ?? 0, 0) })),
-			{ key: 'other', series: 4, name: 'Other', value: amount(rest, 0) }
+			{ key: 'other', series: 4, name: phrase('stats.other'), value: amount(rest, 0) }
 		]
 		: []
-	const title = column.crumb?.kind === 'week' ? `Week ${Number(column.crumb.value.slice(6))}` : column.name
-	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${counted(column.orders, 'order')}${opens ? `${dot}click to narrow down` : ''}`} />
+	const title = column.crumb?.kind === 'week' ? phrase('stats.weekNumber', { week: Number(column.crumb.value.slice(6)) }) : column.name
+	return <ChartTip title={title} value={currency(column.spend, 0)} rows={rows} note={`${plural(column.orders, 'order')}${opens ? `${dot}${phrase('stats.clickToNarrow')}` : ''}`} />
 }
 
 function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, narrowed, stackable = false, categories = [], limit = 0, onOpen }) {
@@ -870,12 +871,12 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 	const below = columns.filter(column => column.spend < 0)
 	const limitLine = limit > 0 && !touch
 		// measured down from the top of the bars, which end above the row of names under them
-		? { at: `${fit * (100 - share(limit, top))}%`, label: `${unit === 'month' ? 'Monthly limit' : `Limit per ${unit}`} ${currency(limit, 0)}` }
+		? { at: `${fit * (100 - share(limit, top))}%`, label: phrase('stats.limitLine', { unit, amount: currency(limit, 0) }) }
 		: undefined
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
-			<CardHeader name={`Spend by ${unit}`} aside={narrowed || undefined}
-				control={splits && !touch ? <Segmented name="statistics-bar-shape" size="small" options={SHAPES} value={shapeOf} onChange={setShape} aria-label="Bar shape" /> : undefined} />
+			<CardHeader name={phrase('stats.spendBy', { unit })} aside={narrowed || undefined}
+				control={splits && !touch ? <Segmented name="statistics-bar-shape" size="small" options={SHAPES.map(o => ({ ...o, label: phrase(o.label) }))} value={shapeOf} onChange={setShape} aria-label={phrase('stats.barShape')} /> : undefined} />
 			{touch
 				? <Bars ref={bars} days={unit === 'day'} columns={drawn} selected={select ? selected : undefined} onSelect={select} loading={!chart} />
 				: (
@@ -897,9 +898,9 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 				? (
 					<Legend>
 						{stackedNow
-							? <>{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}<LegendItem series={4}>Other</LegendItem></>
+							? <>{categories.map((c, i) => <LegendItem series={i + 1} key={c.id}>{c.name}</LegendItem>)}<LegendItem series={4}>{phrase('stats.other')}</LegendItem></>
 							: running && !narrowed
-								? <><LegendItem series={1}>Spend</LegendItem><LegendItem series={4}>Not yet complete</LegendItem></>
+								? <><LegendItem series={1}>{phrase('stats.kpi.spend')}</LegendItem><LegendItem series={4}>{phrase('stats.notComplete')}</LegendItem></>
 								: null}
 						{limitLine ? <LegendItem series="limit">{limitLine.label}</LegendItem> : null}
 					</Legend>
@@ -908,7 +909,7 @@ function SpendChart({ chart, unit: soonUnit, running: soon, touch, selected, nar
 			{below.length
 				? (
 					<span className="sp-meta">
-						{below.map(column => column.name).join(', ')} returned more than {below.length === 1 ? 'it' : 'they'} bought.
+						{phrase('stats.returnedMore', { names: below.map(column => column.name).join(', '), count: below.length })}
 					</span>
 				)
 				: null}
@@ -923,12 +924,12 @@ const BY_CATEGORY_ROWS = 4
 function CategoryCard({ view, known, name, onOpen }) {
 	const entries = view?.split
 	const count = entries ? entries.length : known ?? BY_CATEGORY_ROWS
-	const aside = entries?.length ? `${name}${dot}${count > BY_CATEGORY_ROWS ? `top ${BY_CATEGORY_ROWS} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name
+	const aside = entries?.length ? `${name}${dot}${count > BY_CATEGORY_ROWS ? phrase('stats.topOf', { top: BY_CATEGORY_ROWS, all: amount(count, 0) }) : phrase('stats.all', { all: amount(count, 0) })}` : name
 	return (
 		<Card aria-busy={entries ? undefined : 'true'}>
-			<CardHeader name="By category" aside={aside} />
+			<CardHeader name={phrase('stats.byCategory')} aside={aside} />
 			{entries && !entries.length
-				? <span className="sp-meta">None of these orders has a category.</span>
+				? <span className="sp-meta">{phrase('stats.noCategory')}</span>
 				: <Ranked entries={entries?.slice(0, BY_CATEGORY_ROWS)} rows={Math.min(Math.max(count, 1), BY_CATEGORY_ROWS)} noun="categories" onOpen={onOpen} counts />}
 		</Card>
 	)
@@ -970,7 +971,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 	const folded = rest.length > 1
 	const lines = folded && !others ? entries.slice(0, top)
 		: folded ? [...entries.slice(0, top), {
-			id: 'other', other: true, name: `Other ${amount(rest.length, 0)} ${noun}`,
+			id: 'other', other: true, name: phrase('stats.otherCount', { shown: amount(rest.length, 0), noun }),
 			amount: rest.reduce((sum, entry) => sum + entry.amount, 0), orders: rest.reduce((sum, entry) => sum + (entry.orders ?? 0), 0)
 		}]
 		: entries
@@ -994,7 +995,7 @@ function Ranked({ entries, rows = TOP + 1, noun, touch, open, onOpen, counts = f
 							<div className="sp-row-flex sp-gap-8">
 								<span className={entry.other ? 'sp-data sp-subtitle sp-grow sp-truncate' : 'sp-data sp-grow sp-truncate'}>{entry.name}</span>
 								<span className={ink(entry)}>{currency(entry.amount, 0)}</span>
-								{counts ? <span className="sp-meta sp-row-meta">{counted(entry.orders, 'order')}</span> : null}
+								{counts ? <span className="sp-meta sp-row-meta">{plural(entry.orders, 'order')}</span> : null}
 							</div>
 							{gauge}
 						</>
@@ -1018,7 +1019,7 @@ function CategoryRows({ view, known, name, onOpen, hint = false }) {
 	const count = entries ? entries.length : known ?? TOP + 2
 	return (
 		<Card aria-busy={entries ? undefined : 'true'} footer={moreFooter(entries, count, 'categories', open, setOpen)}>
-			<CardHeader name="By category" aside={hint && onOpen ? 'click to narrow further' : name || undefined} />
+			<CardHeader name={phrase('stats.byCategory')} aside={hint && onOpen ? phrase('stats.clickToNarrowFurther') : name || undefined} />
 			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} onOpen={onOpen} others={false} />
 		</Card>
 	)
@@ -1028,7 +1029,7 @@ function ShowAll({ open, onClick, count, noun }) {
 	const shown = useShown()
 	return (
 		<Button variant="outline" size="small" onClick={onClick}>
-			{open ? `Show top ${TOP} only` : count > shown ? `Show top ${shown} of ${amount(count, 0)} ${noun}` : `Show all ${amount(count, 0)} ${noun}`}
+			{open ? phrase('stats.showTopOnly', { top: TOP }) : count > shown ? phrase('stats.showTopOf', { top: shown, all: amount(count, 0), noun }) : phrase('stats.showAllOf', { all: amount(count, 0), noun })}
 		</Button>
 	)
 }
@@ -1043,12 +1044,12 @@ function VendorsCard({ view, name, touch, onOpen }) {
 	const all = folds ? moreFooter(vendors, count, 'vendors', open, setOpen) : null
 	return (
 		<Card aria-busy={vendors ? undefined : 'true'}>
-			<CardHeader name="Top vendors" aside={vendors ? `${name}${dot}${count > shown || (folds && !open) ? `top ${open ? shown : TOP} of ${amount(count, 0)}` : `all ${amount(count, 0)}`}` : name} />
+			<CardHeader name={phrase('stats.topVendors')} aside={vendors ? `${name}${dot}${count > shown || (folds && !open) ? phrase('stats.topOf', { top: open ? shown : TOP, all: amount(count, 0) }) : phrase('stats.all', { all: amount(count, 0) })}` : name} />
 			<Ranked entries={vendors} noun="vendors" touch={touch} open={open} onOpen={onOpen} counts={!touch} />
 			<CardFooter>
 				{all}
 				<span className="sp-grow" />
-				<span className="sp-meta">{vendors ? `${currency(view.spent, 0)} total` : hold('96', '11')}</span>
+				<span className="sp-meta">{vendors ? phrase('stats.total', { amount: currency(view.spent, 0) }) : hold('96', '11')}</span>
 			</CardFooter>
 		</Card>
 	)
@@ -1067,7 +1068,7 @@ function StatusCard({ view, flow = 'expenses', onOpen }) {
 	const shown = [...lens, ...[...counts.keys()].filter(s => !lens.includes(s))]
 	return (
 		<Card aria-busy={view ? undefined : 'true'}>
-			<CardHeader name="By status" />
+			<CardHeader name={phrase('stats.byStatus')} />
 			{shown.map(status => {
 				const count = view ? counts.get(status) ?? 0 : null
 				return (
@@ -1098,7 +1099,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 	const select = !chart || chart.unit === 'day' || !onOpen ? undefined : key => onOpen(columns.find(column => column.key === key))
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
-			<CardHeader name="Spend vs saving" aside={name} />
+			<CardHeader name={phrase('stats.spendVsSaving')} aside={name} />
 			{chart
 				? (
 					<Bars
@@ -1107,7 +1108,7 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 							key: column.key,
 							from: column.from,
 							to: column.to,
-							label: `${column.name}, paid ${currency(column.spend, 0)}, saved ${currency(column.saved, 0)}`,
+							label: phrase('stats.savingBar', { name: column.name, paid: currency(column.spend, 0), saved: currency(column.saved, 0) }),
 							pair: [share(Math.max(0, column.spend), most), share(Math.max(0, column.saved), most)],
 							tick: tickOf(chart, column, touch)
 						}))}
@@ -1117,8 +1118,8 @@ function SavingChart({ chart, name, touch, selected, onOpen }) {
 				)
 				: <Bars loading />}
 			<Legend>
-				<LegendItem series={1}>Paid</LegendItem>
-				<LegendItem series={4}>Saved</LegendItem>
+				<LegendItem series={1}>{phrase('stats.paid')}</LegendItem>
+				<LegendItem series={4}>{phrase('stats.kpi.saved')}</LegendItem>
 			</Legend>
 		</Card>
 	)
@@ -1135,14 +1136,14 @@ function LimitByMonth({ chart, category, touch }) {
 	const folds = newest.length > TOP + 1
 	const months = folds && !open ? newest.slice(0, TOP) : newest
 	const all = folds
-		? <Button key="all" variant="outline" size="small" onClick={() => setOpen(!open)}>{open ? `Show ${TOP} months only` : `Show all ${amount(newest.length, 0)} months`}</Button>
+		? <Button key="all" variant="outline" size="small" onClick={() => setOpen(!open)}>{open ? phrase('stats.showMonthsOnly', { top: TOP }) : phrase('stats.showAllMonths', { all: amount(newest.length, 0) })}</Button>
 		: null
 	const footer = [...(touch ? [edit] : []), ...(all ? [all] : [])]
 	// a period across a new year would show the same month twice, so there each month carries its year
 	const years = new Set(chart.columns.map(column => column.from.slice(0, 4))).size > 1
 	return (
 		<Card footer={footer.length ? footer : null} footerLayout={touch && all ? 'stack' : 'fill'}>
-			<CardHeader name="By month, against the limit" aside={`limit ${currency(budget, 0)} a month`} actions={touch ? undefined : [editing]} />
+			<CardHeader name={phrase('stats.byMonthLimit')} aside={phrase('stats.limitAMonth', { amount: currency(budget, 0) })} actions={touch ? undefined : [editing]} />
 			{months.map(column => {
 				const scale = Math.max(column.spend, budget)
 				const over = column.spend > budget
@@ -1172,7 +1173,7 @@ const rememberLimits = n => { try { sessionStorage.setItem(LIMITED, String(n)) }
 
 /** Every category's limit is set on the overview (5d); one category's on its own page, at the limit (5f). */
 // a category's limit is edited on the category; without one, on the limited categories
-const limitEdit = category => ({ label: 'Edit on category', to: category ? `/categories/${category.id}/edit?focus=limit` : '/categories?flag=limited' })
+const limitEdit = category => ({ label: phrase('stats.editOnCategory'), to: category ? `/categories/${category.id}/edit?focus=limit` : '/categories?flag=limited' })
 const EditLimit = ({ category }) => {
 	const { label, to } = limitEdit(category)
 	return <Button variant="outline" size="small" to={to}>{label}</Button>
@@ -1182,13 +1183,13 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 	const shown = useShown()
 	const edit = <EditLimit key="edit" />
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
-	const head = <CardHeader name="Limits" actions={touch ? undefined : [limitEdit()]} />
+	const head = <CardHeader name={phrase('stats.limits')} actions={touch ? undefined : [limitEdit()]} />
 	const limited = categories.data?.filter(category => category.budget > 0)
 	useEffect(() => { if (limited) rememberLimits(limited.length) }, [limited?.length])
 	const [open, setOpen] = useState(false)
 	if (categories.error) return (
 		<Hold shape={<LimitCard view={view} period={period} span={span} running={running} categories={{}} touch={touch} />}>
-			<Failed variant="card" label="Limits" what="The limits" error={categories.error} onRetry={onRetry} />
+			<Failed variant="card" label={phrase('stats.limits')} what={phrase('stats.theLimits')} error={categories.error} onRetry={onRetry} />
 		</Hold>
 	)
 	const footer = touch ? [edit] : null
@@ -1199,14 +1200,14 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 		return (
 			<Card footer={footer}>
 				{head}
-				<span className="sp-meta">No category has a monthly limit yet. Give one a limit, and this card shows how close you are.</span>
+				<span className="sp-meta">{phrase('stats.noLimits')}</span>
 			</Card>
 		)
 	}
 	// a longer period holds each limit once for each month it covers, a part month by its share of days (4a)
 	const months = view?.budgets.months
-	const note = span.unit === 'month' && span.count === 1 ? 'Each category has one limit that applies to every month.'
-		: `Each category has one limit a month. For ${period} that is ${amount(span.count, 0)} ${span.unit}${span.count === 1 ? '' : 's'}.`
+	const note = span.unit === 'month' && span.count === 1 ? phrase('stats.limitNoteMonth')
+		: phrase('stats.limitNote', { period, span: plural(span.count, span.unit) })
 	if (!view || !limited) {
 		return (
 			<Card aria-busy="true" footer={footer}>
@@ -1248,8 +1249,8 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 		// ahead of pace only past ten points over the marker (4a, 5d)
 		const ahead = !over && pace != null && row.used > pace + 10
 		const text = over
-			? `${currency(row.spend - row.allowed, 0)} over budget`
-			: `${currency(row.allowed - row.spend, 0)} left${ahead ? `${dot}ahead of pace` : ''}`
+			? phrase('stats.overBudget', { amount: currency(row.spend - row.allowed, 0) })
+			: `${phrase('stats.left', { amount: currency(row.allowed - row.spend, 0) })}${ahead ? `${dot}${phrase('stats.aheadOfPace')}` : ''}`
 		return (
 			<div className="sp-stack sp-gap-6" key={row.id}>
 				<div className="sp-row-flex sp-gap-8">
@@ -1271,7 +1272,7 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 		return (
 			<Card footer={footer}>
 				{head}
-				<span className="sp-meta">Nothing has been spent in a category with a limit.</span>
+				<span className="sp-meta">{phrase('stats.noLimitSpend')}</span>
 			</Card>
 		)
 	}
@@ -1282,19 +1283,19 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 			{pace != null
 				? (
 					<ListItem>
-						<span className="sp-data">Day {view.pace.daysIn} of {view.pace.unitDays} - expected pace</span>
+						<span className="sp-data">{phrase('stats.paceDay', { day: view.pace.daysIn, days: view.pace.unitDays })}</span>
 						<span className="sp-grow" />
 						<span className="sp-amount">{Math.round(pace)}%</span>
 					</ListItem>
 				)
 				: null}
 			{drawn}
-			{open && rows.length > shown ? <span className="sp-meta">Top {shown} of {amount(rows.length, 0)}. Edit on category lists them all.</span> : null}
+			{open && rows.length > shown ? <span className="sp-meta">{phrase('stats.topOfAll', { top: shown, all: amount(rows.length, 0) })}</span> : null}
 			{pace != null
 				? (
 					<div className="sp-row-flex sp-gap-8">
 						<GaugeKey aria-hidden="true" />
-						<span className="sp-meta">Marker shows where you should be on day {view.pace.daysIn}.</span>
+						<span className="sp-meta">{phrase('stats.marker', { day: view.pace.daysIn })}</span>
 					</div>
 				)
 				: null}
@@ -1306,11 +1307,11 @@ function LimitCard({ view, period, span, running, categories, touch, onRetry }) 
 function sliceHead(show) {
 	return (
 		<ListHead>
-			<ListCell width="title">Order</ListCell>
-			<ListCell width="date">Date</ListCell>
-			{show.categories ? <ListCell width="flex">Categories</ListCell> : null}
-			<ListCell width="status">Status</ListCell>
-			<ListCell width="amount">Total</ListCell>
+			<ListCell width="title">{phrase('page.order')}</ListCell>
+			<ListCell width="date">{phrase('field.date')}</ListCell>
+			{show.categories ? <ListCell width="flex">{phrase('field.categories')}</ListCell> : null}
+			<ListCell width="status">{phrase('field.status')}</ListCell>
+			<ListCell width="amount">{phrase('order.total')}</ListCell>
 		</ListHead>
 	)
 }
@@ -1321,7 +1322,7 @@ function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, o
 	const show = columnsFor(useWidth(column))
 	let body
 	if (!rows.length && failed) {
-		body = <Failed what={`The orders in ${name}`} error={failed} onRetry={onRetry} />
+		body = <Failed what={phrase('stats.ordersIn', { name })} error={failed} onRetry={onRetry} />
 	}
 	// a page of rows holds the table's place, or the window's own count once it is known
 	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, size) : size} page={size} total={view?.orders} />
@@ -1331,11 +1332,11 @@ function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, o
 				rowTo={order => `/orders/${order.id}`} locale={NUMBER_LOCALE}>
 				<Caption>
 					{drilled
-						? <span className="sp-section-label">The {counted(view.orders, 'order')} behind this</span>
-						: <strong className="sp-data">{counted(view.orders, 'order')} in this slice</strong>}
+						? <span className="sp-section-label">{phrase('stats.behind', { orders: plural(view.orders, 'order') })}</span>
+						: <strong className="sp-data">{phrase('stats.inSlice', { orders: plural(view.orders, 'order') })}</strong>}
 					<span className="sp-meta">{dot}{currency(view.spent)}</span>
 					<Saving value={view.saved} variant="help" />
-					{drilled ? null : <><span className="sp-grow" /><span className="sp-meta">newest first</span></>}
+					{drilled ? null : <><span className="sp-grow" /><span className="sp-meta">{phrase('stats.newestFirst')}</span></>}
 				</Caption>
 				{sliceHead(show)}
 				<ListRow>
@@ -1355,7 +1356,7 @@ function OrdersTable({ view, name, drilled, rows, matched, failed, onLoadMore, o
 						</>
 					)}
 				</ListRow>
-				{failed ? <Foot><span className="sp-meta sp-meta--over">The next orders did not load. Press Load more to try again.</span></Foot> : null}
+				{failed ? <Foot><span className="sp-meta sp-meta--over">{phrase('stats.nextFailed')}</span></Foot> : null}
 			</List>
 		)
 	}
@@ -1403,7 +1404,7 @@ function SliceCard({ view, link, drilled }) {
 	return (
 		<ListItem variant="card" to={link} chevron={chevron}>
 			<Stacked>
-				<span className="sp-title">{drilled ? `The ${counted(view.orders, 'order')} behind this` : `${counted(view.orders, 'order')} in this slice`}</span>
+				<span className="sp-title">{phrase(drilled ? 'stats.behind' : 'stats.inSlice', { orders: plural(view.orders, 'order') })}</span>
 			</Stacked>
 			<span className="sp-stacked sp-cell-amount">
 				<span className="sp-amount">{currency(view.spent)}</span>

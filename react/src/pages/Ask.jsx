@@ -14,13 +14,12 @@ import { AnswerText } from '../app/askAnswer.jsx'
 import { useAskHelp } from '../app/askHelp.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
-
-// the address of a deleted or expired chat opens the empty page with this (24f)
-const GONE = 'That chat is no longer kept.'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** Ask (24a): a chat at /ask/:chatId, the saved questions, and the conversation menu (24c), on a phone the top
     bar's (7a). /ask shows the chat open last in this visit, or the empty page; `?file=ID` opens the answer that made it. */
 export default function Ask() {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -64,7 +63,7 @@ export default function Ask() {
 	const gone = chat.status === 'gone'
 	useEffect(() => {
 		if (!gone) return
-		toast({ message: GONE, color: 'danger' })
+		toast({ message: phrase('ask.gone'), color: 'danger' })
 		newChat()
 		navigate('/ask', { replace: true })
 	}, [gone, toast, navigate])
@@ -112,7 +111,7 @@ export default function Ask() {
 	const toggleSaved = question => {
 		const kept = saved.find(s => s.question === question)
 		const done = kept ? removeSavedQuestion(kept.id) : saveQuestion(question)
-		done.catch(e => problem(e, kept ? 'The question was not removed. Try again.' : 'The question was not saved. Try again.'))
+		done.catch(e => problem(e, phrase(kept ? 'ask.question.notRemoved' : 'ask.question.notSaved')))
 	}
 
 	const startNew = () => {
@@ -127,15 +126,15 @@ export default function Ask() {
 		emailConversation(chat.id).then(
 			out => {
 				noteEmailed(sent)
-				toast({ message: <>Sent to <b className="sp-break">{out.email}</b></> })
+				toast({ message: phrase('ask.sentTo', { email: out.email, b: words => <b className="sp-break">{words}</b> }) })
 			},
-			e => problem(e, e.status === 429 ? 'Wait a minute before emailing this chat again.' : 'The email could not be sent. Try again.')
+			e => problem(e, phrase(e.status === 429 ? 'ask.email.wait' : 'ask.email.failed'))
 		).finally(() => setSending(false))
 	}
 
-	let emailLabel = 'Email this chat'
-	if (sending) emailLabel = 'Sending'
-	else if (emailed) emailLabel = 'Emailed'
+	let emailLabel = phrase('ask.email')
+	if (sending) emailLabel = phrase('ask.email.sending')
+	else if (emailed) emailLabel = phrase('ask.email.sent')
 	let emailIcon = 'mail'
 	if (sending) emailIcon = <Spinner />
 	else if (emailed) emailIcon = 'check'
@@ -154,12 +153,12 @@ export default function Ask() {
 	const items = <ConversationItems mails={mails} emailLabel={emailLabel} emailIcon={emailIcon} canEmail={canEmail} canStartNew={canStartNew} onEmail={email} onNew={startNew} />
 	let opening = null
 	if (chat.status === 'loading' || gone) opening = <ChatThread aria-busy="true"><Skeleton shape="line" /></ChatThread>
-	else if (chat.status === 'failed') opening = <ChatStart><Failed what="This chat" error={chat.error} onRetry={() => showChat(chat.id)} /></ChatStart>
+	else if (chat.status === 'failed') opening = <ChatStart><Failed what={phrase('ask.thisChat')} error={chat.error} onRetry={() => showChat(chat.id)} /></ChatStart>
 
 	return (
 		<>
 			{touch
-				? <ScreenBar place title="Ask" onBack={() => navigate('/more')}
+				? <ScreenBar place title={phrase('page.ask')} onBack={() => navigate('/more')}
 					end={<ConversationMenu>{items}</ConversationMenu>} />
 				: null}
 			<Chat>
@@ -174,7 +173,7 @@ export default function Ask() {
 								return [
 									dayLine(`dq${t.id}`, t.askedAt),
 									<ChatMessage key={`q${t.id}`} mine mark={mine} {...timeOf(t.askedAt)}
-										end={<ChatSave saved={isSaved} disabled={!savedList || full} tip={full ? `${savedMost} saved. Remove one to save another.` : undefined}
+										end={<ChatSave saved={isSaved} disabled={!savedList || full} tip={full ? phrase('ask.savedFull', { count: savedMost }) : undefined}
 											onClick={() => toggleSaved(t.question)} />}>
 										<ChatQuestion>{t.question}</ChatQuestion>
 									</ChatMessage>,
@@ -196,8 +195,8 @@ export default function Ask() {
 						<ChatStart>
 							<Empty>
 								<SpendlyMark size="large" />
-								<EmptyTitle>Ask about your money</EmptyTitle>
-								<EmptyBody>Answers come from your orders, vendors, categories, budget and statistics, and can be a file or a chart. Asking never changes anything.</EmptyBody>
+								<EmptyTitle>{phrase('ask.empty.title')}</EmptyTitle>
+								<EmptyBody>{phrase('ask.empty.body')}</EmptyBody>
 							</Empty>
 							{saved.length
 								? (
@@ -205,7 +204,7 @@ export default function Ask() {
 										{saved.map(s => <ChatPick key={s.id} question={s.question} disabled={noneLeft} onChoose={() => send(s.question)} onRemove={() => toggleSaved(s.question)} />)}
 									</ChatExamples>
 								)
-								: savedList ? <span className="sp-meta">Save a question with the bookmark beside it, and it shows here.</span> : null}
+								: savedList ? <span className="sp-meta">{phrase('ask.savedHint')}</span> : null}
 						</ChatStart>
 					))}
 				<ChatDock
@@ -219,10 +218,10 @@ export default function Ask() {
 					working={working}
 					disabled={noneLeft || !!opening}
 					fieldRef={field}
-					placeholder={noneLeft ? 'No questions left today' : touch && turns.length ? 'Ask a follow-up' : 'Ask about your orders, vendors and budget'}
+					placeholder={phrase(noneLeft ? 'chat.limit.none' : touch && turns.length ? 'ask.followUp' : 'ask.placeholder')}
 					end={touch
 						? null
-						: <ChatMore><Menu position="floating" aria-label="Conversation">{items}</Menu></ChatMore>}
+						: <ChatMore><Menu position="floating" aria-label={phrase('chat.conversation')}>{items}</Menu></ChatMore>}
 				/>
 			</Chat>
 			<Leaving>{help}</Leaving>
@@ -233,9 +232,9 @@ export default function Ask() {
 // the time under a message, from epoch seconds; none while there is none. An answer's time carries what it took
 // on the server, when that was kept: "14:32 (2300 ms, 3410 tokens, 2 rounds)"
 const tookOf = turn => [
-	turn?.answerMs != null && `${turn.answerMs} ms`,
-	turn?.answerTokens != null && `${turn.answerTokens} tokens`,
-	turn?.answerRounds != null && `${turn.answerRounds} ${turn.answerRounds === 1 ? 'round' : 'rounds'}`
+	turn?.answerMs != null && phrase('ask.took.ms', { ms: turn.answerMs }),
+	turn?.answerTokens != null && phrase('ask.took.tokens', { count: turn.answerTokens }),
+	turn?.answerRounds != null && phrase('ask.took.rounds', { count: turn.answerRounds })
 ].filter(Boolean).join(', ')
 const timeOf = (at, turn) => {
 	if (!at) return {}
@@ -251,25 +250,27 @@ function AccountMark({ name, email, picture }) {
 
 /* The conversation menu's items (24c): Chats and Files, Email this chat in the state of its send, and New chat. */
 function ConversationItems({ mails, emailLabel, emailIcon, canEmail, canStartNew, onEmail, onNew }) {
+	const phrase = usePhrase()
 	return <>
-		<MenuItem icon="message-circle" to="/ask/chats">Chats</MenuItem>
-		<MenuItem icon="paperclip" to="/ask/files">Files</MenuItem>
+		<MenuItem icon="message-circle" to="/ask/chats">{phrase('page.chats')}</MenuItem>
+		<MenuItem icon="paperclip" to="/ask/files">{phrase('page.files')}</MenuItem>
 		{mails ? <MenuItem icon={emailIcon} disabled={!canEmail} onClick={onEmail}>{emailLabel}</MenuItem> : null}
 		<MenuSeparator />
-		<MenuItem icon="plus" disabled={!canStartNew} onClick={onNew}>New chat</MenuItem>
+		<MenuItem icon="plus" disabled={!canStartNew} onClick={onNew}>{phrase('ask.newChat')}</MenuItem>
 	</>
 }
 
 /* The phone's top bar menu (Mobile screens 7a): the same items as the menu beside Send. */
 function ConversationMenu({ children }) {
+	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)
 	const anchor = useRef(null)
 	const close = useCallback(() => setOpen(false), [])
 	useDismiss(anchor, open, close)
 	return (
 		<Anchor ref={anchor} open={open} onClick={ev => { if (ev.target.closest('.sp-menu__item:not(:disabled)')) close() }}>
-			<IconButton icon="dots-vertical" aria-label="Conversation menu" aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
-			{open ? <Menu position="floating" aria-label="Conversation">{children}</Menu> : null}
+			<IconButton icon="dots-vertical" aria-label={phrase('chat.menu')} aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
+			{open ? <Menu position="floating" aria-label={phrase('chat.conversation')}>{children}</Menu> : null}
 		</Anchor>
 	)
 }

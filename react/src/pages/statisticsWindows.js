@@ -1,4 +1,5 @@
 import { activeLocaleCode, longDate, monthNames, shortDate, today, withShortMonth } from '../api/format.js'
+import { phrase } from '../language/phrases.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
 
@@ -91,7 +92,7 @@ export function reanchor(range, id, next) {
     capitalised unless the name sits inside running text (`inText`), where it follows the language. */
 export function nameOf(range, id, inText = false) {
 	const y = id.slice(0, 4)
-	if (range === 'week') return `Week ${Number(id.slice(6))}, ${y}`
+	if (range === 'week') return phrase('stats.week', { week: Number(id.slice(6)), year: y })
 	if (range === 'month') return `${monthNames('long', !inText)[Number(id.slice(5)) - 1]} ${y}`
 	if (range === 'quarter') return `${id.slice(5)} ${y}`
 	if (range === 'days30' || range === 'custom') {
@@ -202,7 +203,7 @@ export function chartOf(view) {
 			tick: unit === 'month' ? monthNames('short', true)[month] : unit === 'week' ? daySpan(from, to) : days > 7 ? String(Number(from.slice(8))) : weekday(from),
 			name: unit === 'month'
 				? `${monthNames('long', true)[month]} ${new Date(at).getUTCFullYear()}`
-				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),
+				: unit === 'week' ? phrase('stats.weekSpan', { week, from: shortDate(from), to: shortDate(to) }) : longDate(from),
 			crumb: unit === 'month' ? { kind: 'month', value: windowIdAt('month', at) } : unit === 'week' ? { kind: 'week', value: windowIdAt('week', at) } : null,
 			spend: between(spend, start, end),
 			saved: between(saved, start, end),

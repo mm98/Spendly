@@ -14,6 +14,7 @@ import { plural } from '../api/format.js'
 import { AskListFrame } from '../app/askListFrame.jsx'
 import { ScreenBar } from '../app/screenBar.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { usePhrase } from '../language/phrases.js'
 
 const STEP = 25
 
@@ -21,6 +22,7 @@ const STEP = 25
     answer that made it, download again or delete.
     `?download=ID` starts that file's download, as signing in from a download link comes back here. */
 export default function AskFiles() {
+	const phrase = usePhrase()
 	const touch = useShellShape() === 'touch'
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -39,8 +41,8 @@ export default function AskFiles() {
 	const problem = (e, fallback) => toast({ message: failureMessage(e, fallback), color: 'danger' })
 	const remove = file => {
 		deleteAskFile(file.id).then(
-			() => toast({ message: 'File deleted', undo: { label: 'Undo', onClick: () => restoreAskFile(file.id).catch(e => problem(e, 'The file could not be brought back.')) } }),
-			e => problem(e, 'The file was not deleted. Try again.')
+			() => toast({ message: phrase('askFiles.deleted'), undo: { label: phrase('action.undo'), onClick: () => restoreAskFile(file.id).catch(e => problem(e, phrase('askFiles.notBack'))) } }),
+			e => problem(e, phrase('askFiles.notDeleted'))
 		)
 	}
 
@@ -48,16 +50,16 @@ export default function AskFiles() {
 	const searching = !!query.trim()
 	let empty = null
 	let body = null
-	if (list.error && !data) empty = <Failed what="Your files" error={list.error} onRetry={list.refresh} />
+	if (list.error && !data) empty = <Failed what={phrase('askFiles.yours')} error={list.error} onRetry={list.refresh} />
 	else if (!data) body = <ChatFiles aria-busy="true"><div className="sp-chat__file"><Skeleton shape="line" /></div></ChatFiles>
 	else if (!data.files.length) {
 		empty = (
 			<ChatStart>
 				<Empty>
-					<Mark size="large" fill="none" aria-hidden="true" aria-label="Files"><Icon name="paperclip" /></Mark>
+					<Mark size="large" fill="none" aria-hidden="true" aria-label={phrase('page.files')}><Icon name="paperclip" /></Mark>
 					{searching
-						? <><EmptyTitle>No files found</EmptyTitle><EmptyBody>Try another word, or clear the search.</EmptyBody></>
-						: <><EmptyTitle>No files yet</EmptyTitle><EmptyBody>Ask Spendly for a spreadsheet or a document, and it is kept here for {data.keptDays} days.</EmptyBody></>}
+						? <><EmptyTitle>{phrase('askFiles.noneFound')}</EmptyTitle><EmptyBody>{phrase('ask.tryAnotherWord')}</EmptyBody></>
+						: <><EmptyTitle>{phrase('askFiles.none')}</EmptyTitle><EmptyBody>{phrase('askFiles.noneBody', { days: data.keptDays })}</EmptyBody></>}
 				</Empty>
 			</ChatStart>
 		)
@@ -73,13 +75,13 @@ export default function AskFiles() {
 		)
 	}
 
-	if (touch) return <><ScreenBar title="Files" onBack={() => navigate('/ask')} />{empty ?? body}</>
+	if (touch) return <><ScreenBar title={phrase('page.files')} onBack={() => navigate('/ask')} />{empty ?? body}</>
 	let count = null
-	if (data?.total) count = searching ? `${data.matched} of ${plural(data.total, 'file')}` : plural(data.total, 'file')
+	if (data?.total) count = searching ? phrase('ask.matchedOf', { matched: data.matched, total: plural(data.total, 'file') }) : plural(data.total, 'file')
 	const controls = data?.total
 		? (
 			<Controls>
-				<SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder="Search files" aria-label="Search files" />
+				<SearchInput value={query} onChange={q => { setQuery(q); setPages(1) }} placeholder={phrase('askFiles.search')} aria-label={phrase('askFiles.search')} />
 				<span className="sp-meta">{count}</span>
 			</Controls>
 		)

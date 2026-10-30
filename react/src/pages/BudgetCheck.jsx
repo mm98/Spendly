@@ -22,26 +22,26 @@ import {
 	DATE_FORMATS, checkPayments, dateFormatsFor, describeColumn, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
 	realAmounts
 } from '../api/bankStatement.js'
-import { phrase } from '../language/phrases.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /* A bank's CSV export checked against the budget (21g, 21h). The file is read here and never
    sent; only the choices made about its payments are saved. */
 
-const SIDES = [{ kind: 'expense', title: 'Costs' }, { kind: 'income', title: 'Income' }]
+const SIDES = [{ kind: 'expense', title: 'budget.group.costs' }, { kind: 'income', title: 'budget.group.income' }]
 const TO_PLACE = ['missing', 'near', 'year']
 const LEFT_OUT = ['skip', 'once']
 const VIEWS = [
-	{ value: 'place', label: 'To place', shows: TO_PLACE },
-	{ value: 'amount', label: 'Other amount', shows: ['amount'] },
-	{ value: 'left', label: 'Left out', shows: LEFT_OUT },
-	{ value: 'all', label: 'All', shows: null }
+	{ value: 'place', label: 'bank.view.place', shows: TO_PLACE },
+	{ value: 'amount', label: 'bank.view.amount', shows: ['amount'] },
+	{ value: 'left', label: 'bank.view.left', shows: LEFT_OUT },
+	{ value: 'all', label: 'bank.view.all', shows: null }
 ]
 const ROLES = [
-	{ id: 'date', label: 'Date' },
-	{ id: 'text', label: 'Text' },
-	{ id: 'amount', label: 'Amount' },
-	{ id: 'out', label: 'Money out, as its own column' },
-	{ id: 'none', label: 'Not used' }
+	{ id: 'date', label: 'field.date' },
+	{ id: 'text', label: 'bank.role.text' },
+	{ id: 'amount', label: 'field.amount' },
+	{ id: 'out', label: 'bank.role.out' },
+	{ id: 'none', label: 'bank.role.none' }
 ]
 
 // a failure the shell already tells of (the session ended) has no sentence, and takes no toast
@@ -52,8 +52,8 @@ const toastFailure = (toast, error, fallback) => {
 const cents = n => Math.round(n * 100) / 100
 const money = n => currency(cents(n))
 const when = g => (g.payments.length === 1 ? dayShortMonth(g.first)
-	: g.first === g.last ? `${plural(g.payments.length, 'payment')} on ${dayShortMonth(g.first)}`
-		: `${plural(g.payments.length, 'payment')}, ${dayShortMonth(g.first)} to ${dayShortMonth(g.last)}`)
+	: g.first === g.last ? phrase('bank.when.day', { payments: plural(g.payments.length, 'payment'), date: dayShortMonth(g.first) })
+		: phrase('bank.when.span', { payments: plural(g.payments.length, 'payment'), from: dayShortMonth(g.first), to: dayShortMonth(g.last) }))
 
 /* Payments no row accounts for, one group per text: placing the text once places them all. */
 function groupPayments(list) {
@@ -91,6 +91,7 @@ const rememberMapping = (width, mapping) => {
 const BANK_FILES = '.csv,.txt,text/csv'
 
 export default function BudgetCheck() {
+	const phrase = usePhrase()
 	const toast = useToast()
 	// four segments do not fit beside a phone's buttons, so there they take the full row
 	const touch = useShellShape() === 'touch'
@@ -112,7 +113,7 @@ export default function BudgetCheck() {
 		if (!chosen) return
 		try {
 			const found = parseCsv(await readText(chosen))
-			if (!found.length) { toast({ message: `${chosen.name} is empty.`, color: 'danger' }); return }
+			if (!found.length) { toast({ message: phrase('bank.fileEmpty', { file: chosen.name }), color: 'danger' }); return }
 			const header = hasHeader(found)
 			const remembered = rememberedMapping(Math.max(...found.map(r => r.length)))
 			setFile(chosen.name)
@@ -121,7 +122,7 @@ export default function BudgetCheck() {
 			setShowColumns(!remembered)
 			setView('place')
 		} catch (e) {
-			toast({ message: `${chosen.name} could not be read. ${e.message}`, color: 'danger' })
+			toast({ message: phrase('bank.fileUnread', { file: chosen.name, reason: e.message }), color: 'danger' })
 		}
 	}
 	const change = patch => setMapping(m => {
@@ -172,24 +173,24 @@ export default function BudgetCheck() {
 		<>
 			<Controls>
 				{ready && payments.length
-					? <Segmented name="bank-show" aria-label="Show" variant={touch ? 'facet' : 'default'} options={VIEWS} value={view} onChange={setView} />
+					? <Segmented name="bank-show" aria-label={phrase('bookmarks.show')} variant={touch ? 'facet' : 'default'} options={VIEWS.map(v => ({ ...v, label: phrase(v.label) }))} value={view} onChange={setView} />
 					: null}
 				<span className="sp-grow" />
 				{ready && payments.length
-					? <Button variant="outline" aria-pressed={showColumns ? 'true' : 'false'} onClick={toggleColumns}>{showColumns ? 'Close columns' : 'Columns'}</Button>
+					? <Button variant="outline" aria-pressed={showColumns ? 'true' : 'false'} onClick={toggleColumns}>{phrase(showColumns ? 'bank.closeColumns' : 'bank.columns')}</Button>
 					: null}
-				<Button variant="outline" onClick={() => picker.current?.click()}>Another file</Button>
+				<Button variant="outline" onClick={() => picker.current?.click()}>{phrase('bank.anotherFile')}</Button>
 				<input ref={picker} type="file" name="bank-file" accept={BANK_FILES} hidden tabIndex={-1}
 					onChange={ev => { const chosen = ev.target.files?.[0]; ev.target.value = ''; read(chosen) }} />
 			</Controls>
 			{showColumns || !ready || !payments.length
 				? <Columns file={file} rows={rows} body={body} width={width} mapping={mapping} dateFits={dateFits} dateFormat={dateFormat}
-					problem={!ready ? 'Tell Spendly which column holds the date, the text and the amount.'
-						: !payments.length ? 'No payments were found with these columns.' : null}
-					left={ready && payments.length && unread.length ? `${plural(unread.length, 'line')} could not be read with these columns.` : null}
+					problem={!ready ? phrase('bank.tellColumns')
+						: !payments.length ? phrase('bank.noPayments') : null}
+					left={ready && payments.length && unread.length ? phrase('bank.unreadLines', { lines: plural(unread.length, 'line') }) : null}
 					onChange={change} />
 				: !checked
-					? failed ? <Failed what="Your budget" error={failed} onRetry={retry} /> : <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
+					? failed ? <Failed what={phrase('bank.yourBudget')} error={failed} onRetry={retry} /> : <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
 					: <Results key={file} file={file} payments={payments} unread={unread.length} checked={checked} sheets={sheets} setSheets={setSheets}
 						setLinks={setLinks} view={view} onFailed={saved.refresh} />}
 		</>
@@ -201,9 +202,9 @@ function PickFile({ onFile }) {
 	return (
 		<Card>
 			<FileDrop accept={BANK_FILES} onFiles={files => onFile(files?.[0])}>
-				<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Bank file"><Icon name="upload" size={19} /></Mark>
-				<span className="sp-title">Drop the bank file, or choose it</span>
-				<span className="sp-subtitle">The CSV file your bank exports. Each payment is looked up in the budget for its year and month. The file stays on this device.</span>
+				<Mark size="medium" fill="solid" aria-hidden="true" aria-label={phrase('bank.file')}><Icon name="upload" size={19} /></Mark>
+				<span className="sp-title">{phrase('bank.drop')}</span>
+				<span className="sp-subtitle">{phrase('bank.dropBody')}</span>
 			</FileDrop>
 		</Card>
 	)
@@ -220,29 +221,29 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 	const touch = useShellShape() === 'touch'
 	const columns = Array.from({ length: width }, (_, i) => {
 		const role = roleOf(i)
-		const name = mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`
+		const name = mapping.header && rows[0][i] ? rows[0][i] : phrase('bank.column', { number: i + 1 })
 		return {
 			i,
 			name,
 			values: (
 				<span className="sp-subtitle sp-truncate">
 					{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
-						?? body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}
+						?? body.slice(0, 3).map(r => r[i] || phrase('bank.emptyValue')).join(dot)}
 				</span>
 			),
 			choice: (
 				<div className="sp-stack sp-gap-8">
-					<PickOnly aria-label={`${name} is mapped to`}
-						value={role.id === 'none' ? <span className="sp-ink-5">{role.label}</span> : role.label}
-						options={ROLES.map(r => ({ id: r.id, label: r.label, selected: r.id === role.id }))}
+					<PickOnly aria-label={phrase('bank.mappedTo', { name })}
+						value={role.id === 'none' ? <span className="sp-ink-5">{phrase(role.label)}</span> : phrase(role.label)}
+						options={ROLES.map(r => ({ id: r.id, label: phrase(r.label), selected: r.id === role.id }))}
 						onPick={id => set(i, id)} />
 					{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
-						<Field label="Every date can be read two ways. Which is right?">
+						<Field label={phrase('bank.dateTwoWays')}>
 							<PickOnly value={phrase(DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? '')}
 								options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: phrase(f.label), selected: f.id === dateFormat }))}
 								onPick={id => onChange({ dateFormat: id })} />
 						</Field>
-					) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
+					) : <span className="sp-note sp-ink-danger">{phrase('bank.notDates')}</span>}
 				</div>
 			)
 		}
@@ -250,17 +251,17 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 	return (
 		<Card variant="flush">
 			<Toolbar>
-				<span className="sp-section-label">Columns</span>
+				<span className="sp-section-label">{phrase('bank.columns')}</span>
 				<span className="sp-grow" />
 				<span className={touch ? 'sp-note sp-truncate' : 'sp-note'}>{file}</span>
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-12">
-					<span className="sp-subtitle">Your file has {plural(width, 'column')}. What does each one hold?</span>
+					<span className="sp-subtitle">{phrase('bank.fileHas', { columns: plural(width, 'column') })}</span>
 					{problem ? <span className="sp-note sp-ink-danger">{problem}</span> : null}
 					{left ? <span className="sp-note sp-ink-warning">{left}</span> : null}
 					<Choice control={<Check checked={!!mapping.header} onChange={ev => onChange({ header: ev.target.checked })} />}>
-						The first line of the file holds column names
+						{phrase('bank.header')}
 					</Choice>
 				</div>
 			</CardBody>
@@ -284,8 +285,8 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 					<table className="sp-table sp-table--static">
 						<thead>
 							<tr>
-								<th scope="col" className="sp-col-title">File</th>
-								<th scope="col" className="sp-col-flex">First three values</th>
+								<th scope="col" className="sp-col-title">{phrase('bank.th.file')}</th>
+								<th scope="col" className="sp-col-flex">{phrase('bank.th.values')}</th>
 								<th scope="col" className="bg-col-map">Spendly</th>
 							</tr>
 						</thead>
@@ -301,7 +302,7 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 					</table>
 				)}
 			<CardBody>
-				<span className="sp-note">Money out is read as a minus amount. Choose a column as money out only when your bank shows it in a column of its own.</span>
+				<span className="sp-note">{phrase('bank.moneyOut')}</span>
 			</CardBody>
 		</Card>
 	)
@@ -334,7 +335,7 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 	return (
 		<Field label={label} id={id}>
 			<Combobox searchable search={query} onSearch={setQuery} noun="rows" open={open} onOpenChange={setOpen}
-				placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'}
+				placeholder={phrase(kind === 'income' ? 'bank.pickIncome' : 'bank.pickCosts')}
 				onKeyDown={ev => { if (ev.key === 'Escape' && !open && onClose) { ev.preventDefault(); onClose() } }}>
 				{/* one flat list, so the arrow keys reach every option */}
 				{groups.length ? groups.flatMap((g, gi) => [
@@ -345,11 +346,11 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 						const value = m.real ?? m.expected
 						return (
 							<ComboboxOption key={l.id} disabled={disabled}
-								meta={value != null ? `${money(value)} in ${short}` : `No amount in ${short}`}
+								meta={value != null ? phrase('bank.inMonth', { amount: money(value), month: short }) : phrase('bank.noAmountIn', { month: short })}
 								onSelect={() => onPick(l)}>{l.name}</ComboboxOption>
 						)
 					})
-				]) : <ComboboxEmpty>No row has that name.</ComboboxEmpty>}
+				]) : <ComboboxEmpty>{phrase('bank.noRow')}</ComboboxEmpty>}
 			</Combobox>
 		</Field>
 	)
@@ -438,13 +439,13 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 				else latest = await saveBankLink({ pattern: g.key, kind: g.kind, lineId: line?.id ?? null })
 			}
 			if (latest) setLinks(latest)
-			const what = once ? 'Left out once' : line ? `On ${line.name}` : 'Always left out'
+			const what = once ? phrase('bank.leftOutOnce') : line ? phrase('bank.on', { name: line.name }) : phrase('bank.alwaysLeftOut')
 			setRecent(r => [...r.filter(x => !list.some(g => g.id === x.id)), ...list.map(g => ({ ...g, saved: what, once }))])
 			setPicked(new Set())
 			setOpen(null)
 			setBulkOpen(false)
 		} catch (e) {
-			toastFailure(toast, e, 'Not every choice was saved.')
+			toastFailure(toast, e, phrase('bank.notEveryChoice'))
 			onFailed()
 		} finally {
 			setBusy(false)
@@ -460,7 +461,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 			if (latest) setLinks(latest)
 			setRecent(r => r.filter(x => x.id !== g.id))
 		} catch (e) {
-			toastFailure(toast, e, 'Your choice was not taken back.')
+			toastFailure(toast, e, phrase('bank.notTakenBack'))
 			onFailed()
 		} finally {
 			setBusy(false)
@@ -473,9 +474,9 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 			let latest = null
 			for (const p of g.payments) latest = await forgetBankLink({ pattern: p.placed === 'once' ? onceKey(p) : p.key, kind: g.kind })
 			if (latest) setLinks(latest)
-			toast({ message: `${plural(g.payments.length, 'payment')} brought back to the list.` })
+			toast({ message: phrase('bank.broughtBack', { payments: plural(g.payments.length, 'payment') }) })
 		} catch (e) {
-			toastFailure(toast, e, 'Not every payment was brought back.')
+			toastFailure(toast, e, phrase('bank.notEveryBack'))
 			onFailed()
 		} finally {
 			setBusy(false)
@@ -491,9 +492,9 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 				next.set(w.year, await updateBudgetLine(w.lineId, { month: w.month, real: w.amount }))
 				done++
 			}
-			toast({ message: `${plural(done, 'amount')} saved in the budget.` })
+			toast({ message: phrase('bank.amountsSaved', { amounts: plural(done, 'amount') }) })
 		} catch (e) {
-			toastFailure(toast, e, 'Not every amount was saved.')
+			toastFailure(toast, e, phrase('bank.notEveryAmount'))
 		} finally {
 			setSheets(next)
 			setWriting(false)
@@ -507,7 +508,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 			{check}
 			<span className="sp-stack sp-gap-8 sp-grow">
 				<span className="sp-stacked">
-					<span className="sp-title sp-truncate">{title || '(no text)'}</span>
+					<span className="sp-title sp-truncate">{title || phrase('bank.noText')}</span>
 					<span className="sp-subtitle">{subtitle}</span>
 				</span>
 				{note ? <span className={`sp-note ${ink}`}>{note}</span> : null}
@@ -522,34 +523,34 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		const mine = items.filter(i => i.kind === kind)
 		return mine.length ? (
 			<div className="sp-stack sp-gap-8" key={kind}>
-				<ListItemHead label={title} amount={money(Math.abs(mine.reduce((n, i) => n + i.total, 0)))} />
+				<ListItemHead label={phrase(title)} amount={money(Math.abs(mine.reduce((n, i) => n + i.total, 0)))} />
 				<div className="sp-stack sp-gap-8">{mine.map(render)}</div>
 			</div>
 		) : null
 	})
-	const head = title => <CardHeader name={title} aside={`Amounts in ${currencySymbol()}`} asideTone="note" />
+	const head = title => <CardHeader name={title} aside={phrase('bank.amountsIn', { symbol: currencySymbol() })} asideTone="note" />
 	const nothing = text => <Empty><EmptyTitle>{text}</EmptyTitle></Empty>
 
 	const placeRow = g => {
 		if (g.saved) return line({
 			key: g.id, group: g.id, title: g.text, subtitle: when(g), total: g.total,
-			check: <Check checked disabled aria-label={`${g.text || 'This text'}, saved`} />,
-			note: `Saved: ${g.saved}.`, ink: 'sp-ink-success', buttons: [small('Undo', () => undo(g), { 'data-opener': `undo:${g.id}` })]
+			check: <Check checked disabled aria-label={phrase('bank.savedLabel', { text: g.text || phrase('bank.thisText') })} />,
+			note: phrase('bank.savedNote', { what: g.saved }), ink: 'sp-ink-success', buttons: [small(phrase('action.undo'), () => undo(g), { 'data-opener': `undo:${g.id}` })]
 		})
 		const last = g.payments[g.payments.length - 1]
 		return line({
 			key: g.id, group: g.id, title: g.text, subtitle: when(g), total: g.total,
-			check: <Check checked={picked.has(g.id)} aria-label={`Select ${g.text || 'this text'}`} onChange={() => toggle(setPicked, g.id)} />,
-			note: g.noSheet ? `There is no budget for ${g.payments[0].date.slice(0, 4)}.` : g.suggestion ? `Close to ${g.suggestion.name} in amount.` : null,
+			check: <Check checked={picked.has(g.id)} aria-label={phrase('bank.select', { name: g.text || phrase('bank.thisTextLower') })} onChange={() => toggle(setPicked, g.id)} />,
+			note: g.noSheet ? phrase('bank.noBudgetFor', { year: g.payments[0].date.slice(0, 4) }) : g.suggestion ? phrase('bank.closeTo', { name: g.suggestion.name }) : null,
 			ink: g.noSheet ? 'sp-ink-danger' : 'sp-ink-warning',
 			buttons: [
-				g.suggestion ? small(`Use ${g.suggestion.name}`, () => saveGroups([g], g.suggestion)) : null,
-				g.noSheet ? null : small('Pick from budget', () => setOpen(open === g.id ? null : g.id), { 'aria-expanded': open === g.id ? 'true' : 'false', 'data-opener': `pick:${g.id}` }),
-				small('Always leave out', () => saveGroups([g], null)),
-				small('Leave out once', () => saveGroups([g], null, true))
+				g.suggestion ? small(phrase('category.use', { name: g.suggestion.name }), () => saveGroups([g], g.suggestion)) : null,
+				g.noSheet ? null : small(phrase('bank.pickFromBudget'), () => setOpen(open === g.id ? null : g.id), { 'aria-expanded': open === g.id ? 'true' : 'false', 'data-opener': `pick:${g.id}` }),
+				small(phrase('bank.alwaysLeaveOut'), () => saveGroups([g], null)),
+				small(phrase('bank.leaveOutOnce'), () => saveGroups([g], null, true))
 			],
 			children: open === g.id
-				? <RowPicker id={`bank-place-${g.id}`} label="All payments with this text go to" kind={g.kind} sheet={sheetOf(last)}
+				? <RowPicker id={`bank-place-${g.id}`} label={phrase('bank.allGoTo')} kind={g.kind} sheet={sheetOf(last)}
 					month={monthOf(last)} disabled={busy} onPick={row => saveGroups([g], row)} onClose={() => setOpen(null)} />
 				: null
 		})
@@ -558,74 +559,74 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 	const statusText = p => {
 		const month = long[monthOf(p)]
 		switch (p.status) {
-			case 'match': return `In the budget: ${p.line}`
-			case 'amount': return p.budget == null ? `${p.line}: the budget has no amount for ${month}` : `${p.line}: the budget says ${money(p.budget)} for ${month}`
-			case 'near': return `Close to ${p.line} in amount`
-			case 'skip': return 'Always left out'
-			case 'once': return 'Left out once'
-			case 'year': return `There is no budget for ${p.date.slice(0, 4)}`
-			default: return 'Not in the budget'
+			case 'match': return phrase('bank.status.match', { name: p.line })
+			case 'amount': return p.budget == null ? phrase('bank.status.noAmount', { name: p.line, month }) : phrase('bank.status.amount', { name: p.line, amount: money(p.budget), month })
+			case 'near': return phrase('bank.status.near', { name: p.line })
+			case 'skip': return phrase('bank.alwaysLeftOut')
+			case 'once': return phrase('bank.leftOutOnce')
+			case 'year': return phrase('bank.status.year', { year: p.date.slice(0, 4) })
+			default: return phrase('bank.notInBudget')
 		}
 	}
 	const paymentRow = p => line({
 		key: p.row, group: String(p.row), title: p.text, subtitle: `${dayShortMonth(p.date)}${dot}${statusText(p)}`, total: p.amount,
-		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
+		buttons: p.status === 'year' ? null : [small(open === p.row ? phrase('action.close') : phrase('bank.pickFromBudget'), () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
 		children: open === p.row
-			? <RowPicker id={`bank-payment-${p.row}`} label="All payments with this text go to" kind={kindOf(p)} sheet={sheetOf(p)}
+			? <RowPicker id={`bank-payment-${p.row}`} label={phrase('bank.allGoTo')} kind={kindOf(p)} sheet={sheetOf(p)}
 				month={monthOf(p)} disabled={busy} onPick={row => saveGroups(groupPayments([p]), row)} onClose={() => setOpen(null)} />
 			: null
 	})
 
 	const bulk = [
-		oneKind ? small('Put them all on', () => setBulkOpen(!bulkOpen), { 'aria-expanded': bulkOpen ? 'true' : 'false', 'data-opener': 'bulk' }) : null,
-		small('Always leave out', () => saveGroups(chosen, null)),
-		small('Leave out once', () => saveGroups(chosen, null, true))
+		oneKind ? small(phrase('bank.putAllOn'), () => setBulkOpen(!bulkOpen), { 'aria-expanded': bulkOpen ? 'true' : 'false', 'data-opener': 'bulk' }) : null,
+		small(phrase('bank.alwaysLeaveOut'), () => saveGroups(chosen, null)),
+		small(phrase('bank.leaveOutOnce'), () => saveGroups(chosen, null, true))
 	]
 	const current = VIEWS.find(v => v.value === view)
 	const list = view === 'place'
 		? (listed.length ? (
 			<>
-				{chosen.length ? null : <span className="sp-subtitle">Payments with the same text are shown together. Place a text once, and Spendly uses your choice for all of its payments, also in later files. Each choice is saved the moment you make it.</span>}
+				{chosen.length ? null : <span className="sp-subtitle">{phrase('bank.placeHelp')}</span>}
 				{chosen.length ? (
 					// a phone has no room for the three in the bar's one line, so they wrap under it
 					<>
-						<BulkBar loose count={`${plural(chosen.length, 'text')} selected`} onClear={() => setPicked(new Set())}>
+						<BulkBar loose count={phrase('bank.selected', { texts: plural(chosen.length, 'text') })} onClear={() => setPicked(new Set())}>
 							{touch ? null : bulk}
 						</BulkBar>
 						{touch ? actions(bulk) : null}
 					</>
 				) : null}
 				{chosen.length && bulkOpen && oneKind ? (
-					<RowPicker id="bank-bulk" label="Put them all on" kind={chosen[0].kind} sheet={sheetOf(chosen[0].payments.at(-1))}
+					<RowPicker id="bank-bulk" label={phrase('bank.putAllOn')} kind={chosen[0].kind} sheet={sheetOf(chosen[0].payments.at(-1))}
 						month={monthOf(chosen[0].payments.at(-1))} disabled={busy} onPick={row => saveGroups(chosen, row)}
 						onClose={() => { setBulkOpen(false); document.querySelector('[data-opener="bulk"]')?.focus() }} />
 				) : null}
 				{groups.length ? (
 					<Choice control={<Check checked={chosen.length === groups.length} indeterminate={chosen.length > 0 && chosen.length < groups.length}
-						onChange={ev => setPicked(new Set(ev.target.checked ? groups.map(g => g.id) : []))} />}>Select every text</Choice>
+						onChange={ev => setPicked(new Set(ev.target.checked ? groups.map(g => g.id) : []))} />}>{phrase('bank.selectEveryText')}</Choice>
 				) : null}
 				{sides(listed, placeRow)}
 			</>
-		) : nothing('Every payment is accounted for'))
+		) : nothing(phrase('bank.allAccounted')))
 		: view === 'left'
 			? (leftOut.length
 				? sides(leftOut, g => line({
 					key: g.id, group: g.id, title: g.text, total: g.total,
-					subtitle: `${when(g)}${dot}${g.payments[0].status === 'once' ? 'Left out once' : 'Always left out'}`,
-					buttons: [small('Bring back', () => bringBack(g))]
+					subtitle: `${when(g)}${dot}${phrase(g.payments[0].status === 'once' ? 'bank.leftOutOnce' : 'bank.alwaysLeftOut')}`,
+					buttons: [small(phrase('bank.bringBack'), () => bringBack(g))]
 				}))
-				: nothing('You have not left any payment out'))
+				: nothing(phrase('bank.noneLeftOut')))
 			: (() => {
 				const shown = checked.filter(p => !current.shows || current.shows.includes(p.status)).map(p => ({ ...p, kind: kindOf(p), total: p.amount }))
 				return shown.length ? sides(shown, paymentRow)
-					: nothing(view === 'amount' ? 'No payment has another amount than the budget' : 'There are no payments')
+					: nothing(phrase(view === 'amount' ? 'bank.noOtherAmount' : 'bank.noPaymentsAtAll'))
 			})()
 
 	const writeNote = w => {
 		const line = sheets.get(w.year)?.groups.flatMap(g => g.lines).find(l => l.id === w.lineId)
 		const expected = line?.months[w.month - 1].expected
-		if (w.now != null) return `The budget holds ${money(w.now)} now${fullStop()} Saving makes ${money(w.amount)} the real amount.`
-		if (expected != null && cents(expected) !== cents(w.amount)) return `The budget expects ${money(expected)}${fullStop()} Saving makes ${money(w.amount)} the real amount.`
+		if (w.now != null) return phrase('bank.write.holds', { now: money(w.now), stop: fullStop(), amount: money(w.amount) })
+		if (expected != null && cents(expected) !== cents(w.amount)) return phrase('bank.write.expects', { expected: money(expected), stop: fullStop(), amount: money(w.amount) })
 		return null
 	}
 
@@ -633,37 +634,38 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 		<>
 			<Card variant="shell">
 				<CardHeader name={file}
-					aside={`${plural(payments.length, 'payment')} read${unread ? `${dot}${plural(unread, 'line')} could not be read` : ''}${dot}${longDate(dates[0])} to ${longDate(dates[dates.length - 1])}`} />
+					aside={[phrase('bank.read', { payments: plural(payments.length, 'payment') }), unread ? phrase('bank.unread', { lines: plural(unread, 'line') }) : null,
+						phrase('bank.span', { from: longDate(dates[0]), to: longDate(dates[dates.length - 1]) })].filter(Boolean).join(dot)} />
 				<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
-					<Stat label="Not in the budget" figure={plural(missing, 'payment')} />
-					<Stat label="Same amount" figure={String(count(['match']))} meta="Found in the budget" />
-					<Stat label="Other amount" figure={String(count(['amount']))} meta="The budget says another amount" />
-					<Stat label="Left out" figure={String(count(LEFT_OUT))} meta="Always, or this time only" />
+					<Stat label={phrase('bank.notInBudget')} figure={plural(missing, 'payment')} />
+					<Stat label={phrase('bank.stat.same')} figure={String(count(['match']))} meta={phrase('bank.stat.sameMeta')} />
+					<Stat label={phrase('bank.view.amount')} figure={String(count(['amount']))} meta={phrase('bank.stat.otherMeta')} />
+					<Stat label={phrase('bank.view.left')} figure={String(count(LEFT_OUT))} meta={phrase('bank.stat.leftMeta')} />
 				</div>
 				<div className="sp-stack sp-gap-8">
-					<Gauge value={Math.round(accounted / payments.length * 100)} aria-label="Share of payments accounted for" />
+					<Gauge value={Math.round(accounted / payments.length * 100)} aria-label={phrase('bank.shareAccounted')} />
 					<div className="sp-row-flex sp-gap-12">
-						<span className="sp-meta">{accounted} of {plural(payments.length, 'payment')} are accounted for</span>
+						<span className="sp-meta">{phrase('bank.accounted', { accounted, payments: plural(payments.length, 'payment') })}</span>
 						<span className="sp-grow" />
-						{groups.length ? <span className="sp-meta">{plural(groups.length, 'text')} to place</span> : null}
+						{groups.length ? <span className="sp-meta">{phrase('bank.toPlace', { texts: plural(groups.length, 'text') })}</span> : null}
 					</div>
 				</div>
 			</Card>
 			<Card>
-				{head(current.label)}
+				{head(phrase(current.label))}
 				{list}
 			</Card>
 			{writes.length ? (
 				<Card footer={<Button key="save" disabled={writing || !toWrite.length} onClick={saveReal}>
-					{writing ? 'Saving…' : `Save ${plural(toWrite.length, 'amount')}`}</Button>}>
-					{head('Save to the budget')}
-					<span className="sp-subtitle">These amounts from the bank are found on a budget item, but are not yet the real amount for their month. Saving writes them into the budget. Payments that still need a place are not saved.</span>
+					{writing ? phrase('action.saving') : phrase('bank.saveAmounts', { amounts: plural(toWrite.length, 'amount') })}</Button>}>
+					{head(phrase('bank.saveToBudget'))}
+					<span className="sp-subtitle">{phrase('bank.saveHelp')}</span>
 					<Choice control={<Check id="bank-every-amount" checked={!skipped} indeterminate={skipped > 0 && skipped < writes.length}
-						onChange={ev => setLeaveAlone(new Set(ev.target.checked ? [] : writes.map(w => w.id)))} />}>Select every amount</Choice>
+						onChange={ev => setLeaveAlone(new Set(ev.target.checked ? [] : writes.map(w => w.id)))} />}>{phrase('bank.selectEveryAmount')}</Choice>
 					{sides(writes.map(w => ({ ...w, total: w.amount })), w => line({
 						key: w.id, title: w.name, total: w.amount,
 						subtitle: `${capitalised(long[w.month - 1])} ${w.year}${dot}${w.group}${w.count > 1 ? `${dot}${plural(w.count, 'payment')}` : ''}`,
-						check: <Check checked={!leaveAlone.has(w.id)} aria-label={`Select ${w.name}`} onChange={() => toggle(setLeaveAlone, w.id)} />,
+						check: <Check checked={!leaveAlone.has(w.id)} aria-label={phrase('bank.select', { name: w.name })} onChange={() => toggle(setLeaveAlone, w.id)} />,
 						note: writeNote(w), ink: 'sp-ink-warning'
 					}))}
 				</Card>
