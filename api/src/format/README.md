@@ -1,8 +1,7 @@
 # What Ask makes
 
 Ask answers with words, and with things it makes: a file to download or a chart drawn in the answer,
-from the reader's own data, or a block of this week's offers, from another site. Each kind of thing is a **maker**, and each maker offers
-**formats**. The folders say which is which:
+from the reader's own data. Each kind of thing is a **maker**, and each maker offers **formats**. The folders say which is which:
 
 ```
 format/
@@ -19,8 +18,6 @@ format/
     fields.js       how a chart's input is cleaned
     drawing.js      the canvas the email's chart pictures are drawn on
     bars.js  shares.js
-  offers/
-    index.js        the offers maker: this week's offers from a source in ../offers/, kept with the chat
 ```
 
 The rest of the server reads only these lists. Claude's tools, the answer loop, a chat opened

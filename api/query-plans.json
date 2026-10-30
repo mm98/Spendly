@@ -3223,16 +3223,6 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT o.id, o.offers FROM json_each(?) j CROSS JOIN user_ask_offers o ON o.id = j.value WHERE o.user_id = ?": {
-			"plan": [
-				"SCAN j VIRTUAL TABLE INDEX 1:",
-				"SEARCH o USING INDEX sqlite_autoindex_user_ask_offers_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_user_ask_offers_1"
-			]
-		},
 		"SELECT o.id, o.reference, o.date, o.item_count, o.status, o.total, v.name AS vendor, a.id AS attachment_id, a.name AS file_name, a.kind AS file_kind FROM order_attachments a JOIN orders o ON o.id = a.order_id JOIN vendors v ON v.id = o.vendor_id WHERE a.sha256 = @sha256 AND o.user_id = @userId ORDER BY o.date DESC, o.created_at DESC": {
 			"plan": [
 				"SEARCH a USING INDEX idx_order_attachments_sha256 (sha256=?)",
@@ -5304,13 +5294,6 @@
 				"created_at"
 			],
 			"readers": 4
-		},
-		"user_ask_offers_chat": {
-			"table": "user_ask_offers",
-			"columns": [
-				"chat_id"
-			],
-			"readers": 0
 		},
 		"idx_user_login_failures_email_ip_at": {
 			"table": "user_login_failures",

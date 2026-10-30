@@ -59,23 +59,3 @@ export const WithCountAndRemove = {
 		await expect(args.onOpen).not.toHaveBeenCalled()
 	}
 }
-
-// a shop's logo is a picture from another site; the story draws one of its own
-const LOGO = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="40"><rect width="96" height="40" rx="6" fill="#ffd500"/><text x="48" y="27" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#1b1a17">Netto</text></svg>')}`
-
-export const ShopOnAnOffer = {
-	args: { logo: true, size: 'medium', shop: 'Netto', vendor: 'Mine Indkøb', swatch: 'primary-3' },
-	argTypes: { shop: { control: 'text', description: 'The shop the offer is in' }, vendor: { control: 'text', description: 'The reader\'s own vendor that is that shop' }, swatch: { control: 'text', description: 'The vendor\'s colour' } },
-	render: ({ logo, size, shop, vendor, swatch }) => (
-		<div className="sp-row-flex sp-gap-8">
-			<Mark size={size} logo={logo} aria-label={`${shop}, its logo`}><img src={LOGO} alt="" /></Mark>
-			<Mark size={size} logo={logo} fill="solid" swatch={swatch} aria-label={`${vendor}, the vendor`}><span>{vendor.split(' ').map(w => w[0]).join('').slice(0, 2)}</span></Mark>
-			<Mark size={size} logo={logo} fill="none" aria-label={`${shop}, no logo`}>{shop}</Mark>
-		</div>
-	),
-	play: async ({ canvas }) => {
-		// every place is the same box, so the names beside them line up
-		const widths = ['its logo', 'the vendor', 'no logo'].map(end => canvas.getByLabelText(new RegExp(end)).getBoundingClientRect().width)
-		await expect(new Set(widths).size).toBe(1)
-	}
-}

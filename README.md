@@ -255,7 +255,7 @@ Everything that needs you, on one page.
 
 - **Ask** - ask questions about your money in plain words, and Spendly answers from your own
   orders with amounts, tables, charts and links. It can make a spreadsheet, document, PDF or CSV file
-  to download, and look up this week's grocery offers in Danish shops. Chats and files are kept for 30
+  to download. Chats and files are kept for 30
   days. Ask only reads, never changes anything, and needs `ANTHROPIC_API_KEY` on the server.
 - **Assistant programs** such as Claude, Cursor or ChatGPT can read your account through `/mcp`, with
   a token made in Settings, AI assistants. They only read, too.
@@ -357,8 +357,6 @@ printed amounts.
 - **What Ask makes** is one maker for each kind of thing (a file, a chart), and one file for each
   format a maker offers (Excel, CSV, Word and PDF; bars and shares). A new format is one file, and
   the rest of the server reads the lists. How, in [`api/src/format`](api/src/format/README.md).
-- **Where Ask finds offers** is one file for each site, in a list, with its own limits. A new site is
-  one file and one line. How, in [`api/src/offers`](api/src/offers/README.md).
 - **Every change that lands on `main`** runs the checks below, then builds and publishes a new
   image. A server running Watchtower picks it up by itself.
 - **The checks:**

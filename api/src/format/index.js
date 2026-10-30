@@ -1,11 +1,10 @@
 import { fileMaker } from './file/index.js'
 import { chartMaker } from './chart/index.js'
-import { offersMaker } from './offers/index.js'
 
 /* What Ask makes while it answers, one maker each, in the order Claude is offered their tools. A maker is
    { place, name, formats, example, note?, off?, tool, rules?, doing, make, byIds, emailBlocks, attachments, sweep }
    (README: "What Ask makes"). */
-export const MAKERS = [fileMaker, chartMaker, offersMaker]
+export const MAKERS = [fileMaker, chartMaker]
 
 /** What Ask can make, for the reader (Ask 24c): each maker with its formats' names and one example question.
     `off` says why a maker makes nothing on this server, and then it carries no note. */

@@ -7,7 +7,7 @@ import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
 
 /* Ask: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
-   tools of the makers in format/, which make a file, a chart or a block of this week's offers. */
+   tools of the makers in format/, which make a file or a chart. */
 
 // ANTHROPIC_API_MODEL, set in docker-compose.yml: the model that answers questions and reads a list's search
 export const ASK_MODEL = process.env.ANTHROPIC_API_MODEL?.trim() || 'claude-haiku-5-5'
@@ -44,7 +44,7 @@ Write only this simple format:
 - A link to one order: [text](order:ID), with the id from the tools.
 - A link to the orders an answer is about: [text](orders:FILTERS). FILTERS joins any of vendor=ID, category=ID, status=NAME, from=YYYY-MM-DD and to=YYYY-MM-DD with "&", for example [Food in August](orders:category=ID&from=2026-08-01&to=2026-08-31). Several ids are joined with ",". Give the period whenever the answer is about one. Use this link for a shop or a category, too.
 - Every amount as {{number}}, a plain number with a dot for decimals, for example {{4212.50}}. The app adds the currency.
-- A file, a chart or offers: the place mark the tool answered, such as {{file:ID}}, on a line of its own. Files made together go on lines next to each other.
+- A file or a chart: the place mark the tool answered, such as {{file:ID}}, on a line of its own. Files made together go on lines next to each other.
 Nothing else: no bold, no headings, no other links.
 
 Make a file only when the reader asks for one, and a chart when the numbers read better drawn. Never write a link to a file. You cannot make pictures or photos, only charts.`

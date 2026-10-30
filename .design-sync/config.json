@@ -135,13 +135,12 @@
 		"Legend": "children?: React.ReactNode",
 		"Line": "children?: React.ReactNode",
 		"LineEditor": "photo?: React.ReactNode; hint?: string; title?: string; what?: string; onMoveUp?: () => void; onMoveDown?: () => void; onDelete?: () => void; first?: boolean; last?: boolean; handle?: boolean; sheet?: boolean; commit?: string; saving?: boolean; onCommit?: () => void; onCommitNext?: () => void; onCancel?: () => void; children?: React.ReactNode",
-		"LinkOut": "href: string; label: string; nameClass?: string; children: string",
 		"List": "data?: object[]; recordKey: (record: object) => string | number; noun?: string; onRowClick?: (record: object) => void; rowTo?: (record: object) => string; pageSize?: number; selectionKey?: string; picked?: (string | number)[]; onPick?: (keys: (string | number)[]) => void; rowVoid?: (record: object) => boolean; bulkNote?: React.ReactNode; compact?: boolean; total?: number; onLoadMore?: () => void; headless?: boolean; locale?: string; body?: 'table' | 'cards'; head?: React.ReactNode; footer?: React.ReactNode; children?: React.ReactNode",
 		"ListItem": "variant?: ('default' | 'outline' | 'primary' | 'stack' | 'top' | 'add' | 'carried' | 'picked' | 'card' | 'sticky'); color?: ('default' | 'warning' | 'danger' | 'success'); mark?: React.ReactNode; handle?: React.ReactNode; handleLabel?: string; actions?: React.ReactNode; count?: number | '!'; chevron?: React.ReactNode; selected?: boolean; opens?: boolean; editable?: boolean; setting?: boolean; onClick?: () => void; to?: string; onLongPress?: () => void; children?: React.ReactNode",
 		"ListItemHead": "label: string; amount: string",
 		"ListMore": "shown: number; total: number; pageSize?: number; onMore?: () => void; loose?: boolean; locale?: string; children?: React.ReactNode",
 		"ListToolbar": "loose?: boolean; selectAll?: React.ReactNode; children?: React.ReactNode",
-		"Mark": "size?: ('small' | 'medium' | 'large' | 'xlarge'); fill?: ('default' | 'solid' | 'plain' | 'photo' | 'empty' | 'none' | 'add'); swatch?: string; round?: boolean; logo?: boolean; goods?: boolean; faded?: boolean; count?: number; text?: string; danger?: string; remove?: React.ReactNode; onClick?: () => void; as?: 'span' | 'label'; children?: React.ReactNode; 'aria-label'?: string",
+		"Mark": "size?: ('small' | 'medium' | 'large' | 'xlarge'); fill?: ('default' | 'solid' | 'plain' | 'photo' | 'empty' | 'none' | 'add'); swatch?: string; round?: boolean; goods?: boolean; faded?: boolean; count?: number; text?: string; danger?: string; remove?: React.ReactNode; onClick?: () => void; as?: 'span' | 'label'; children?: React.ReactNode; 'aria-label'?: string",
 		"Menu": "position?: ('floating' | 'sub' | 'row' | 'plain' | 'up' | 'start' | 'side-left' | 'side-right'); scrolls?: boolean; children?: React.ReactNode; 'aria-label'?: string",
 		"NavItem": "variant?: ('default' | 'action' | 'light' | 'edited' | 'carried' | 'picked'); icon?: 'alert-circle' | 'alert-triangle' | 'archive' | 'armchair' | 'arrows-join' | 'bookmark' | 'browser' | 'building-store' | 'bulb' | 'calendar' | 'camera' | 'category' | 'chart-bar' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'clock' | 'copy' | 'device-desktop' | 'diamond' | 'dots-vertical' | 'download' | 'external-link' | 'eye' | 'file' | 'file-text' | 'filter' | 'flower' | 'grip-vertical' | 'heart' | 'help-circle' | 'home' | 'info-circle' | 'key' | 'keyboard' | 'lamp' | 'layout-grid' | 'link' | 'lock' | 'mail' | 'message-circle' | 'minus' | 'moon' | 'note' | 'paperclip' | 'pencil' | 'photo' | 'plus' | 'power' | 'receipt' | 'refresh' | 'search' | 'settings' | 'shopping-bag' | 'star' | 'sun' | 'tag' | 'trash' | 'upload' | 'user' | 'wallet' | 'wifi' | 'x'; mark?: React.ReactNode; handle?: React.ReactNode; handleLabel?: string; count?: number; countColor?: 'warning' | 'danger'; trail?: React.ReactNode; sub?: React.ReactNode; current?: boolean; to?: string; onClick?: () => void; tip?: string; control?: React.ReactNode; ref?: React.Ref<HTMLElement>; children?: React.ReactNode",
 		"NumberField": "value?: number | null; onChange?: (value: number | null) => void; onBlur?: () => void; decimals?: number; min?: number; locale?: string; expected?: boolean; cell?: boolean; fullWidth?: boolean; danger?: boolean; disabled?: boolean; placeholder?: string; id?: string; 'aria-label'?: string",
@@ -210,9 +209,6 @@
 			"cardMode": "column"
 		},
 		"Line": {
-			"cardMode": "column"
-		},
-		"LinkOut": {
 			"cardMode": "column"
 		},
 		"List": {
