@@ -51,3 +51,12 @@ is removed in the change that settles it.
   "Category restored as Garden (2), since Garden is taken." If it is ever built, it is its own pull
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
+
+## The Find photos button shows another icon than the design
+
+- **Where:** the Find photos button at the top of the Items box, on an order and in its edit screen
+  (`react/src/pages/FindPhotos.jsx`). The design is `design/Order editing layouts.dc.html` 1a, 1c, 1d.
+- **What the reader sees:** a picture with a magnifier (`photo-search`). The design draws a plain
+  picture (`photo`), which looks like the photo marks on the lines and was hard to see as a button.
+- **What is wanted:** Claude Design draws the button with `photo-search`, and this entry is removed.
+- **Found:** 2026-10-31.

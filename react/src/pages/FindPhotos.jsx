@@ -20,5 +20,5 @@ export function FindPhotos({ orderId, finder, missing }) {
 		setAsking(true)
 		findPhotos(orderId).catch(error => toast({ message: failureMessage(error, phrase('failed.connection')), color: 'danger' })).finally(() => setAsking(false))
 	}
-	return <IconButton variant="outline" icon="photo" aria-label={phrase('order.findPhotos')} data-tip={phrase('order.findPhotos')} onClick={find} />
+	return <IconButton variant="outline" icon="photo-search" aria-label={phrase('order.findPhotos')} data-tip={phrase('order.findPhotos')} onClick={find} />
 }
