@@ -28,7 +28,8 @@ export default function OrderEdit() {
 			files={savedFilesOf(order)}
 			photoUrl={line => (line.id && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, line.id, line.photo.id) : null)}
 			photoFinder={order.vendor?.photoFinder ?? null}
-			savedLines={order.items}
+			// the order as last read, not the held seed, so a photo Find photos puts on a line reaches the form
+			savedLines={state.data?.id === id ? state.data.items : order.items}
 		/>
 	)
 }

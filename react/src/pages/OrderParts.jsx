@@ -75,7 +75,7 @@ export function LineText({ line, compact = false }) {
 export function LinePhoto({ src, name, onOpen, finding = false }) {
 	const phrase = usePhrase()
 	if (!src && finding)
-		return <Mark size="medium" fill="empty" aria-busy="true"><Spinner aria-hidden={undefined} role="img" aria-label={phrase('order.findingPhoto')} /></Mark>
+		return <Mark size="medium" fill="empty" aria-busy="true" aria-label={phrase('order.findingPhoto')}><Spinner /></Mark>
 	if (!src) return <Mark size="medium" fill="empty" aria-label={phrase('order.noPhoto')} aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	if (onOpen) return <Mark size="medium" fill="photo" goods aria-label={phrase('order.openPhoto', { name })} onClick={onOpen}><img src={src} alt="" /></Mark>
 	return <Mark size="medium" fill="photo" goods aria-label={phrase('order.photo', { name })}><img src={src} alt="" /></Mark>
