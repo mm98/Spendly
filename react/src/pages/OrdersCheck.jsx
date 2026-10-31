@@ -352,8 +352,12 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 			? (registered.length ? paymentList(phrase('bank.view.registered'), registered, p => orderCell(p.order, true), p => openOrder(p.order.id)) : nothing(phrase('bank.noPaymentsAtAll')))
 			: view === 'left'
 				? (left.length
-					? paymentList(phrase('bank.view.left'), left, p => <span className="sp-subtitle sp-truncate">{statusOf(p)}</span>,
-						p => <Button variant="outline" size="small" disabled={busy} onClick={() => bringBack(p)}>{phrase('bank.bringBack')}</Button>)
+					? paymentList(phrase('bank.view.left'), left, p => (
+						<div className="sp-row-flex sp-gap-8">
+							<span className="sp-subtitle sp-truncate sp-grow">{statusOf(p)}</span>
+							<Button variant="outline" size="small" disabled={busy} onClick={() => bringBack(p)}>{phrase('action.undo')}</Button>
+						</div>
+					), () => null)
 					: nothing(phrase('bank.noneLeftOut')))
 				: paymentList(phrase('bank.view.all'), all, p => (p.order ? orderCell(p.order, true) : <span className="sp-subtitle sp-truncate">{statusOf(p)}</span>),
 					p => (p.order ? openOrder(p.order.id) : null))
