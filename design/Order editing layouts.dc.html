@@ -546,7 +546,7 @@
     <div class="doc-note"><b>Read view</b> - <a href="#1a">1a</a> shows the date of the current status as its own row under Status, labelled with the status name ("Delivered 09/08/2026"). A status mapped to the order's Date has no extra row.</div>
     <div class="doc-note"><b>Watch out</b> - Crossing a category limit shows the amber notice and the save proceeds. Keep that check out of the validation layer entirely - once it shares a code path with required fields, it eventually starts blocking.</div>
     <div class="doc-note"><b>Desktop vs mobile</b> - Below 900px this becomes 1c: rail collapses to a section above the items, inline expansion becomes a sheet. The sticky save bar survives the transition and is the one element that must never be scrolled away.</div>
-    <div class="doc-note"><b>Easy to get wrong</b> - Sticky positioning here is relative to the content column, which is the page's only scroll container - not the viewport. Get the shell right first (see the README) or every sticky element in the app misbehaves.</div>
+    <div class="doc-note"><b>The rail holds still</b> - The rail (<code>sp-panel</code>) does not move when the page scrolls: it stays where it sits on load, 16px under the top bar, level with the top of the item list. In the app the window scrolls and the top bar is pinned over it, so the panel's sticky top is the bar's height plus 16, not 16 from the window edge; at 16 it slides under the bar before it stops. A rail taller than the window keeps that top, and its foot shows when the list ends.</div>
   </div>
 
   <div class="doc-screen doc-frame">
