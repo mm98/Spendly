@@ -78,6 +78,13 @@ function lightStyles(doc, theme) {
 	return style => fonts[styles[style] ?? 0] ?? false
 }
 
+// a date cell written as text (t="d") becomes the day count Excel itself stores, so both kinds read alike
+const EXCEL_DAY_ZERO = Date.UTC(1899, 11, 30)
+const daySerial = raw => {
+	const time = Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(raw ?? '') || !/T/.test(raw ?? '') ? raw : raw + 'Z')
+	return Number.isNaN(time) ? raw : (time - EXCEL_DAY_ZERO) / 86400000
+}
+
 const columnOf = ref => [...ref.replace(/\d+$/, '')].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1
 
 function readRows(doc, strings, isLight) {
@@ -94,6 +101,7 @@ function readRows(doc, strings, isLight) {
 			const value = type === 's' ? strings[Number(raw)]
 				: type === 'inlineStr' ? all(cell, 't').map(t => t.textContent).join('')
 				: type === 'str' ? raw
+				: type === 'd' ? daySerial(raw)
 				: type === 'b' || type === 'e' || raw == null || raw === '' ? null
 				: Number(raw)
 			if (value == null || value === '') continue
