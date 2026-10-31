@@ -9,7 +9,7 @@ register('data:text/javascript,' + encodeURIComponent(`export async function loa
 	return url.endsWith('/language/phrases.js') ? { ...found, source: String(found.source).replace("import.meta.glob('./*.json', { import: 'default' })", '{}') } : found
 }`))
 const {
-	checkPayments, dateFormatsFor, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
+	checkPayments, dateFormatsFor, describeColumn, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
 	realAmounts
 } = await import('../src/api/bankStatement.js')
 
@@ -85,6 +85,15 @@ assert.deepEqual(pair('Dato;Tekst;Beløb;Gebyr;Saldo'), [2, null])
 // An amount on every line and a fee on some are not a pair: the two are filled on the same line.
 const fee = guessColumns(parseCsv('01-10-2026;x;-1,00;\n02-10-2026;y;2,00;-0,50\n03-10-2026;z;-3,00;'), false)
 assert.deepEqual([fee.amount, fee.out], [2, null])
+// No names: the text is the column with the most words, not a long one filled once, nor account numbers.
+const unnamed = guessColumns(parseCsv([
+	';Netto 1428;7571 0000227811;-89,50;2026-10-29;2026-10-30;',
+	'Lønoverførsel;Lønoverførsel;7571 0000227811;5459,09;2026-10-29;2026-10-30;',
+	';Uno-X 1802 Nota;7571 0000227811;-412,00;2026-10-28;2026-10-28;MobilePay Rikke Thomsen Frahm'
+].join('\n')), false)
+assert.deepEqual([unnamed.date, unnamed.text, unnamed.amount], [4, 1, 3])
+// A column of dates shows its dates, though "2026-10-30" has the shape of a reference number.
+assert.equal(describeColumn(['2026-10-30', '2026-10-29']), null)
 // A date that cannot be read leaves that line out; the format comes from the others.
 assert.deepEqual(dateFormatsFor(['2026-10-02', '2026-10-01', 'Closing balance']), ['ymd'])
 assert.deepEqual(dateFormatsFor(['igår', 'idag']), [])

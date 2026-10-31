@@ -148,9 +148,11 @@ export function guessColumns(rows, header) {
 	const amount = pair?.amount ?? single ?? best ?? money[0] ?? null
 	const out = pair?.out ?? null
 	const texts = columns.filter(i => !dates.includes(i) && !numbers.includes(i) && i !== amount && i !== out)
-	// a receiver column often holds an account number, so a text or description column comes first
+	// a receiver column often holds an account number, so a text or description column comes first;
+	// unnamed, the text is the column with the most words in it, never one of only numbers
+	const words = i => avgLength(sample(i)) * sample(i).length
 	const text = named(/tekst|text|beskriv|descr|narrative/) ?? named(/modtager/)
-		?? texts.sort((a, b) => avgLength(sample(b)) - avgLength(sample(a)))[0] ?? null
+		?? texts.filter(i => !sample(i).every(numberOnly)).sort((a, b) => words(b) - words(a))[0] ?? null
 	return { date, text, amount, out }
 }
 
@@ -185,6 +187,7 @@ const avgLength = values => values.reduce((n, v) => n + v.length, 0) / (values.l
 
 // An account or registration number: digits joined by a minus, or a long run of digits alone.
 const accountLike = value => /\d-\d/.test(value) || /^\d{8,}$/.test(value.trim())
+const numberOnly = value => /^[\d\s.,+-]+$/.test(value)
 const signed = value => /^[+-]|-$/.test(clean(value)) || /^\(.*\)$/.test(value.trim())
 // How much a column reads like money: the share of its cells with øre, more when any is signed.
 // On a tie the column further left wins, since banks put the amount before the balance.
@@ -204,7 +207,7 @@ const DESCRIBED = [
     an account, a person or a payment, or null to show the values. */
 export function describeColumn(cells, name = '') {
 	const filled = cells.map(c => String(c ?? '').trim()).filter(Boolean)
-	if (!filled.length) return null
+	if (!filled.length || filled.every(v => DATE_FORMATS.some(f => readDate(v, f.id)))) return null
 	const named = String(name).toLocaleLowerCase('da')
 	const found = DESCRIBED.find(d => (named && d.name.test(named)) || (d.value && filled.every(d.value)))
 	if (!found) return null
