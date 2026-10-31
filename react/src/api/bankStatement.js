@@ -369,7 +369,7 @@ export function realAmounts(checked, sheets) {
 /* ---- checking against the orders ---- */
 
 // the matching's two settings and their ends (2j); the server sends orders this many days around the file (api/src/routes/ordersBankCheck.js)
-export const ORDER_MATCH = { days: 3, percent: 3, most: 10 }
+export const ORDER_MATCH = { days: 5, percent: 3, most: 10 }
 const dayNumber = iso => Date.parse(iso + 'T00:00:00Z') / 86400000
 const cents = n => Math.round(n * 100)
 
@@ -387,9 +387,10 @@ export function checkOrderPayments(payments, orders, leftOut = [], { days = ORDE
 		const day = dayNumber(p.date)
 		const allowed = Math.round(cents(p.total) * percent / 100)
 		for (const o of orders) {
-			const apart = Math.abs(dayNumber(o.date) - day)
+			// a bank takes the money on or after the order's day, never before it
+			const apart = day - dayNumber(o.date)
 			const off = Math.abs(cents(o.total) - cents(p.total))
-			if (apart <= days && off <= allowed) pairs.push({ p, o, apart, off })
+			if (apart >= 0 && apart <= days && off <= allowed) pairs.push({ p, o, apart, off })
 		}
 	}
 	pairs.sort((a, b) => a.off - b.off || a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
