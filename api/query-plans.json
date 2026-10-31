@@ -3285,7 +3285,7 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT o.id, o.date, o.total, o.reference, o.item_count, o.reconciled_at, v.name AS vendor FROM orders o JOIN vendors v ON v.id = o.vendor_id WHERE o.user_id = @userId AND o.date BETWEEN @from AND @to AND o.kind NOT IN ('Sold') ORDER BY o.date DESC, o.id DESC": {
+		"SELECT o.id, o.date, o.total, o.reference, o.item_count, o.reconciled_at, v.name AS vendor FROM orders o JOIN vendors v ON v.id = o.vendor_id WHERE o.user_id = @userId AND o.date BETWEEN @from AND @to AND o.kind NOT IN ('Sold') AND o.status_type NOT IN ('cancelled', 'draft') ORDER BY o.date DESC, o.id DESC": {
 			"plan": [
 				"SEARCH o USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
 				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)"

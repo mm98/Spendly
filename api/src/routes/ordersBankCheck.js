@@ -57,7 +57,7 @@ router.delete('/left-out', (req, res) => {
 
 const selectOrdersInSpan = db.prepare(`SELECT o.id, o.date, o.total, o.reference, o.item_count, o.reconciled_at, v.name AS vendor
 	FROM orders o JOIN vendors v ON v.id = o.vendor_id
-	WHERE o.user_id = @userId AND o.date BETWEEN @from AND @to AND o.kind NOT IN (${MONEY_BACK_KINDS.map(k => `'${k}'`).join(', ')})
+	WHERE o.user_id = @userId AND o.date BETWEEN @from AND @to AND o.kind NOT IN (${MONEY_BACK_KINDS.map(k => `'${k}'`).join(', ')}) AND o.status_type NOT IN ('cancelled', 'draft')
 	ORDER BY o.date DESC, o.id DESC`)
 const selectVendorNames = db.prepare('SELECT id, name FROM vendors WHERE user_id = ? AND archived = 0')
 const selectAliasNames = db.prepare(`SELECT a.vendor_id AS id, a.name FROM vendor_aliases a JOIN vendors v ON v.id = a.vendor_id
