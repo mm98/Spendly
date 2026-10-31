@@ -149,9 +149,15 @@ async function encodeAgain(buffer, type, meta) {
 /** `{ data, contentType }`: the cleaned picture, or null when it cannot be cleaned. */
 export async function cleanOriginal(buffer, type) {
 	let meta
-	try { meta = await sharp(buffer, { limitInputPixels: false }).metadata() } catch { return null }
+	try { meta = await sharp(buffer, { limitInputPixels: false }).metadata() } catch (error) {
+		console.error('A picture could not be read to clean it:', error.message)
+		return null
+	}
 	const upright = !meta.orientation || meta.orientation === 1
 	const cut = upright ? CUT[type]?.(buffer) : null
-	const data = cut ?? await encodeAgain(buffer, type, meta).catch(() => null)
+	const data = cut ?? await encodeAgain(buffer, type, meta).catch(error => {
+		console.error('A picture could not be cleaned:', error.message)
+		return null
+	})
 	return data ? { data, contentType: type } : null
 }

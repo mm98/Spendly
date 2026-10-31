@@ -59,11 +59,17 @@ export function bestProduct(title, products) {
 
 async function read(url, accept, limit) {
 	const res = await fetch(url, { headers: { accept, 'accept-language': 'da-DK' }, signal: AbortSignal.timeout(TIMEOUT_MS), redirect: 'error' })
-	if (!res.ok) return null
+	if (!res.ok) throw new Error(`answered ${res.status}`)
 	const length = Number(res.headers.get('content-length'))
-	if (length > limit) return null
+	if (length > limit) throw new Error(`sent ${length} bytes, more than ${limit}`)
 	const bytes = Buffer.from(await res.arrayBuffer())
-	return bytes.length > limit ? null : { bytes, contentType: (res.headers.get('content-type') ?? '').split(';')[0].trim() }
+	if (bytes.length > limit) throw new Error(`sent ${bytes.length} bytes, more than ${limit}`)
+	return { bytes, contentType: (res.headers.get('content-type') ?? '').split(';')[0].trim() }
+}
+
+const logged = (url, error) => {
+	console.error(`Find photos: ${url} failed: ${error?.cause?.message ?? error?.message ?? error}`)
+	return null
 }
 
 export const groceries = {
@@ -72,12 +78,13 @@ export const groceries = {
 		const words = productKey(title)
 		if (!words) return null
 		const sourceUrl = SEARCH + encodeURIComponent(words)
-		const page = await read(sourceUrl, 'text/html', MAX_PAGE_BYTES).catch(() => null)
+		const page = await read(sourceUrl, 'text/html', MAX_PAGE_BYTES).catch(error => logged(sourceUrl, error))
 		if (!page) return null
 		const best = bestProduct(title, productsOn(page.bytes.toString('utf8')))
 		if (!best || new URL(best.image).host !== IMAGE_HOST) return null
-		const image = await read(best.image, 'image/*', MAX_IMAGE_BYTES).catch(() => null)
-		if (!image?.contentType.startsWith('image/')) return null
+		const image = await read(best.image, 'image/*', MAX_IMAGE_BYTES).catch(error => logged(best.image, error))
+		if (!image) return null
+		if (!image.contentType.startsWith('image/')) return logged(best.image, new Error(`sent ${image.contentType || 'no type'}, not a picture`))
 		return { image: image.bytes, contentType: image.contentType, sourceUrl }
 	}
 }

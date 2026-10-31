@@ -64,7 +64,10 @@ signInRouter.post('/finish', async (req, res) => {
 		response: answer, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		credential: { id: row.id, publicKey: new Uint8Array(row.public_key), counter: row.counter, transports: transportsOf(row) },
 		requireUserVerification: false
-	}).catch(() => null)
+	}).catch(error => {
+		console.error('[passkey] the check failed:', error.message)
+		return null
+	})
 	if (!result?.verified) {
 		securityLog(req, 'passkey-sign-in-refused', { reason: 'did not prove itself', email: row.email, userId: row.user_id, passkeyId: row.id })
 		return res.status(401).json({ error: DID_NOT_WORK })
@@ -109,7 +112,10 @@ router.post('/', async (req, res) => {
 	const result = await verifyRegistrationResponse({
 		response: req.body?.response, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		requireUserVerification: false
-	}).catch(() => null)
+	}).catch(error => {
+		console.error('[passkey] the check failed:', error.message)
+		return null
+	})
 	if (!result?.verified) {
 		securityLog(req, 'passkey-add-refused', { reason: 'did not prove itself' })
 		return res.status(400).json({ error: words('passkey.notAdded') })

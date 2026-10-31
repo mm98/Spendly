@@ -59,7 +59,10 @@ function getPublic(at, accept) {
 			// Named honestly. A shop that would rather not be read this way can say so.
 			headers: { 'User-Agent': 'Spendly/1.0 (+bookmark link preview)', 'Accept': accept }
 		}, settle)
-		ask.on('error', () => settle(null))
+		ask.on('error', error => {
+			console.error(`Link preview: ${at.host} could not be reached: ${error.message}`)
+			settle(null)
+		})
 	})
 }
 
@@ -154,6 +157,7 @@ export async function fetchPagePreview(url) {
 		const contentType = res.headers['content-type'] ?? ''
 		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.includes('html')) {
 			res.destroy()
+			if (res.statusCode < 200 || res.statusCode > 299) console.error(`Link preview: ${at.href} answered ${res.statusCode}`)
 			return NOTHING
 		}
 
@@ -171,7 +175,10 @@ export async function fetchPagePreview(url) {
 				// og:image is often written after the title tag.
 				if (/<\/head>/i.test(seen) || bytes >= MAX_BYTES) break
 			}
-		} catch { return NOTHING } finally {
+		} catch (error) {
+			console.error(`Link preview: reading ${at.href} failed: ${error.message}`)
+			return NOTHING
+		} finally {
 			res.destroy()
 		}
 		const html = decodeBody(Buffer.concat(chunks), contentType)
@@ -202,6 +209,7 @@ export async function fetchImage(url) {
 		const contentType = res.headers['content-type'] ?? ''
 		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.startsWith('image/')) {
 			res.destroy()
+			if (res.statusCode < 200 || res.statusCode > 299) console.error(`Link preview: ${at.href} answered ${res.statusCode}`)
 			return null
 		}
 
@@ -215,7 +223,10 @@ export async function fetchImage(url) {
 				if (bytes > MAX_IMAGE_BYTES) return null
 				chunks.push(value)
 			}
-		} catch { return null } finally {
+		} catch (error) {
+			console.error(`Link preview: reading ${at.href} failed: ${error.message}`)
+			return null
+		} finally {
 			res.destroy()
 		}
 		return { buffer: Buffer.concat(chunks), contentType: contentType.split(';')[0].trim() }

@@ -142,7 +142,7 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 function scanned(req, answer) {
 	if (req.query.scan !== '1' || answer.seen) return answer
 	const row = selectUploadForRead.get(answer.key, req.user.id)
-	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(() => {})
+	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(error => console.error('Receipt read failed:', error.message))
 	return answer
 }
 

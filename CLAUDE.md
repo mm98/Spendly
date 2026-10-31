@@ -259,6 +259,15 @@ on the server. Loading rows to find one value in them is the fault, however few 
 request another reader already made is fine, since its answer is shared; asking it for far more than
 this page reads is not.
 
+## The API's errors
+
+### An error is written to the log where it is caught
+
+A failure the server meets is logged with what failed and its message, even when the reader gets a
+quiet fallback: a site or service that refuses or does not answer, a file or picture that cannot be
+read, a background job that stops. An error nobody can see cannot be fixed. A value a reader sent
+that is not valid (a bad web address, a broken form) is a refusal, not an error, and is not logged.
+
 ## The API's migrations
 
 ### A migration that any database may have run is never edited
