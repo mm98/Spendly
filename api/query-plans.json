@@ -2797,22 +2797,22 @@
 				"sqlite_autoindex_categories_2"
 			]
 		},
-		"SELECT id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats, photo_finder FROM vendors WHERE id = ? AND user_id = ?": {
-			"plan": [
-				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_vendors_1"
-			]
-		},
-		"SELECT id, name, initials, colour, photo_finder FROM vendors WHERE id = ?": {
+		"SELECT id, name, initials, colour FROM vendors WHERE id = ?": {
 			"plan": [
 				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
 			],
 			"findings": [
 				"reads a per-account table without naming user_id"
 			],
+			"indexes": [
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats FROM vendors WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
+			],
+			"findings": [],
 			"indexes": [
 				"sqlite_autoindex_vendors_1"
 			]
@@ -3330,17 +3330,6 @@
 			"indexes": [
 				"idx_order_attachments_order",
 				"idx_orders_user_vendor",
-				"sqlite_autoindex_vendors_1"
-			]
-		},
-		"SELECT o.id, v.photo_finder FROM orders o LEFT JOIN vendors v ON v.id = o.vendor_id WHERE o.id = ? AND o.user_id = ?": {
-			"plan": [
-				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)",
-				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?) LEFT-JOIN"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_orders_1",
 				"sqlite_autoindex_vendors_1"
 			]
 		},

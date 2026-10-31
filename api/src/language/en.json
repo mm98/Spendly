@@ -254,7 +254,6 @@
 	"vendor.nameIsAlias": "Another vendor, {owner}, already matches \"{name}\". Pick a different name.",
 	"vendor.nameMissing": "A vendor needs a name.",
 	"vendor.noImage": "No image.",
-	"vendor.photoFinderUnknown": "Pick a photo finder from the list.",
 	"vendor.pickTarget": "Pick the vendor to merge into.",
 	"vendor.twin": "You already have a vendor called {name}.",
 	"view.missing": "That view does not exist.",
