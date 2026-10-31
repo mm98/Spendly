@@ -1,6 +1,6 @@
 import { db } from '../db.js'
 import { newId } from './ids.js'
-import { processAttachment } from './images.js'
+import { processImage } from './images.js'
 import { createHash } from 'node:crypto'
 import { sep, fileSizeLabel } from './copy.js'
 import { photoFinderOf, productKey } from './photoFinders/index.js'
@@ -18,9 +18,10 @@ const selectLinesWithoutPhoto = db.prepare(`SELECT oi.id, oi.title FROM order_it
 	ORDER BY oi.position`)
 const selectLineStillEmpty = db.prepare(`SELECT oi.title FROM order_items oi JOIN orders o ON o.id = oi.order_id
 	WHERE oi.id = ? AND o.user_id = ? AND NOT EXISTS (SELECT 1 FROM order_attachments a WHERE a.order_item_id = oi.id)`)
-const selectFound = db.prepare('SELECT image, content_type FROM found_photos WHERE finder = ? AND product_key = ?')
+const selectFound = db.prepare('SELECT image, wide, square FROM found_photos WHERE finder = ? AND product_key = ?')
 const insertFound = db.prepare(`INSERT OR REPLACE INTO found_photos (finder, product_key, image, content_type, source_url, found_at)
 	VALUES (?, ?, ?, ?, ?, ?)`)
+const updateFoundCopies = db.prepare('UPDATE found_photos SET wide = ?, square = ? WHERE finder = ? AND product_key = ?')
 const insertLinePhoto = db.prepare(`INSERT INTO order_attachments
 	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, sha256, pages)
 	VALUES (@id, NULL, @orderItemId, @name, 'image', @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @sha256, NULL)`)
@@ -91,19 +92,27 @@ async function fillLine(search, itemId) {
 		const found = await search.finder.find(line.title)
 		if (!found) return false
 		insertFound.run(search.finder.key, key, found.image, found.contentType, found.sourceUrl, Date.now())
-		photo = { image: found.image, content_type: found.contentType }
+		photo = { image: found.image, wide: null, square: null }
 	}
-	const processed = await processAttachment(photo.image, photo.content_type, `${line.title}.webp`)
-	if (processed.kind !== 'image') return false
+	// the copies are made once per product: making them is the slow part of a line
+	if (!photo.wide || !photo.square) {
+		const made = await processImage(photo.image)
+		if (!made) {
+			console.error(`Find photos: the photo for "${key}" could not be read`)
+			return false
+		}
+		photo = { ...photo, wide: made.data, square: made.thumbnail }
+		updateFoundCopies.run(photo.wide, photo.square, search.finder.key, key)
+	}
 	// the line is read again after the wait: a photo added by hand meanwhile wins
 	if (!selectLineStillEmpty.get(itemId, search.userId)) return false
 	insertLinePhoto.run({
 		id: newId('a'), orderItemId: itemId, name: `${line.title}.webp`,
-		meta: `Added today${sep}${fileSizeLabel(processed.size)}`,
-		contentType: processed.contentType, size: processed.size,
-		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
-		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
-		thumbnailContentType: processed.thumbnailContentType,
+		meta: `Added today${sep}${fileSizeLabel(photo.wide.length)}`,
+		contentType: 'image/webp', size: photo.wide.length,
+		data: photo.wide, dataCompressed: 0,
+		thumbnail: photo.square, thumbnailCompressed: 0,
+		thumbnailContentType: 'image/webp',
 		sha256: createHash('sha256').update(photo.image).digest('hex')
 	})
 	// written outside a request, so the reader's kept answers are dropped here
