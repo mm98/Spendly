@@ -259,18 +259,21 @@ export function AskTrail({ on, busy, spent, onToggle, onStop }) {
 
 /** `stops` are values at evenly spaced points, so the track is spaced by them, not by value.
     `open` makes the top end "and above": shown with a +, and a To typed past it is kept.
+    A number in place of the pair is one value: one handle, the span runs from the lowest end
+    to it, and the entry is one field.
     @param {object} props
-    @param {[number, number]} props.value The low and the high end.
-    @param {(value: [number, number]) => void} props.onChange
+    @param {number | [number, number]} props.value One value, or the low and the high end.
+    @param {(value: number | [number, number]) => void} props.onChange Called with what value is: a number, or the pair.
     @param {number} [props.min] The lowest value.
     @param {number} [props.max] The highest value.
     @param {number} [props.step] How far one move goes.
     @param {number[]} [props.stops] Values at evenly spaced points on the track, in place of min and max.
     @param {boolean} [props.open] The top end means and above: it is shown with a +.
+    @param {boolean} [props.entry] The fields under the rail, where an exact figure is typed. On by default.
     @param {string} [props.label] What is being bounded.
     @param {(value: number) => string} [props.format] How an end is written in its field.
     @param {string} [props.locale] How numbers are written, such as da-DK. */
-export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, label, format, locale, ...rest }) {
+export function RangeSlider({ value, onChange, min, max, step = 1, stops, open = false, entry = true, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
 	const phrase = usePhrase()
 	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
@@ -278,15 +281,17 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 	// the boxes read text back in the grammar `format` writes it in, unless a locale is named
 	const grouping = !locale && format ? String(format(1000000)).replace(/[\d\s-]/g, '').charAt(0) : ''
 	const read = text => parseNumber(String(text).replace(/\+\s*$/, ''), { locale: locale ?? (grouping === '.' ? 'da-DK' : grouping === ',' ? 'en-GB' : undefined) })
-	// two bounds, in order - a third would be read as nothing
-	if (!Array.isArray(value) || value.length !== 2)
-		console.error('<RangeSlider> value is two bounds, [low, high] - got ' + JSON.stringify(value))
+	// one value, or two bounds in order - a third would be read as nothing
+	const single = typeof value === 'number'
+	if (!single && (!Array.isArray(value) || value.length !== 2))
+		console.error('<RangeSlider> value is one number, or two bounds [low, high] - got ' + JSON.stringify(value))
 	const rail = useRef(null)
-	const [low, high] = value
 	const spaced = Array.isArray(stops) && stops.length > 1
 	const least = spaced ? stops[0] : min
 	const most = spaced ? stops[stops.length - 1] : max
 	const last = spaced ? stops.length - 1 : 0
+	// one value is the high end of a span that starts at the lowest end and never moves
+	const [low, high] = single ? [least, value] : value
 
 	// where a value sits along the track, 0 to 1
 	const place = n => {
@@ -322,6 +327,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 	const move = (which, n, snap = true) => {
 		const top = open && which === 'high' && !snap ? Infinity : most
 		const bounded = Math.min(top, Math.max(least, snap && !spaced ? Math.round(n / step) * step : n))
+		if (single) return onChange?.(bounded)
 		onChange?.(which === 'low' ? [Math.min(bounded, high), high] : [low, Math.max(bounded, low)])
 	}
 
@@ -370,7 +376,7 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 			className="sp-track__handle"
 			style={{ '--p': pct(n) }}
 			role="slider"
-			aria-label={phrase(which === 'low' ? 'rangeSlider.from' : 'rangeSlider.to', { label })}
+			aria-label={single ? label : phrase(which === 'low' ? 'rangeSlider.from' : 'rangeSlider.to', { label })}
 			aria-valuemin={which === 'low' ? least : low}
 			aria-valuemax={which === 'low' ? high : most}
 			aria-valuenow={n}
@@ -400,29 +406,33 @@ export function RangeSlider({ value, onChange, min, max, step = 1, stops, open =
 					if (ev.target !== ev.currentTarget) return
 					const box = ev.currentTarget.getBoundingClientRect()
 					const at = (ev.clientX - box.left) / box.width
-					move(Math.abs(at - place(low)) <= Math.abs(at - place(high)) ? 'low' : 'high', valueAt(at))
+					move(!single && Math.abs(at - place(low)) <= Math.abs(at - place(high)) ? 'low' : 'high', valueAt(at))
 				}}
 			>
 				<span className="sp-track__span" style={{ '--a': pct(low), '--b': pct(high) }} />
-				{handle('low', low)}
+				{!single && handle('low', low)}
 				{handle('high', high)}
 			</span>
-			<span className="sp-bounds">
-				<Box
-					classes="sp-number"
-					component="RangeSlider"
-					inputMode="decimal"
-					aria-label={phrase('rangeSlider.from', { label })}
-					{...bound('low', low)}
-				/>
-				<Box
-					classes="sp-number"
-					component="RangeSlider"
-					inputMode="decimal"
-					aria-label={phrase('rangeSlider.to', { label })}
-					{...bound('high', high)}
-				/>
-			</span>
+			{entry && (
+				<span className="sp-bounds">
+					{!single && (
+						<Box
+							classes="sp-number"
+							component="RangeSlider"
+							inputMode="decimal"
+							aria-label={phrase('rangeSlider.from', { label })}
+							{...bound('low', low)}
+						/>
+					)}
+					<Box
+						classes="sp-number"
+						component="RangeSlider"
+						inputMode="decimal"
+						aria-label={single ? label : phrase('rangeSlider.to', { label })}
+						{...bound('high', high)}
+					/>
+				</span>
+			)}
 		</>
 	)
 }

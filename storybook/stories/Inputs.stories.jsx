@@ -127,3 +127,25 @@ export const AmountBetween = {
 		)
 	}
 }
+
+// One number in place of the pair: one handle, and with `entry` off no field to type in.
+export const OneValue = {
+	parameters: { variantsOf: RangeSlider },
+	args: { label: 'Days apart', value: 3, min: 0, max: 10, step: 1, entry: false },
+	render: ({ label: name, onChange, ...args }) => {
+		const [value, setValue] = useHeld(args, 'value')
+		return (
+			<Field label={name}>
+				<RangeSlider {...args} label={name} value={value} onChange={next => { setValue(next); onChange(next) }} />
+			</Field>
+		)
+	},
+	play: async ({ args, canvas, canvasElement }) => {
+		const handle = canvas.getByRole('slider', { name: 'Days apart' })
+		await expect(canvas.getAllByRole('slider')).toHaveLength(1)
+		await expect(canvasElement.querySelector('.sp-bounds')).toBeNull()
+		handle.focus()
+		await userEvent.keyboard('{ArrowRight}')
+		await expect(args.onChange).toHaveBeenLastCalledWith(4)
+	}
+}

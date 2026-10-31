@@ -9,7 +9,7 @@ register('data:text/javascript,' + encodeURIComponent(`export async function loa
 	return url.endsWith('/language/phrases.js') ? { ...found, source: String(found.source).replace("import.meta.glob('./*.json', { import: 'default' })", '{}') } : found
 }`))
 const {
-	checkPayments, dateFormatsFor, describeColumn, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
+	checkOrderPayments, checkPayments, dateFormatsFor, describeColumn, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
 	realAmounts
 } = await import('../src/api/bankStatement.js')
 
@@ -94,6 +94,14 @@ const unnamed = guessColumns(parseCsv([
 assert.deepEqual([unnamed.date, unnamed.text, unnamed.amount], [4, 1, 3])
 // A column of dates shows its dates, though "2026-10-30" has the shape of a reference number.
 assert.equal(describeColumn(['2026-10-30', '2026-10-29']), null)
+// Orders: an exact total wins over a close one; a close one carries what the order holds more or less.
+const paid = (row, date, amount) => ({ row, date, amount, text: 'Shop' })
+const ordered = [{ id: 'near', date: '2026-10-01', total: 568.38 }, { id: 'same', date: '2026-10-04', total: 568 }, { id: 'far', date: '2026-10-01', total: 600 }]
+const matched = settings => checkOrderPayments([paid(1, '2026-10-01', -568), paid(2, '2026-10-01', -585)], ordered, [], settings).payments
+	.map(p => [p.row, p.status, p.order?.id ?? null, p.order?.difference ?? null])
+assert.deepEqual(matched({ days: 3, percent: 3 }), [[1, 'registered', 'same', null], [2, 'registered', 'far', 15]])
+assert.deepEqual(matched({ days: 0, percent: 3 }), [[1, 'registered', 'near', 0.38], [2, 'registered', 'far', 15]])
+assert.deepEqual(matched({ days: 3, percent: 0 }), [[1, 'registered', 'same', null], [2, 'missing', null, null]])
 // A date that cannot be read leaves that line out; the format comes from the others.
 assert.deepEqual(dateFormatsFor(['2026-10-02', '2026-10-01', 'Closing balance']), ['ymd'])
 assert.deepEqual(dateFormatsFor(['igår', 'idag']), [])

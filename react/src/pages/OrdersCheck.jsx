@@ -8,6 +8,7 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Leaving, Menu, MenuItem, Popover, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyTitle, Skeleton, useDismiss } from '../components/Utilities.jsx'
+import { RangeSlider } from '../components/Inputs.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { VendorPicker } from '../app/vendorPicker.jsx'
@@ -16,7 +17,7 @@ import { currency, dayShortMonth, dot, longDate, plural } from '../api/format.js
 import {
 	bringBackOrderBank, checkOrderBank, createOrderBank, failureMessage, getOrderBankLeftOut, leaveOutOrderBank, markOrdersReconciled, undoOrderBank
 } from '../api/client.js'
-import { checkOrderPayments, onceKey, paymentKey } from '../api/bankStatement.js'
+import { ORDER_MATCH, checkOrderPayments, onceKey, paymentKey } from '../api/bankStatement.js'
 import { orderLine } from '../app/orderRow.jsx'
 import { BankControls, BankFileColumns, BankPickFile, columnsShown, useBankFile } from './BankCheck.jsx'
 import { usePhrase } from '../language/phrases.js'
@@ -69,7 +70,9 @@ export default function OrdersCheck() {
 		if (foundFailed) refresh()
 	}
 
-	const checked = useMemo(() => (found && leftOut ? checkOrderPayments(out, found.orders, leftOut) : null), [out, found, leftOut])
+	// how far apart a payment and its order may be; both start again each time the page opens (2j)
+	const [match, setMatch] = useState({ days: ORDER_MATCH.days, percent: ORDER_MATCH.percent })
+	const checked = useMemo(() => (found && leftOut ? checkOrderPayments(out, found.orders, leftOut, match) : null), [out, found, leftOut, match])
 	// an order a payment matches is noted as reconciled; nothing on the page shows it yet
 	useEffect(() => {
 		const ids = (checked?.payments ?? []).filter(p => p.order && !p.order.reconciled).map(p => p.order.id)
@@ -87,12 +90,12 @@ export default function OrdersCheck() {
 				: !checked
 					? failed ? <Failed what={phrase('page.orders')} error={failed} onRetry={retry} /> : <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
 					: <Results key={bank.file} file={bank.file} unread={bank.unread.length} span={span} checked={checked} found={found} setLeftOut={setLeftOut}
-						view={view} onChanged={refresh} />}
+						view={view} onChanged={refresh} match={match} onMatch={setMatch} />}
 		</>
 	)
 }
 
-function Results({ file, unread, span, checked, found, setLeftOut, view, onChanged }) {
+function Results({ file, unread, span, checked, found, setLeftOut, view, onChanged, match, onMatch }) {
 	const phrase = usePhrase()
 	const toast = useToast()
 	const navigate = useNavigate()
@@ -118,6 +121,7 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 	const all = checked.payments
 	const missing = all.filter(p => p.status === 'missing')
 	const registered = all.filter(p => p.status === 'registered')
+	const closeMatches = registered.filter(p => p.order.difference).length
 	const left = all.filter(p => LEFT_OUT.includes(p.status))
 	const counted = all.length - left.length
 	const noPayment = found.orders.filter(o => o.date >= span.from && o.date <= span.to && !checked.matchedOrders.has(o.id))
@@ -233,7 +237,8 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 	const orderCell = (o, withDate) => (
 		<span className="sp-stacked">
 			<span className="sp-title sp-truncate">{o.vendor}</span>
-			<span className="sp-subtitle sp-truncate">{[o.reference || orderLine(o), withDate ? dayShortMonth(o.date) : null].filter(Boolean).join(dot)}</span>
+			<span className="sp-subtitle sp-truncate">{[o.reference || orderLine(o), withDate ? dayShortMonth(o.date) : null].filter(Boolean).join(dot)}
+				{o.difference ? <>{dot}<span className="sp-ink-warning">{phrase(o.difference > 0 ? 'bank.closeMore' : 'bank.closeLess', { amount: money(Math.abs(o.difference)) })}</span></> : null}</span>
 		</span>
 	)
 	const text = p => p.text || phrase('bank.noText')
@@ -347,8 +352,12 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 			? (registered.length ? paymentList(phrase('bank.view.registered'), registered, p => orderCell(p.order, true), p => openOrder(p.order.id)) : nothing(phrase('bank.noPaymentsAtAll')))
 			: view === 'left'
 				? (left.length
-					? paymentList(phrase('bank.view.left'), left, p => <span className="sp-subtitle sp-truncate">{statusOf(p)}</span>,
-						p => <Button variant="outline" size="small" disabled={busy} onClick={() => bringBack(p)}>{phrase('bank.bringBack')}</Button>)
+					? paymentList(phrase('bank.view.left'), left, p => (
+						<div className="sp-row-flex sp-gap-8">
+							<span className="sp-subtitle sp-truncate sp-grow">{statusOf(p)}</span>
+							<Button variant="outline" size="small" disabled={busy} onClick={() => bringBack(p)}>{phrase('action.undo')}</Button>
+						</div>
+					), () => null)
 					: nothing(phrase('bank.noneLeftOut')))
 				: paymentList(phrase('bank.view.all'), all, p => (p.order ? orderCell(p.order, true) : <span className="sp-subtitle sp-truncate">{statusOf(p)}</span>),
 					p => (p.order ? openOrder(p.order.id) : null))
@@ -359,9 +368,25 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 				<CardHeader name={file}
 					aside={[phrase('bank.outRead', { payments: plural(all.length, 'payment') }), unread ? phrase('bank.unread', { lines: plural(unread, 'line') }) : null,
 						phrase('bank.span', { from: longDate(span.from), to: longDate(span.to) })].filter(Boolean).join(dot)} />
+				{view === 'missing' ? (
+					<div className="sp-halves">
+						{[['days', 'bank.match.daysLabel', n => phrase('bank.match.days', { count: n })], ['percent', 'bank.match.percentLabel', n => phrase('bank.match.percent', { percent: n })]]
+							.map(([key, label, said]) => (
+								<div key={key} className="sp-field">
+									<div className="sp-row-flex">
+										<span className="sp-section-label sp-grow">{phrase(label)}</span>
+										<span className="sp-meta">{said(match[key])}</span>
+									</div>
+									<RangeSlider value={match[key]} min={0} max={ORDER_MATCH.most} entry={false} label={phrase(label)} format={said}
+										onChange={n => onMatch(m => ({ ...m, [key]: n }))} />
+								</div>
+							))}
+					</div>
+				) : null}
 				<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 					<Stat label={phrase('bank.view.notRegistered')} figure={plural(missing.length, 'payment')} />
-					<Stat label={phrase('bank.view.registered')} figure={String(registered.length)} meta={phrase('bank.stat.registeredMeta')} />
+					<Stat label={phrase('bank.view.registered')} figure={String(registered.length)}
+						meta={closeMatches ? phrase('bank.stat.registeredMetaClose', { close: closeMatches }) : phrase('bank.stat.registeredMeta')} />
 					<Stat label={phrase('bank.view.left')} figure={String(left.length)} meta={phrase('bank.stat.leftMeta')} />
 					{noPayment.length ? <Stat label={phrase('bank.stat.noPayment')} figure={String(noPayment.length)} meta={phrase('bank.stat.noPaymentMeta')} /> : null}
 				</div>

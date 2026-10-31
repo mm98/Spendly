@@ -919,6 +919,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-track__handle[data-at="12"] { --p: 12; }
 .sp-track__handle[data-at="66"] { --p: 66; }
 .sp-track__span[data-span="12-66"] { --a: 12; --b: 66; }
+/* one value: a single handle, the span from the lowest end to it - c3 One value, 2j */
+.sp-track__handle[data-at="60"] { --p: 60; }
+.sp-track__span[data-span="0-60"] { --a: 0; --b: 60; }
 
 .sp-track__handle:focus-visible { box-shadow: var(--ring); }
 .sp-track__handle:active { cursor: grabbing; }
@@ -4864,6 +4867,10 @@ li.sp-anchor > .sp-menu__item { flex: 1; }
 .sp-card--shell .sp-meta--over { color: var(--amber-3); }
 .sp-card--shell .sp-gauge { background: var(--shell-current); }
 .sp-card--shell .sp-gauge__fill { background: var(--primary-4); }
+/* a rail on the dark card takes the gauge's ground and fill - 2j */
+.sp-card--shell .sp-track { background: var(--shell-current); }
+.sp-card--shell .sp-track__span { background: var(--primary-4); }
+.sp-card--shell .sp-track__handle { border-color: var(--primary-4); }
 .sp-card--shell .sp-card__footer { border-top-color: rgba(255, 255, 255, 0.09); }
 /* an overlay opened over the dark panel is still a light surface that belongs to
    the page - it takes the page's ink back, not the panel's */

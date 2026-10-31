@@ -2444,6 +2444,28 @@
           <span class="sp-grow"></span>
           <span class="sp-meta">54 payments out read · 1 August to 30 October 2026</span>
         </div>
+        <div class="sp-halves">
+          <div class="sp-field">
+            <div class="sp-row-flex">
+              <span class="sp-section-label sp-grow" id="j-days">Days apart</span>
+              <span class="sp-meta">Up to 3 days</span>
+            </div>
+            <div class="sp-track" role="group" aria-labelledby="j-days">
+              <span class="sp-track__span" data-span="0-60"></span>
+              <button type="button" class="sp-track__handle" data-at="60" role="slider" aria-label="Days apart" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-valuetext="Up to 3 days"></button>
+            </div>
+          </div>
+          <div class="sp-field">
+            <div class="sp-row-flex">
+              <span class="sp-section-label sp-grow" id="j-pct">Amount difference</span>
+              <span class="sp-meta">Up to 3%</span>
+            </div>
+            <div class="sp-track" role="group" aria-labelledby="j-pct">
+              <span class="sp-track__span" data-span="0-60"></span>
+              <button type="button" class="sp-track__handle" data-at="60" role="slider" aria-label="Amount difference" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-valuetext="Up to 3%"></button>
+            </div>
+          </div>
+        </div>
         <div class="sp-row-flex sp-gap-16 sp-wrap sp-top">
           <div class="sp-stat">
             <span class="sp-section-label">Not registered</span>
@@ -2452,7 +2474,7 @@
           <div class="sp-stat">
             <span class="sp-section-label">Registered</span>
             <span class="sp-stat__figure">45</span>
-            <span class="sp-meta">Found as an order</span>
+            <span class="sp-meta">Found as an order, 2 close</span>
           </div>
           <div class="sp-stat">
             <span class="sp-section-label">Left out</span>
@@ -2638,6 +2660,8 @@
             </thead>
             <tbody>
               <tr><td class="sp-data">13 Oct</td><td><span class="sp-title sp-truncate">MobilePay Indbo Møbler</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Indbo Møbler</span><span class="sp-subtitle sp-truncate">SPENDLY-452 · 12 Oct</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+              <tr><td class="sp-data">9 Oct</td><td><span class="sp-title sp-truncate">VISA 4521 BILKA ONLINE</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Bilka</span><span class="sp-subtitle sp-truncate">SPENDLY-450 · 8 Oct · <span class="sp-ink-warning">0,38 kr. more</span></span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">568,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+              <tr><td class="sp-data">4 Oct</td><td><span class="sp-title sp-truncate">PAYPAL *IKEA</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">IKEA</span><span class="sp-subtitle sp-truncate">SPENDLY-449 · 4 Oct · <span class="sp-ink-warning">12,50 kr. less</span></span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.262,50 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
               <tr><td class="sp-data">2 Oct</td><td><span class="sp-title sp-truncate">VISA 4521 MUUTO</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto</span><span class="sp-subtitle sp-truncate">SPENDLY-448 · 2 Oct</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.495,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
             </tbody>
           </table>
@@ -2760,7 +2784,10 @@
     <div class="doc-note"><b>One check, two targets.</b> The file drop, Columns (<a href="Budget.dc.html#21h">21h</a>, unchanged), the stats card, the Show segmented, the saved line, Always leave out and Leave out once, and the bulk bar are the Budget check's own parts. A target supplies only its matching, its four view names and stat labels, and the action on a line. Budget 21g must render exactly as it does today.</div>
     <div class="doc-note"><b>The button reads Reconcile (Afstem), on Orders and on Budget</b>, from <code>bank.check</code>. The page title stays Check a bank statement (<code>page.checkABankStatement</code>).</div>
     <div class="doc-note"><b>The file drop is Budget's</b> with <code>bank.dropBodyOrders</code> in place of <code>bank.dropBody</code>. It is not drawn again here.</div>
-    <div class="doc-note"><b>Matching.</b> Only money out is read; money in is skipped and not counted in the head's count. A payment matches an order with the same total dated from 3 days before to 3 days after the bank date. One order matches one payment. When two orders fit one payment, the closest date wins, and the other order stays free for the next payment.</div>
+    <div class="doc-note"><b>Matching.</b> Only money out is read; money in is skipped and not counted in the head's count. A payment first matches an order with the same total. Failing that, it matches an order whose total is up to Amount difference away, in percent of the payment, dated up to Days apart from the bank date, before or after. The closest amount wins, then the closest date. One order matches one payment, and an order not taken stays free for the next payment. The bank's amount is always the right one: when the two differ, the order is the one that is off.</div>
+    <div class="doc-note"><b>Days apart and Amount difference</b> are for Not registered only: they let a payment with no exact order find one with an offset. They sit in the stats card above the four stats, side by side in <code>sp-halves</code>, and are drawn only while Show is Not registered; in Registered, Left out and All the card starts with its stats. Each is the RangeSlider with one value and no entry (<a href="Components.dc.html#c3">c3</a>, RangeInput - one value): 0 to 5 in steps of 1, both starting at 3 each time the page opens. The label is <code>sp-section-label</code> (<code>bank.match.daysLabel</code>, <code>bank.match.percentLabel</code>) and the readout <code>sp-meta</code>: Up to 3 days, Up to 3%, and at 0 Same day only, Same amount only (<code>bank.match.days</code>, <code>bank.match.percent</code>). On the dark card the rail takes the gauge's ground and fill. Moving a slider checks the file again at once, with no button: the stats, the gauge, the lists and Orders with no payment follow. Lines a reader has changed (a picked vendor, a ticked box) keep their state while they stay in Not registered.</div>
+    <div class="doc-note"><b>A close match</b> is a Registered line like any other. Its order cell's subtitle ends with the difference, from the order's side: 0,38 kr. more, or 12,50 kr. less (<code>bank.closeMore</code>, <code>bank.closeLess</code>), on its own <code>sp-ink-warning</code> span so the number and date stay grey. The Amount column is always the bank's amount. In All the line is the same. An exact match shows no difference.</div>
+    <div class="doc-note"><b>A close match counts as Registered</b>, in the stat, the gauge and the toolbar's count. The Registered stat's meta says how many were close: Found as an order, 2 close (<code>bank.stat.registeredMetaClose</code>); with none it stays Found as an order. A close-matched order leaves Orders with no payment. Show has no view of its own for close matches.</div>
     <div class="doc-note"><b>Each payment is its own line, one line high</b>, so a file of 200 payments stays a list you can scan. Budget groups payments by text because one choice places them all; here each payment becomes its own order, so lines are not grouped. Newest first. The list is the order list's table (<a href="#2b">2b</a>) with its toolbar and bulk bar; past 50 lines it ends in Load more (<a href="Components.dc.html#c8">c8</a>).</div>
     <div class="doc-note"><b>Columns:</b> select box, date, bank text (truncated), vendor, amount, and the row menu (<code>sp-col-menu</code>, the order list's ⋮ from <a href="#2b">2b</a>, label "Payment menu") with two items, drawn as PAYMENT MENU below: Always leave out (<code>refresh</code>) and Leave out once (<code>x</code>). It is the order list's row menu (<a href="#2e">2e</a>) unchanged, opening under its button as the order menu does. Always leave out saves the text to the left-out list and the line shows Saved: Always left out.; Leave out once moves the line to Left out for this file only. A line left out shows Saved: Always left out. with Undo in the vendor cell, as Budget's saved line, and no menu.</div>
     <div class="doc-note"><b>The vendor cell</b> (<code>sp-col-picker</code>, 240px, the width of Budget's column picker) is the vendor combobox from <a href="Order create.dc.html">Order create</a> unchanged, placeholder Pick a vendor, followed by the keep toggle. Its accessible name is "Vendor for" and the bank text.</div>
@@ -2777,7 +2804,7 @@
 </section>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;language&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;da&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;\&quot;en\&quot; | \&quot;da\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

@@ -240,10 +240,15 @@ const tagOf = el => {
 	for (const [p, ast] of parsed) {
 		if (p === home) continue
 		for (const s of stringsIn(ast)) if (/\bsp-card__head\b/.test(s)) fail('a card head is CardHeader', rel(p), 'writes .sp-card__head: use <CardHeader>')
+		// a field's own label row (sp-field, 2j) names the field, not a card
+		const fieldRows = new Set()
+		visit(ast, n => {
+			if (n.type === 'JSXElement' && /\bsp-field\b/.test(classOf(n))) n.children.forEach(c => fieldRows.add(c))
+		})
 		visit(ast, n => {
 			if (n.type !== 'JSXElement') return
 			const rows = n.children.filter(c => c.type === 'JSXElement')
-			if (/\bsp-row-flex\b/.test(classOf(n)) && isName(rows[0])) fail('a card head is CardHeader', rel(p), 'a row that opens with a card name: use <CardHeader>')
+			if (/\bsp-row-flex\b/.test(classOf(n)) && isName(rows[0]) && !fieldRows.has(n)) fail('a card head is CardHeader', rel(p), 'a row that opens with a card name: use <CardHeader>')
 			if (n.openingElement.name.name === 'Card' && placed(firstChild(n)).some(isName))
 				fail('a card head is CardHeader', rel(p), 'a card that opens with a name written by hand: use <CardHeader>')
 		})

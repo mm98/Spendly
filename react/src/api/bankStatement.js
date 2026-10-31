@@ -368,13 +368,16 @@ export function realAmounts(checked, sheets) {
 
 /* ---- checking against the orders ---- */
 
-// a payment matches an order dated this many days either side of the bank's day (api/src/routes/ordersBankCheck.js)
-export const ORDER_MATCH_DAYS = 14
+// the matching's two settings and their ends (2j); the server sends orders this many days around the file (api/src/routes/ordersBankCheck.js)
+export const ORDER_MATCH = { days: 3, percent: 3, most: 10 }
 const dayNumber = iso => Date.parse(iso + 'T00:00:00Z') / 86400000
+const cents = n => Math.round(n * 100)
 
 /** Each payment out with its status: 'once' or 'skip' when left out, 'registered' with its `order`, or
-    'missing'. Same total, up to ORDER_MATCH_DAYS apart; one order per payment, the closest day first. */
-export function checkOrderPayments(payments, orders, leftOut = []) {
+    'missing'. An order matches dated up to `days` apart, with the same total or one up to `percent` of the
+    payment away; the exact total first, then the closest total, then the closest day. One order per payment.
+    A close match carries `difference`, what the order holds more (or, below 0, less) than was paid. */
+export function checkOrderPayments(payments, orders, leftOut = [], { days = ORDER_MATCH.days, percent = ORDER_MATCH.percent } = {}) {
 	const out = new Set(leftOut)
 	const statusOf = p => (out.has(onceKey(p)) ? 'once' : out.has(paymentKey(p.text)) ? 'skip' : null)
 	const marked = payments.map(p => ({ ...p, total: Math.round(-p.amount * 100) / 100, status: statusOf(p) }))
@@ -382,16 +385,18 @@ export function checkOrderPayments(payments, orders, leftOut = []) {
 	for (const p of marked) {
 		if (p.status) continue
 		const day = dayNumber(p.date)
+		const allowed = Math.round(cents(p.total) * percent / 100)
 		for (const o of orders) {
 			const apart = Math.abs(dayNumber(o.date) - day)
-			if (apart <= ORDER_MATCH_DAYS && Math.round(o.total * 100) === Math.round(p.total * 100)) pairs.push({ p, o, apart })
+			const off = Math.abs(cents(o.total) - cents(p.total))
+			if (apart <= days && off <= allowed) pairs.push({ p, o, apart, off })
 		}
 	}
-	pairs.sort((a, b) => a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
+	pairs.sort((a, b) => a.off - b.off || a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
 	const taken = new Set(), matched = new Map()
-	for (const { p, o } of pairs) {
+	for (const { p, o, off } of pairs) {
 		if (matched.has(p.row) || taken.has(o.id)) continue
-		matched.set(p.row, o)
+		matched.set(p.row, off ? { ...o, difference: (cents(o.total) - cents(p.total)) / 100 } : o)
 		taken.add(o.id)
 	}
 	return {
