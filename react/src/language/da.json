@@ -188,6 +188,7 @@
 	"bank.pickCosts": "Skriv eller vælg blandt dine udgifter",
 	"bank.pickFromBudget": "Vælg fra budgettet",
 	"bank.pickIncome": "Skriv eller vælg blandt dine indtægter",
+	"bank.paymentMenu": "Betalingsmenu, {text}",
 	"bank.pickVendor": "Vælg en leverandør",
 	"bank.placeHelp": "Betalinger med samme tekst vises samlet. Placér en tekst én gang, så bruger Spendly dit valg for alle dens betalinger, også i senere filer. Hvert valg gemmes, så snart du træffer det.",
 	"bank.putAllOn": "Sæt dem alle på",

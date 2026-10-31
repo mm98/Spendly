@@ -6,7 +6,7 @@ import { Segmented } from '../components/Segmented.jsx'
 import { BulkBar, ListMore, ListToolbar } from '../components/List.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
 import { Check } from '../components/Choice.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Leaving, Popover, useToast } from '../components/Overlays.jsx'
+import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Leaving, Menu, MenuItem, Popover, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyTitle, Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { Failed } from '../components/Failed.jsx'
 import { useShellShape } from '../app/useMedia.js'
@@ -238,12 +238,6 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 	)
 	const text = p => p.text || phrase('bank.noText')
 
-	const leaveButtons = p => (
-		<div className="sp-row-flex sp-gap-6">
-			<span data-tip={phrase('bank.alwaysLeaveOut')}><IconButton icon="archive" aria-label={phrase('bank.alwaysLeaveOut')} disabled={busy} onClick={() => leave([p], false)} /></span>
-			<span data-tip={phrase('bank.leaveOutOnce')}><IconButton icon="minus" aria-label={phrase('bank.leaveOutOnce')} disabled={busy} onClick={() => leave([p], true)} /></span>
-		</div>
-	)
 	const vendorCell = p => {
 		const vendor = vendorOf(p)
 		const on = keeping(p)
@@ -270,7 +264,7 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 				<td><div className="sp-row-flex sp-gap-8"><span className="sp-note sp-ink-success sp-grow">{phrase('bank.savedNote', { what: p.saved })}</span>
 					<Button variant="outline" size="small" disabled={busy} onClick={() => undoLeave(p)}>{phrase('action.undo')}</Button></div></td>
 				{amountCell(p.total)}
-				<td />
+				<td className="sp-cell-menu-cell" />
 			</tr>
 		)
 		: (
@@ -280,7 +274,7 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 				<td><span className="sp-title sp-truncate">{text(p)}</span></td>
 				<td>{vendorCell(p)}</td>
 				{amountCell(p.total)}
-				<td>{leaveButtons(p)}</td>
+				<td className="sp-cell-menu-cell"><div className="sp-cell-menu"><PaymentMenu label={phrase('bank.paymentMenu', { text: text(p) })} busy={busy} onLeave={once => leave([p], once)} /></div></td>
 			</tr>
 		))
 
@@ -306,7 +300,7 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 							<th scope="col" className="sp-col-title">{phrase('bank.th.bankText')}</th>
 							<th scope="col" className="sp-col-picker">{phrase('field.vendor')}</th>
 							<th scope="col" className="sp-col-amount">{phrase('field.amount')}</th>
-							<th className="sp-col-actions"><span className="sp-announce">{phrase('list.actions')}</span></th>
+							<th scope="col" className="sp-col-menu"><span className="sp-announce">{phrase('list.actions')}</span></th>
 						</tr>
 					</thead>
 					<tbody>{listed.slice(0, shown).map(missingRow)}</tbody>
@@ -415,6 +409,28 @@ function Results({ file, unread, span, checked, found, setLeftOut, view, onChang
 }
 
 /** Set vendor in the bulk bar (2j): a popover with the vendor picker, as Set status in 2a. Nothing is saved before Create. */
+/** A payment line's menu (2j), the order list's row menu with the two ways to leave the line out. */
+function PaymentMenu({ label, busy, onLeave }) {
+	const phrase = usePhrase()
+	const [open, setOpen] = useState(false)
+	const anchor = useRef(null)
+	const close = () => setOpen(false)
+	useDismiss(anchor, open, close)
+	const pick = once => () => { close(); onLeave(once) }
+	return (
+		<Anchor ref={anchor} open={open}>
+			<IconButton icon="dots-vertical" aria-label={label} aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'}
+				disabled={busy} onClick={() => setOpen(!open)} />
+			{open ? (
+				<Menu position="floating" aria-label={label}>
+					<MenuItem icon="refresh" onClick={pick(false)}>{phrase('bank.alwaysLeaveOut')}</MenuItem>
+					<MenuItem icon="x" onClick={pick(true)}>{phrase('bank.leaveOutOnce')}</MenuItem>
+				</Menu>
+			) : null}
+		</Anchor>
+	)
+}
+
 function SetVendor({ count, busy, onApply }) {
 	const phrase = usePhrase()
 	const [open, setOpen] = useState(false)

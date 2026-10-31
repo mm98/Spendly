@@ -1310,7 +1310,6 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
    check's column picker, so the field and a 32px toggle beside it fit */
 .sp-table .sp-col-picker { width: 240px; }
 /* two icon buttons at the end of a row */
-.sp-col-actions { width: calc(var(--menu-col) * 2); }
 /* the menu column is exactly its control, so it takes no side padding */
 .sp-table th.sp-col-menu,
 .sp-table td.sp-cell-menu-cell { padding-left: 0; padding-right: 0; }

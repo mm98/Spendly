@@ -51,14 +51,3 @@ is removed in the change that settles it.
   "Category restored as Garden (2), since Garden is taken." If it is ever built, it is its own pull
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
-
-## The last column of the orders' bank check is too narrow in the design
-
-- **Status:** a design fault, fixed in the app; the rule still has to reach `design/`.
-- **Where:** Order list 2j in `design/`, `.sp-col-actions` in `design/styles/components.css`; the
-  app's fix is in `react/src/styles/app.css`.
-- **What the reader sees:** with the design's width, the two buttons at the end of each payment
-  line (Always leave out, Leave out once) stand past the table's right edge.
-- **What was found:** the column is `calc(var(--menu-col) * 2)`, 80px, but holds two 32px buttons,
-  their 6px gap and the cell's 28px of side padding. The app uses
-  `calc(var(--menu-col) * 2 + var(--sp-6) + var(--sp-12))`, 98px. Found 31 October 2026.

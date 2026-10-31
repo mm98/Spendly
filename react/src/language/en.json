@@ -188,6 +188,7 @@
 	"bank.pickCosts": "Type or pick from your costs",
 	"bank.pickFromBudget": "Pick from budget",
 	"bank.pickIncome": "Type or pick from your income",
+	"bank.paymentMenu": "Payment menu, {text}",
 	"bank.pickVendor": "Pick a vendor",
 	"bank.placeHelp": "Payments with the same text are shown together. Place a text once, and Spendly uses your choice for all of its payments, also in later files. Each choice is saved the moment you make it.",
 	"bank.putAllOn": "Put them all on",

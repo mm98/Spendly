@@ -1,5 +1,35 @@
 # One bank statement check, for the budget or for orders
 
+## Fixed from handoff_orders_bank_check_fixed_4
+
+**The problem.** The payment menu was drawn open inside the table, but the mockup closes any open menu on the first click on the page, so the menu was not visible to read.
+
+**What changed.** Order list 2j has a PAYMENT MENU specimen beside the others: the row menu from 2e, unchanged, with its two items, Always leave out (`refresh`) and Leave out once (`x`). The note says what each item does: Always leave out saves the text to the left-out list and the line shows Saved: Always left out.; Leave out once moves the line to Left out for this file only.
+
+**Where.** `Order list 2j`, specimen PAYMENT MENU, and the Columns note. App: `react/src/pages/OrdersCheck.jsx`.
+
+## Fixed from handoff_orders_bank_check_fixed_3
+
+**The problem.** The two icon buttons at the end of a payment line in Order list 2j, Always leave out (`archive`) and Leave out once (`minus`), did not say what they do. Their column was also the only place in the system with two icon buttons at a row's end, and needed its own width rule.
+
+**What changed.** They are now the order list's row menu: the ⋮ button in `sp-col-menu`, exactly as in 2b, labelled "Payment menu", with two items, **Always leave out** (`refresh`) and **Leave out once** (`x`). A line already left out has no menu, only Undo in its vendor cell. The `.sp-col-actions` column and its rule are gone, so the width fix in fixed_3 is gone with it, and `app.css` drops its own `.sp-table .sp-col-actions` rule as well.
+
+**Where.** `Order list 2j`: Not registered table (menu drawn open on the MOB.PAY*HOS REBAR line) and the Selected specimen. `styles/components.css`: `.sp-table .sp-col-actions` removed. App: `react/src/pages/OrdersCheck.jsx`, `app.css`.
+
+**What is still open.** The two menu icons, `refresh` for Always and `x` for Once, are from the register; please confirm.
+
+## Fixed from handoff_orders_bank_check_fixed_2
+
+Answers `Brief-bank-check-column.md`.
+
+**The problem.** In Order list 2j the last column holds two 32px icon buttons, Always leave out and Leave out once, 70px with the gap between them. The column was `calc(var(--menu-col) * 2)`, 80px, but the table is fixed and border-box, so the cell's 12px left and 16px right padding came out of those 80, leaving 52px. The right button stuck out past the table's right edge, in the drawing and in the app.
+
+**What changed.** The column is as wide as what it holds: `.sp-table .sp-col-actions { width: calc(32px * 2 + var(--sp-6) + var(--sp-12) + var(--sp-16)); }`, 98px. That is the same 98px as the app's rule, written from its parts, so `app.css` can drop its own `.sp-table .sp-col-actions` rule. The buttons now sit 12px after the amount column and 16px from the table's right edge, the inset every row has there. Nothing else uses `.sp-col-actions`.
+
+**Where.** `styles/components.css`, `.sp-table .sp-col-actions`; seen in `Order list 2j` (Not registered table and the Selected specimen). App: `react/src/pages/OrdersCheck.jsx`, and remove the rule from `app.css`.
+
+**Built on.** `design/` from main at 2026-10-31T10:40Z. Main does not have 2j yet, so this package still carries the whole bank check below.
+
 ## Fixed from handoff_orders_bank_check_fixed
 
 **The problem.** A payment line was a tall card: text, two buttons under it, a picker with a help line, a check under the picker, and the move offer on the line. Too messy, and too tall for a file of 200 payments.
@@ -12,9 +42,9 @@
 - Registered and Orders with no payment use the same table, with Open order as a `chevron-right` icon button.
 - The fix in `handoff_orders_bank_check_fixed` (a check in the field tinting the row) is gone with the check; its rule and `.sp-list-item__field` are removed.
 
-**Where.** `Order list 2j`. `styles/components.css`: `.sp-table .sp-col-picker { width: 240px; }`, `.sp-col-actions { width: calc(var(--menu-col) * 2); }`, `.sp-icon-btn[aria-pressed="true"]` (primary tint, primary ink). New words: `bank.textTaken.title`, `bank.textTaken.body`, `bank.textTaken.line`, `bank.moveTo`, `bank.keepOn`, `bank.th.bankText`, `bank.th.order`, `bank.notRegisteredTotal`; `bank.vendorMatched` now "Matched from the bank text"; `bank.selectEveryPayment` removed.
+**Where.** `Order list 2j`. `styles/components.css`: `.sp-table .sp-col-picker { width: 240px; }`, `.sp-table .sp-col-actions` (98px, see the fix at the top), `.sp-icon-btn[aria-pressed="true"]` (primary tint, primary ink). New words: `bank.textTaken.title`, `bank.textTaken.body`, `bank.textTaken.line`, `bank.moveTo`, `bank.keepOn`, `bank.th.bankText`, `bank.th.order`, `bank.notRegisteredTotal`; `bank.vendorMatched` now "Matched from the bank text"; `bank.selectEveryPayment` removed.
 
-**What is still open.** The two leave-out icons are `archive` and `minus` from the register; please confirm, or an `eye-off` can be added from Tabler.
+**What is still open.** Settled in fixed_4: the leave-out buttons became the row menu.
 
 Answers `Brief-orders-bank-check.md`. Built on `design/` from `mm98/Spendly` main at 2026-10-31T09:36Z. Read `later.md` on main first: its one entry, Recently deleted, is an idea for later and not a design fix, so nothing in it is settled here.
 
@@ -80,7 +110,7 @@ Answers `Brief-orders-bank-check.md`. Built on `design/` from `mm98/Spendly` mai
 - `Budget.dc.html` - button renamed in 21a and 21b, note in 21g.
 - `Mobile screens.dc.html` - phone note covers both checks.
 - `index.html` - 2j listed, 112 screens.
-- `styles/components.css` - `.sp-col-picker`, `.sp-col-actions`, `.sp-icon-btn[aria-pressed="true"]`.
+- `styles/components.css` - `.sp-col-picker`, `.sp-icon-btn[aria-pressed="true"]`.
 - `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/order-list.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css`, `support.js`, `view.js`, `components.js`, `icons.js` - loaded by the pages, unchanged from main.
 - `language/en.json`, `language/da.json` - `react/src/language/` from main with the new words.
 

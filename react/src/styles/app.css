@@ -281,7 +281,3 @@ body.sp-touch > .sp-scrim--dialog:has(> .sp-viewer) { padding: 0; }
 	display: contents;
 	visibility: hidden;
 }
-
-/* two icon buttons and their gap, plus the cell's own side padding: at twice the menu column the
-   second button stood past the table's edge (Order list 2j) */
-.sp-table .sp-col-actions { width: calc(var(--menu-col) * 2 + var(--sp-6) + var(--sp-12)); }
