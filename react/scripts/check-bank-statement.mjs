@@ -102,6 +102,10 @@ const matched = settings => checkOrderPayments([paid(1, '2026-10-01', -568), pai
 assert.deepEqual(matched({ days: 3, percent: 3 }), [[1, 'registered', 'same', null], [2, 'registered', 'far', 15]])
 assert.deepEqual(matched({ days: 0, percent: 3 }), [[1, 'registered', 'near', 0.38], [2, 'registered', 'far', 15]])
 assert.deepEqual(matched({ days: 3, percent: 0 }), [[1, 'registered', 'same', null], [2, 'missing', null, null]])
+// Two payments fit one order: the one on or after the order's day wins over a closer one before it.
+const pizza = [{ id: 'pizza', date: '2026-10-23', total: 194.5 }]
+assert.deepEqual(checkOrderPayments([paid(1, '2026-10-20', -194.5), paid(2, '2026-10-27', -194.5)], pizza, [], { days: 10, percent: 3 }).payments
+	.map(p => [p.row, p.status]), [[2, 'registered'], [1, 'missing']])
 // A date that cannot be read leaves that line out; the format comes from the others.
 assert.deepEqual(dateFormatsFor(['2026-10-02', '2026-10-01', 'Closing balance']), ['ymd'])
 assert.deepEqual(dateFormatsFor(['igår', 'idag']), [])
