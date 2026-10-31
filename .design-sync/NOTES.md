@@ -16,7 +16,8 @@
 - Playwright: `.ds-sync` needs `playwright@1.63.0` (matches chromium-1243 in `/opt/pw-browsers`); run with `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`. `@types/react` lives in `.ds-sync/node_modules`, not `react/node_modules`; the `[DTS_REACT]` warning is harmless here because no `.d.ts` is read.
 - Build: `node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules react/node_modules --out ./ds-bundle`
 - `react/src/components/motion.js` holds JSX in a `.js` file, which the converter's bundler refuses. `buildCmd` (`node .design-sync/tools/motion-for-bundle.mjs`) writes a JSX-free copy to `.design-sync/.cache/motion.js`, and `.design-sync/bundle-tsconfig.json` maps `./motion.js` to that copy. Never fork `lib/bundle.mjs` for this.
-- `resync.mjs` does not run `buildCmd`. Run `node .design-sync/tools/motion-for-bundle.mjs` before the driver, or the build stops at `../.cache/motion.js`.
+- The components take their words from `react/src/language/phrases.js`, which loads `en.json`/`da.json` through Vite's `import.meta.glob`. The converter's bundle cannot fill that, so the whole bundle throws on load and every card is empty. `buildCmd` also runs `node .design-sync/tools/phrases-for-bundle.mjs`, which writes a copy to `.design-sync/.cache/phrases.js` with both files imported directly (Danish filled from English, as `languageFiles` in `react/vite.config.js` does) and English in place before the first draw; `.design-sync/bundle-tsconfig.json` maps `../language/phrases.js` to it.
+- `resync.mjs` does not run `buildCmd`. Run both tools in it before the driver, or the build stops at `../.cache/motion.js` (or every card renders empty, for the word files).
 
 ## Preview authoring
 
@@ -52,6 +53,8 @@
 - `entry/styles.js` mirrors the stylesheet imports in `react/src/main.jsx`. If main.jsx adds or reorders a stylesheet, change it here too.
 - Preview content with dates is fixed in 2026, but several components still read today (quick ranges, presets, the today mark), so those cards can drift with the calendar.
 - The playwright version is pinned by the browser build in `/opt/pw-browsers` (chromium-1243 = playwright 1.63.0); a new environment may need another version.
+- `phrases-for-bundle.mjs` replaces two exact lines of `phrases.js` and stops with an error when either is gone. When it stops, read the new `phrases.js` and change the tool to match.
+- Cards render a raw phrase key (such as `rangeSlider.from`) when a component reads a key missing from `en.json`. After a re-sync, scan `.render-check.json` texts for dotted keys.
 - `ReorderList`'s and `Sidebar`'s `dtsPropsFor` entries were written by hand from the Motion update. `motion.js` and `Reorder.jsx` change with Claude Design's handoff; check them on every re-sync.
 - `.design-sync/.cache/remote-sync.json` must be the project's full `_ds_sync.json` (with `sourceKeys` and `sourceHashes`). A trimmed copy gives no anchor: every component re-verifies and the driver cannot list remote files to delete, so they are found by hand with `list_files`.
 - `storybook/` (stories for every file in `react/src/components`) landed after this sync was built in the package shape. A later sync can switch to the storybook shape (`"shape": "storybook"`, `storybookConfigDir: "storybook/.storybook"`), which grades previews against Storybook's own render; that replaces the hand-written previews here and needs a full re-verify.

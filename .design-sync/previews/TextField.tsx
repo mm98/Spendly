@@ -38,3 +38,14 @@ export const States = () => (
 		</Field>
 	</div>
 );
+
+export const Code = () => (
+	<div style={col}>
+		<Field label="Sign-in code">
+			<TextField code value="804 213" onChange={noop} />
+		</Field>
+		<Field label="Recovery key" message="Keep this somewhere safe.">
+			<TextField code variant="readonly" value="K7Q0-O9W2-ZX41" onChange={noop} readOnly />
+		</Field>
+	</div>
+);
