@@ -130,7 +130,10 @@ export async function processPdfPage(buffer, index) {
     or null when the bytes are not a decodable image. */
 export async function processPicture(buffer) {
 	let square, wide
-	try { [square, wide] = await Promise.all([toSquare(buffer), toWide(buffer)]) } catch { return null }
+	try { [square, wide] = await Promise.all([toSquare(buffer), toWide(buffer)]) } catch (error) {
+		console.error('A bookmark picture could not be read:', error.message)
+		return null
+	}
 	const [s, w] = await Promise.all([compressBlob(square, 'image/webp'), compressBlob(wide, 'image/webp')])
 	return { thumbnail: s.blob, thumbnailCompressed: s.compressed, wide: w.blob, wideCompressed: w.compressed, contentType: 'image/webp' }
 }

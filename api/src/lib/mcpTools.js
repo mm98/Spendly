@@ -164,7 +164,10 @@ export async function callTool(name, args, token, self) {
 		headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
 		signal: AbortSignal.timeout(30_000)
 	})
-	const body = await answer.json().catch(() => null)
+	const body = await answer.json().catch(error => {
+		console.error(`[assistant] ${tool.path(args ?? {})} sent an answer that could not be read: ${error.message}`)
+		return null
+	})
 	if (!answer.ok) return failed(body?.error ?? `The answer was ${answer.status}.`)
 	return { content: [{ type: 'text', text: JSON.stringify(body) }] }
 }
