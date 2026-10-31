@@ -6,10 +6,12 @@ import { sep, fileSizeLabel } from './copy.js'
 import { photoFinderOf, productKey } from './photoFinders/index.js'
 import { forgetReads } from './readCache.js'
 
-/* Find photos (Order editing layouts 1a): one line at a time for the whole server, held in memory,
+/* Find photos (Order editing layouts 1a): a few lines at a time for the whole server, held in memory,
    so a restart ends a search and the lines it had not reached stay empty. */
 
 const DONE_STILL_REPORTED_MS = 5 * 60_000
+// a shop asked for more than this at once may start to refuse
+const LINES_AT_ONCE = 4
 
 const selectOrder = db.prepare(`SELECT o.id, v.photo_finder FROM orders o LEFT JOIN vendors v ON v.id = o.vendor_id
 	WHERE o.id = ? AND o.user_id = ?`)
@@ -30,7 +32,7 @@ const insertLinePhoto = db.prepare(`INSERT INTO order_attachments
 const searches = new Map()
 /** The lines waiting their turn, across every reader: `{ search, itemId }`. */
 const queue = []
-let working = false
+let linesRunning = 0
 
 const keyOf = (userId, orderId) => `${userId} ${orderId}`
 
@@ -62,23 +64,53 @@ export function findingFor(userId) {
 	return answer
 }
 
-async function work() {
-	if (working) return
-	working = true
-	try {
-		while (queue.length) {
-			const { search, itemId } = queue.shift()
-			try {
-				if (await fillLine(search, itemId)) search.found++
-			} catch (error) {
-				console.error('Find photos: a line failed', error?.message ?? error)
-			}
-			search.waiting.delete(itemId)
-			if (!search.waiting.size) { search.done = true; search.doneAt = Date.now() }
-		}
-	} finally {
-		working = false
+function work() {
+	while (linesRunning < LINES_AT_ONCE && queue.length) {
+		const { search, itemId } = queue.shift()
+		linesRunning++
+		fillLine(search, itemId)
+			.then(filled => { if (filled) search.found++ })
+			.catch(error => console.error('Find photos: a line failed', error?.message ?? error))
+			.finally(() => {
+				linesRunning--
+				search.waiting.delete(itemId)
+				if (!search.waiting.size) { search.done = true; search.doneAt = Date.now() }
+				work()
+			})
 	}
+}
+
+/** Lines of one product found at the same time share one search. */
+const productsInFlight = new Map()
+
+/** `{ image, wide, square }` for a product, from the library or found by the finder, or null. */
+function productPhoto(finder, key, title) {
+	const flightKey = `${finder.key} ${key}`
+	if (!productsInFlight.has(flightKey)) {
+		productsInFlight.set(flightKey, readOrFindPhoto(finder, key, title).finally(() => productsInFlight.delete(flightKey)))
+	}
+	return productsInFlight.get(flightKey)
+}
+
+async function readOrFindPhoto(finder, key, title) {
+	let photo = selectFound.get(finder.key, key)
+	if (!photo) {
+		const found = await finder.find(title)
+		if (!found) return null
+		insertFound.run(finder.key, key, found.image, found.contentType, found.sourceUrl, Date.now())
+		photo = { image: found.image, wide: null, square: null }
+	}
+	// the copies are made once per product: making them is the slow part of a line
+	if (!photo.wide || !photo.square) {
+		const made = await processImage(photo.image)
+		if (!made) {
+			console.error(`Find photos: the photo for "${key}" could not be read`)
+			return null
+		}
+		photo = { ...photo, wide: made.data, square: made.thumbnail }
+		updateFoundCopies.run(photo.wide, photo.square, finder.key, key)
+	}
+	return photo
 }
 
 /** Puts a found photo on one line, unless the line was given one or removed meanwhile. */
@@ -87,23 +119,8 @@ async function fillLine(search, itemId) {
 	if (!line) return false
 	const key = productKey(line.title)
 	if (!key) return false
-	let photo = selectFound.get(search.finder.key, key)
-	if (!photo) {
-		const found = await search.finder.find(line.title)
-		if (!found) return false
-		insertFound.run(search.finder.key, key, found.image, found.contentType, found.sourceUrl, Date.now())
-		photo = { image: found.image, wide: null, square: null }
-	}
-	// the copies are made once per product: making them is the slow part of a line
-	if (!photo.wide || !photo.square) {
-		const made = await processImage(photo.image)
-		if (!made) {
-			console.error(`Find photos: the photo for "${key}" could not be read`)
-			return false
-		}
-		photo = { ...photo, wide: made.data, square: made.thumbnail }
-		updateFoundCopies.run(photo.wide, photo.square, search.finder.key, key)
-	}
+	const photo = await productPhoto(search.finder, key, line.title)
+	if (!photo) return false
 	// the line is read again after the wait: a photo added by hand meanwhile wins
 	if (!selectLineStillEmpty.get(itemId, search.userId)) return false
 	insertLinePhoto.run({
