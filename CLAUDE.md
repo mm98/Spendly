@@ -610,7 +610,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   the wait look like the work). Prefer asking an API for run state over sleeping between guesses.
 - **`[major]` and `[minor]` in a pull request's title are the user's call.** They raise the major or
   minor version when the change is merged (`scripts/version.mjs`); without either, the build number
-  rises. Never add one, or the `major` or `minor` label, unless asked.
+  rises. Never add one, or the `major` or `minor` label, unless asked. Before every merge, ask the user
+  on a card: build, minor or major.
 - **A follow-up requested after a PR merged is a new branch, not a new commit on the old one.** A
   merged branch is finished — check `git fetch origin main` first; if the branch's history is already
   in `main`, restart it from `main` (`git checkout -B <branch> origin/main`, rebasing any unmerged
