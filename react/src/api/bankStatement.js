@@ -366,7 +366,7 @@ export function realAmounts(checked, sheets) {
 /* ---- checking against the orders ---- */
 
 // a payment matches an order dated this many days either side of the bank's day (api/src/routes/ordersBankCheck.js)
-export const ORDER_MATCH_DAYS = 3
+export const ORDER_MATCH_DAYS = 14
 const dayNumber = iso => Date.parse(iso + 'T00:00:00Z') / 86400000
 
 /** Each payment out with its status: 'once' or 'skip' when left out, 'registered' with its `order`, or

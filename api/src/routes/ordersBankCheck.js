@@ -16,7 +16,7 @@ export const router = Router()
 const refuse = (status, message) => Object.assign(new Error(message), { status })
 
 // a payment matches an order dated this many days either side of the bank's day (react/src/api/bankStatement.js)
-export const MATCH_DAYS = 3
+export const MATCH_DAYS = 14
 const DAY = 24 * 60 * 60
 const MAX_TEXTS = 5000
 const MAX_CREATE = 1000
