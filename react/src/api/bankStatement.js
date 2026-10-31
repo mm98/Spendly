@@ -369,7 +369,7 @@ export function realAmounts(checked, sheets) {
 /* ---- checking against the orders ---- */
 
 // the matching's two settings and their ends (2j); the server sends orders this many days around the file (api/src/routes/ordersBankCheck.js)
-export const ORDER_MATCH = { days: 3, percent: 3, most: 10 }
+export const ORDER_MATCH = { days: 5, percent: 3, most: 10 }
 const dayNumber = iso => Date.parse(iso + 'T00:00:00Z') / 86400000
 const cents = n => Math.round(n * 100)
 

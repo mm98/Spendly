@@ -52,7 +52,7 @@ is removed in the change that settles it.
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
 
-## Reconcile's matching note in the design says "before or after"
+## Reconcile's matching notes in the design are out of date
 
 - **Status:** waits for the next note to Claude Design. Added 31 October 2026.
 - **Where:** `design/Order list.dc.html`, 2j, the Matching note.
@@ -60,3 +60,5 @@ is removed in the change that settles it.
 - **What was found:** the note says a payment matches an order dated "before or after" the bank
   date. The user decided a payment only matches an order from the same day or the days before it,
   since a bank never takes the money before the order. The note should say that.
+- **Also:** the Days apart note says both sliders start at 3. The user chose 5 for Days apart,
+  since a bank can take some days to take the money. The note should say Days apart starts at 5.
