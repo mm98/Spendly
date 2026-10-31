@@ -155,7 +155,8 @@ have to. Putting screens together from its patterns is the build's job:
   column that does not fit, an overflow) is fixed in `app.css` with the smallest change that keeps
   the drawn look, and listed once in the pull request so the user can overrule it. The rule it adds
   still has to reach `design/`: ask the user, before the pull request opens, whether a brief goes to
-  Claude Design now or the rule waits in `later.md`. The change that brings the rule into `design/`
+  Claude Design now or the rule waits in `later.md`. When a brief to Claude Design is already going
+  out, the rule goes into that brief without asking. The change that brings the rule into `design/`
   removes it from `app.css` and from `later.md`.
 - **A design change reaches only the places `design/` names.** A part shared with other places
   (a helper, a size table, a string that repeats) is not changed for all of them because one place
@@ -579,6 +580,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   question in plain text is overlooked. Give each answer as its own option. This holds every time
   it is asked: when the user answers a card with something else, or the question comes up again,
   post a new card, never the question repeated in a message.
+- **A choice the user made stands.** A later brief, card or question does not reopen it, and a
+  brief never asks for what the user chose to leave out.
 - **A correction the user has to give twice is written into this file in the same turn,** without
   being asked. A promise in chat does not reach the next thread; this file does.
 - Never claim what was not run. "Tests pass" means executed; "fixed in Firefox" means Firefox
@@ -607,7 +610,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   the wait look like the work). Prefer asking an API for run state over sleeping between guesses.
 - **`[major]` and `[minor]` in a pull request's title are the user's call.** They raise the major or
   minor version when the change is merged (`scripts/version.mjs`); without either, the build number
-  rises. Never add one, or the `major` or `minor` label, unless asked.
+  rises. Never add one, or the `major` or `minor` label, unless asked. Before every merge, ask the user
+  on a card: build, minor or major.
 - **A follow-up requested after a PR merged is a new branch, not a new commit on the old one.** A
   merged branch is finished — check `git fetch origin main` first; if the branch's history is already
   in `main`, restart it from `main` (`git checkout -B <branch> origin/main`, rebasing any unmerged

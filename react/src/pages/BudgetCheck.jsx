@@ -1,16 +1,13 @@
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Card, CardBody, CardHeader, Toolbar } from '../components/Card.jsx'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Card, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
-import { BulkBar, Controls } from '../components/List.jsx'
+import { BulkBar } from '../components/List.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Check, Choice } from '../components/Choice.jsx'
 import { ListItem, ListItemHead } from '../components/ListItem.jsx'
-import { FileDrop } from '../components/FileDrop.jsx'
-import { Mark } from '../components/Mark.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { Empty, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useShellShape } from '../app/useMedia.js'
@@ -18,13 +15,11 @@ import { Failed } from '../components/Failed.jsx'
 import { cachedFetch, useApi } from '../api/useApi.js'
 import { amount, capitalised, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
-import {
-	DATE_FORMATS, checkPayments, dateFormatsFor, describeColumn, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
-	realAmounts
-} from '../api/bankStatement.js'
+import { checkPayments, kindOf, onceKey, realAmounts } from '../api/bankStatement.js'
+import { BankControls, BankFileColumns, BankPickFile, columnsShown, useBankFile } from './BankCheck.jsx'
 import { phrase, usePhrase } from '../language/phrases.js'
 
-/* A bank's CSV export checked against the budget (21g, 21h). The file is read here and never
+/* A bank's export checked against the budget (21g, 21h). The file is read here and never
    sent; only the choices made about its payments are saved. */
 
 const SIDES = [{ kind: 'expense', title: 'budget.group.costs' }, { kind: 'income', title: 'budget.group.income' }]
@@ -36,14 +31,6 @@ const VIEWS = [
 	{ value: 'left', label: 'bank.view.left', shows: LEFT_OUT },
 	{ value: 'all', label: 'bank.view.all', shows: null }
 ]
-const ROLES = [
-	{ id: 'date', label: 'field.date' },
-	{ id: 'text', label: 'bank.role.text' },
-	{ id: 'amount', label: 'field.amount' },
-	{ id: 'out', label: 'bank.role.out' },
-	{ id: 'none', label: 'bank.role.none' }
-]
-
 // a failure the shell already tells of (the session ended) has no sentence, and takes no toast
 const toastFailure = (toast, error, fallback) => {
 	const message = failureMessage(error, fallback)
@@ -76,72 +63,18 @@ function groupPayments(list) {
 	}).sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
 }
 
-// The column choice for a file of the same shape, kept in this browser only.
-const MAPPING_KEY = 'spendly.bankColumns'
-const rememberedMapping = width => {
-	try { return JSON.parse(localStorage.getItem(MAPPING_KEY))?.[width] ?? null } catch { return null }
-}
-const rememberMapping = (width, mapping) => {
-	try {
-		const all = JSON.parse(localStorage.getItem(MAPPING_KEY)) ?? {}
-		localStorage.setItem(MAPPING_KEY, JSON.stringify({ ...all, [width]: mapping }))
-	} catch { /* the choice is only a convenience */ }
-}
-
-const BANK_FILES = '.csv,.txt,text/csv'
-
 export default function BudgetCheck() {
 	const phrase = usePhrase()
-	const toast = useToast()
 	// four segments do not fit beside a phone's buttons, so there they take the full row
 	const touch = useShellShape() === 'touch'
-	const [file, setFile] = useState(null)
-	const [rows, setRows] = useState(null)
-	const [mapping, setMapping] = useState(null)
-	const [showColumns, setShowColumns] = useState(false)
 	const [sheets, setSheets] = useState(null)
 	const [view, setView] = useState('place')
-	const picker = useRef(null)
+	const bank = useBankFile({ onRead: () => setView('place') })
+	const { file, rows, payments, unread } = bank
 	const saved = useApi(getBankLinks)
 	const [links, setLinks] = useState(null)
 	useEffect(() => { if (saved.data) setLinks(saved.data) }, [saved.data])
 
-	const width = rows ? Math.max(...rows.map(r => r.length)) : 0
-
-	// a file of a width seen before opens on its remembered columns, folded away
-	const read = async chosen => {
-		if (!chosen) return
-		try {
-			const found = parseCsv(await readText(chosen))
-			if (!found.length) { toast({ message: phrase('bank.fileEmpty', { file: chosen.name }), color: 'danger' }); return }
-			const header = hasHeader(found)
-			const remembered = rememberedMapping(Math.max(...found.map(r => r.length)))
-			setFile(chosen.name)
-			setRows(found)
-			setMapping(remembered ?? { header, ...guessColumns(found, header) })
-			setShowColumns(!remembered)
-			setView('place')
-		} catch (e) {
-			toast({ message: phrase('bank.fileUnread', { file: chosen.name, reason: e.message }), color: 'danger' })
-		}
-	}
-	const change = patch => setMapping(m => {
-		const next = { ...m, ...patch }
-		rememberMapping(width, next)
-		return next
-	})
-	const toggleColumns = () => {
-		if (showColumns) rememberMapping(width, mapping)
-		setShowColumns(!showColumns)
-	}
-
-	const body = rows && mapping ? (mapping.header ? rows.slice(1) : rows) : []
-	const dateFits = useMemo(() => (mapping?.date == null ? []
-		: dateFormatsFor((mapping.header ? rows.slice(1) : rows).map(r => r[mapping.date] ?? ''))), [rows, mapping])
-	const dateFormat = dateFits.includes(mapping?.dateFormat) ? mapping.dateFormat : dateFits[0] ?? 'dmy'
-	const ready = mapping && mapping.date != null && mapping.text != null && mapping.amount != null
-	const { payments, unread } = useMemo(() => (ready ? readPayments(rows, { ...mapping, dateFormat }) : { payments: [], unread: [] }),
-		[ready, rows, mapping, dateFormat])
 	const years = useMemo(() => [...new Set(payments.map(p => Number(p.date.slice(0, 4))))].sort(), [payments])
 
 	const [sheetsFailed, setSheetsFailed] = useState(null)
@@ -167,154 +100,19 @@ export default function BudgetCheck() {
 
 	const checked = useMemo(() => (sheets && links ? checkPayments(payments, sheets, links) : null), [payments, sheets, links])
 
-	if (!rows) return <PickFile onFile={read} />
+	if (!rows) return <BankPickFile onFile={bank.read} body={phrase('bank.dropBody')} />
 
 	return (
 		<>
-			<Controls>
-				{ready && payments.length
-					? <Segmented name="bank-show" aria-label={phrase('bookmarks.show')} variant={touch ? 'facet' : 'default'} options={VIEWS.map(v => ({ ...v, label: phrase(v.label) }))} value={view} onChange={setView} />
-					: null}
-				<span className="sp-grow" />
-				{ready && payments.length
-					? <Button variant="outline" aria-pressed={showColumns ? 'true' : 'false'} onClick={toggleColumns}>{phrase(showColumns ? 'bank.closeColumns' : 'bank.columns')}</Button>
-					: null}
-				<Button variant="outline" onClick={() => picker.current?.click()}>{phrase('bank.anotherFile')}</Button>
-				<input ref={picker} type="file" name="bank-file" accept={BANK_FILES} hidden tabIndex={-1}
-					onChange={ev => { const chosen = ev.target.files?.[0]; ev.target.value = ''; read(chosen) }} />
-			</Controls>
-			{showColumns || !ready || !payments.length
-				? <Columns file={file} rows={rows} body={body} width={width} mapping={mapping} dateFits={dateFits} dateFormat={dateFormat}
-					problem={!ready ? phrase('bank.tellColumns')
-						: !payments.length ? phrase('bank.noPayments') : null}
-					left={ready && payments.length && unread.length ? phrase('bank.unreadLines', { lines: plural(unread.length, 'line') }) : null}
-					onChange={change} />
+			<BankControls bank={bank}
+				show={<Segmented name="bank-show" aria-label={phrase('bookmarks.show')} variant={touch ? 'facet' : 'default'} options={VIEWS.map(v => ({ ...v, label: phrase(v.label) }))} value={view} onChange={setView} />} />
+			{columnsShown(bank)
+				? <BankFileColumns bank={bank} />
 				: !checked
 					? failed ? <Failed what={phrase('bank.yourBudget')} error={failed} onRetry={retry} /> : <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
 					: <Results key={file} file={file} payments={payments} unread={unread.length} checked={checked} sheets={sheets} setSheets={setSheets}
 						setLinks={setLinks} view={view} onFailed={saved.refresh} />}
 		</>
-	)
-}
-
-/** Before a file: the one way in, the platform's own file picker (Settings 11b's file card). */
-function PickFile({ onFile }) {
-	return (
-		<Card>
-			<FileDrop accept={BANK_FILES} onFiles={files => onFile(files?.[0])}>
-				<Mark size="medium" fill="solid" aria-hidden="true" aria-label={phrase('bank.file')}><Icon name="upload" size={19} /></Mark>
-				<span className="sp-title">{phrase('bank.drop')}</span>
-				<span className="sp-subtitle">{phrase('bank.dropBody')}</span>
-			</FileDrop>
-		</Card>
-	)
-}
-
-/** Which column of the file holds what (21h). Each role is taken by one column at most. */
-function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, problem, left, onChange }) {
-	const roleOf = i => ROLES.find(r => mapping[r.id] === i) ?? ROLES[ROLES.length - 1]
-	const set = (i, role) => {
-		const patch = Object.fromEntries(ROLES.filter(r => r.id !== 'none' && mapping[r.id] === i).map(r => [r.id, null]))
-		if (role !== 'none') patch[role] = i
-		onChange(patch)
-	}
-	const touch = useShellShape() === 'touch'
-	const columns = Array.from({ length: width }, (_, i) => {
-		const role = roleOf(i)
-		const name = mapping.header && rows[0][i] ? rows[0][i] : phrase('bank.column', { number: i + 1 })
-		return {
-			i,
-			name,
-			values: (
-				<span className="sp-subtitle sp-truncate">
-					{(role.id === 'none' ? describeColumn(body.map(r => r[i]), mapping.header ? rows[0][i] : '') : null)
-						?? body.slice(0, 3).map(r => r[i] || phrase('bank.emptyValue')).join(dot)}
-				</span>
-			),
-			choice: (
-				<div className="sp-stack sp-gap-8">
-					<PickOnly aria-label={phrase('bank.mappedTo', { name })}
-						value={role.id === 'none' ? <span className="sp-ink-5">{phrase(role.label)}</span> : phrase(role.label)}
-						options={ROLES.map(r => ({ id: r.id, label: phrase(r.label), selected: r.id === role.id }))}
-						onPick={id => set(i, id)} />
-					{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
-						<Field label={phrase('bank.dateTwoWays')}>
-							<PickOnly value={phrase(DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? '')}
-								options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: phrase(f.label), selected: f.id === dateFormat }))}
-								onPick={id => onChange({ dateFormat: id })} />
-						</Field>
-					) : <span className="sp-note sp-ink-danger">{phrase('bank.notDates')}</span>}
-				</div>
-			)
-		}
-	})
-	return (
-		<Card variant="flush">
-			<Toolbar>
-				<span className="sp-section-label">{phrase('bank.columns')}</span>
-				<span className="sp-grow" />
-				<span className={touch ? 'sp-note sp-truncate' : 'sp-note'}>{file}</span>
-			</Toolbar>
-			<CardBody>
-				<div className="sp-stack sp-gap-12">
-					<span className="sp-subtitle">{phrase('bank.fileHas', { columns: plural(width, 'column') })}</span>
-					{problem ? <span className="sp-note sp-ink-danger">{problem}</span> : null}
-					{left ? <span className="sp-note sp-ink-warning">{left}</span> : null}
-					<Choice control={<Check checked={!!mapping.header} onChange={ev => onChange({ header: ev.target.checked })} />}>
-						{phrase('bank.header')}
-					</Choice>
-				</div>
-			</CardBody>
-			{touch
-				// on a phone a block per column, its choice under it at the full width: nothing scrolls sideways (21h)
-				? columns.map(c => (
-					<Fragment key={c.i}>
-						<span className="sp-rule" />
-						<CardBody>
-							<div className="sp-stack sp-gap-8">
-								<span className="sp-stacked">
-									<span className="sp-title">{c.name}</span>
-									{c.values}
-								</span>
-								{c.choice}
-							</div>
-						</CardBody>
-					</Fragment>
-				))
-				: (
-					<table className="sp-table sp-table--static">
-						<thead>
-							<tr>
-								<th scope="col" className="sp-col-title">{phrase('bank.th.file')}</th>
-								<th scope="col" className="sp-col-flex">{phrase('bank.th.values')}</th>
-								<th scope="col" className="bg-col-map">Spendly</th>
-							</tr>
-						</thead>
-						<tbody>
-							{columns.map(c => (
-								<tr key={c.i}>
-									<td><span className="sp-title">{c.name}</span></td>
-									<td>{c.values}</td>
-									<td>{c.choice}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
-			<CardBody>
-				<span className="sp-note">{phrase('bank.moneyOut')}</span>
-			</CardBody>
-		</Card>
-	)
-}
-
-function PickOnly({ value, options, onPick, ...rest }) {
-	return (
-		<Combobox value={value} {...rest}>
-			{options.map(o => (
-				<ComboboxOption key={o.id} selected={o.selected} onSelect={() => onPick(o.id)}>{o.label}</ComboboxOption>
-			))}
-		</Combobox>
 	)
 }
 

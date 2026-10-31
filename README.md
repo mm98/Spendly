@@ -58,6 +58,8 @@ Everything that needs you, on one page.
 - **Work on many at once** - set a status, add a category, export or delete, with undo for status
   and category changes.
 - **Export** what you see as a spreadsheet file (CSV, ready for a Danish spreadsheet).
+- **Reconcile** - load your bank's CSV or Excel file and see which payments have no order, and which
+  orders have no payment. Pick a vendor for a payment, and Spendly creates the order from it.
 - **Statuses** - Draft, Ordered, Delivered, Returned and Cancelled are built in. Add your own in
   Settings.
 
@@ -145,7 +147,7 @@ Everything that needs you, on one page.
 - **Start next year** as a copy of this one, or **import** a year from Excel.
 - **The sidebar counts this month's payments** - every cost row with an amount this month, paid or
   not.
-- **Check a bank statement** - load your bank's CSV file and Spendly matches each payment against
+- **Reconcile** - load your bank's CSV or Excel file and Spendly matches each payment against
   the budget, then saves the real amounts. The file is read in your browser and never sent
   anywhere. It works with any bank's export. A payment you place on a row is remembered for later
   files, in every year made as a copy, and after the row is renamed.

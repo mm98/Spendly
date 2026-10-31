@@ -413,6 +413,7 @@ export default function OrderList() {
 				: <Segmented name="order-view" role="group" aria-label={phrase('orders.showAs')} value={view}
 					options={[{ value: 'rows', label: phrase('orders.rows') }, { value: 'cards', label: phrase('orders.cards') }]}
 					onChange={v => update({ view: v === 'cards' ? 'cards' : '' })} />}
+			{touch ? null : <Button variant="outline" to="/orders/check">{phrase('bank.check')}</Button>}
 		</Controls>
 	)
 

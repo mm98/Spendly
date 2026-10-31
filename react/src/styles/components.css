@@ -1096,6 +1096,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 }
 .sp-icon-btn:focus-visible { box-shadow: var(--ring); }
 .sp-icon-btn:disabled { opacity: var(--fade-disabled); cursor: not-allowed; }
+/* a toggle icon button, on: the bank check's keep toggle (Order list 2j) */
+.sp-icon-btn[aria-pressed="true"] { background: var(--primary-tint-2); color: var(--primary); }
 .sp-icon-btn--small { width: var(--box); height: var(--box); border-radius: var(--r-marker); }
 .sp-icon-btn--field { width: var(--field-trail); height: var(--field-trail); }
 /* beside an xsmall button, the same 22px; on touch it takes the row size */
@@ -1304,6 +1306,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table .sp-col-box { width: calc(var(--sp-16) + var(--box)); }
 
 .sp-table .sp-col-menu { width: var(--menu-col); }
+/* a picker in a row, as the bank check's vendor (Order list 2j): the width of the bank
+   check's column picker, so the field and a 32px toggle beside it fit */
+.sp-table .sp-col-picker { width: 240px; }
+/* two icon buttons at the end of a row */
 /* the menu column is exactly its control, so it takes no side padding */
 .sp-table th.sp-col-menu,
 .sp-table td.sp-cell-menu-cell { padding-left: 0; padding-right: 0; }
@@ -3588,6 +3594,7 @@ button.sp-bars__col { cursor: pointer; }
 .sp-list-item > .sp-mark,
 .sp-list-item > .sp-list-item__handle { align-self: center; }
 .sp-list-item__actions { display: flex; gap: var(--sp-8); }
+
 /* the heading over a set of list rows, with the set's total: inset by the row's own
    padding and border, so its label starts on the rows' first column and its total
    ends on the rows' amounts (Budget 21g) */

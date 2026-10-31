@@ -427,6 +427,7 @@
             <label class="sp-segmented__item" data-label="Rows"><input type="radio" name="2b-density" defaultChecked="{{ true }}"><span class="sp-label">Rows</span></label>
             <label class="sp-segmented__item" data-label="Cards"><input type="radio" name="2b-density"><span class="sp-label">Cards</span></label>
           </div>
+          <button type="button" class="sp-btn sp-btn--outline">Reconcile</button>
         </div>
 
         <div class="sp-filters">
@@ -2407,6 +2408,371 @@
     <div class="doc-note"><b>Every fluid cell needs <span class="sp-nowrap">min-width: 0</span></b> and every text cell <b>overflow: hidden; text-overflow: ellipsis; white-space: nowrap</b>. Without the first, a grid child refuses to shrink below its content and the row overflows instead of truncating - the same automatic-minimum-size rule as 13a and 9g. This is what produces wrapping and overlap at narrow widths.</div>
     <div class="doc-note"><b>Amount, date and status never wrap</b> and never truncate - they are short, fixed-width, and a truncated amount is worse than no amount. Give them <b>white-space: nowrap</b> and a width that fits the longest value the format can produce, not the longest in the sample data.</div>
     <div class="doc-note"><b>The category chip truncates inside its own cell</b> rather than pushing the row. It is the only variable-length cell besides vendor.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="2j">2j</span>
+    <span class="doc-section__title">Checking a bank statement against orders</span>
+  </div>
+  <div class="doc-lede">The bank check from Budget (<a href="Budget.dc.html#21g">21g</a>), pointed at orders, at <code>/orders/check</code>. Each payment out is looked up among the orders by its total and date. A payment with no order gets a vendor and is created as an order here. Opened from Reconcile in the controls bar of <a href="#2b">2b</a>.</div>
+
+  <div class="doc-screen doc-frame">
+    <div class="sp-topbar">
+      <div class="sp-picker__search doc-w400">
+        <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+        <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+        <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+      </div>
+    </div>
+    <div class="sp-shell__body">
+      <div class="sp-controls">
+        <div class="sp-segmented" role="radiogroup" aria-label="Show">
+          <label class="sp-segmented__item" data-label="Not registered"><input type="radio" name="j-show" defaultChecked="{{ true }}"><span class="sp-label">Not registered</span></label>
+          <label class="sp-segmented__item" data-label="Registered"><input type="radio" name="j-show"><span class="sp-label">Registered</span></label>
+          <label class="sp-segmented__item" data-label="Left out"><input type="radio" name="j-show"><span class="sp-label">Left out</span></label>
+          <label class="sp-segmented__item" data-label="All"><input type="radio" name="j-show"><span class="sp-label">All</span></label>
+        </div>
+        <span class="sp-grow"></span>
+        <button type="button" class="sp-btn sp-btn--outline" aria-pressed="false">Columns</button>
+        <button type="button" class="sp-btn sp-btn--outline">Another file</button>
+      </div>
+      <div class="sp-card sp-card--shell">
+        <div class="sp-card__head">
+          <span class="sp-section-label">Posteringsdetaljer.csv</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">54 payments out read · 1 August to 30 October 2026</span>
+        </div>
+        <div class="sp-row-flex sp-gap-16 sp-wrap sp-top">
+          <div class="sp-stat">
+            <span class="sp-section-label">Not registered</span>
+            <span class="sp-stat__figure">5 payments</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Registered</span>
+            <span class="sp-stat__figure">45</span>
+            <span class="sp-meta">Found as an order</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">Left out</span>
+            <span class="sp-stat__figure">4</span>
+            <span class="sp-meta">Always, or this time only</span>
+          </div>
+          <div class="sp-stat">
+            <span class="sp-section-label">No payment</span>
+            <span class="sp-stat__figure">3</span>
+            <span class="sp-meta">Orders the file does not show</span>
+          </div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <span class="sp-gauge">
+            <meter value="90" min="0" max="100" aria-label="Share of payments with an order"></meter>
+            <span class="sp-gauge__fill" data-fill="90"></span>
+          </span>
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-meta">45 of 50 payments have an order</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">5 payments to register</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">Not registered</strong>
+            <span class="sp-subtitle">· 5 payments · 3.408,95 kr.</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--small">Create 3 orders</button>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select every payment"></th>
+                <th scope="col" class="sp-col-date">Date</th>
+                <th scope="col" class="sp-col-title">Bank text</th>
+                <th scope="col" class="sp-col-picker">Vendor</th>
+                <th scope="col" class="sp-col-amount">Amount</th>
+                <th class="sp-col-menu"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox" class="sp-check" aria-label="Select PROSHOP A/S, AARHUS"></td>
+                <td class="sp-data">14 Oct</td>
+                <td><span class="sp-title sp-truncate">PROSHOP A/S, AARHUS</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow" data-tip="Matched from the bank text">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" defaultValue="Proshop" aria-label="Vendor for PROSHOP A/S, AARHUS" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <button type="button" class="sp-icon-btn" disabled="{{ true }}" aria-label="Keep as another name"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.299,00 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="sp-check" aria-label="Select VISA 4521 ZALANDO SE"></td>
+                <td class="sp-data">11 Oct</td>
+                <td><span class="sp-title sp-truncate">VISA 4521 ZALANDO SE</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" placeholder="Pick a vendor" aria-label="Vendor for VISA 4521 ZALANDO SE" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <button type="button" class="sp-icon-btn" disabled="{{ true }}" aria-label="Keep as another name"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">649,95 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="sp-check" aria-label="Select MOB.PAY*HOS REBAR, BRORUP"></td>
+                <td class="sp-data">8 Oct</td>
+                <td><span class="sp-title sp-truncate">MOB.PAY*HOS REBAR, BRORUP</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" defaultValue="Rebar" aria-label="Vendor for MOB.PAY*HOS REBAR, BRORUP" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <span data-tip="Keep &quot;MOB.PAY*HOS REBAR, BRORUP&quot; as another name for Rebar"><button type="button" class="sp-icon-btn" aria-pressed="false" aria-label="Keep &quot;MOB.PAY*HOS REBAR, BRORUP&quot; as another name for Rebar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button></span>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">210,00 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu" data-menu-open="true"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button><menu class="sp-menu sp-menu--floating"><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg><span>Always leave out</span></button></li><li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg><span>Leave out once</span></button></li></menu></div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="sp-check" aria-label="Select MOBILEPAY HAY"></td>
+                <td class="sp-data">6 Oct</td>
+                <td><span class="sp-title sp-truncate">MOBILEPAY HAY</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" defaultValue="Muuto" aria-label="Vendor for MOBILEPAY HAY" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <span data-tip="Keep &quot;MOBILEPAY HAY&quot; as another name for Muuto"><button type="button" class="sp-icon-btn" aria-pressed="true" aria-label="Keep &quot;MOBILEPAY HAY&quot; as another name for Muuto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button></span>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.150,00 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="sp-check" defaultChecked="{{ true }}" disabled="{{ true }}" aria-label="Til Opsparing, saved"></td>
+                <td class="sp-data">2 Oct</td>
+                <td><span class="sp-title sp-truncate">Til Opsparing</span></td>
+                <td><div class="sp-row-flex sp-gap-8"><span class="sp-note sp-ink-success sp-grow">Saved: Always left out.</span><button type="button" class="sp-btn sp-btn--outline sp-btn--small">Undo</button></div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.290,80 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="sp-check" aria-label="Select Kort bestilling"></td>
+                <td class="sp-data">1 Oct</td>
+                <td><span class="sp-title sp-truncate">Kort bestilling</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" placeholder="Pick a vendor" aria-label="Vendor for Kort bestilling" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <button type="button" class="sp-icon-btn" disabled="{{ true }}" aria-label="Keep as another name"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">100,00 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+      <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">Orders with no payment</strong>
+            <span class="sp-subtitle">· 3 orders · 3.549,00 kr.</span>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-date">Date</th>
+                <th scope="col" class="sp-col-title">Order</th>
+                <th scope="col" class="sp-col-amount">Amount</th>
+                <th class="sp-col-menu"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="sp-data">14 Sep</td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Indbo Møbler</span><span class="sp-subtitle sp-truncate">SPENDLY-439</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">2.480,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+              <tr><td class="sp-data">28 Aug</td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Ferm Living</span><span class="sp-subtitle sp-truncate">SPENDLY-431</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">749,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+              <tr><td class="sp-data">9 Aug</td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Hay</span><span class="sp-subtitle sp-truncate">SPENDLY-426</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">320,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen sp-rail">
+      <span class="doc-specimen__label">PAYMENT MENU</span>
+      <menu class="sp-menu">
+        <li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg><span>Always leave out</span></button></li>
+        <li><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg><span>Leave out once</span></button></li>
+      </menu>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">SHOW · REGISTERED</span>
+      <div class="sp-list">
+          <div class="sp-list__toolbar">
+            <strong class="sp-data">Registered</strong>
+            <span class="sp-subtitle">· 45 payments</span>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sp-col-date">Date</th>
+                <th scope="col" class="sp-col-title">Bank text</th>
+                <th scope="col" class="sp-col-picker">Order</th>
+                <th scope="col" class="sp-col-amount">Amount</th>
+                <th class="sp-col-menu"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="sp-data">13 Oct</td><td><span class="sp-title sp-truncate">MobilePay Indbo Møbler</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Indbo Møbler</span><span class="sp-subtitle sp-truncate">SPENDLY-452 · 12 Oct</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+              <tr><td class="sp-data">2 Oct</td><td><span class="sp-title sp-truncate">VISA 4521 MUUTO</span></td><td><span class="sp-stacked"><span class="sp-title sp-truncate">Muuto</span><span class="sp-subtitle sp-truncate">SPENDLY-448 · 2 Oct</span></span></td><td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.495,00 kr.</span></div></td><td class="sp-cell-menu-cell"><div class="sp-cell-menu"><span data-tip="Open order"><button type="button" class="sp-icon-btn" aria-label="Open order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button></span></div></td></tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">SELECTED · SET VENDOR</span>
+      <div class="sp-list ol-room">
+          <div class="sp-list__toolbar" hidden>
+            <strong class="sp-data">Not registered</strong>
+          </div>
+          <div class="sp-bulkbar">
+            <input type="checkbox" class="sp-check" data-indeterminate="true" aria-label="Clear the selection">
+            <span class="sp-bulkbar__count">2 selected</span>
+            <span class="sp-grow"></span>
+            <div class="sp-row-flex sp-gap-8 sp-anchor" data-menu-open="true">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small" aria-expanded="true">Set vendor</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Always leave out</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Leave out once</button>
+              <div class="sp-popover sp-popover--start" role="dialog" aria-label="Set vendor">
+                <div class="sp-popover__head">
+                  <span class="sp-title">Set vendor</span>
+                  <span class="sp-subtitle">Sets the vendor on both payments.</span>
+                </div>
+                <div class="sp-combobox">
+                  <span class="sp-field__wrap">
+                    <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" defaultValue="Zalando" aria-label="Vendor" autoComplete="off">
+                    <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                  </span>
+                </div>
+                <div class="sp-popover__actions">
+                  <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Cancel</button>
+                  <button type="button" class="sp-btn sp-btn--block">Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <table class="sp-table">
+            <thead>
+              <tr>
+                <th class="sp-col-box"><input type="checkbox" class="sp-check" aria-label="Select every payment"></th>
+                <th scope="col" class="sp-col-date">Date</th>
+                <th scope="col" class="sp-col-title">Bank text</th>
+                <th scope="col" class="sp-col-picker">Vendor</th>
+                <th scope="col" class="sp-col-amount">Amount</th>
+                <th class="sp-col-menu"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr aria-selected="true">
+                <td><input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Select VISA 4521 ZALANDO SE"></td>
+                <td class="sp-data">11 Oct</td>
+                <td><span class="sp-title sp-truncate">VISA 4521 ZALANDO SE</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" placeholder="Pick a vendor" aria-label="Vendor for VISA 4521 ZALANDO SE" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <button type="button" class="sp-icon-btn" disabled="{{ true }}" aria-label="Keep as another name"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">649,95 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+              <tr aria-selected="true">
+                <td><input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Select Kort bestilling"></td>
+                <td class="sp-data">1 Oct</td>
+                <td><span class="sp-title sp-truncate">Kort bestilling</span></td>
+                <td><div class="sp-row-flex sp-gap-6">
+                  <div class="sp-combobox sp-combobox--grow">
+                    <span class="sp-field__wrap">
+                      <input class="sp-input sp-input--trail" type="text" role="combobox" aria-expanded="false" aria-autoComplete="list" placeholder="Pick a vendor" aria-label="Vendor for Kort bestilling" autoComplete="off">
+                      <span class="sp-field__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg></span>
+                    </span>
+                  </div>
+                  <button type="button" class="sp-icon-btn" disabled="{{ true }}" aria-label="Keep as another name"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" /></svg></button>
+                </div></td>
+                <td><div class="sp-stacked sp-cell-amount"><span class="sp-amount">100,00 kr.</span></div></td>
+                <td class="sp-cell-menu-cell"><div class="sp-cell-menu"><button type="button" class="sp-icon-btn" aria-label="Payment menu" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button></div></td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">CREATE · A TEXT ANOTHER VENDOR HAS</span>
+      <div class="sp-dialog" role="dialog" aria-label="One bank text is another vendor's name">
+        <div class="sp-stack sp-gap-6">
+          <span class="sp-heading">One bank text is another vendor's name</span>
+          <span class="sp-dialog__body">You asked to keep it as another name. Move it, or keep it where it is. The orders are created either way.</span>
+        </div>
+        <div class="sp-list-item sp-list-item--setting">
+          <span class="sp-stacked sp-grow">
+            <span class="sp-title sp-truncate" id="j-hay-lab">MOBILEPAY HAY</span>
+            <span class="sp-subtitle">Hay already matches it. You picked Muuto.</span>
+          </span>
+          <div class="sp-segmented sp-segmented--small" role="radiogroup" aria-labelledby="j-hay-lab"><label class="sp-segmented__item" data-label="Move it to Muuto"><input type="radio" name="j-hay"><span class="sp-label">Move it to Muuto</span></label><label class="sp-segmented__item" data-label="Keep it on Hay"><input type="radio" name="j-hay" defaultChecked="{{ true }}"><span class="sp-label">Keep it on Hay</span></label></div>
+        </div>
+        <div class="sp-dialog__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-grow">Cancel</button>
+          <button type="button" class="sp-btn sp-grow">Create 3 orders</button>
+        </div>
+      </div>
+    </div>
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">AFTER CREATE</span>
+      <div class="sp-toast">
+        <span class="sp-toast__icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>
+        </span>
+        <span class="sp-grow">3 orders created</span>
+        <button type="button" class="sp-toast__undo">Undo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>One check, two targets.</b> The file drop, Columns (<a href="Budget.dc.html#21h">21h</a>, unchanged), the stats card, the Show segmented, the saved line, Always leave out and Leave out once, and the bulk bar are the Budget check's own parts. A target supplies only its matching, its four view names and stat labels, and the action on a line. Budget 21g must render exactly as it does today.</div>
+    <div class="doc-note"><b>The button reads Reconcile (Afstem), on Orders and on Budget</b>, from <code>bank.check</code>. The page title stays Check a bank statement (<code>page.checkABankStatement</code>).</div>
+    <div class="doc-note"><b>The file drop is Budget's</b> with <code>bank.dropBodyOrders</code> in place of <code>bank.dropBody</code>. It is not drawn again here.</div>
+    <div class="doc-note"><b>Matching.</b> Only money out is read; money in is skipped and not counted in the head's count. A payment matches an order with the same total dated from 3 days before to 3 days after the bank date. One order matches one payment. When two orders fit one payment, the closest date wins, and the other order stays free for the next payment.</div>
+    <div class="doc-note"><b>Each payment is its own line, one line high</b>, so a file of 200 payments stays a list you can scan. Budget groups payments by text because one choice places them all; here each payment becomes its own order, so lines are not grouped. Newest first. The list is the order list's table (<a href="#2b">2b</a>) with its toolbar and bulk bar; past 50 lines it ends in Load more (<a href="Components.dc.html#c8">c8</a>).</div>
+    <div class="doc-note"><b>Columns:</b> select box, date, bank text (truncated), vendor, amount, and the row menu (<code>sp-col-menu</code>, the order list's ⋮ from <a href="#2b">2b</a>, label "Payment menu") with two items, drawn as PAYMENT MENU below: Always leave out (<code>refresh</code>) and Leave out once (<code>x</code>). It is the order list's row menu (<a href="#2e">2e</a>) unchanged, opening under its button as the order menu does. Always leave out saves the text to the left-out list and the line shows Saved: Always left out.; Leave out once moves the line to Left out for this file only. A line left out shows Saved: Always left out. with Undo in the vendor cell, as Budget's saved line, and no menu.</div>
+    <div class="doc-note"><b>The vendor cell</b> (<code>sp-col-picker</code>, 240px, the width of Budget's column picker) is the vendor combobox from <a href="Order create.dc.html">Order create</a> unchanged, placeholder Pick a vendor, followed by the keep toggle. Its accessible name is "Vendor for" and the bank text.</div>
+    <div class="doc-note"><b>A suggestion only fills the picker.</b> When the bank text, normalised as in <a href="Vendors and categories.dc.html#5h">5h</a>, matches a vendor's name or one of its other names, the picker holds that vendor and its tooltip reads Matched from the bank text. Nothing else marks it. No match, nothing filled.</div>
+    <div class="doc-note"><b>The keep toggle</b> is the <code>tag</code> icon button at the end of the picker, off by default. On (<code>aria-pressed="true"</code>, primary tint), the bank text is added to the picked vendor's other names when Create saves. Its tooltip names both: Keep "MOB.PAY*HOS REBAR, BRORUP" as another name for Rebar. It is disabled while no vendor is picked or when the text already matches the picked vendor, and always takes its place, so every picker is the same width.</div>
+    <div class="doc-note"><b>Create N orders</b> is the toolbar's one button, primary, where 2b has Export CSV. Its count is the lines with a vendor. Each order takes the bank date, the bank total as its one amount, the vendor, and the default status and category from Settings, Defaults, as a new order does. Lines with no vendor stay.</div>
+    <div class="doc-note"><b>A kept text that another vendor already has</b> (MOBILEPAY HAY is Hay's, Muuto picked, toggle on) is asked once, at Create, in one dialog listing every such text. Each line is a small Segmented: Move it to Muuto, or Keep it on Hay, the default. Create in the dialog creates the orders and applies the choices; Cancel goes back to the list with nothing saved. With no such text, Create saves at once with no dialog.</div>
+    <div class="doc-note"><b>After Create</b> the created lines leave Not registered and show under Registered, each with its new order. The toast is the reversible toast (<a href="States and confirmations.dc.html#6d">6d</a>): Undo deletes the created orders and removes the other names that were added or moved, for 6 seconds.</div>
+    <div class="doc-note"><b>Selecting lines replaces the toolbar with the bulk bar</b> (<a href="Components.dc.html#c12">c12</a>), as in <a href="#2b">2b</a>: Set vendor, Always leave out, Leave out once. Set vendor opens a popover with the vendor combobox, as Set status does in <a href="#2a">2a</a>; Apply fills every selected line's picker. Nothing is saved before Create.</div>
+    <div class="doc-note"><b>Registered</b> is the same table: the bank date and text, then the order (vendor, number and order date), and Open order (<code>chevron-right</code>). <b>Left out</b> lists what was left out, with Undo; it is kept per target, so a text left out here is still checked by Budget and the other way round. <b>All</b> is every payment out with its status.</div>
+    <div class="doc-note"><b>Orders with no payment</b> is a second list below the result whenever there is one, date, order, amount and Open order: orders dated from the file's first to its last day that no payment matched. It is not a view in Show. Its stat in the head is the count; with none, the stat and the card are absent.</div>
+    <div class="doc-note"><b>Not on a phone.</b> As on Budget, below 640px Reconcile is not drawn in <a href="#2b">2b</a> (<a href="Mobile screens.dc.html">Mobile screens</a>).</div>
   </div>
 </section>
 </div>

@@ -219,7 +219,7 @@ function BarLoading({ view, touch }) {
 			)
 			: (
 				<Controls aria-busy="true">
-					{bar('130', '22')}{views}<span className="sp-grow" /><Button variant="outline" disabled>{phrase('page.checkABankStatement')}</Button><Button variant="outline" disabled>{phrase('action.edit')}</Button>
+					{bar('130', '22')}{views}<span className="sp-grow" /><Button variant="outline" disabled>{phrase('bank.check')}</Button><Button variant="outline" disabled>{phrase('action.edit')}</Button>
 				</Controls>
 			)
 	)
@@ -479,7 +479,7 @@ function BudgetYears({ years, onYearsChanged }) {
 			<>
 				{/* a bank statement is not checked on a phone (21g) */}
 				<Button variant="outline" iconStart="eye" aria-pressed={asked} onClick={() => setAsked(!asked)}>{phrase('budget.income', { shown: String(asked) })}</Button>
-				{touch ? null : <Button variant="outline" to="/budget/check">{phrase('page.checkABankStatement')}</Button>}
+				{touch ? null : <Button variant="outline" to="/budget/check">{phrase('bank.check')}</Button>}
 				<Button variant="outline" onClick={() => setEditing(true)}>{phrase('action.edit')}</Button>
 			</>
 		)

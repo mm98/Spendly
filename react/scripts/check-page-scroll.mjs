@@ -40,7 +40,7 @@ const PAGES = {
 	'bookmarks': '/bookmarks', 'budget/check': '/budget/check', 'budget/:year?': '/budget', 'ask': '/ask', 'ask/files': '/ask/files', 'ask/chats': '/ask/chats',
 	'ask/:chatId': '/ask/no-such-chat',
 	'settings/:section?': ['/settings', ...settingsPages()],
-	'more': '/more', 'more/views': '/more/views', '*': '/no-such-page'
+	'more': '/more', 'more/views': '/more/views', 'check': '/orders/check', '*': '/no-such-page'
 }
 // outside the shell, and only for a reader who is signed out or holds a link from an email
 const SKIPPED = ['signin', 'register', 'welcome', 'confirm', 'confirm/:token', 'reset', 'reset/:token', 'email/stop/:token', 'terms', 'privacy']
