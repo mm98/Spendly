@@ -70,9 +70,12 @@ export function LineText({ line, compact = false }) {
 	)
 }
 
-/** A line's photo at the row's size, or c2's empty photo mark when it has none (17d). */
-export function LinePhoto({ src, name, onOpen }) {
+/** A line's photo at the row's size, or c2's empty photo mark when it has none (17d); `finding`
+    holds the spinner in the empty mark while Find photos looks for one (Order editing layouts 1a). */
+export function LinePhoto({ src, name, onOpen, finding = false }) {
 	const phrase = usePhrase()
+	if (!src && finding)
+		return <Mark size="medium" fill="empty" aria-busy="true" aria-label={phrase('order.findingPhoto')}><Spinner /></Mark>
 	if (!src) return <Mark size="medium" fill="empty" aria-label={phrase('order.noPhoto')} aria-hidden="true"><Icon name="photo" size={16} /></Mark>
 	if (onOpen) return <Mark size="medium" fill="photo" goods aria-label={phrase('order.openPhoto', { name })} onClick={onOpen}><img src={src} alt="" /></Mark>
 	return <Mark size="medium" fill="photo" goods aria-label={phrase('order.photo', { name })}><img src={src} alt="" /></Mark>

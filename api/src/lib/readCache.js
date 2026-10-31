@@ -43,6 +43,8 @@ const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 export const forgetReads = userId => { byUser.delete(userId) }
 
 const QUESTIONS = new Set(['/api/categories/suggestions'])
+// answers that change with no write through a request, as work running on the server moves on
+const LIVE = new Set(['/api/photo-finding'])
 
 export function readCache(req, res, next) {
 	// a question asked with a body writes nothing
@@ -56,6 +58,7 @@ export function readCache(req, res, next) {
 		return next()
 	}
 	if (req.method !== 'GET') return next()   // HEAD/OPTIONS: neither a write nor cacheable here
+	if (LIVE.has(req.baseUrl + req.path)) return next()
 
 	// Keyed by the reader's day and language too: the same address answers differently either side of
 	// midnight, and in each language.

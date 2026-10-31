@@ -14,6 +14,7 @@ import { invalidate, peek, useApi } from '../api/useApi.js'
 import { ConfirmBanner } from './ConfirmBanner.jsx'
 import { SessionDialog, SignedOutBanner } from './SessionDialog.jsx'
 import { SavedLater } from './SavedLater.jsx'
+import { PhotosFound } from './PhotosFound.jsx'
 import { countBadge } from '../api/format.js'
 import { MAC, useMedia, useShellShape } from './useMedia.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
@@ -195,6 +196,7 @@ export function AppShell() {
 			<Leaving>{keySheet}</Leaving>
 			<Leaving>{signedOut}</Leaving>
 			<SavedLater />
+			<PhotosFound />
 		</Toaster>
 		</ScreenBarSlot.Provider>
 	)

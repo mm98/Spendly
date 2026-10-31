@@ -374,7 +374,7 @@ const REQUESTS = [
 	'/ask/files', '/ask/files?q=bilka', '/ask/files?pageSize=0', '/ask/files/states?ids=af-fixture,af-gone', '/ask/files/af-fixture/download',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/search/names?span=groceries&span=netto&span=zzz', '/search/names?span=føtex&span=mad',
-	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links', '/orders/bank/left-out',
+	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links', '/orders/bank/left-out', '/photo-finding',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
 	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
 ]
@@ -479,6 +479,8 @@ for (const [method, path, body] of [
 	['PUT', '/orders/bank/left-out', { patterns: ['mobilepay zztop'] }],
 	['DELETE', '/orders/bank/left-out', { patterns: ['mobilepay zztop'] }],
 	['POST', '/orders/bank/reconciled', { orders: [ids.order] }],
+	// Find photos on an order whose vendor has no photo finder: the order is read, and nothing is searched
+	['POST', `/photo-finding/${ids.order}`],
 	// last, since it takes the order every write above was made against
 	['POST', '/orders/bulk', { ids: [ids.order], delete: true }]
 ]) {
