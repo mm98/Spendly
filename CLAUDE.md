@@ -580,6 +580,8 @@ verification catches a drifted one. When a value moves, grep for it in prose too
   question in plain text is overlooked. Give each answer as its own option. This holds every time
   it is asked: when the user answers a card with something else, or the question comes up again,
   post a new card, never the question repeated in a message.
+- **A choice the user made stands.** A later brief, card or question does not reopen it, and a
+  brief never asks for what the user chose to leave out.
 - **A correction the user has to give twice is written into this file in the same turn,** without
   being asked. A promise in chat does not reach the next thread; this file does.
 - Never claim what was not run. "Tests pass" means executed; "fixed in Firefox" means Firefox
