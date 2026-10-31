@@ -2,6 +2,7 @@ import { db } from '../db.js'
 import { fromEpoch } from './dates.js'
 import { orderTotalsSelectList } from './orderColumns.js'
 import { ORDER_STATUSES } from './constants.js'
+import { photoFinderOf } from './photoFinders/index.js'
 
 /* The order math lives in the orders table itself: stored columns maintained by the
    order_items triggers (see migrations/001_init.sql) — one formula, applied by SQLite at write
@@ -79,7 +80,7 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		excludeFromStats: Boolean(totals.exclude_from_stats),
 		items: items.map(i => mapItem(i, itemAttachments)),
 		attachments: attachments.map(mapAttachment),
-		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour, photoFinder: vendor.photo_finder ?? null } : null,
+		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour, photoFinder: photoFinderOf(vendor.photo_finder)?.key ?? null } : null,
 		categories,
 		itemCount: totals.item_count,
 		subtotal: totals.subtotal,

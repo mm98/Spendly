@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export const DB_PATH = process.env.SPENDLY_DB ?? path.join(__dirname, '..', 'spendly.sqlite3')
@@ -13,6 +14,9 @@ db.pragma('synchronous = NORMAL')     // safe with WAL (durable at each checkpoi
 db.pragma('foreign_keys = ON')
 db.pragma('temp_store = MEMORY')      // sort/group temp structures off disk
 db.pragma('cache_size = -20000')      // ~20MB page cache, keeps a personal dataset resident
+
+// the fingerprint order_attachments.sha256 holds, for a migration to compare a stored picture with
+db.function('sha256_hex', { deterministic: true }, bytes => (bytes == null ? null : createHash('sha256').update(bytes).digest('hex')))
 
 db.exec(`CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at INTEGER NOT NULL DEFAULT (unixepoch()))`)
 

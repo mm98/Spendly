@@ -15,6 +15,7 @@ import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 import { openTicket, twoStepOn } from '../lib/twoStep.js'
 import { securityLog } from '../lib/securityLog.js'
 import { emailLanguageOf, words } from '../lib/phrases.js'
+import { workingPhotoFinderKeys } from '../lib/photoFinders/index.js'
 
 export const router = Router()
 
@@ -194,7 +195,9 @@ router.get('/me', requireAuth, (req, res) => {
 		// itself works either way; this is what lets the page stop promising a read it can't
 		// do. Carried on the one request every page already makes before it renders
 		// (react/src/routes.jsx's route loader) rather than a second fetch Scan alone would pay for.
-		scanAiEnabled: Boolean(process.env.ANTHROPIC_API_KEY)
+		scanAiEnabled: Boolean(process.env.ANTHROPIC_API_KEY),
+		// the photo finders a vendor may choose here; one that needs a key this server lacks is left out
+		photoFinders: workingPhotoFinderKeys()
 	})
 })
 

@@ -69,7 +69,7 @@ Everything that needs you, on one page.
 ![One order, with its lines, details and totals](docs/order.png)
 
 - Items with photos, quantities, prices and retail prices, so every line shows what you saved.
-- **Find photos** - for a vendor that sells groceries, Spendly puts a product photo from a web shop
+- **Find photos** - for a vendor that sells groceries, Spendly puts a product photo from Bilka
   on each line that has none: when a new order is saved, or with the button at Items.
 - Details: vendor, date, kind, status and its date, categories, reference and note.
 - Totals: items, discount, shipping, total and saved.
@@ -323,6 +323,7 @@ log is only in the container.
 | `SPENDLY_SECURITY_CONTACT` | A `security.txt` page with where to report a security problem | No such page. |
 | `SPENDLY_TERMS_URL` and `SPENDLY_PRIVACY_URL` | Your own terms and privacy notice | The built-in pages are used. |
 | `SPENDLY_PDF_READING` | How a PDF is sent to be read: `text` (default), `pictures` or `document` | Text. |
+| `SALLING_GROUP_API_KEY` | Find photos for vendors that sell groceries, with product photos from Bilka (a key from Salling Group's developer portal) | Find photos is not offered on a vendor. |
 
 A receipt in another currency is converted with rates from
 [frankfurter.dev](https://frankfurter.dev). Without internet access to it, the receipt keeps its

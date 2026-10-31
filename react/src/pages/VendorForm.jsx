@@ -17,13 +17,13 @@ import { Alert, useToast, Leaving } from '../components/Overlays.jsx'
 import { Slot } from '../components/FileDrop.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getOrders, getVendor, getVendorPage, getVendorYear,
+	createVendor, deleteVendor, failureMessage, getCurrentUser, getOrders, getVendor, getVendorPage, getVendorYear,
 	invalidateCategoryData, invalidateOrderData, invalidateVendorData, mergeVendor, putVendorImage, removeVendorImage, updateVendor, vendorImageUrl
 } from '../api/client.js'
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
 import { currency, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
-import { PHOTO_FINDERS, photoFinderName } from '../api/photoFinders.js'
+import { photoFinderName } from '../api/photoFinders.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
@@ -71,6 +71,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const touch = useShellShape() === 'touch'
 	const statsSwitch = useId()
 	const editing = Boolean(vendor)
+	const workingFinders = useApi(getCurrentUser).data?.photoFinders ?? []
 	const start = useMemo(() => ({
 		name: vendor?.name ?? '',
 		aliases: vendor?.aliases ?? (fromScan?.name ? [fromScan.name] : []),
@@ -346,7 +347,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				</Field>
 				<Field id="vendor-photo-finder" label={phrase('vendor.findPhotos')} message={phrase('vendor.findPhotosHelp')}>
 					{h(<Combobox value={photoFinderName(values.photoFinder)}>
-						{[null, ...PHOTO_FINDERS].map(key => (
+						{[null, ...new Set([...workingFinders, ...(vendor?.photoFinder ? [vendor.photoFinder] : [])])].map(key => (
 							<ComboboxOption key={key ?? 'off'} selected={key === values.photoFinder} onSelect={() => set('photoFinder', key)}>{photoFinderName(key)}</ComboboxOption>
 						))}
 					</Combobox>)}
