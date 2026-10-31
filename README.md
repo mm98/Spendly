@@ -59,7 +59,8 @@ Everything that needs you, on one page.
   and category changes.
 - **Export** what you see as a spreadsheet file (CSV, ready for a Danish spreadsheet).
 - **Reconcile** - load your bank's CSV or Excel file and see which payments have no order, and which
-  orders have no payment. Pick a vendor for a payment, and Spendly creates the order from it.
+  orders have no payment. Set how many days and how much of a difference a match may have. Pick a
+  vendor for a payment, and Spendly creates the order from it.
 - **Statuses** - Draft, Ordered, Delivered, Returned and Cancelled are built in. Add your own in
   Settings.
 
