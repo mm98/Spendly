@@ -155,7 +155,8 @@ have to. Putting screens together from its patterns is the build's job:
   column that does not fit, an overflow) is fixed in `app.css` with the smallest change that keeps
   the drawn look, and listed once in the pull request so the user can overrule it. The rule it adds
   still has to reach `design/`: ask the user, before the pull request opens, whether a brief goes to
-  Claude Design now or the rule waits in `later.md`. The change that brings the rule into `design/`
+  Claude Design now or the rule waits in `later.md`. When a brief to Claude Design is already going
+  out, the rule goes into that brief without asking. The change that brings the rule into `design/`
   removes it from `app.css` and from `later.md`.
 - **A design change reaches only the places `design/` names.** A part shared with other places
   (a helper, a size table, a string that repeats) is not changed for all of them because one place
