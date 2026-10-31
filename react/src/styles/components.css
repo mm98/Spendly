@@ -3595,6 +3595,7 @@ button.sp-bars__col { cursor: pointer; }
 .sp-list-item > .sp-mark,
 .sp-list-item > .sp-list-item__handle { align-self: center; }
 .sp-list-item__actions { display: flex; gap: var(--sp-8); }
+
 /* the heading over a set of list rows, with the set's total: inset by the row's own
    padding and border, so its label starts on the rows' first column and its total
    ends on the rows' amounts (Budget 21g) */

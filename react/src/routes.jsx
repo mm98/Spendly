@@ -64,6 +64,7 @@ const Bookmarks = page(() => import('./pages/Bookmarks.jsx'))
 const BookmarkForm = page(() => import('./pages/BookmarkForm.jsx'))
 const Budget = page(() => import('./pages/Budget.jsx'))
 const BudgetCheck = page(() => import('./pages/BudgetCheck.jsx'))
+const OrdersCheck = page(() => import('./pages/OrdersCheck.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const Ask = page(() => import('./pages/Ask.jsx'))
 const AskFiles = page(() => import('./pages/AskFiles.jsx'))
@@ -109,6 +110,7 @@ export const routes = [
 				{ path: 'orders', children: [
 					{ index: true, element: <Orders />, handle: { title: 'page.orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
 					{ path: 'new', element: <OrderNew />, handle: { title: 'page.newOrder', navKey: 'orders' } },
+					{ path: 'check', element: <OrdersCheck />, handle: { title: 'page.checkABankStatement', navKey: 'orders' } },
 					{ path: ':id', element: <Order />, handle: { title: 'page.order', navKey: 'orders', layout: 'split' } },
 					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'page.editOrder', navKey: 'orders', layout: 'split' } },
 					{ path: ':id/compare', element: <OrderCompare />, handle: { title: 'page.compareWithReceipt', navKey: 'orders' } }

@@ -374,7 +374,7 @@ const REQUESTS = [
 	'/ask/files', '/ask/files?q=bilka', '/ask/files?pageSize=0', '/ask/files/states?ids=af-fixture,af-gone', '/ask/files/af-fixture/download',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/search/names?span=groceries&span=netto&span=zzz', '/search/names?span=føtex&span=mad',
-	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links',
+	'/budget', '/budget/2026', '/budget/due?year=2026&month=3', '/budget/accounts', '/budget/links', '/orders/bank/left-out',
 	// Home's Drafts card and its Recent orders, which leaves drafts out, and a draft opened as an order
 	'/drafts', '/orders?pageSize=4&drafts=none', '/orders/od-fixture', '/drafts/od-fixture'
 ]
@@ -474,6 +474,11 @@ for (const [method, path, body] of [
 	// a padded name with no orders, so each delete runs its in-use counts and then deletes
 	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
 	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`],
+	// the orders' bank check (Order list 2j): what a file's days match, left out, reconciled
+	['POST', '/orders/bank/check', { from: '2026-01-01', to: '2026-12-31', texts: ['VISA 4521 NETTO', 'MOBILEPAY ZZTOP', 'Netto'] }],
+	['PUT', '/orders/bank/left-out', { patterns: ['mobilepay zztop'] }],
+	['DELETE', '/orders/bank/left-out', { patterns: ['mobilepay zztop'] }],
+	['POST', '/orders/bank/reconciled', { orders: [ids.order] }],
 	// last, since it takes the order every write above was made against
 	['POST', '/orders/bulk', { ids: [ids.order], delete: true }]
 ]) {
@@ -487,6 +492,14 @@ for (const [method, path, body] of [
 	}
 	await response.arrayBuffer()
 }
+
+// an order made from a bank payment, its text kept as the vendor's other name, and its Undo
+const made = await (await fetch(BASE + '/orders/bank/create', {
+	method: 'POST', headers: { ...H, 'Content-Type': 'application/json' },
+	body: JSON.stringify({ orders: [{ payment: '2', date: '2026-03-02', total: 12.5, vendor: 'Netto', text: 'VISA 4521 NETTO' }], keep: [{ text: 'VISA 4521 NETTO', vendor: 'Netto' }] })
+})).json()
+const undone = await fetch(BASE + '/orders/bank/undo', { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify(made.undo) })
+if (!made.undo || !undone.ok) { console.error('  the bank check\'s create and undo did not run -- the check cannot read plans for them'); process.exitCode = 1 }
 
 // the status email is written on a timer, not for a request, so a month's and a week's are written here
 const { latestDuePeriod, statusEmailFor } = await import('../src/lib/statusEmail.js')

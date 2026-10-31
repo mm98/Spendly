@@ -841,6 +841,33 @@ export const saveBankLink = (link, signal) => linkWrite('/api/budget/links', 'PU
 export const forgetBankLink = ({ pattern, kind }, signal) =>
 	linkWrite(`/api/budget/links?${new URLSearchParams({ pattern, kind })}`, 'DELETE', undefined, signal)
 
+/* The bank check pointed at orders (Order list 2j). Left out answers with every pattern kept. */
+export async function getOrderBankLeftOut(signal) {
+	return (await request('/api/orders/bank/left-out', { signal })).patterns
+}
+export const leaveOutOrderBank = async (patterns, signal) =>
+	(await request('/api/orders/bank/left-out', { method: 'PUT', body: { patterns }, signal })).patterns
+export const bringBackOrderBank = async (patterns, signal) =>
+	(await request('/api/orders/bank/left-out', { method: 'DELETE', body: { patterns }, signal })).patterns
+/** The orders a file's days can match, and the vendor each of its texts suggests. */
+export const checkOrderBank = ({ from, to, texts }, signal) =>
+	request('/api/orders/bank/check', { method: 'POST', body: { from, to, texts }, signal })
+/** Notes on the orders that a bank payment matched them, the first time it does. */
+export const markOrdersReconciled = (orders, signal) => request('/api/orders/bank/reconciled', { method: 'POST', body: { orders }, signal })
+/** Creates an order for each payment; the answer's `undo` is what `undoOrderBank` takes back. */
+export async function createOrderBank({ orders, keep }, signal) {
+	const out = await request('/api/orders/bank/create', { method: 'POST', body: { orders, keep }, signal })
+	invalidateVendorData()
+	tellTabs({ ids: out.orders.map(o => o.id) })
+	return out
+}
+export async function undoOrderBank(undo, signal) {
+	const out = await request('/api/orders/bank/undo', { method: 'POST', body: undo, signal })
+	invalidateVendorData()
+	tellTabs({ ids: undo.orders, gone: true })
+	return out
+}
+
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
 export const bookmarkPhotoThumbnailUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/thumbnail`

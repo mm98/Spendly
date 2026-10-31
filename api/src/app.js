@@ -7,6 +7,7 @@ import { router as authRouter } from './routes/auth.js'
 import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
+import { router as ordersBankCheckRouter } from './routes/ordersBankCheck.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as countsRouter } from './routes/counts.js'
 import { router as budgetRouter } from './routes/budget.js'
@@ -291,6 +292,8 @@ app.use('/api', requireAuth, readTodayHeader, readCache)
 
 app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
+// before /api/orders, whose /:id would read "bank" as an order
+app.use('/api/orders/bank', ordersBankCheckRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/counts', countsRouter)

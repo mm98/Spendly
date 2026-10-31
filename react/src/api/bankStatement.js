@@ -1,5 +1,33 @@
 import { phrase } from '../language/phrases.js'
-// A bank's CSV export, read in the browser and checked against the budget; the file is never stored.
+import { readWorkbook } from './xlsx.js'
+// A bank's export (CSV or Excel), read in the browser and checked against the budget or the orders; the file is never stored.
+
+/** The file types a bank check takes. */
+export const BANK_FILES = '.csv,.txt,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+// a whole number from Excel in this range is a day counted from 30 December 1899
+const isSerial = v => typeof v === 'number' && Number.isInteger(v) && v > 20000 && v < 80000
+const fromSerial = v => new Date(Date.UTC(1899, 11, 30) + v * 86400000).toISOString().slice(0, 10)
+
+/** The file's rows of text cells, as a CSV reads: an Excel file's first sheet with content, its
+    dates written as 2026-09-30 in a column where most numbers are Excel's day counts. */
+export async function readBankFile(file) {
+	if (!/\.xlsx$/i.test(file.name)) return parseCsv(await readText(file))
+	const sheets = await readWorkbook(file)
+	const sheet = sheets.find(s => s.rows.some(r => r?.some(c => c?.value != null)))
+	if (!sheet) return []
+	const rows = sheet.rows.filter(Boolean).map(r => Array.from(r, c => (c?.value == null ? '' : c.value)))
+		.filter(r => r.some(v => v !== ''))
+	const width = Math.max(0, ...rows.map(r => r.length))
+	const dates = Array.from({ length: width }, (_, i) => {
+		const numbers = rows.map(r => r[i]).filter(v => typeof v === 'number')
+		return numbers.length > 0 && numbers.filter(isSerial).length * 2 > numbers.length
+	})
+	return rows.map(r => Array.from({ length: r.length }, (_, i) => {
+		const v = r[i]
+		return typeof v !== 'number' ? String(v ?? '') : dates[i] && isSerial(v) ? fromSerial(v) : String(v)
+	}))
+}
 
 // A byte that is not valid UTF-8 means the older Windows encoding many banks still export in.
 export async function readText(file) {
@@ -333,4 +361,39 @@ export function realAmounts(checked, sheets) {
 		return { id, lineId: line.id, name: line.name, group, kind: kindOf(list[0]), year: Number(list[0].date.slice(0, 4)), month,
 			now: line.months[month - 1].real, amount: total(list), count: list.length }
 	}).filter(w => !same(w.now, w.amount)).sort((a, b) => a.year - b.year || a.month - b.month)
+}
+
+/* ---- checking against the orders ---- */
+
+// a payment matches an order dated this many days either side of the bank's day (api/src/routes/ordersBankCheck.js)
+export const ORDER_MATCH_DAYS = 3
+const dayNumber = iso => Date.parse(iso + 'T00:00:00Z') / 86400000
+
+/** Each payment out with its status: 'once' or 'skip' when left out, 'registered' with its `order`, or
+    'missing'. Same total, up to ORDER_MATCH_DAYS apart; one order per payment, the closest day first. */
+export function checkOrderPayments(payments, orders, leftOut = []) {
+	const out = new Set(leftOut)
+	const statusOf = p => (out.has(onceKey(p)) ? 'once' : out.has(paymentKey(p.text)) ? 'skip' : null)
+	const marked = payments.map(p => ({ ...p, total: Math.round(-p.amount * 100) / 100, status: statusOf(p) }))
+	const pairs = []
+	for (const p of marked) {
+		if (p.status) continue
+		const day = dayNumber(p.date)
+		for (const o of orders) {
+			const apart = Math.abs(dayNumber(o.date) - day)
+			if (apart <= ORDER_MATCH_DAYS && Math.round(o.total * 100) === Math.round(p.total * 100)) pairs.push({ p, o, apart })
+		}
+	}
+	pairs.sort((a, b) => a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
+	const taken = new Set(), matched = new Map()
+	for (const { p, o } of pairs) {
+		if (matched.has(p.row) || taken.has(o.id)) continue
+		matched.set(p.row, o)
+		taken.add(o.id)
+	}
+	return {
+		payments: marked.map(p => (p.status ? p : matched.has(p.row) ? { ...p, status: 'registered', order: matched.get(p.row) } : { ...p, status: 'missing' }))
+			.sort((a, b) => b.date.localeCompare(a.date) || a.row - b.row),
+		matchedOrders: taken
+	}
 }

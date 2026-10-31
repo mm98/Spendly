@@ -41,6 +41,17 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
+		"SELECT a.vendor_id AS id, a.name FROM vendor_aliases a JOIN vendors v ON v.id = a.vendor_id WHERE a.user_id = ? AND v.archived = 0": {
+			"plan": [
+				"SEARCH a USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT account_id FROM budget_lines WHERE user_id = ? AND account_id IS NOT NULL": {
 			"plan": [
 				"SCAN budget_lines"
@@ -1995,6 +2006,15 @@
 				"idx_orders_user_kind"
 			]
 		},
+		"SELECT created_at FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT d.id FROM uploads u JOIN order_drafts d ON d.upload_id = u.id WHERE u.user_id = ? AND u.sha256 = ? LIMIT 1": {
 			"plan": [
 				"SEARCH u USING INDEX idx_uploads_user_hash (user_id=? AND sha256=?)",
@@ -2216,6 +2236,24 @@
 				"idx_orders_user_date",
 				"sqlite_autoindex_categories_1",
 				"sqlite_autoindex_order_categories_1"
+			]
+		},
+		"SELECT default_exclude_from_stats FROM vendors WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT default_kind, default_status FROM user_settings WHERE user_id = ?": {
+			"plan": [
+				"SEARCH user_settings USING INDEX sqlite_autoindex_user_settings_1 (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_user_settings_1"
 			]
 		},
 		"SELECT default_kind, default_status, page_size, sort, list_sort, currency, locale, language, density, notify_while_saving, notify_monthly_summary, notify_early, scan_overrides, sidebar, compare_month, recent_rows, colour_scheme, status_email_weekly, status_email_monthly FROM user_settings WHERE user_id = ?": {
@@ -2604,6 +2642,24 @@
 			"findings": [],
 			"indexes": [
 				"idx_categories_user"
+			]
+		},
+		"SELECT id, name FROM vendors WHERE user_id = ?": {
+			"plan": [
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT id, name FROM vendors WHERE user_id = ? AND archived = 0": {
+			"plan": [
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendors_user_name"
 			]
 		},
 		"SELECT id, name FROM vendors WHERE user_id = @userId AND id IN (SELECT value FROM json_each(@ids))": {
@@ -3114,6 +3170,15 @@
 				"idx_vendor_aliases_user_name"
 			]
 		},
+		"SELECT name FROM vendors WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH vendors USING INDEX sqlite_autoindex_vendors_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT name FROM vendors WHERE user_id = ?": {
 			"plan": [
 				"SEARCH vendors USING COVERING INDEX idx_vendors_user_name (user_id=?)"
@@ -3215,6 +3280,17 @@
 				"walks one account's orders through non-covering idx_orders_user_date",
 				"sorts in a temp B-tree"
 			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
+		"SELECT o.id, o.date, o.total, o.reference, o.item_count, o.reconciled_at, v.name AS vendor FROM orders o JOIN vendors v ON v.id = o.vendor_id WHERE o.user_id = @userId AND o.date BETWEEN @from AND @to AND o.kind NOT IN ('Sold') ORDER BY o.date DESC, o.id DESC": {
+			"plan": [
+				"SEARCH o USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)"
+			],
+			"findings": [],
 			"indexes": [
 				"idx_orders_user_date",
 				"sqlite_autoindex_vendors_1"
@@ -4426,6 +4502,13 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
+		"SELECT pattern FROM order_bank_left_out WHERE user_id = ?": {
+			"plan": [
+				"SEARCH order_bank_left_out USING PRIMARY KEY (user_id=?)"
+			],
+			"findings": [],
+			"indexes": []
+		},
 		"SELECT pattern, kind, line_name, line_series_id FROM budget_bank_links WHERE user_id = ?": {
 			"plan": [
 				"SEARCH budget_bank_links USING PRIMARY KEY (user_id=?)"
@@ -4943,6 +5026,33 @@
 				"idx_vendor_aliases_user_name"
 			]
 		},
+		"SELECT vendor_id AS id, name FROM vendor_aliases WHERE user_id = ? AND lower(name) = lower(?)": {
+			"plan": [
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=? AND <expr>=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name"
+			]
+		},
+		"SELECT vendor_id FROM orders WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH orders USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_orders_1"
+			]
+		},
+		"SELECT vendor_id FROM vendor_aliases WHERE user_id = ? AND lower(name) = lower(?)": {
+			"plan": [
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=? AND <expr>=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_vendor_aliases_user_name"
+			]
+		},
 		"SELECT vendor_id, name FROM vendor_aliases WHERE user_id = ? ORDER BY name": {
 			"plan": [
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
@@ -5170,7 +5280,7 @@
 				"date",
 				"id"
 			],
-			"readers": 80
+			"readers": 81
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
@@ -5388,7 +5498,7 @@
 				"user_id",
 				null
 			],
-			"readers": 22
+			"readers": 25
 		},
 		"idx_vendor_aliases_vendor": {
 			"table": "vendor_aliases",
@@ -5410,7 +5520,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 45
+			"readers": 47
 		}
 	}
 }
