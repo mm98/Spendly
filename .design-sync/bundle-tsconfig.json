@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
-		"paths": { "./motion.js": [".cache/motion.js"] }
+		"paths": { "./motion.js": [".cache/motion.js"], "../language/phrases.js": [".cache/phrases.js"] }
 	}
 }

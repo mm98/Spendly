@@ -27,3 +27,14 @@ export const InFacet = () => (
 		</FieldGroup>
 	</div>
 );
+
+export const SingleValue = () => (
+	<div style={col}>
+		<Field label="Closest amount" message="An order this close to the payment counts as a match.">
+			<RangeSlider value={150} onChange={noop} min={0} max={500} step={10} label="Difference" format={kr} />
+		</Field>
+		<Field label="Days apart">
+			<RangeSlider value={4} onChange={noop} min={0} max={14} entry={false} label="Days apart" />
+		</Field>
+	</div>
+);
