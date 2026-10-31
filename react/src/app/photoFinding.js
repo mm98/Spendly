@@ -4,7 +4,7 @@ import { findLinePhotos, getPhotoFinding, invalidateOrderData } from '../api/cli
 /* Find photos (Order editing layouts 1a): the searches this page started, followed app-wide until
    they end, since a search goes on when the reader leaves the order. */
 
-const POLL_MS = 1500
+const POLL_MS = 500
 const NONE = Object.freeze(new Set())
 
 /** orderId -> Set of itemIds still waiting */
