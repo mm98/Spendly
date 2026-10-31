@@ -96,13 +96,13 @@ assert.deepEqual([unnamed.date, unnamed.text, unnamed.amount], [4, 1, 3])
 assert.equal(describeColumn(['2026-10-30', '2026-10-29']), null)
 // Orders: an exact total wins over a close one; a close one carries what the order holds more or less.
 const paid = (row, date, amount) => ({ row, date, amount, text: 'Shop' })
-const ordered = [{ id: 'near', date: '2026-10-01', total: 568.38 }, { id: 'same', date: '2026-10-04', total: 568 }, { id: 'far', date: '2026-10-01', total: 600 }]
+const ordered = [{ id: 'near', date: '2026-10-01', total: 568.38 }, { id: 'same', date: '2026-09-28', total: 568 }, { id: 'far', date: '2026-10-01', total: 600 }]
 const matched = settings => checkOrderPayments([paid(1, '2026-10-01', -568), paid(2, '2026-10-01', -585)], ordered, [], settings).payments
 	.map(p => [p.row, p.status, p.order?.id ?? null, p.order?.difference ?? null])
 assert.deepEqual(matched({ days: 3, percent: 3 }), [[1, 'registered', 'same', null], [2, 'registered', 'far', 15]])
 assert.deepEqual(matched({ days: 0, percent: 3 }), [[1, 'registered', 'near', 0.38], [2, 'registered', 'far', 15]])
 assert.deepEqual(matched({ days: 3, percent: 0 }), [[1, 'registered', 'same', null], [2, 'missing', null, null]])
-// Two payments fit one order: the one on or after the order's day wins over a closer one before it.
+// A payment before the order's day never matches it, however close.
 const pizza = [{ id: 'pizza', date: '2026-10-23', total: 194.5 }]
 assert.deepEqual(checkOrderPayments([paid(1, '2026-10-20', -194.5), paid(2, '2026-10-27', -194.5)], pizza, [], { days: 10, percent: 3 }).payments
 	.map(p => [p.row, p.status]), [[2, 'registered'], [1, 'missing']])

@@ -387,13 +387,13 @@ export function checkOrderPayments(payments, orders, leftOut = [], { days = ORDE
 		const day = dayNumber(p.date)
 		const allowed = Math.round(cents(p.total) * percent / 100)
 		for (const o of orders) {
-			const apart = Math.abs(dayNumber(o.date) - day)
+			// a bank takes the money on or after the order's day, never before it
+			const apart = day - dayNumber(o.date)
 			const off = Math.abs(cents(o.total) - cents(p.total))
-			// a bank takes the money on or after the order's day, so a payment before it is the weaker pair
-			if (apart <= days && off <= allowed) pairs.push({ p, o, apart, off, early: day < dayNumber(o.date) })
+			if (apart >= 0 && apart <= days && off <= allowed) pairs.push({ p, o, apart, off })
 		}
 	}
-	pairs.sort((a, b) => a.off - b.off || a.early - b.early || a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
+	pairs.sort((a, b) => a.off - b.off || a.apart - b.apart || b.p.date.localeCompare(a.p.date) || a.p.row - b.p.row)
 	const taken = new Set(), matched = new Map()
 	for (const { p, o, off } of pairs) {
 		if (matched.has(p.row) || taken.has(o.id)) continue

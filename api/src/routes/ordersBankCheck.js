@@ -15,7 +15,7 @@ export const router = Router()
 
 const refuse = (status, message) => Object.assign(new Error(message), { status })
 
-// the most days a payment may be from its order, the end of the page's slider (ORDER_MATCH in react/src/api/bankStatement.js)
+// the most days a payment may come after its order, the end of the page's slider (ORDER_MATCH in react/src/api/bankStatement.js)
 export const MATCH_DAYS = 10
 const DAY = 24 * 60 * 60
 const MAX_TEXTS = 5000
@@ -96,7 +96,7 @@ router.post('/check', (req, res) => {
 	const from = isoDay(req.body?.from)
 	const to = isoDay(req.body?.to)
 	const texts = Array.isArray(req.body?.texts) ? [...new Set(req.body.texts.map(t => String(t ?? '').trim()))].slice(0, MAX_TEXTS) : []
-	const orders = selectOrdersInSpan.all({ userId: req.user.id, from: toEpoch(from) - MATCH_DAYS * DAY, to: toEpoch(to) + MATCH_DAYS * DAY })
+	const orders = selectOrdersInSpan.all({ userId: req.user.id, from: toEpoch(from) - MATCH_DAYS * DAY, to: toEpoch(to) })
 		.map(o => ({
 			id: o.id, date: fromEpoch(o.date), total: o.total, reference: o.reference, itemCount: o.item_count, vendor: o.vendor,
 			reconciled: o.reconciled_at == null ? null : fromEpoch(o.reconciled_at)
