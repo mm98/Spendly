@@ -23,6 +23,10 @@ body { -webkit-font-smoothing: antialiased; }
 	top: 0;
 	z-index: 5;
 }
+/* the panel holds the place it has on load: 16 under the pinned top bar (Order editing layouts, Edit order) */
+.sp-shell--viewport .sp-panel {
+	top: calc(var(--sp-12) + var(--control-h) + var(--sp-12) + 1px + var(--sp-16));
+}
 
 /* the body is the box the layout's widths are measured on (18a, Responsive reference .rr-frame):
    at 900 two columns become one */

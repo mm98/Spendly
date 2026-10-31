@@ -922,6 +922,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* one value: a single handle, the span from the lowest end to it - c3 One value, 2j */
 .sp-track__handle[data-at="60"] { --p: 60; }
 .sp-track__span[data-span="0-60"] { --a: 0; --b: 60; }
+.sp-track__handle[data-at="100"] { --p: 100; }
+.sp-track__span[data-span="0-100"] { --a: 0; --b: 100; }
 
 .sp-track__handle:focus-visible { box-shadow: var(--ring); }
 .sp-track__handle:active { cursor: grabbing; }
