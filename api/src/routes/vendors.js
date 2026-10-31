@@ -15,20 +15,19 @@ import { ordersCarrying, recentVendorNames } from '../lib/latestOrders.js'
 import { vendorYear } from '../lib/stats.js'
 import { VENDOR_IMAGE_MAX_MB, VendorImageRefusal, processVendorImage } from '../lib/vendorImage.js'
 import { words } from '../lib/phrases.js'
-import { photoFinderKeys } from '../lib/photoFinders/index.js'
 
 export const router = Router()
 
-const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats, photo_finder'
+const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead, archived, origin, default_exclude_from_stats'
 const selectAll = db.prepare('SELECT id, name, colour, favourite, archived, origin FROM vendors WHERE user_id = ? ORDER BY name')
 const selectOne = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin, default_exclude_from_stats, photo_finder)
-	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin, @defaultExcludeFromStats, @photoFinder)`)
+const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead, origin, default_exclude_from_stats)
+	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead, @origin, @defaultExcludeFromStats)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare(`UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead, archived=@archived,
-	default_exclude_from_stats=@defaultExcludeFromStats, photo_finder=@photoFinder WHERE id=@id AND user_id=@userId`)
+	default_exclude_from_stats=@defaultExcludeFromStats WHERE id=@id AND user_id=@userId`)
 
 /* Aliases: the other strings a vendor resolves from (see migrations/002 and
    lib/findOrCreate.js). Owned by the vendor row -- deleting the vendor cascades them. */
@@ -154,7 +153,6 @@ const withStats = (vendor, stats, aliases = [], defaultCategories = [], lastMatc
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined, archived: Boolean(vendor.archived),
 		createdByScan: vendor.origin === 'scan', aliases, lastMatched, defaultCategories,
 		defaultExcludeFromStats: Boolean(vendor.default_exclude_from_stats),
-		photoFinder: vendor.photo_finder ?? null,
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
@@ -210,7 +208,6 @@ router.post('/known', (req, res) => {
 
 const vendorProblem = v => textProblem(v.name, 'text.label.name', MAX_RECORD_NAME) ?? textProblem(v.initials, 'text.label.initials', 8)
 	?? textProblem(v.colour, 'text.label.colour', 40) ?? textProblem(v.lead, 'text.label.lead', 200)
-	?? (v.photoFinder == null || photoFinderKeys.includes(v.photoFinder) ? null : words('vendor.photoFinderUnknown'))
 
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
@@ -235,13 +232,12 @@ router.post('/', (req, res) => {
 		colour: look.colour ?? colourFor(name),
 		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null,
 		defaultExcludeFromStats: look.defaultExcludeFromStats ? 1 : 0,
-		photoFinder: look.photoFinder ?? null,
 		// made on the way back from a scanned receipt (5b): it says so in the list (5a)
 		origin: look.origin === 'scan' ? 'scan' : null
 	}
 	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).
-	res.status(201).json(withStats({ ...vendor, default_exclude_from_stats: vendor.defaultExcludeFromStats, photo_finder: vendor.photoFinder }, new Map(),
+	res.status(201).json(withStats({ ...vendor, default_exclude_from_stats: vendor.defaultExcludeFromStats }, new Map(),
 		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
@@ -318,8 +314,7 @@ router.patch('/:id', (req, res) => {
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : vendor.favourite,
 		lead: patch.lead !== undefined ? patch.lead : vendor.lead,
 		archived: patch.archived != null ? (patch.archived ? 1 : 0) : vendor.archived,
-		defaultExcludeFromStats: patch.defaultExcludeFromStats != null ? (patch.defaultExcludeFromStats ? 1 : 0) : vendor.default_exclude_from_stats,
-		photoFinder: patch.photoFinder !== undefined ? patch.photoFinder : vendor.photo_finder
+		defaultExcludeFromStats: patch.defaultExcludeFromStats != null ? (patch.defaultExcludeFromStats ? 1 : 0) : vendor.default_exclude_from_stats
 	}
 	saveVendor(() => update.run({ ...next, id: vendor.id, userId: req.user.id }),
 		req.user.id, vendor.id, cleaned.aliases, defaults.names, cleaned.moves)
@@ -380,8 +375,7 @@ const mergeVendors = db.transaction((userId, source, target) => {
 	update.run({
 		id: target.id, userId, name: target.name, initials: target.initials, colour: target.colour,
 		favourite: target.favourite || source.favourite ? 1 : 0, lead: target.lead ?? source.lead, archived: target.archived,
-		defaultExcludeFromStats: target.default_exclude_from_stats,
-		photoFinder: target.photo_finder ?? source.photo_finder
+		defaultExcludeFromStats: target.default_exclude_from_stats
 	})
 	writeAliases(userId, target.id, aliases)
 	writeDefaultCategories(userId, target.id, defaults.length ? defaults : sourceDefaults)

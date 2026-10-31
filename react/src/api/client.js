@@ -1057,16 +1057,6 @@ export async function copyItemAttachment(orderId, itemId, from, signal) {
 	return request(`/api/orders/${orderId}/items/${itemId}/attachments/copy`, { method: 'POST', body: from, signal })
 }
 
-/** Starts finding photos for an order's lines with none (Order editing layouts 1a): `{ waiting: [itemId] }`. */
-export async function findLinePhotos(orderId, signal) {
-	return request(`/api/photo-finding/${orderId}`, { method: 'POST', signal })
-}
-
-/** How the reader's photo searches have come along: `{ searches: [{ orderId, waiting, found, of, done }] }`. */
-export async function getPhotoFinding(signal) {
-	return request('/api/photo-finding', { signal })
-}
-
 export async function removeItemAttachment(orderId, itemId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }

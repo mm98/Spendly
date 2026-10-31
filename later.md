@@ -52,11 +52,13 @@ is removed in the change that settles it.
   request, and `design/` draws the card in Settings 11a first.
 - **Found:** 2026-10-20.
 
-## The Find photos button shows another icon than the design
+## Reconcile's matching notes in the design are out of date
 
-- **Where:** the Find photos button at the top of the Items box, on an order and in its edit screen
-  (`react/src/pages/FindPhotos.jsx`). The design is `design/Order editing layouts.dc.html` 1a, 1c, 1d.
-- **What the reader sees:** a picture with a magnifier (`photo-search`). The design draws a plain
-  picture (`photo`), which looks like the photo marks on the lines and was hard to see as a button.
-- **What is wanted:** Claude Design draws the button with `photo-search`, and this entry is removed.
-- **Found:** 2026-10-31.
+- **Status:** waits for the next note to Claude Design. Added 31 October 2026.
+- **Where:** `design/Order list.dc.html`, 2j, the Matching note.
+- **What the reader sees:** nothing. The app is right; only the design text is old.
+- **What was found:** the note says a payment matches an order dated "before or after" the bank
+  date. The user decided a payment only matches an order from the same day or the days before it,
+  since a bank never takes the money before the order. The note should say that.
+- **Also:** the Days apart note says both sliders start at 3. The user chose 5 for Days apart,
+  since a bank can take some days to take the money. The note should say Days apart starts at 5.

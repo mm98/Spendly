@@ -48,8 +48,6 @@ import { OrderRepeats } from './OrderRepeats.jsx'
 import { dropSave, flushOutbox, names, newSaveKey, ownSave, queueSave, shortened, stuckSaveFor, waitingSaves, watchOutbox, writeOrder } from './orderSave.js'
 import { useAfterDraw } from '../app/afterDraw.js'
 import { phrase, usePhrase } from '../language/phrases.js'
-import { FindPhotos } from './FindPhotos.jsx'
-import { findPhotos, useWaitingPhotos } from '../app/photoFinding.js'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Save or Create writes the order, then its files; a draft keeps the form as it is edited. */
@@ -156,7 +154,7 @@ const takeAway = address => {
 
 /** `origin` is `{ copy, draftId }` or `{ scan, draftId, shownOrders }`, the last the records the dialog in 3c showed for the scan;
     `region` draws the split for a route whose body is not one; `revision` is the copy this form edits (6d); `onDraft(id)` hears when an order made here becomes a draft. */
-export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, photoFinder = null, savedLines = null, region = false, onLeave, onDraft }) {
+export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave, onDraft }) {
 	const phrase = usePhrase()
 	const navigate = useNavigate()
 	const toast = useToast()
@@ -242,16 +240,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	// the line or add control whose editor is open, which takes focus back when it closes
 	const reopen = useRef(editing?.isNew ? 'add' : editing?.key ?? null)
 	const [start, setStart] = useState(seed)
-	// Find photos (Order editing layouts 1d): the lines still waiting, and each found photo taken into the
-	// form as it lands, on a saved line that still has none here, so it is neither lost nor an unsaved change
-	const finding = useWaitingPhotos(orderId ?? '')
-	useEffect(() => {
-		if (!savedLines) return
-		const found = new Map(savedLines.filter(i => i.attachments?.length).map(i => [i.id, i.attachments[0]]))
-		const take = l => (l.id && !l.photo && !l.newPhoto && found.has(l.id) ? { ...l, photo: found.get(l.id) } : l)
-		setLines(ls => (ls.some(l => take(l) !== l) ? ls.map(take) : ls))
-		setStart(st => (st?.lines?.some(l => take(l) !== l) ? { ...st, lines: st.lines.map(take) } : st))
-	}, [savedLines])
 	const staged = useRef(files)
 	staged.current = files
 	const editingNow = useRef(editing)
@@ -739,8 +727,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 			guard.release()
 			finished.current = true
 			const made = { id: order.id, file: scan?.file.name ?? null, documentKey: scan?.documentKey ?? null, reference: draft.reference }
-			// its vendor's photo finder fills the lines with no photo, now that the order is saved (Order create 3a)
-			findPhotos(order.id).catch(() => null)
 			return navigate(`/orders/${order.id}/edit`, { replace: true, state: { created: made } })
 		}
 		// a save keeps the reader here (16a), on the order as the server now holds it, files included
@@ -1005,7 +991,7 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 	const lineRow = line => {
 		const photo = line.newPhoto?.url ?? (line.dropPhoto ? null : photoUrl(line))
 		// a phone's row is itself the button that opens the line, so its photo cannot be another
-		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} finding={!line.newPhoto && finding.has(line.id)} />
+		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} />
 		// a name read only in part asks for a spelling check, not a value check (3a)
 		const spelling = line.uncertain && line.unclearPart === 'title'
 		const warn = (line.uncertain && !spelling) || (tried && !relaxed && Object.keys(lineErrors(line)).length)
@@ -1101,9 +1087,6 @@ export function OrderForm({ mode, orderId, seed, revision = null, origin = {}, f
 					: (lines.length > 1 ? phrase('form.dragHint') : undefined)
 	const itemsHead = (
 		<CardHeader name={phrase(scan ? 'form.linesFound' : 'order.items') + dot + lines.length} aside={itemsAside} asideTone={brokenCount ? 'danger' : 'default'}
-			control={!creating && photoFinder
-				? <FindPhotos orderId={orderId} finder={photoFinder} missing={lines.some(l => l.id && !l.photo && !l.newPhoto)} />
-				: undefined}
 			actions={!brokenCount && !scan && touch && lines.length > 1 ? [{ label: phrase(reordering ? 'action.done' : 'form.reorder'), onClick: () => setReordering(r => !r) }] : undefined} />
 	)
 
