@@ -23,6 +23,8 @@ import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
+import { FindPhotos } from './FindPhotos.jsx'
+import { useWaitingPhotos } from '../app/photoFinding.js'
 import { usePhrase } from '../language/phrases.js'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
@@ -66,10 +68,12 @@ function OrderView({ order, touch, onGone }) {
 	}, [])
 	// a status with a date of its own has it recorded; one on the order's own date has none
 	const stamped = order.statusHistory.findLast(s => s.status === order.status)
+	const finding = useWaitingPhotos(order.id)
 
 	const items = (
 		<Card>
-			<CardHeader name={phrase('order.items') + dot + order.items.length} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`} />
+			<CardHeader name={phrase('order.items') + dot + order.items.length} meta={`${order.vendor?.name ?? ''}${dot}${shortDate(order.date)}`}
+				control={<FindPhotos orderId={order.id} finder={order.vendor?.photoFinder} missing={order.items.some(i => !i.attachments?.length)} />} />
 			<div className="sp-stack sp-gap-8">
 				{order.items.map(item => {
 					const photo = itemPhoto(order.id, item)
@@ -84,7 +88,7 @@ function OrderView({ order, touch, onGone }) {
 							</ListItem>
 						)
 					return (
-						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}>
+						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} finding={finding.has(item.id)} />}>
 							<LineText line={item} compact={touch} />
 							<LineAmount line={item} compact={touch} />
 						</ListItem>

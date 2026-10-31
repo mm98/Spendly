@@ -27,6 +27,8 @@ export default function OrderEdit() {
 			revision={order.revision ?? null}
 			files={savedFilesOf(order)}
 			photoUrl={line => (line.id && line.photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, line.id, line.photo.id) : null)}
+			photoFinder={order.vendor?.photoFinder ?? null}
+			savedLines={order.items}
 		/>
 	)
 }

@@ -33,7 +33,7 @@ const selectCategories = db.prepare(`
 `)
 // the file behind a validation clears it when the file goes (ON DELETE SET NULL)
 const selectValidation = db.prepare('SELECT validated_by AS attachment_id, validated_at FROM orders WHERE id = ? AND validated_by IS NOT NULL')
-const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
+const selectVendor = db.prepare('SELECT id, name, initials, colour, photo_finder FROM vendors WHERE id = ?')
 // No ORDER BY: at most 3 rows, sorted in JS below by workflow order rather than asking SQLite
 // to sort what the index (order_id, status) can't answer without its own temp B-tree.
 const selectOrderStatuses = db.prepare('SELECT status, date FROM order_status_history WHERE order_id = ?')
@@ -79,7 +79,7 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		excludeFromStats: Boolean(totals.exclude_from_stats),
 		items: items.map(i => mapItem(i, itemAttachments)),
 		attachments: attachments.map(mapAttachment),
-		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
+		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour, photoFinder: vendor.photo_finder ?? null } : null,
 		categories,
 		itemCount: totals.item_count,
 		subtotal: totals.subtotal,

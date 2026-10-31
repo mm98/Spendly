@@ -211,6 +211,7 @@
     <div class="doc-note"><b>Duplicate names are checked on blur, not on submit.</b> A name within 0.85 of an existing vendor shows an amber notice under the field offering that vendor instead. The same name, compared without case or accents, is an error: two vendors cannot share a name, because a receipt string matching two vendors is how a scan files things wrongly (<a href="#5h">5h</a>).</div>
     <div class="doc-note"><b>Created from a scan, it returns to the scan.</b> The page carries the return in its route state and the new vendor is selected on arrival back - never dropping the user on the vendor list with their receipt abandoned.</div>
     <div class="doc-note"><b>The image is optional, can be any picture - a logo, a shop front, anything - and its only use is in place of the item photo on this vendor's orders that have none, drawn as an item photo and faded. It is the c17 thumb slot at <code>--mark-large</code>, unchanged.</b> Empty it is the dashed add frame; filled it is <code>.sp-mark--photo</code>, as an item photo slot with Remove beneath it, and choosing a new file replaces it. Validation, sizes, renditions and every place it appears are in <a href="Images and files.dc.html#17e">17e</a>. The vendor's own mark stays initials everywhere, with or without an image.</div>
+    <div class="doc-note"><b>Find photos</b> - A select of photo finders, Off by default. Groceries is the one finder today; a finder added later is one more option here, with no other change to the page. With a finder chosen, a new order from the vendor gets its line photos when first saved (<a href="Order create.dc.html#3a">Order create 3a</a>), and its orders show the Find photos button while a line has no photo (<a href="Order editing layouts.dc.html#1a">Order editing layouts 1a</a>). Turning it Off removes no photo already found. 5b shows it Off, 5c with Groceries chosen. Same combobox as Kind on an order (<a href="Components.dc.html#c5">c5</a>).</div>
     <div class="doc-note"><b>Aliases are on this page, because creating from a scan is when the first one matters most.</b> The receipt name that triggered the create is pre-filled as an alias - the one moment the app knows it. Forcing a second trip to the edit page to keep it means the next receipt from the same shop creates another duplicate.</div>
   </div>
   <div class="doc-screen doc-frame">
@@ -284,6 +285,21 @@
             <label class="sp-field__label" for="vc-f4">Default categories</label>
             <input class="sp-input" id="vc-f4" type="text" placeholder="none">
             <span class="sp-field__help">Suggested on a new order from this vendor. Not applied automatically.</span>
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-find1">Find photos</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-find1" aria-describedby="vc-find1-help">
+                <span>Off</span>
+                <span class="sp-grow"></span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+              <ul class="sp-combobox__panel" role="listbox" aria-labelledby="vc-find1">
+                <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Off</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+                <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Groceries</span><span class="sp-grow"></span></button></li>
+              </ul>
+            </div>
+            <span class="sp-field__help" id="vc-find1-help">Adds a product photo to each line that has none when an order from this vendor is saved. Lines that have a photo are left as they are.</span>
           </div>
           <div class="sp-field">
             <label class="sp-row-flex sp-gap-12">
@@ -422,6 +438,21 @@
             <label class="sp-field__label" for="vc-f8">Default categories</label>
             <input class="sp-input" id="vc-f8" type="text">
             <span class="sp-field__help">Suggested on a new order from this vendor. Not applied automatically.</span>
+          </div>
+          <div class="sp-field">
+            <span class="sp-field__label" id="vc-find2">Find photos</span>
+            <div class="sp-combobox">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="vc-find2" aria-describedby="vc-find2-help">
+                <span>Groceries</span>
+                <span class="sp-grow"></span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+              </button>
+              <ul class="sp-combobox__panel" role="listbox" aria-labelledby="vc-find2">
+                <li role="option" aria-selected="false"><button type="button" class="sp-combobox__option" aria-selected="false"><span>Off</span><span class="sp-grow"></span></button></li>
+                <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true"><span>Groceries</span><span class="sp-grow"></span><svg class="sp-combobox__check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg></button></li>
+              </ul>
+            </div>
+            <span class="sp-field__help" id="vc-find2-help">Adds a product photo to each line that has none when an order from this vendor is saved. Lines that have a photo are left as they are.</span>
           </div>
           <div class="sp-field">
             <label class="sp-row-flex sp-gap-12">
@@ -1967,7 +1998,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;scheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rust&quot;,&quot;mocha&quot;,&quot;ochre&quot;,&quot;olive&quot;,&quot;emerald&quot;,&quot;teal&quot;,&quot;ocean&quot;,&quot;slate&quot;,&quot;navy&quot;,&quot;cobalt&quot;,&quot;indigo&quot;,&quot;violet&quot;,&quot;plum&quot;,&quot;raspberry&quot;,&quot;oxblood&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;emerald&quot;,&quot;tsType&quot;:&quot;\&quot;rust\&quot; | \&quot;mocha\&quot; | \&quot;ochre\&quot; | \&quot;olive\&quot; | \&quot;emerald\&quot; | \&quot;teal\&quot; | \&quot;ocean\&quot; | \&quot;slate\&quot; | \&quot;navy\&quot; | \&quot;cobalt\&quot; | \&quot;indigo\&quot; | \&quot;violet\&quot; | \&quot;plum\&quot; | \&quot;raspberry\&quot; | \&quot;oxblood\&quot; | \&quot;charcoal\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;language&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;da&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;\&quot;en\&quot; | \&quot;da\&quot;&quot;,&quot;section&quot;:&quot;View&quot;}}">
 class Component extends DCLogic {
   // theme and scheme come from the view every page shares (view.js)
   applySchemeView(prev) { if (window.SpView) SpView.apply(this.props, prev); }

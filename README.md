@@ -69,6 +69,8 @@ Everything that needs you, on one page.
 ![One order, with its lines, details and totals](docs/order.png)
 
 - Items with photos, quantities, prices and retail prices, so every line shows what you saved.
+- **Find photos** - for a vendor that sells groceries, Spendly puts a product photo from a web shop
+  on each line that has none: when a new order is saved, or with the button at Items.
 - Details: vendor, date, kind, status and its date, categories, reference and note.
 - Totals: items, discount, shipping, total and saved.
 - **Attachments** - receipts, photos and PDFs, in a viewer with zoom, swipe and every page of a
@@ -160,8 +162,8 @@ Everything that needs you, on one page.
 ![Categories, with this month or this year against each limit](docs/categories.png)
 
 - **Vendors** - search, sort, archive, and merge two into one. A vendor has a
-  picture, a colour, other names it matches on receipts, default categories, and "Leave out of
-  statistics" for one-off shops. **Possible duplicates** are found by name or VAT number.
+  picture, a colour, other names it matches on receipts, default categories, a photo finder for its
+  orders' lines, and "Leave out of statistics" for one-off shops. **Possible duplicates** are found by name or VAT number.
 - **Categories** - an icon from a large library, a colour, and a **limit** for each month or for the
   whole year. Each row shows this month or this year against its limit. Spendly warns you when a
   monthly limit you type would have been passed in most of the last 12 months.

@@ -4,7 +4,7 @@ import { Failed } from '../components/Failed.jsx'
 import { Card, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField } from '../components/Inputs.jsx'
-import { Combobox } from '../components/Combobox.jsx'
+import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
 import { useStatusTypes } from '../app/statuses.js'
 import { Check, Choice, Picker, Switch } from '../components/Choice.jsx'
 import { Button } from '../components/Button.jsx'
@@ -23,6 +23,7 @@ import {
 import { VENDOR_IMAGE_TYPES, inspectVendorImage, refusalOf } from './vendorImage.js'
 import { currency, dot, isSaving, plural } from '../api/format.js'
 import { vendorKey } from '../api/names.js'
+import { PHOTO_FINDERS, photoFinderName } from '../api/photoFinders.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
@@ -54,7 +55,7 @@ export default function VendorForm() {
 }
 
 // the form while the vendor is on its way: an existing record's form, every value held by a skeleton
-const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, orders: 0 }
+const LOADING = { id: null, name: '', aliases: [], colour: null, favourite: false, archived: false, defaultCategories: [], defaultExcludeFromStats: false, photoFinder: null, orders: 0 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
@@ -76,7 +77,8 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 		colour: vendor ? pickedColour(vendor.colour) : 'primary-2',
 		favourite: Boolean(vendor?.favourite),
 		defaultCategories: vendor?.defaultCategories ?? [],
-		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats)
+		defaultExcludeFromStats: Boolean(vendor?.defaultExcludeFromStats),
+		photoFinder: vendor?.photoFinder ?? null
 	}), [vendor])
 	const [values, setValues] = useState(start)
 	const [errors, setErrors] = useState({})
@@ -114,6 +116,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 	const changed = values.name.trim() !== start.name.trim() || !same(values.aliases, start.aliases)
 		|| values.colour !== start.colour || values.favourite !== start.favourite
 		|| !same(values.defaultCategories, start.defaultCategories) || values.defaultExcludeFromStats !== start.defaultExcludeFromStats
+		|| values.photoFinder !== start.photoFinder
 		|| Boolean(image.file) || image.drop
 	const guard = useLeaveGuard(changed)
 	const leave = () => { guard.release(); navigate(list) }
@@ -192,6 +195,7 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 			// an alias the name already matches says nothing more, and the API refuses it
 			name, aliases: values.aliases.filter(a => vendorKey(a) !== vendorKey(name)), ...(moves.length ? { move: moves } : {}), colour: storedColour(values.colour),
 			favourite: values.favourite, defaultCategories: values.defaultCategories, defaultExcludeFromStats: values.defaultExcludeFromStats,
+			photoFinder: values.photoFinder,
 			...(name !== start.name ? { initials: name.slice(0, 2).toUpperCase() } : {}),
 			...(fromScan && !editing ? { origin: 'scan' } : {})
 		}
@@ -339,6 +343,13 @@ function VendorFields({ vendor, loading = false, loadingId, onGone }) {
 				<Field id="vendor-defaults" label={phrase('vendor.defaultCategories')}
 					message={phrase('vendor.defaultCategoriesHelp')}>
 					{h(<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder={phrase('vendors.none')} />)}
+				</Field>
+				<Field id="vendor-photo-finder" label={phrase('vendor.findPhotos')} message={phrase('vendor.findPhotosHelp')}>
+					{h(<Combobox value={photoFinderName(values.photoFinder)}>
+						{[null, ...PHOTO_FINDERS].map(key => (
+							<ComboboxOption key={key ?? 'off'} selected={key === values.photoFinder} onSelect={() => set('photoFinder', key)}>{photoFinderName(key)}</ComboboxOption>
+						))}
+					</Combobox>)}
 				</Field>
 				<div className="sp-field">
 					<label className="sp-row-flex sp-gap-12">

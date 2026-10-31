@@ -254,6 +254,7 @@
 	"vendor.nameIsAlias": "En anden leverandør, {owner}, passer allerede til \"{name}\". Vælg et andet navn.",
 	"vendor.nameMissing": "En leverandør skal have et navn.",
 	"vendor.noImage": "Intet billede.",
+	"vendor.photoFinderUnknown": "Vælg en billedsøgning fra listen.",
 	"vendor.pickTarget": "Vælg den leverandør, der skal flettes ind i.",
 	"vendor.twin": "Du har allerede en leverandør, der hedder {name}.",
 	"view.missing": "Den visning findes ikke.",
