@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
-import { Card, CardHeader } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Slot } from '../components/FileDrop.jsx'
@@ -20,7 +20,7 @@ import {
 import { NUMBER_LOCALE, amount, currency, currencySymbol, shortDate } from '../api/format.js'
 import { useListReturn } from '../app/listMemory.js'
 import {
-	CategoryTokens, CommitBar, ConfirmDelete, GoneNotice, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
+	CategoryTokens, CommitBar, ConfirmDelete, GoneNotice, Held, RecordPage, bookmarkDeleteNote, hold, isGone, sayFailure, useLeaveGuard
 } from './vendorsCategories.jsx'
 import { phrase, usePhrase } from '../language/phrases.js'
 
@@ -228,9 +228,9 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 				<Sum value={v(price != null ? currency(price, 0) : '-', '64')}>{phrase('bookmark.price')}</Sum>
 			</div>
 			{loading
-				? hold(<Button variant="outline" size="small">{phrase('bookmark.openShop')}</Button>)
+				? <CardFooter><Held footer shape={<Button variant="outline" size="small">{phrase('bookmark.openShop')}</Button>} /></CardFooter>
 				: href
-					? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">{phrase('vendor.openNamed', { name: site })}</span></Button>
+					? <CardFooter><Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">{phrase('vendor.openNamed', { name: site })}</span></Button></CardFooter>
 					: null}
 		</Card>
 	)

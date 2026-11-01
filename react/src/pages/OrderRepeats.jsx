@@ -116,7 +116,7 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 						<span className="sp-meta">{facts.filter(Boolean).join(dot)}</span>
 					</span>
 				</ListItem>,
-				<div key={o.id + ':go'} className="sp-stack sp-gap-8">{open(o, i === 0)}{compareButton(o)}</div>
+				<div key={o.id + ':go'} className="sp-row-flex sp-gap-8">{open(o, i === 0)}{compareButton(o)}</div>
 			]
 		}
 		const facts = o.why === 'draft'
@@ -143,9 +143,11 @@ export function OrderRepeats({ file = null, upload = null, alike = null, self = 
 	const create = <Button key="create" variant="outline" fullWidth={touch} onClick={onCreate}>{createWord}</Button>
 	const discard = <Button key="discard" variant="outline" fullWidth={touch} onClick={onDiscard}>{discardWord}</Button>
 	const reread = onReread ? <Button key="reread" variant="outline" fullWidth={touch} onClick={onReread}>{phrase('repeats.reread')}</Button> : null
-	// a sheet stacks its buttons with the last one on top (app.css)
+	// on a phone the buttons sit two to a row, each taking half, one left over on its own; a sheet stacks the rows with the last one on top (app.css)
+	const commits = [create, reread, discard].filter(Boolean)
+	const pairs = commits.reduce((all, button, i) => (i % 2 ? all.at(-1).push(button) : all.push([button]), all), []).reverse()
 	const actions = touch
-		? <DialogActions>{discard}{reread}{create}</DialogActions>
+		? <DialogActions>{pairs.map(pair => <div key={pair[0].key} className="sp-row-flex sp-gap-8">{pair}</div>)}</DialogActions>
 		: <DialogActions>{reread}{reread ? <span className="sp-grow" /> : null}{discard}{create}</DialogActions>
 	const head = [<DialogTitle key="title">{phrase('repeats.title')}</DialogTitle>, <DialogBody key="body">{body}</DialogBody>]
 	// the files are compared in place of the dialog, which comes back when the viewer closes

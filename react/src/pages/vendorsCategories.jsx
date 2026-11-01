@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Card, CardHeader, Panel } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace, usePanelRest } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
@@ -119,9 +119,9 @@ export function useFold() {
 
 /** A skeleton over the part it stands in for: `shape` is that part, laid out unseen, so a loading
     page is the loaded page's size (6b). With no children the skeleton fills the part. */
-export function Held({ shape, children }) {
+export function Held({ shape, footer = false, children }) {
 	return (
-		<span className="lb-hold">
+		<span className={footer ? 'lb-hold lb-hold--footer' : 'lb-hold'}>
 			<span className="lb-ghost" aria-hidden="true" inert>{shape}</span>
 			<span className="lb-state">{children ?? <Skeleton shape="fill" />}</span>
 		</span>
@@ -201,7 +201,7 @@ export function SummaryLoading({ label, sums, action, children }) {
 			<div className="sp-stack">
 				{sums.map(([name, w]) => <Sum key={name} value={<Skeleton shape="end" data-w={w} data-h="13" />}>{name}</Sum>)}
 			</div>
-			{action ? <Held shape={<Button variant="outline" size="small">{action}</Button>} /> : null}
+			{action ? <CardFooter><Held footer shape={<Button variant="outline" size="small">{action}</Button>} /></CardFooter> : null}
 		</Card>
 	)
 }
@@ -217,7 +217,7 @@ export function RecentLoading() {
 					<Bar role="sp-title" w="88" h="13" end />
 				</ListItem>
 			))}
-			<Held shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} />
+			<CardFooter><Held footer shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} /></CardFooter>
 		</Card>
 	)
 }
@@ -386,11 +386,11 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 export function MergeButton({ merge, size = 'standard', disabled = false, children }) {
 	const touch = useShellShape() === 'touch'
 	const box = useRef(null)
-	// a phone's picker is a sheet with its own way out
+	// a phone's picker is a sheet with its own way out; a small button keeps its own width on touch (c6)
 	useDismiss(box, merge.open && !touch, merge.onClose)
 	return (
 		<Anchor ref={box} open={merge.open && !touch}>
-			<Button variant="outline" size={size} fullWidth aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
+			<Button variant="outline" size={size} fullWidth={!(touch && size === 'small')} aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
 				onClick={merge.onToggle}>{children}</Button>
 			<Leaving>{merge.open ? merge.picker(box) : null}</Leaving>
 		</Anchor>
@@ -546,7 +546,7 @@ export function RecentOrders({ filter, to, total }) {
 		<Card>
 			<CardHeader name={phrase('library.recentOrders')} />
 			{orders.map(order => <RecentOrder key={order.id} order={order} />)}
-			<Button variant="outline" size="small" to={to}>{phrase('library.seeAll', { orders: plural(total, 'order') })}</Button>
+			<CardFooter><Button variant="outline" size="small" to={to}>{phrase('library.seeAll', { orders: plural(total, 'order') })}</Button></CardFooter>
 		</Card>
 	)
 }

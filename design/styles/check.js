@@ -1323,6 +1323,64 @@
     for (const r of raw) fail('the small button height is written with --btn-h-small', 'components.css', r);
   }
 
+  /* A rail head action (xsmall: Views - Done, Filters - Clear all) is 34px on touch with the
+     48px area invisible. Caught: min-height 48 won over its height, so Done stood 48px tall
+     and covered the locked row under it, under .sp-touch and below 640px alike. */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    if (!/\.sp-touch \.sp-btn--xsmall \{[^}]*min-height: 0;[^}]*height: var\(--btn-h-small\)/.test(bare)) fail('an xsmall button is 34px on touch', 'components.css', '.sp-touch .sp-btn--xsmall takes the 48px min-height');
+    if (!/@media \(max-width: 639\.98px\) \{[^@]*\n  \.sp-btn--xsmall \{[^}]*min-height: 0;[^}]*height: var\(--btn-h-small\)/.test(bare)) fail('an xsmall button is 34px below 640px', 'components.css', 'the touch query gives .sp-btn--xsmall the 48px min-height');
+  }
+
+  /* On a phone, buttons are never stacked when two fit side by side: they sit two to a row
+     in .sp-dialog__actions, each sp-btn--block taking half, and an odd one takes a row of its
+     own. Caught: the You already have this order sheet stacked five full-width buttons. */
+  for (const f of pages) {
+    const s = src[f];
+    for (const m of s.matchAll(/<div class="sp-stack[^"]*">((?:\s*<(?:button|a)[^>]*class="sp-btn[^"]*"[^>]*>[^<]*<\/(?:button|a)>){2,})\s*<\/div>/g)) {
+      const before = s.slice(0, m.index);
+      const phone = before.lastIndexOf('sp-phone');
+      if (phone >= 0 && before.lastIndexOf('</section>') < phone && !/sp-btn--small/.test(m[1])) fail('buttons on a phone sit two to a row', f, 'stacked: ' + (m[1].match(/>([^<]+)<\//g) || []).join(' '));
+    }
+  }
+
+  /* Brief small-button-width: a small or xsmall button keeps its own width on every screen.
+     Caught: one alone in a card footer filled it, Load more under a card grid filled it on
+     touch, and See all N orders sat loose in a card, which stretched it to the card's width. */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    /* on a phone only: on a computer a small button alone in a footer fills it (brief
+       small-button-full-width-on-desktop), so the fill for it must sit behind 640px and not touch */
+    if (!/\.sp-card__footer > \.sp-btn:only-child:not\(\[class\*="--text"\], \.sp-btn--small, \.sp-btn--xsmall\) \{ width: 100%; \}/.test(bare)) fail('a small button keeps its width alone in a footer on a phone', 'components.css', 'the footer fill rule takes small buttons on touch');
+    if (!/@media \(min-width: 640px\) \{\s*\.sp-card__footer > \.sp-btn--small:only-child:not\(\.sp-touch \*\) \{ width: 100%; \}/.test(bare)) fail('a small button fills its footer on a computer', 'components.css', 'no 640px-and-not-touch fill rule for a small footer button');
+    if (/\.sp-list__footer--loose \.sp-btn \{ width: 100%/.test(bare)) fail('a small Load more keeps its width', 'components.css', 'the loose footer fills every button');
+    for (const f of pages) {
+      const s = src[f];
+      for (const m of s.matchAll(/<(?:a|button)[^>]*class="sp-btn[^"]*sp-btn--x?small[^"]*"[^>]*>([^<]*)<\/(?:a|button)>/g)) {
+        // the button's parent: walk back over the divs, skipping closed ones
+        let depth = 0, i = m.index, parent = null;
+        const tags = [...s.slice(Math.max(0, m.index - 6000), m.index).matchAll(/<div\b[^>]*>|<\/div>/g)].reverse();
+        for (const t of tags) { if (t[0] === '</div>') depth++; else if (depth) depth--; else { parent = t[0]; break; } }
+        if (parent && /class="sp-card(?: sp-card--[a-z-]+)*"/.test(parent)) fail('a card action sits in its footer', f, m[1]);
+      }
+    }
+  }
+
+  /* On touch a default button fills its column, so one set beside another control in a row
+     (sp-flex-none) takes the whole row and squeezes its neighbour to nothing. Caught: Show
+     amounts beside the View switch on a phone left the switch 0px wide. */
+  for (const f of pages) {
+    const s = src[f];
+    for (const m of s.matchAll(/<button[^>]*class="sp-btn(?![^"]*sp-btn--(?:x?small|text|block))[^"]*\bsp-flex-none\b[^"]*"[^>]*>/g)) {
+      const before = s.slice(0, m.index);
+      const phone = before.lastIndexOf('sp-touch');
+      if (phone < 0 || before.lastIndexOf('</section>') > phone) continue;
+      let depth = 0, parent = '';
+      for (const t of [...before.slice(-6000).matchAll(/<div\b[^>]*>|<\/div>/g)].reverse()) { if (t[0] === '</div>') depth++; else if (depth) depth--; else { parent = t[0]; break; } }
+      if (/class="sp-row-flex\b/.test(parent)) fail('a button beside a control on touch keeps its width', f, m[0].slice(0, 90));
+    }
+  }
+
   /* Brief 36. The Showing bar is a card with a head, not a row of its own: as one row
      its path wrapped, the name drifted to the row's middle and "Open in orders" ran
      101px past a phone's edge. A head button on touch keeps its 34px box with the 48px
@@ -1336,8 +1394,10 @@
       if (!/<div class="sp-card__head">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
       if (!/<div class="sp-card sp-card--path(?: [^"]*)?">\s*<div class="sp-card__head">\s*$/.test(src[f].slice(Math.max(0, m.index - 120), m.index))) fail('the Showing bar holds its path in the head line when it fits', f, 'no sp-card--path');
     }
-    if (!/\.sp-touch \.sp-card > \.sp-card__head:first-child > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
-    if (!/\.sp-touch \.sp-list__toolbar > \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
+    /* brief phone-button-size: every small button keeps 34px on touch, not only one in a head */
+    if (!/\n\.sp-touch \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a small button keeps its 34px box on touch', 'components.css', 'no touch rule');
+    if (!/\n\.sp-touch \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a small button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
+    if (!/@media \(max-width: 639\.98px\) \{[^@]*\n  \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp.replace(/\/\*[\s\S]*?\*\//g, ''))) fail('a small button keeps its 34px box below 640px', 'components.css', 'no rule in the touch query');
     for (const v of ['.sp-card--spread', '.sp-combobox--narrow', '.sp-segmented--narrow', '.sp-row-opens:hover', '.sp-row-opens:focus-visible'])
       if (!comp.includes(v + ' {')) fail('a part changes only through the design', 'components.css', v + ' missing');
     for (const [f, css] of Object.entries(pageCss))
