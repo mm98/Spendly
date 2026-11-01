@@ -137,6 +137,7 @@ Everything that needs you, on one page.
   steps, and open the orders behind any view.
 - **Cash flow** - a second view that shows where the income of whole months goes: to the budget's
   accounts and their groups and rows, to the orders by category and vendor, and what is left or over.
+  It shows a month, a quarter or a year, and its amounts stay hidden until you ask to see them.
 
 ### Budget
 

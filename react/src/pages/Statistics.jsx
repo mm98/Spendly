@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
@@ -17,7 +17,7 @@ import { Pill } from '../components/Pill.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
-import { CashFlowCard, lastDayOf, wholeMonths, wholeMonthsNote } from './CashFlow.jsx'
+import { CashFlowCard, wholeMonths } from './CashFlow.jsx'
 import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
@@ -33,6 +33,9 @@ import {
 	reanchor, scaleFor, stepLabel, todayUtc, unitOf, utcOf, validId, windowIdAt, writeCrumbs, yearEarlier
 } from './statisticsWindows.js'
 import { phrase, usePhrase } from '../language/phrases.js'
+
+// Cash flow counts whole months, so its shortest period is a month (4h)
+const CASH_RANGES = ['month', 'quarter', 'year']
 
 const PRESETS = [
 	{ value: 'days30', label: 'stats.preset.days30' },
@@ -145,13 +148,17 @@ export default function Statistics() {
 	// Cash flow (4h) is this page's other view: the same period row, then its own card
 	const location = useLocation()
 	const navigate = useNavigate()
-	const cash = location.pathname.endsWith('/cash-flow')
+	const cash = useParams().view === 'cash-flow'
 	// a period's id names its range by its shape; an address with neither opens on the kept choice, else this month
 	const named = RANGES.includes(params.get('range')) ? params.get('range') : RANGES.find(r => validId(r, params.get('period')))
 	const kept = named ? null : keptPeriod()
-	const range = named ?? kept?.range ?? 'month'
+	const ordersRange = named ?? kept?.range ?? 'month'
 	const asked = named ? params.get('period') : kept?.period
-	const id = validId(range, asked) && !(range === 'days30' && asked > today()) ? asked : defaultId(range)
+	const ordersId = validId(ordersRange, asked) && !(ordersRange === 'days30' && asked > today()) ? asked : defaultId(ordersRange)
+	// a period shorter than a month shows on Cash flow as the month of its last day; the address keeps it for Orders
+	const monthOnly = cash && !CASH_RANGES.includes(ordersRange)
+	const range = monthOnly ? 'month' : ordersRange
+	const id = monthOnly ? windowIdAt('month', boundsOf(ordersRange, ordersId)[1]) : ordersId
 	const compareOn = params.get('compare') !== 'off'
 	// the page counts money paid: Ordered or Delivered, not refunds (4a)
 	const flow = 'expenses'
@@ -228,10 +235,10 @@ export default function Statistics() {
 	useEffect(() => {
 		if (named) return
 		const next = new URLSearchParams(params)
-		next.set('range', range)
-		if (range === 'custom') next.set('period', id)
+		next.set('range', ordersRange)
+		if (ordersRange === 'custom') next.set('period', ordersId)
 		setParams(next, { replace: true })
-	}, [named, params, range, id, setParams])
+	}, [named, params, ordersRange, ordersId, setParams])
 
 	/* A crumb of a kind already in the path takes its place; a new kind is pushed, up to three. */
 	const sameKind = (a, b) => a.kind === b.kind || (isTime(a) && isTime(b))
@@ -312,7 +319,7 @@ export default function Statistics() {
 	}
 	const shown = draft ? 'custom' : range
 	// on a phone the period is one select with its window beside the name, between the arrows (Mobile screens 7b)
-	const presets = PRESETS.map(p => ({ ...p, label: phrase(p.label) }))
+	const presets = PRESETS.filter(p => !cash || CASH_RANGES.includes(p.value)).map(p => ({ ...p, label: phrase(p.label) }))
 	const picker = (
 		<div className="sp-window sp-window--select">
 			<button type="button" className="sp-window__btn" aria-label={phrase('stats.earlier', { range })}
@@ -331,7 +338,14 @@ export default function Statistics() {
 		</div>
 	)
 	const announce = <span className="sp-announce" aria-live="polite">{said}</span>
-	// the period is shared both ways, so the switch keeps the address's period (4h)
+	// amounts on Cash flow show only once asked for, until the reader leaves Statistics (4h)
+	const [amounts, setAmounts] = useState(false)
+	const amountsButton = (
+		<Button variant="outline" iconStart="eye" aria-pressed={amounts} onClick={() => setAmounts(!amounts)}>
+			{phrase('stats.cash.amounts', { shown: String(amounts) })}
+		</Button>
+	)
+	// the switch keeps the address's period, so Orders gets back a week or dates Cash flow showed as a month (4h)
 	const viewSwitch = (
 		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')} fullWidth={touch}
 			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase('stats.cash.view.cash') }]}
@@ -357,7 +371,12 @@ export default function Statistics() {
 								</label>
 							</div>
 						)
-						: <div className="sp-stack sp-gap-8 sp-grow">{picker}{viewSwitch}</div>}
+						: (
+							<div className="sp-stack sp-gap-8 sp-grow">
+								{picker}
+								{cash ? <div className="sp-row-flex sp-gap-8"><div className="sp-grow">{viewSwitch}</div><div className="sp-flex-none">{amountsButton}</div></div> : viewSwitch}
+							</div>
+						)}
 				</Controls>
 				{draft ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
 			</>
@@ -379,7 +398,7 @@ export default function Statistics() {
 					// a custom range has no stepper (4f): choosing the selected Custom again opens its dates
 					onClick={ev => { if (range === 'custom' && !draft && ev.target.matches('input[value="custom"]')) openCustom() }}
 					stepper={stepper}
-					{...(cash ? { shown: { from: `${months.from}-01`, to: lastDayOf(months.to) }, note: wholeMonthsNote(months) } : {})}
+					dated={!cash}
 					extra={leftOut
 						? (
 							<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
@@ -387,7 +406,7 @@ export default function Statistics() {
 							</Choice>
 						)
 						: null}
-					actions={viewSwitch}
+					actions={cash ? <>{amountsButton}{viewSwitch}</> : viewSwitch}
 				>
 					{cash
 						? null
@@ -435,7 +454,7 @@ export default function Statistics() {
 		return (
 			<>
 				{period}
-				<CashFlowCard from={months.from} to={months.to} touch={touch} />
+				<CashFlowCard from={months.from} to={months.to} touch={touch} amounts={amounts} />
 			</>
 		)
 	}

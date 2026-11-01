@@ -12,21 +12,13 @@ import { phrase, usePhrase } from '../language/phrases.js'
 // the readout lists this many of a group's rows from 640 to 1099 before "N more"
 const TIP_ROWS = 3
 
-/** The months a period touches, in full, up to the current month: `{ from, to }` as YYYY-MM, and
-    whether the last one is still running. */
+/** The months of a period, up to the current month: `{ from, to }` as YYYY-MM. */
 export function wholeMonths(fromIso, toIso, todayIso) {
 	const now = todayIso.slice(0, 7)
 	const to = toIso.slice(0, 7) > now ? now : toIso.slice(0, 7)
 	const from = fromIso.slice(0, 7) > to ? to : fromIso.slice(0, 7)
-	const count = (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12 + Number(to.slice(5)) - Number(from.slice(5)) + 1
-	return { from, to, count, toDate: to === now }
+	return { from, to }
 }
-
-/** The last day of a month, YYYY-MM, as YYYY-MM-DD. */
-export const lastDayOf = month => new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5)), 0)).toISOString().slice(0, 10)
-
-/** The words under the period: whole month, whole months, or whole months to date. */
-export const wholeMonthsNote = ({ count, toDate }) => (toDate ? phrase('stats.cash.wholeMonthsToDate') : phrase('stats.cash.wholeMonths', { count }))
 
 const nameOf = node => {
 	if (node.other) return phrase('stats.cash.other')
@@ -39,14 +31,14 @@ const nameOf = node => {
 	return phrase('orderRow.noCategory')
 }
 
-/** The server's answer as the chart takes it: every bar named, its amount and its share of the income written out. */
-function drawn(flow) {
+/** The server's answer as the chart takes it; with `amounts` false no amount is written, so none is in the page (4h). */
+function drawn(flow, amounts) {
 	const total = flow.income.reduce((a, n) => a + n.value, 0)
 	const out = flow.branches.reduce((a, b) => a + b.value, 0)
 	const bar = node => ({
 		...node,
 		name: nameOf(node),
-		amount: currency(node.value, 0),
+		amount: amounts ? currency(node.value, 0) : '',
 		share: total > 0 ? percent((node.value / total) * 100, 0) : ''
 	})
 	return {
@@ -56,13 +48,13 @@ function drawn(flow) {
 			groups: b.groups.map(g => ({ ...bar(g), branch: b, lines: g.lines.map(bar) }))
 		})),
 		// Left and Over only beside an income; equal draws neither
-		left: total > 0 && total - out >= 0.5 ? { value: total - out, amount: currency(total - out, 0) } : undefined,
-		over: total > 0 && out - total >= 0.5 ? { value: out - total, amount: currency(out - total, 0) } : undefined
+		left: total > 0 && total - out >= 0.5 ? { value: total - out, amount: amounts ? currency(total - out, 0) : '' } : undefined,
+		over: total > 0 && out - total >= 0.5 ? { value: out - total, amount: amounts ? currency(out - total, 0) : '' } : undefined
 	}
 }
 
 /** The readout of a pointed bar (c18): its name and amount, Of income, and where it sits. */
-function tipFor(chart) {
+function tipFor(chart, amounts) {
 	const where = new Map()
 	for (const b of chart.branches) {
 		where.set(b.id, phrase('stats.cash.where', { place: b.name, count: b.spending ? phrase('stats.cash.vendors', { count: b.groups.reduce((a, g) => a + g.rows, 0) }) : phrase('stats.cash.rows', { count: b.groups.reduce((a, g) => a + g.rows, 0) }) }))
@@ -73,7 +65,7 @@ function tipFor(chart) {
 		}
 	}
 	return (bar, { opens }) => {
-		const lines = bar.other || bar.otherCategories ? bar.joined.map(j => ({ name: j.name ?? phrase('orderRow.noCategory'), value: currency(j.value, 0) })) : opens ? bar.lines : []
+		const lines = bar.other || bar.otherCategories ? bar.joined.map(j => ({ name: j.name ?? phrase('orderRow.noCategory'), value: amounts ? currency(j.value, 0) : '' })) : opens ? bar.lines : []
 		const shown = opens ? lines.slice(0, TIP_ROWS) : lines
 		const rows = [
 			...(bar.share ? [{ key: 'share', name: phrase('stats.cash.ofIncome'), value: bar.share }] : []),
@@ -89,7 +81,7 @@ function tipFor(chart) {
 }
 
 /** The Cash flow card for the months `from` to `to` (YYYY-MM). */
-export function CashFlowCard({ from, to, touch }) {
+export function CashFlowCard({ from, to, touch, amounts }) {
 	usePhrase()
 	const answer = useApi(getCashFlow, [from, to])
 	const head = <CardHeader name={phrase('stats.cash.title')} />
@@ -121,14 +113,14 @@ export function CashFlowCard({ from, to, touch }) {
 			</Card>
 		)
 	}
-	const chart = drawn(flow)
+	const chart = drawn(flow, amounts)
 	return (
 		<Card>
 			{head}
 			{flow.income.length
 				? null
 				: <span className="sp-meta">{phrase('stats.cash.noIncome', { year: to.slice(0, 4) })} <Link to={`/budget/${to.slice(0, 4)}`}>{phrase('stats.cash.addIncome')}</Link></span>}
-			<CashFlow key={`${flow.from}~${flow.to}`} {...chart} tip={tipFor(chart)} down={touch} label={phrase('stats.cash.label')} />
+			<CashFlow key={`${flow.from}~${flow.to}`} {...chart} tip={tipFor(chart, amounts)} down={touch} label={phrase('stats.cash.label')} />
 		</Card>
 	)
 }
