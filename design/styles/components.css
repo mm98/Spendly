@@ -3342,8 +3342,6 @@ button.sp-bars__col { cursor: pointer; }
 .sp-bars__tick:empty::before { content: "\00a0"; }
 /* one bar per day: 31 bars want a narrower gap than 12 months, or a bar is a hairline (4g) */
 .sp-bars.sp-bars--days { gap: var(--sp-4); }
-/* a month of days bands its odd weeks (ISO week number) on a faint ground, so a week reads at a glance; the shadow carries the band across the gap between its days. The pointed column's --hover band still wins (4g) */
-.sp-bars--days .sp-bars__col[data-week="odd"] { background: var(--surface-2); box-shadow: calc(var(--sp-4) / 2) 0 0 var(--surface-2), calc(var(--sp-4) / -2) 0 0 var(--surface-2); }
 
 /* A chart's legend is always under the chart it keys, never between the head and the
    chart: one place for every chart, read after the bars (Spend by month, Spend vs saving). */
@@ -6112,8 +6110,6 @@ a.sp-record__photos { color: inherit; text-decoration: none; }
 }
 /* a step still to come is drawn empty: a span with its tick and no bar, no band */
 .sp-bars--plot .sp-bars__col[data-future] { background: none; }
-/* a day still to come keeps its week's band, so the weeks read the same across the whole month (4g) */
-.sp-bars--plot.sp-bars--days .sp-bars__col[data-week="odd"][data-future] { background: var(--surface-2); }
 /* the limit is named in the legend, not on the line, so no bar is ever under its label */
 .sp-legend__key--limit { width: 14px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--amber); }
 
