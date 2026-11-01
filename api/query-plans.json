@@ -881,6 +881,27 @@
 				"sqlite_autoindex_vendor_default_categories_1"
 			]
 		},
+		"SELECT category_id, category_name, vendor_id, v.name AS vendor_name, SUM(total) AS spent FROM ( SELECT ot.total, ot.vendor_id, oc.category_id, MIN(c.name) AS category_name FROM orders ot LEFT JOIN order_categories oc ON oc.order_id = ot.id LEFT JOIN categories c ON c.id = oc.category_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to AND ot.status_type NOT IN ('cancelled', 'draft') AND NOT (ot.status_type = 'returned' OR ot.kind IN ('Sold')) AND ot.exclude_from_stats = 0 GROUP BY ot.id) JOIN vendors v ON v.id = vendor_id GROUP BY category_id, vendor_id": {
+			"plan": [
+				"CO-ROUTINE (subquery-1)",
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?) LEFT-JOIN",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?) LEFT-JOIN",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"SCAN (subquery-1)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_order_categories_1",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' OR (ot.status_type = 'returned' OR ot.kind IN ('Sold')) THEN 0 ELSE ot.total END), 0) total, COALESCE(SUM(CASE WHEN ot.status_type = 'cancelled' OR (ot.status_type = 'returned' OR ot.kind IN ('Sold')) THEN 0 ELSE MAX(ot.saved, 0) END), 0) saved FROM orders ot WHERE ot.user_id = @userId": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_status (user_id=?)"
@@ -5280,7 +5301,7 @@
 				"date",
 				"id"
 			],
-			"readers": 81
+			"readers": 82
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",

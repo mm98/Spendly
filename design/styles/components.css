@@ -3392,6 +3392,49 @@ button.sp-bars__col { cursor: pointer; }
 .sp-shares__row:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
 .sp-shares__value { font-weight: 600; font-variant-numeric: tabular-nums; }
 
+/* ---------- cash flow - c14, Order statistics 4h ----------
+   Where the income goes: to the accounts and their groups and rows, to Spending and its
+   categories and vendors, and what is Left. One colour per node key, taken by the bar and by
+   the ribbons that arrive at it. An account and everything under it share one key. */
+.sp-cashflow { position: relative; display: flex; flex-direction: column; gap: var(--sp-12); min-width: 0; }
+.sp-cashflow__plot { display: block; flex: none; overflow: visible; }
+.sp-cashflow [data-key="income"] { color: var(--primary); }
+.sp-cashflow [data-key="2"] { color: var(--primary-3); }
+.sp-cashflow [data-key="3"] { color: var(--primary-4); }
+.sp-cashflow [data-key="4"] { color: var(--primary-5); }
+.sp-cashflow [data-key="5"] { color: var(--amber-ink); }
+.sp-cashflow [data-key="6"] { color: var(--amber-2); }
+.sp-cashflow [data-key="7"] { color: var(--ink-6); }
+.sp-cashflow [data-key="saved"] { color: var(--primary-2); }
+.sp-cashflow [data-key="over"] { color: var(--red-ink); }
+.sp-cashflow__node { fill: currentColor; }
+.sp-cashflow__link { fill: currentColor; fill-opacity: var(--fade-ribbon); }
+@media (hover: hover) {
+  .sp-cashflow__link:hover { fill-opacity: var(--fade-ribbon-lit); }
+}
+/* a pointed or tapped node lights its path; everything else steps back */
+.sp-cashflow[data-focus] .sp-cashflow__link[data-on] { fill-opacity: var(--fade-ribbon-lit); }
+.sp-cashflow[data-focus] .sp-cashflow__node:not([data-on]) { opacity: var(--fade-off-path); }
+/* a label keeps its ink over a ribbon: a halo in the card's own ground */
+.sp-cashflow__label { font-size: var(--t-12); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.sp-cashflow__name { fill: var(--ink-2); }
+.sp-cashflow__amount { fill: var(--ink); font-size: var(--t-13); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sp-cashflow__amount[data-tone="saved"] { fill: var(--primary-2); }
+.sp-cashflow__amount[data-tone="over"] { fill: var(--red-ink); }
+.sp-cashflow__share { fill: var(--ink-5); font-size: var(--t-11); font-variant-numeric: tabular-nums; }
+.sp-cashflow__tip { position: absolute; z-index: 3; pointer-events: none; }
+/* down: a phone, or a card under 640. One step at a time, top to bottom, its share list as the labels */
+.sp-cashflow--down .sp-cashflow__plot { width: 100%; height: auto; }
+.sp-cashflow__top { display: flex; align-items: baseline; gap: var(--sp-8); font-size: var(--t-13); color: var(--ink-2); }
+/* the share list under a flow names Saved and Over in their own colour, as the chart does */
+.sp-legend__key[data-key="5"] { background: var(--amber-ink); }
+.sp-legend__key[data-key="6"] { background: var(--amber-2); }
+.sp-legend__key[data-key="7"] { background: var(--ink-6); }
+.sp-legend__key[data-key="saved"] { background: var(--primary-2); }
+.sp-legend__key[data-key="over"] { background: var(--red-ink); }
+.sp-shares__row:has(> .sp-legend__key[data-key="saved"]) { color: var(--primary-2); font-weight: 600; }
+.sp-shares__row:has(> .sp-legend__key[data-key="over"]) { color: var(--red-ink); font-weight: 600; }
+
 /* ---------- period control - LOCKED c14 ----------
    Single-purpose: Order statistics only. Drawn exactly as 4a draws it. */
 

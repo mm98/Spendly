@@ -204,6 +204,11 @@
   /* the bar that hides an amount: a shape in the text's ink, never legible as a
      figure, so on the lowest step */
   --fade-redacted: var(--fade-20);
+  /* a cash flow's ribbon at rest, and lit when its path is pointed or under the pointer;
+     a bar off the lit path steps back as far as disabled reads (4h) */
+  --fade-ribbon: var(--fade-20);
+  --fade-ribbon-lit: var(--fade-60);
+  --fade-off-path: var(--fade-40);
 
   /* ---- motion: what opens, folds or slides ----
      One pace for everything that moves. Opening is the slower half and decelerates

@@ -24,6 +24,12 @@
   .os-below__bar { background: var(--red-ink); border-radius: 0 0 var(--r-marker) var(--r-marker); height: 22px; }
   .os-menu-stage { width: 620px; }
   .os-col-320 { width: 320px; }
+  /* 4h: a state of the cash flow card at the screen's card width, and the readout beside Housing */
+  .os-cash-state { width: 1368px; }
+  .os-cash-tip { left: 767px; top: 24px; }
+  /* 4h at a middle width: the card at 900, its readout beside Housing */
+  .os-cash-mid { width: 900px; }
+  .os-cash-tip-mid { left: 450px; top: 0; }
 
   /* the key for the pace marker, in the line that explains it */
   .os-marker-key { display: inline-block; width: 2px; height: 12px; background: var(--amber); }

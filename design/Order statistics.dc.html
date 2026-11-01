@@ -43,14 +43,6 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
     <div class="os-body">
@@ -72,6 +64,11 @@
           <input class="sp-switch" type="checkbox" role="switch">
           <span class="sp-data">Include 1 left-out order</span>
         </label>
+        <span class="sp-grow"></span>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-1" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-1"><span class="sp-label">Cash flow</span></label>
+        </div>
       </div>
 
       <div class="sp-stats sp-stats--fold">
@@ -837,6 +834,565 @@
 
 <section class="doc-section">
   <div class="doc-section__head">
+    <span class="doc-badge" id="4h">4h</span>
+    <span class="doc-section__title">Cash flow</span>
+  </div>
+  <div class="doc-lede">A sub page of Statistics, behind the Orders / Cash flow switch at the end of the period row. The income goes to the accounts the budget pays from, Budget and Savings here, each split into its groups and rows; what is spent on orders is taken from the income, split into categories and vendors; what is left is Left. August 2026, with the pointer on Housing.</div>
+
+  <div class="os-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+
+    <div class="os-body">
+      <div class="sp-period">
+        <div class="sp-period__presets" role="radiogroup" aria-label="Period">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4h-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="4h-period"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="4h-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4h-period"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="4h-period"><span class="sp-label">Year</span></label>
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4h-period"><span class="sp-label">Custom</span></label>
+        </div>
+        <div class="sp-window">
+          <button type="button" class="sp-window__btn" aria-label="Previous window"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+          <span class="sp-window__label" data-w="month">August</span>
+          <button type="button" class="sp-window__btn" aria-label="Next window" disabled="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+        </div>
+        <span class="sp-period__resolved">01/08 - 31/08/2026</span>
+        <span class="sp-grow"></span>
+        <span class="sp-period__note">whole month</span>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="4h-view"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="4h-view" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+        </div>
+      </div>
+
+      <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Cash flow</span>
+          </div>
+          <div class="sp-cashflow" data-focus="" role="img" aria-label="Where the money went">
+            <svg class="sp-cashflow__plot" width="1334" height="766" viewBox="0 0 1334 766" aria-hidden="true">
+<g><path class="sp-cashflow__link" data-key="income" data-on="" d="M12.0 0.0C152.5 0.0 152.5 0.0 293.0 0.0L293.0 266.4C152.5 266.4 152.5 266.4 12.0 266.4Z"><title>Income to Budget, 18.370 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 266.4C152.5 266.4 152.5 280.4 293.0 280.4L293.0 338.4C152.5 338.4 152.5 324.4 12.0 324.4Z"><title>Income to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 324.4C152.5 324.4 152.5 352.4 293.0 352.4L293.0 494.5C152.5 494.5 152.5 466.5 12.0 466.5Z"><title>Income to Spending, 9.800 kr.</title></path>
+<path class="sp-cashflow__link" data-key="saved" d="M12.0 466.5C152.5 466.5 152.5 513.2 293.0 513.2L293.0 539.7C152.5 539.7 152.5 493.0 12.0 493.0Z"><title>Income to Left, 1.830 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M305.0 0.0C526.0 0.0 526.0 0.0 747.0 0.0L747.0 179.0C526.0 179.0 526.0 179.0 305.0 179.0Z"><title>Budget to Housing, 12.346 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 0.0C928.5 0.0 928.5 0.0 1098.0 0.0L1098.0 122.5C928.5 122.5 928.5 122.5 759.0 122.5Z"><title>Housing to Mortgage, 8.450 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 122.5C928.5 122.5 928.5 126.5 1098.0 126.5L1098.0 148.9C928.5 148.9 928.5 144.9 759.0 144.9Z"><title>Housing to Property tax, 1.540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 144.9C928.5 144.9 928.5 155.6 1098.0 155.6L1098.0 168.1C928.5 168.1 928.5 157.3 759.0 157.3Z"><title>Housing to Electricity, 860 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 157.3C928.5 157.3 928.5 178.6 1098.0 178.6L1098.0 189.1C928.5 189.1 928.5 167.8 759.0 167.8Z"><title>Housing to Heating, 720 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 167.8C928.5 167.8 928.5 203.0 1098.0 203.0L1098.0 208.7C928.5 208.7 928.5 173.4 759.0 173.4Z"><title>Housing to Wastewater, 390 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M759.0 173.4C928.5 173.4 928.5 225.1 1098.0 225.1L1098.0 230.7C928.5 230.7 928.5 179.0 759.0 179.0Z"><title>Housing to Other, 386 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 179.0C526.0 179.0 526.0 187.0 747.0 187.0L747.0 240.1C526.0 240.1 526.0 232.1 305.0 232.1Z"><title>Budget to Transport, 3.660 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 187.0C928.5 187.0 928.5 248.9 1098.0 248.9L1098.0 293.1C928.5 293.1 928.5 231.2 759.0 231.2Z"><title>Transport to Car loan, 3.050 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 231.2C928.5 231.2 928.5 301.7 1098.0 301.7L1098.0 310.5C928.5 310.5 928.5 240.1 759.0 240.1Z"><title>Transport to Car insurance, 610 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 232.1C526.0 232.1 526.0 255.1 747.0 255.1L747.0 277.1C526.0 277.1 526.0 254.1 305.0 254.1Z"><title>Budget to Insurance, 1.520 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 255.1C928.5 255.1 928.5 329.0 1098.0 329.0L1098.0 343.2C928.5 343.2 928.5 269.3 759.0 269.3Z"><title>Insurance to Private insurance, 980 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 269.3C928.5 269.3 928.5 354.2 1098.0 354.2L1098.0 362.0C928.5 362.0 928.5 277.1 759.0 277.1Z"><title>Insurance to Unemployment insurance, 540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 254.1C526.0 254.1 526.0 304.0 747.0 304.0L747.0 316.2C526.0 316.2 526.0 266.4 305.0 266.4Z"><title>Budget to Subscriptions, 844 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 304.0C928.5 304.0 928.5 385.9 1098.0 385.9L1098.0 390.2C928.5 390.2 928.5 308.3 759.0 308.3Z"><title>Subscriptions to Internet, 299 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 308.3C928.5 308.3 928.5 407.9 1098.0 407.9L1098.0 412.2C928.5 412.2 928.5 312.6 759.0 312.6Z"><title>Subscriptions to Phone, 298 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 312.6C928.5 312.6 928.5 430.3 1098.0 430.3L1098.0 433.9C928.5 433.9 928.5 316.2 759.0 316.2Z"><title>Subscriptions to Streaming, 247 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M305.0 280.4C526.0 280.4 526.0 344.1 747.0 344.1L747.0 402.1C526.0 402.1 526.0 338.4 305.0 338.4Z"><title>Savings to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M759.0 344.1C928.5 344.1 928.5 453.1 1098.0 453.1L1098.0 511.1C928.5 511.1 928.5 402.1 759.0 402.1Z"><title>Savings to Monthly saving, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 352.4C526.0 352.4 526.0 418.1 747.0 418.1L747.0 479.0C526.0 479.0 526.0 413.3 305.0 413.3Z"><title>Spending to Groceries, 4.200 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 418.1C928.5 418.1 928.5 523.1 1098.0 523.1L1098.0 549.9C928.5 549.9 928.5 444.9 759.0 444.9Z"><title>Groceries to Rema 1000, 1.850 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 444.9C928.5 444.9 928.5 553.9 1098.0 553.9L1098.0 574.2C928.5 574.2 928.5 465.2 759.0 465.2Z"><title>Groceries to Netto, 1.400 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 465.2C928.5 465.2 928.5 580.3 1098.0 580.3L1098.0 594.1C928.5 594.1 928.5 479.0 759.0 479.0Z"><title>Groceries to Føtex, 950 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 413.3C526.0 413.3 526.0 487.9 747.0 487.9L747.0 522.0C526.0 522.0 526.0 447.3 305.0 447.3Z"><title>Spending to Home, 2.350 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 487.9C928.5 487.9 928.5 608.2 1098.0 608.2L1098.0 631.4C928.5 631.4 928.5 511.1 759.0 511.1Z"><title>Home to Ikea, 1.600 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 511.1C928.5 511.1 928.5 639.0 1098.0 639.0L1098.0 649.8C928.5 649.8 928.5 522.0 759.0 522.0Z"><title>Home to Jysk, 750 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 447.3C526.0 447.3 526.0 539.9 747.0 539.9L747.0 558.0C526.0 558.0 526.0 465.5 305.0 465.5Z"><title>Spending to Eating out, 1.250 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 539.9C928.5 539.9 928.5 669.5 1098.0 669.5L1098.0 679.3C928.5 679.3 928.5 549.8 759.0 549.8Z"><title>Eating out to Sticks'n'Sushi, 680 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 549.8C928.5 549.8 928.5 692.3 1098.0 692.3L1098.0 700.5C928.5 700.5 928.5 558.0 759.0 558.0Z"><title>Eating out to Lagkagehuset, 570 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 465.5C526.0 465.5 526.0 585.0 747.0 585.0L747.0 601.0C526.0 601.0 526.0 481.4 305.0 481.4Z"><title>Spending to Fuel, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 585.0C928.5 585.0 928.5 718.4 1098.0 718.4L1098.0 734.4C928.5 734.4 928.5 601.0 759.0 601.0Z"><title>Fuel to Circle K, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 481.4C526.0 481.4 526.0 630.5 747.0 630.5L747.0 643.5C526.0 643.5 526.0 494.5 305.0 494.5Z"><title>Spending to Clothes, 900 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 630.5C928.5 630.5 928.5 749.9 1098.0 749.9L1098.0 762.9C928.5 762.9 928.5 643.5 759.0 643.5Z"><title>Clothes to Zalando, 900 kr.</title></path></g>
+<g><rect class="sp-cashflow__node" data-key="income" data-on="" x="0" y="0.0" width="12" height="493.0" rx="2"><title>Income, 34.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="293" y="0.0" width="12" height="266.4" rx="2"><title>Budget, 18.370 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="293" y="280.4" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="293" y="352.4" width="12" height="142.1" rx="2"><title>Spending, 9.800 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="saved" x="293" y="513.2" width="12" height="26.5" rx="2"><title>Left, 1.830 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="747" y="0.0" width="12" height="179.0" rx="2"><title>Housing, 12.346 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="0.0" width="12" height="122.5" rx="2"><title>Mortgage, 8.450 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="126.5" width="12" height="22.3" rx="2"><title>Property tax, 1.540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="155.6" width="12" height="12.5" rx="2"><title>Electricity, 860 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="178.6" width="12" height="10.4" rx="2"><title>Heating, 720 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="203.0" width="12" height="5.7" rx="2"><title>Wastewater, 390 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="1098" y="225.1" width="12" height="5.6" rx="2"><title>Other, 386 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="187.0" width="12" height="53.1" rx="2"><title>Transport, 3.660 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="248.9" width="12" height="44.2" rx="2"><title>Car loan, 3.050 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="301.7" width="12" height="8.8" rx="2"><title>Car insurance, 610 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="255.1" width="12" height="22.0" rx="2"><title>Insurance, 1.520 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="329.0" width="12" height="14.2" rx="2"><title>Private insurance, 980 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="354.2" width="12" height="7.8" rx="2"><title>Unemployment insurance, 540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="304.0" width="12" height="12.2" rx="2"><title>Subscriptions, 844 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="385.9" width="12" height="4.3" rx="2"><title>Internet, 299 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="407.9" width="12" height="4.3" rx="2"><title>Phone, 298 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="430.3" width="12" height="3.6" rx="2"><title>Streaming, 247 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="747" y="344.1" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="1098" y="453.1" width="12" height="58.0" rx="2"><title>Monthly saving, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="418.1" width="12" height="60.9" rx="2"><title>Groceries, 4.200 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="523.1" width="12" height="26.8" rx="2"><title>Rema 1000, 1.850 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="553.9" width="12" height="20.3" rx="2"><title>Netto, 1.400 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="580.3" width="12" height="13.8" rx="2"><title>Føtex, 950 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="487.9" width="12" height="34.1" rx="2"><title>Home, 2.350 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="608.2" width="12" height="23.2" rx="2"><title>Ikea, 1.600 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="639.0" width="12" height="10.9" rx="2"><title>Jysk, 750 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="539.9" width="12" height="18.1" rx="2"><title>Eating out, 1.250 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="669.5" width="12" height="9.9" rx="2"><title>Sticks'n'Sushi, 680 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="692.3" width="12" height="8.3" rx="2"><title>Lagkagehuset, 570 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="585.0" width="12" height="16.0" rx="2"><title>Fuel, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="718.4" width="12" height="16.0" rx="2"><title>Circle K, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="630.5" width="12" height="13.1" rx="2"><title>Clothes, 900 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="749.9" width="12" height="13.1" rx="2"><title>Zalando, 900 kr.</title></rect></g>
+<g><text class="sp-cashflow__label" x="20" y="244.5"><tspan class="sp-cashflow__name">Income</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">34.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">100%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="131.2"><tspan class="sp-cashflow__name">Budget</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">18.370 kr.</tspan><tspan class="sp-cashflow__share" dx="4">54%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="307.4"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="421.4"><tspan class="sp-cashflow__name">Spending</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">9.800 kr.</tspan><tspan class="sp-cashflow__share" dx="4">29%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="524.5"><tspan class="sp-cashflow__name">Left</tspan><tspan class="sp-cashflow__amount" data-tone="saved" x="313" dy="15">1.830 kr.</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="87.5"><tspan class="sp-cashflow__name">Housing</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">12.346 kr.</tspan><tspan class="sp-cashflow__share" dx="4">36%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="65.3"><tspan class="sp-cashflow__name">Mortgage</tspan><tspan class="sp-cashflow__amount" dx="6">8.450 kr.</tspan><tspan class="sp-cashflow__share" dx="4">25%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="141.7"><tspan class="sp-cashflow__name">Property tax</tspan><tspan class="sp-cashflow__amount" dx="6">1.540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="165.9"><tspan class="sp-cashflow__name">Electricity</tspan><tspan class="sp-cashflow__amount" dx="6">860 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="187.9"><tspan class="sp-cashflow__name">Heating</tspan><tspan class="sp-cashflow__amount" dx="6">720 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="209.9"><tspan class="sp-cashflow__name">Wastewater</tspan><tspan class="sp-cashflow__amount" dx="6">390 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="231.9"><tspan class="sp-cashflow__name">Other</tspan><tspan class="sp-cashflow__amount" dx="6">386 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="211.6"><tspan class="sp-cashflow__name">Transport</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">3.660 kr.</tspan><tspan class="sp-cashflow__share" dx="4">11%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="275.0"><tspan class="sp-cashflow__name">Car loan</tspan><tspan class="sp-cashflow__amount" dx="6">3.050 kr.</tspan><tspan class="sp-cashflow__share" dx="4">9%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="310.1"><tspan class="sp-cashflow__name">Car insurance</tspan><tspan class="sp-cashflow__amount" dx="6">610 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="264.1"><tspan class="sp-cashflow__name">Insurance</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.520 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="340.1"><tspan class="sp-cashflow__name">Private insurance</tspan><tspan class="sp-cashflow__amount" dx="6">980 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="362.1"><tspan class="sp-cashflow__name">Unemployment insurance</tspan><tspan class="sp-cashflow__amount" dx="6">540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="308.1"><tspan class="sp-cashflow__name">Subscriptions</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">844 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="392.1"><tspan class="sp-cashflow__name">Internet</tspan><tspan class="sp-cashflow__amount" dx="6">299 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="414.1"><tspan class="sp-cashflow__name">Phone</tspan><tspan class="sp-cashflow__amount" dx="6">298 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="436.1"><tspan class="sp-cashflow__name">Streaming</tspan><tspan class="sp-cashflow__amount" dx="6">247 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="371.1"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="486.1"><tspan class="sp-cashflow__name">Monthly saving</tspan><tspan class="sp-cashflow__amount" dx="6">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="446.5"><tspan class="sp-cashflow__name">Groceries</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">4.200 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="540.5"><tspan class="sp-cashflow__name">Rema 1000</tspan><tspan class="sp-cashflow__amount" dx="6">1.850 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="568.1"><tspan class="sp-cashflow__name">Netto</tspan><tspan class="sp-cashflow__amount" dx="6">1.400 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="591.2"><tspan class="sp-cashflow__name">Føtex</tspan><tspan class="sp-cashflow__amount" dx="6">950 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="503.0"><tspan class="sp-cashflow__name">Home</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">2.350 kr.</tspan><tspan class="sp-cashflow__share" dx="4">7%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="623.8"><tspan class="sp-cashflow__name">Ikea</tspan><tspan class="sp-cashflow__amount" dx="6">1.600 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="648.4"><tspan class="sp-cashflow__name">Jysk</tspan><tspan class="sp-cashflow__amount" dx="6">750 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="547.0"><tspan class="sp-cashflow__name">Eating out</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.250 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="678.4"><tspan class="sp-cashflow__name">Sticks'n'Sushi</tspan><tspan class="sp-cashflow__amount" dx="6">680 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="700.4"><tspan class="sp-cashflow__name">Lagkagehuset</tspan><tspan class="sp-cashflow__amount" dx="6">570 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="591.0"><tspan class="sp-cashflow__name">Fuel</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="730.4"><tspan class="sp-cashflow__name">Circle K</tspan><tspan class="sp-cashflow__amount" dx="6">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="635.0"><tspan class="sp-cashflow__name">Clothes</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="760.4"><tspan class="sp-cashflow__name">Zalando</tspan><tspan class="sp-cashflow__amount" dx="6">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text></g>
+</svg>
+            <span class="sp-tip sp-tip--panel sp-cashflow__tip os-cash-tip" role="tooltip">
+              <span class="sp-tip__head"><span class="sp-truncate">Housing</span><span class="sp-nowrap">12.346 kr.</span></span>
+              <span class="sp-tip__row"><span class="sp-truncate">Of income</span><span>36%</span></span>
+              <span class="sp-meta">Budget · 6 rows</span>
+            </span>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-stack sp-gap-12">
+    <div class="sp-stack sp-gap-8 os-cash-mid">
+      <span class="doc-specimen__label">Between 640 and 1099, here a 900 wide card - three columns. Rows and vendors are in the readout, and a click opens the group as a step</span>
+      <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Cash flow</span>
+          </div>
+          <div class="sp-cashflow" data-focus="" role="img" aria-label="Where the money went">
+            <svg class="sp-cashflow__plot" width="866" height="655" viewBox="0 0 866 655" aria-hidden="true">
+<g><path class="sp-cashflow__link" data-key="income" data-on="" d="M12.0 0.0C179.0 0.0 179.0 0.0 346.0 0.0L346.0 266.4C179.0 266.4 179.0 266.4 12.0 266.4Z"><title>Income to Budget, 18.370 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 266.4C179.0 266.4 179.0 280.4 346.0 280.4L346.0 338.4C179.0 338.4 179.0 324.4 12.0 324.4Z"><title>Income to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 324.4C179.0 324.4 179.0 352.4 346.0 352.4L346.0 494.5C179.0 494.5 179.0 466.5 12.0 466.5Z"><title>Income to Spending, 9.800 kr.</title></path>
+<path class="sp-cashflow__link" data-key="saved" d="M12.0 466.5C179.0 466.5 179.0 513.2 346.0 513.2L346.0 539.7C179.0 539.7 179.0 493.0 12.0 493.0Z"><title>Income to Left, 1.830 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" data-on="" d="M358.0 0.0C512.0 0.0 512.0 0.0 666.0 0.0L666.0 179.0C512.0 179.0 512.0 179.0 358.0 179.0Z"><title>Budget to Housing, 12.346 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M358.0 179.0C512.0 179.0 512.0 187.0 666.0 187.0L666.0 240.1C512.0 240.1 512.0 232.1 358.0 232.1Z"><title>Budget to Transport, 3.660 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M358.0 232.1C512.0 232.1 512.0 255.1 666.0 255.1L666.0 277.1C512.0 277.1 512.0 254.1 358.0 254.1Z"><title>Budget to Insurance, 1.520 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M358.0 254.1C512.0 254.1 512.0 304.0 666.0 304.0L666.0 316.2C512.0 316.2 512.0 266.4 358.0 266.4Z"><title>Budget to Subscriptions, 844 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M358.0 280.4C512.0 280.4 512.0 344.1 666.0 344.1L666.0 402.1C512.0 402.1 512.0 338.4 358.0 338.4Z"><title>Savings to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M358.0 352.4C512.0 352.4 512.0 418.1 666.0 418.1L666.0 479.0C512.0 479.0 512.0 413.3 358.0 413.3Z"><title>Spending to Groceries, 4.200 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M358.0 413.3C512.0 413.3 512.0 487.9 666.0 487.9L666.0 522.0C512.0 522.0 512.0 447.3 358.0 447.3Z"><title>Spending to Home, 2.350 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M358.0 447.3C512.0 447.3 512.0 539.9 666.0 539.9L666.0 558.0C512.0 558.0 512.0 465.5 358.0 465.5Z"><title>Spending to Eating out, 1.250 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M358.0 465.5C512.0 465.5 512.0 585.0 666.0 585.0L666.0 601.0C512.0 601.0 512.0 481.4 358.0 481.4Z"><title>Spending to Fuel, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M358.0 481.4C512.0 481.4 512.0 630.5 666.0 630.5L666.0 643.5C512.0 643.5 512.0 494.5 358.0 494.5Z"><title>Spending to Clothes, 900 kr.</title></path></g>
+<g><rect class="sp-cashflow__node" data-key="income" data-on="" x="0" y="0.0" width="12" height="493.0" rx="2"><title>Income, 34.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="346" y="0.0" width="12" height="266.4" rx="2"><title>Budget, 18.370 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" data-on="" x="666" y="0.0" width="12" height="179.0" rx="2"><title>Housing, 12.346 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="666" y="187.0" width="12" height="53.1" rx="2"><title>Transport, 3.660 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="666" y="255.1" width="12" height="22.0" rx="2"><title>Insurance, 1.520 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="666" y="304.0" width="12" height="12.2" rx="2"><title>Subscriptions, 844 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="346" y="280.4" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="666" y="344.1" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="346" y="352.4" width="12" height="142.1" rx="2"><title>Spending, 9.800 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="666" y="418.1" width="12" height="60.9" rx="2"><title>Groceries, 4.200 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="666" y="487.9" width="12" height="34.1" rx="2"><title>Home, 2.350 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="666" y="539.9" width="12" height="18.1" rx="2"><title>Eating out, 1.250 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="666" y="585.0" width="12" height="16.0" rx="2"><title>Fuel, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="666" y="630.5" width="12" height="13.1" rx="2"><title>Clothes, 900 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="saved" x="346" y="513.2" width="12" height="26.5" rx="2"><title>Left, 1.830 kr.</title></rect></g>
+<g><text class="sp-cashflow__label" x="20" y="244.5"><tspan class="sp-cashflow__name">Income</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">34.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">100%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="131.2"><tspan class="sp-cashflow__name">Budget</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">18.370 kr.</tspan><tspan class="sp-cashflow__share" dx="4">54%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="87.5"><tspan class="sp-cashflow__name">Housing</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">12.346 kr.</tspan><tspan class="sp-cashflow__share" dx="4">36%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="211.6"><tspan class="sp-cashflow__name">Transport</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">3.660 kr.</tspan><tspan class="sp-cashflow__share" dx="4">11%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="264.1"><tspan class="sp-cashflow__name">Insurance</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">1.520 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="308.1"><tspan class="sp-cashflow__name">Subscriptions</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">844 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="307.4"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="371.1"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="421.4"><tspan class="sp-cashflow__name">Spending</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">9.800 kr.</tspan><tspan class="sp-cashflow__share" dx="4">29%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="446.5"><tspan class="sp-cashflow__name">Groceries</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">4.200 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="503.0"><tspan class="sp-cashflow__name">Home</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">2.350 kr.</tspan><tspan class="sp-cashflow__share" dx="4">7%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="547.0"><tspan class="sp-cashflow__name">Eating out</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">1.250 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="591.0"><tspan class="sp-cashflow__name">Fuel</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="686" y="635.0"><tspan class="sp-cashflow__name">Clothes</tspan><tspan class="sp-cashflow__amount" x="686" dy="15">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="524.5"><tspan class="sp-cashflow__name">Left</tspan><tspan class="sp-cashflow__amount" data-tone="saved" x="366" dy="15">1.830 kr.</tspan></text></g>
+</svg>
+            <span class="sp-tip sp-tip--panel sp-cashflow__tip os-cash-tip-mid" role="tooltip">
+              <span class="sp-tip__head"><span class="sp-truncate">Housing</span><span class="sp-nowrap">12.346 kr.</span></span>
+              <span class="sp-tip__row"><span class="sp-truncate">Of income</span><span>36%</span></span>
+              <span class="sp-tip__row"><span class="sp-truncate">Mortgage</span><span>8.450 kr.</span></span>
+              <span class="sp-tip__row"><span class="sp-truncate">Property tax</span><span>1.540 kr.</span></span>
+              <span class="sp-tip__row"><span class="sp-truncate">Electricity</span><span>860 kr.</span></span>
+              <span class="sp-meta">Budget · 6 rows · click to open</span>
+            </span>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 os-cash-mid">
+      <span class="doc-specimen__label">Between 640 and 1099, Housing opened - the group and its rows, with a crumb back to the whole flow</span>
+      <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Cash flow</span>
+          </div>
+          <nav aria-label="Showing">
+            <ol class="sp-crumbs">
+              <li><span class="sp-crumbs__root">Income</span></li>
+              <li><span class="sp-crumb"><span class="sp-crumb__label">Budget</span></span></li>
+              <li><span class="sp-crumb"><span class="sp-crumb__label">Housing</span><button type="button" class="sp-crumb__remove" aria-label="Remove Housing">×</button></span></li>
+            </ol>
+          </nav>
+          <div class="sp-cashflow" role="img" aria-label="Where the money for Housing went">
+            <svg class="sp-cashflow__plot" width="866" height="503" viewBox="0 0 866 503" aria-hidden="true">
+<g><path class="sp-cashflow__link" data-key="2" d="M12.0 0.0C179.0 0.0 179.0 0.0 346 0.0L346 269.6C179.0 269.6 179.0 269.6 12.0 269.6Z"><title>Housing to Mortgage, 8.450 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 269.6C179.0 269.6 179.0 277.6 346 277.6L346 326.7C179.0 326.7 179.0 318.7 12.0 318.7Z"><title>Housing to Property tax, 1.540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 318.7C179.0 318.7 179.0 339.0 346 339.0L346 366.4C179.0 366.4 179.0 346.1 12.0 346.1Z"><title>Housing to Electricity, 860 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 346.1C179.0 346.1 179.0 385.2 346 385.2L346 408.2C179.0 408.2 179.0 369.1 12.0 369.1Z"><title>Housing to Heating, 720 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 369.1C179.0 369.1 179.0 434.5 346 434.5L346 446.9C179.0 446.9 179.0 381.5 12.0 381.5Z"><title>Housing to Wastewater, 390 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 381.5C179.0 381.5 179.0 478.5 346 478.5L346 490.8C179.0 490.8 179.0 393.8 12.0 393.8Z"><title>Housing to Other, 386 kr.</title></path></g>
+<g><rect class="sp-cashflow__node" data-key="2" x="0" y="0" width="12" height="393.8" rx="2"><title>Housing, 12.346 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="0.0" width="12" height="269.6" rx="2"><title>Mortgage, 8.450 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="277.6" width="12" height="49.1" rx="2"><title>Property tax, 1.540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="339.0" width="12" height="27.4" rx="2"><title>Electricity, 860 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="385.2" width="12" height="23.0" rx="2"><title>Heating, 720 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="434.5" width="12" height="12.4" rx="2"><title>Wastewater, 390 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="346" y="478.5" width="12" height="12.3" rx="2"><title>Other, 386 kr.</title></rect></g>
+<g><text class="sp-cashflow__label" x="20" y="194.9"><tspan class="sp-cashflow__name">Housing</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">12.346 kr.</tspan><tspan class="sp-cashflow__share" dx="4">36%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="132.8"><tspan class="sp-cashflow__name">Mortgage</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">8.450 kr.</tspan><tspan class="sp-cashflow__share" dx="4">25%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="300.1"><tspan class="sp-cashflow__name">Property tax</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">1.540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="350.7"><tspan class="sp-cashflow__name">Electricity</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">860 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="394.7"><tspan class="sp-cashflow__name">Heating</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">720 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="438.7"><tspan class="sp-cashflow__name">Wastewater</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">390 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="366" y="482.7"><tspan class="sp-cashflow__name">Other</tspan><tspan class="sp-cashflow__amount" x="366" dy="15">386 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text></g>
+</svg>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 os-cash-state">
+      <span class="doc-specimen__label">More out than in - December 2025. Over comes in beside the income</span>
+      <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Cash flow</span>
+          </div>
+          <div class="sp-cashflow" role="img" aria-label="Where the money went">
+            <svg class="sp-cashflow__plot" width="1334" height="803" viewBox="0 0 1334 803" aria-hidden="true">
+<g><path class="sp-cashflow__link" data-key="income" d="M12.0 0.0C152.5 0.0 152.5 0.0 293.0 0.0L293.0 217.2C152.5 217.2 152.5 217.2 12.0 217.2Z"><title>Income to Budget, 16.968 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 217.2C152.5 217.2 152.5 251.8 293.0 251.8L293.0 298.6C152.5 298.6 152.5 264.0 12.0 264.0Z"><title>Income to Savings, 3.653 kr.</title></path>
+<path class="sp-cashflow__link" data-key="income" d="M12.0 264.0C152.5 264.0 152.5 317.0 293.0 317.0L293.0 488.3C152.5 488.3 152.5 435.2 12.0 435.2Z"><title>Income to Spending, 13.378 kr.</title></path>
+<path class="sp-cashflow__link" data-key="over" d="M12.0 445.2C152.5 445.2 152.5 217.2 293.0 217.2L293.0 237.8C152.5 237.8 152.5 465.8 12.0 465.8Z"><title>Over to Budget, 1.612 kr.</title></path>
+<path class="sp-cashflow__link" data-key="over" d="M12.0 465.8C152.5 465.8 152.5 298.6 293.0 298.6L293.0 303.0C152.5 303.0 152.5 470.3 12.0 470.3Z"><title>Over to Savings, 347 kr.</title></path>
+<path class="sp-cashflow__link" data-key="over" d="M12.0 470.3C152.5 470.3 152.5 488.3 293.0 488.3L293.0 504.5C152.5 504.5 152.5 486.5 12.0 486.5Z"><title>Over to Spending, 1.271 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 0.0C526.0 0.0 526.0 0.0 747.0 0.0L747.0 158.0C526.0 158.0 526.0 158.0 305.0 158.0Z"><title>Budget to Housing, 12.346 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 0.0C928.5 0.0 928.5 0.0 1098.0 0.0L1098.0 108.2C928.5 108.2 928.5 108.2 759.0 108.2Z"><title>Housing to Mortgage, 8.450 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 108.2C928.5 108.2 928.5 112.2 1098.0 112.2L1098.0 131.9C928.5 131.9 928.5 127.9 759.0 127.9Z"><title>Housing to Property tax, 1.540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 127.9C928.5 127.9 928.5 139.4 1098.0 139.4L1098.0 150.4C928.5 150.4 928.5 138.9 759.0 138.9Z"><title>Housing to Electricity, 860 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 138.9C928.5 138.9 928.5 162.3 1098.0 162.3L1098.0 171.5C928.5 171.5 928.5 148.1 759.0 148.1Z"><title>Housing to Heating, 720 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 148.1C928.5 148.1 928.5 186.4 1098.0 186.4L1098.0 191.4C928.5 191.4 928.5 153.1 759.0 153.1Z"><title>Housing to Wastewater, 390 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 153.1C928.5 153.1 928.5 208.4 1098.0 208.4L1098.0 213.3C928.5 213.3 928.5 158.0 759.0 158.0Z"><title>Housing to Other, 386 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 158.0C526.0 158.0 526.0 166.0 747.0 166.0L747.0 212.9C526.0 212.9 526.0 204.9 305.0 204.9Z"><title>Budget to Transport, 3.660 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 166.0C928.5 166.0 928.5 231.9 1098.0 231.9L1098.0 270.9C928.5 270.9 928.5 205.1 759.0 205.1Z"><title>Transport to Car loan, 3.050 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 205.1C928.5 205.1 928.5 280.0 1098.0 280.0L1098.0 287.8C928.5 287.8 928.5 212.9 759.0 212.9Z"><title>Transport to Car insurance, 610 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 204.9C526.0 204.9 526.0 227.8 747.0 227.8L747.0 249.9C526.0 249.9 526.0 227.0 305.0 227.0Z"><title>Budget to Insurance, 1.730 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 227.8C928.5 227.8 928.5 307.6 1098.0 307.6L1098.0 320.2C928.5 320.2 928.5 240.3 759.0 240.3Z"><title>Insurance to Private insurance, 980 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 240.3C928.5 240.3 928.5 332.5 1098.0 332.5L1098.0 339.4C928.5 339.4 928.5 247.3 759.0 247.3Z"><title>Insurance to Unemployment insurance, 540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 247.3C928.5 247.3 928.5 356.6 1098.0 356.6L1098.0 359.3C928.5 359.3 928.5 249.9 759.0 249.9Z"><title>Insurance to Accident, 210 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M305.0 227.0C526.0 227.0 526.0 277.5 747.0 277.5L747.0 288.3C526.0 288.3 526.0 237.8 305.0 237.8Z"><title>Budget to Subscriptions, 844 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 277.5C928.5 277.5 928.5 386.0 1098.0 386.0L1098.0 389.8C928.5 389.8 928.5 281.3 759.0 281.3Z"><title>Subscriptions to Internet, 299 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 281.3C928.5 281.3 928.5 408.0 1098.0 408.0L1098.0 411.8C928.5 411.8 928.5 285.1 759.0 285.1Z"><title>Subscriptions to Phone, 298 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M759.0 285.1C928.5 285.1 928.5 430.3 1098.0 430.3L1098.0 433.5C928.5 433.5 928.5 288.3 759.0 288.3Z"><title>Subscriptions to Streaming, 247 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M305.0 251.8C526.0 251.8 526.0 316.9 747.0 316.9L747.0 368.1C526.0 368.1 526.0 303.0 305.0 303.0Z"><title>Savings to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M759.0 316.9C928.5 316.9 928.5 452.9 1098.0 452.9L1098.0 504.1C928.5 504.1 928.5 368.1 759.0 368.1Z"><title>Savings to Monthly saving, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 317.0C526.0 317.0 526.0 384.1 747.0 384.1L747.0 448.1C526.0 448.1 526.0 381.0 305.0 381.0Z"><title>Spending to Groceries, 5.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 384.1C928.5 384.1 928.5 516.1 1098.0 516.1L1098.0 544.3C928.5 544.3 928.5 412.2 759.0 412.2Z"><title>Groceries to Rema 1000, 2.200 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 412.2C928.5 412.2 928.5 548.3 1098.0 548.3L1098.0 570.0C928.5 570.0 928.5 434.0 759.0 434.0Z"><title>Groceries to Netto, 1.700 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 434.0C928.5 434.0 928.5 576.0 1098.0 576.0L1098.0 590.1C928.5 590.1 928.5 448.1 759.0 448.1Z"><title>Groceries to Føtex, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 381.0C526.0 381.0 526.0 456.1 747.0 456.1L747.0 530.3C526.0 530.3 526.0 455.3 305.0 455.3Z"><title>Spending to Gifts, 5.800 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 456.1C928.5 456.1 928.5 604.0 1098.0 604.0L1098.0 641.2C928.5 641.2 928.5 493.2 759.0 493.2Z"><title>Gifts to Magasin, 2.900 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 493.2C928.5 493.2 928.5 645.2 1098.0 645.2L1098.0 668.2C928.5 668.2 928.5 516.2 759.0 516.2Z"><title>Gifts to Lego, 1.800 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 516.2C928.5 516.2 928.5 674.2 1098.0 674.2L1098.0 688.2C928.5 688.2 928.5 530.3 759.0 530.3Z"><title>Gifts to Saxo, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 455.3C526.0 455.3 526.0 547.4 747.0 547.4L747.0 565.3C526.0 565.3 526.0 473.2 305.0 473.2Z"><title>Spending to Eating out, 1.400 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 547.4C928.5 547.4 928.5 705.4 1098.0 705.4L1098.0 717.0C928.5 717.0 928.5 558.9 759.0 558.9Z"><title>Eating out to Sticks'n'Sushi, 900 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 558.9C928.5 558.9 928.5 730.0 1098.0 730.0L1098.0 736.4C928.5 736.4 928.5 565.3 759.0 565.3Z"><title>Eating out to Lagkagehuset, 500 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 473.2C526.0 473.2 526.0 593.3 747.0 593.3L747.0 607.4C526.0 607.4 526.0 487.3 305.0 487.3Z"><title>Spending to Fuel, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 593.3C928.5 593.3 928.5 756.2 1098.0 756.2L1098.0 770.2C928.5 770.2 928.5 607.4 759.0 607.4Z"><title>Fuel to Circle K, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M305.0 487.3C526.0 487.3 526.0 635.7 747.0 635.7L747.0 653.0C526.0 653.0 526.0 504.5 305.0 504.5Z"><title>Spending to Home, 1.349 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M759.0 635.7C928.5 635.7 928.5 784.6 1098.0 784.6L1098.0 801.8C928.5 801.8 928.5 653.0 759.0 653.0Z"><title>Home to Ikea, 1.349 kr.</title></path></g>
+<g><rect class="sp-cashflow__node" data-key="income" x="0" y="0.0" width="12" height="435.2" rx="2"><title>Income, 34.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="over" x="0" y="445.2" width="12" height="41.3" rx="2"><title>Over, 3.229 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="293" y="0.0" width="12" height="237.8" rx="2"><title>Budget, 18.580 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="293" y="251.8" width="12" height="51.2" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="293" y="317.0" width="12" height="187.5" rx="2"><title>Spending, 14.649 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="0.0" width="12" height="158.0" rx="2"><title>Housing, 12.346 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="0.0" width="12" height="108.2" rx="2"><title>Mortgage, 8.450 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="112.2" width="12" height="19.7" rx="2"><title>Property tax, 1.540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="139.4" width="12" height="11.0" rx="2"><title>Electricity, 860 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="162.3" width="12" height="9.2" rx="2"><title>Heating, 720 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="186.4" width="12" height="5.0" rx="2"><title>Wastewater, 390 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="208.4" width="12" height="4.9" rx="2"><title>Other, 386 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="166.0" width="12" height="46.8" rx="2"><title>Transport, 3.660 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="231.9" width="12" height="39.0" rx="2"><title>Car loan, 3.050 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="280.0" width="12" height="7.8" rx="2"><title>Car insurance, 610 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="227.8" width="12" height="22.1" rx="2"><title>Insurance, 1.730 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="307.6" width="12" height="12.5" rx="2"><title>Private insurance, 980 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="332.5" width="12" height="6.9" rx="2"><title>Unemployment insurance, 540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="356.6" width="12" height="2.7" rx="2"><title>Accident, 210 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="747" y="277.5" width="12" height="10.8" rx="2"><title>Subscriptions, 844 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="386.0" width="12" height="3.8" rx="2"><title>Internet, 299 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="408.0" width="12" height="3.8" rx="2"><title>Phone, 298 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="430.3" width="12" height="3.2" rx="2"><title>Streaming, 247 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="747" y="316.9" width="12" height="51.2" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="1098" y="452.9" width="12" height="51.2" rx="2"><title>Monthly saving, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="384.1" width="12" height="64.0" rx="2"><title>Groceries, 5.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="516.1" width="12" height="28.2" rx="2"><title>Rema 1000, 2.200 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="548.3" width="12" height="21.8" rx="2"><title>Netto, 1.700 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="576.0" width="12" height="14.1" rx="2"><title>Føtex, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="456.1" width="12" height="74.2" rx="2"><title>Gifts, 5.800 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="604.0" width="12" height="37.1" rx="2"><title>Magasin, 2.900 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="645.2" width="12" height="23.0" rx="2"><title>Lego, 1.800 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="674.2" width="12" height="14.1" rx="2"><title>Saxo, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="547.4" width="12" height="17.9" rx="2"><title>Eating out, 1.400 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="705.4" width="12" height="11.5" rx="2"><title>Sticks'n'Sushi, 900 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="730.0" width="12" height="6.4" rx="2"><title>Lagkagehuset, 500 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="593.3" width="12" height="14.1" rx="2"><title>Fuel, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="756.2" width="12" height="14.1" rx="2"><title>Circle K, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="747" y="635.7" width="12" height="17.3" rx="2"><title>Home, 1.349 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="784.6" width="12" height="17.3" rx="2"><title>Ikea, 1.349 kr.</title></rect></g>
+<g><text class="sp-cashflow__label" x="20" y="215.6"><tspan class="sp-cashflow__name">Income</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">34.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">100%</tspan></text>
+<text class="sp-cashflow__label" x="20" y="463.9"><tspan class="sp-cashflow__name">Over</tspan><tspan class="sp-cashflow__amount" data-tone="over" x="20" dy="15">3.229 kr.</tspan></text>
+<text class="sp-cashflow__label" x="313" y="116.9"><tspan class="sp-cashflow__name">Budget</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">18.580 kr.</tspan><tspan class="sp-cashflow__share" dx="4">55%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="275.4"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="313" y="408.8"><tspan class="sp-cashflow__name">Spending</tspan><tspan class="sp-cashflow__amount" x="313" dy="15">14.649 kr.</tspan><tspan class="sp-cashflow__share" dx="4">43%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="77.0"><tspan class="sp-cashflow__name">Housing</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">12.346 kr.</tspan><tspan class="sp-cashflow__share" dx="4">36%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="58.1"><tspan class="sp-cashflow__name">Mortgage</tspan><tspan class="sp-cashflow__amount" dx="6">8.450 kr.</tspan><tspan class="sp-cashflow__share" dx="4">25%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="126.0"><tspan class="sp-cashflow__name">Property tax</tspan><tspan class="sp-cashflow__amount" dx="6">1.540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="148.9"><tspan class="sp-cashflow__name">Electricity</tspan><tspan class="sp-cashflow__amount" dx="6">860 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="170.9"><tspan class="sp-cashflow__name">Heating</tspan><tspan class="sp-cashflow__amount" dx="6">720 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="192.9"><tspan class="sp-cashflow__name">Wastewater</tspan><tspan class="sp-cashflow__amount" dx="6">390 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="214.9"><tspan class="sp-cashflow__name">Other</tspan><tspan class="sp-cashflow__amount" dx="6">386 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="187.5"><tspan class="sp-cashflow__name">Transport</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">3.660 kr.</tspan><tspan class="sp-cashflow__share" dx="4">11%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="255.4"><tspan class="sp-cashflow__name">Car loan</tspan><tspan class="sp-cashflow__amount" dx="6">3.050 kr.</tspan><tspan class="sp-cashflow__share" dx="4">9%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="287.9"><tspan class="sp-cashflow__name">Car insurance</tspan><tspan class="sp-cashflow__amount" dx="6">610 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="236.9"><tspan class="sp-cashflow__name">Insurance</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.730 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="317.9"><tspan class="sp-cashflow__name">Private insurance</tspan><tspan class="sp-cashflow__amount" dx="6">980 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="339.9"><tspan class="sp-cashflow__name">Unemployment insurance</tspan><tspan class="sp-cashflow__amount" dx="6">540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="361.9"><tspan class="sp-cashflow__name">Accident</tspan><tspan class="sp-cashflow__amount" dx="6">210 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="280.9"><tspan class="sp-cashflow__name">Subscriptions</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">844 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="391.9"><tspan class="sp-cashflow__name">Internet</tspan><tspan class="sp-cashflow__amount" dx="6">299 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="413.9"><tspan class="sp-cashflow__name">Phone</tspan><tspan class="sp-cashflow__amount" dx="6">298 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="435.9"><tspan class="sp-cashflow__name">Streaming</tspan><tspan class="sp-cashflow__amount" dx="6">247 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="340.5"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="482.5"><tspan class="sp-cashflow__name">Monthly saving</tspan><tspan class="sp-cashflow__amount" dx="6">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="414.1"><tspan class="sp-cashflow__name">Groceries</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">5.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">15%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="534.2"><tspan class="sp-cashflow__name">Rema 1000</tspan><tspan class="sp-cashflow__amount" dx="6">2.200 kr.</tspan><tspan class="sp-cashflow__share" dx="4">6%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="563.2"><tspan class="sp-cashflow__name">Netto</tspan><tspan class="sp-cashflow__amount" dx="6">1.700 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="587.0"><tspan class="sp-cashflow__name">Føtex</tspan><tspan class="sp-cashflow__amount" dx="6">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="491.2"><tspan class="sp-cashflow__name">Gifts</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">5.800 kr.</tspan><tspan class="sp-cashflow__share" dx="4">17%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="626.6"><tspan class="sp-cashflow__name">Magasin</tspan><tspan class="sp-cashflow__amount" dx="6">2.900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">9%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="660.7"><tspan class="sp-cashflow__name">Lego</tspan><tspan class="sp-cashflow__amount" dx="6">1.800 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="685.2"><tspan class="sp-cashflow__name">Saxo</tspan><tspan class="sp-cashflow__amount" dx="6">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="554.3"><tspan class="sp-cashflow__name">Eating out</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.400 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="715.2"><tspan class="sp-cashflow__name">Sticks'n'Sushi</tspan><tspan class="sp-cashflow__amount" dx="6">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="737.2"><tspan class="sp-cashflow__name">Lagkagehuset</tspan><tspan class="sp-cashflow__amount" dx="6">500 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="598.3"><tspan class="sp-cashflow__name">Fuel</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="767.2"><tspan class="sp-cashflow__name">Circle K</tspan><tspan class="sp-cashflow__amount" dx="6">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="739" y="642.3"><tspan class="sp-cashflow__name">Home</tspan><tspan class="sp-cashflow__amount" x="739" dy="15">1.349 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="797.2"><tspan class="sp-cashflow__name">Ikea</tspan><tspan class="sp-cashflow__amount" dx="6">1.349 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text></g>
+</svg>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 os-cash-state">
+      <span class="doc-specimen__label">A budget with no income - the chart starts at the accounts and the spending</span>
+      <div class="sp-card">
+          <div class="sp-card__head">
+            <span class="sp-section-label">Cash flow</span>
+          </div>
+          <span class="sp-meta">The budget for 2026 has no income, so there is nothing left or over to show. <a href="Budget.dc.html#21b">Add income in Budget</a></span>
+          <div class="sp-cashflow" role="img" aria-label="Where the money went">
+            <svg class="sp-cashflow__plot" width="1334" height="766" viewBox="0 0 1334 766" aria-hidden="true">
+<g><path class="sp-cashflow__link" data-key="2" d="M12.0 0.0C286.0 0.0 286.0 0.0 560.0 0.0L560.0 179.0C286.0 179.0 286.0 179.0 12.0 179.0Z"><title>Budget to Housing, 12.346 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 0.0C835.0 0.0 835.0 0.0 1098.0 0.0L1098.0 122.5C835.0 122.5 835.0 122.5 572.0 122.5Z"><title>Housing to Mortgage, 8.450 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 122.5C835.0 122.5 835.0 126.5 1098.0 126.5L1098.0 148.9C835.0 148.9 835.0 144.9 572.0 144.9Z"><title>Housing to Property tax, 1.540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 144.9C835.0 144.9 835.0 155.6 1098.0 155.6L1098.0 168.1C835.0 168.1 835.0 157.3 572.0 157.3Z"><title>Housing to Electricity, 860 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 157.3C835.0 157.3 835.0 178.6 1098.0 178.6L1098.0 189.1C835.0 189.1 835.0 167.8 572.0 167.8Z"><title>Housing to Heating, 720 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 167.8C835.0 167.8 835.0 203.0 1098.0 203.0L1098.0 208.7C835.0 208.7 835.0 173.4 572.0 173.4Z"><title>Housing to Wastewater, 390 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 173.4C835.0 173.4 835.0 225.1 1098.0 225.1L1098.0 230.7C835.0 230.7 835.0 179.0 572.0 179.0Z"><title>Housing to Other, 386 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 179.0C286.0 179.0 286.0 187.0 560.0 187.0L560.0 240.1C286.0 240.1 286.0 232.1 12.0 232.1Z"><title>Budget to Transport, 3.660 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 187.0C835.0 187.0 835.0 248.9 1098.0 248.9L1098.0 293.1C835.0 293.1 835.0 231.2 572.0 231.2Z"><title>Transport to Car loan, 3.050 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 231.2C835.0 231.2 835.0 301.7 1098.0 301.7L1098.0 310.5C835.0 310.5 835.0 240.1 572.0 240.1Z"><title>Transport to Car insurance, 610 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 232.1C286.0 232.1 286.0 255.1 560.0 255.1L560.0 277.1C286.0 277.1 286.0 254.1 12.0 254.1Z"><title>Budget to Insurance, 1.520 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 255.1C835.0 255.1 835.0 329.0 1098.0 329.0L1098.0 343.2C835.0 343.2 835.0 269.3 572.0 269.3Z"><title>Insurance to Private insurance, 980 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 269.3C835.0 269.3 835.0 354.2 1098.0 354.2L1098.0 362.0C835.0 362.0 835.0 277.1 572.0 277.1Z"><title>Insurance to Unemployment insurance, 540 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M12.0 254.1C286.0 254.1 286.0 304.0 560.0 304.0L560.0 316.2C286.0 316.2 286.0 266.4 12.0 266.4Z"><title>Budget to Subscriptions, 844 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 304.0C835.0 304.0 835.0 385.9 1098.0 385.9L1098.0 390.2C835.0 390.2 835.0 308.3 572.0 308.3Z"><title>Subscriptions to Internet, 299 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 308.3C835.0 308.3 835.0 407.9 1098.0 407.9L1098.0 412.2C835.0 412.2 835.0 312.6 572.0 312.6Z"><title>Subscriptions to Phone, 298 kr.</title></path>
+<path class="sp-cashflow__link" data-key="2" d="M572.0 312.6C835.0 312.6 835.0 430.3 1098.0 430.3L1098.0 433.9C835.0 433.9 835.0 316.2 572.0 316.2Z"><title>Subscriptions to Streaming, 247 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M12.0 280.4C286.0 280.4 286.0 344.1 560.0 344.1L560.0 402.1C286.0 402.1 286.0 338.4 12.0 338.4Z"><title>Savings to Savings, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="3" d="M572.0 344.1C835.0 344.1 835.0 453.1 1098.0 453.1L1098.0 511.1C835.0 511.1 835.0 402.1 572.0 402.1Z"><title>Savings to Monthly saving, 4.000 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M12.0 352.4C286.0 352.4 286.0 418.1 560.0 418.1L560.0 479.0C286.0 479.0 286.0 413.3 12.0 413.3Z"><title>Spending to Groceries, 4.200 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 418.1C835.0 418.1 835.0 523.1 1098.0 523.1L1098.0 549.9C835.0 549.9 835.0 444.9 572.0 444.9Z"><title>Groceries to Rema 1000, 1.850 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 444.9C835.0 444.9 835.0 553.9 1098.0 553.9L1098.0 574.2C835.0 574.2 835.0 465.2 572.0 465.2Z"><title>Groceries to Netto, 1.400 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 465.2C835.0 465.2 835.0 580.3 1098.0 580.3L1098.0 594.1C835.0 594.1 835.0 479.0 572.0 479.0Z"><title>Groceries to Føtex, 950 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M12.0 413.3C286.0 413.3 286.0 487.9 560.0 487.9L560.0 522.0C286.0 522.0 286.0 447.3 12.0 447.3Z"><title>Spending to Home, 2.350 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 487.9C835.0 487.9 835.0 608.2 1098.0 608.2L1098.0 631.4C835.0 631.4 835.0 511.1 572.0 511.1Z"><title>Home to Ikea, 1.600 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 511.1C835.0 511.1 835.0 639.0 1098.0 639.0L1098.0 649.8C835.0 649.8 835.0 522.0 572.0 522.0Z"><title>Home to Jysk, 750 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M12.0 447.3C286.0 447.3 286.0 539.9 560.0 539.9L560.0 558.0C286.0 558.0 286.0 465.5 12.0 465.5Z"><title>Spending to Eating out, 1.250 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 539.9C835.0 539.9 835.0 669.5 1098.0 669.5L1098.0 679.3C835.0 679.3 835.0 549.8 572.0 549.8Z"><title>Eating out to Sticks'n'Sushi, 680 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 549.8C835.0 549.8 835.0 692.3 1098.0 692.3L1098.0 700.5C835.0 700.5 835.0 558.0 572.0 558.0Z"><title>Eating out to Lagkagehuset, 570 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M12.0 465.5C286.0 465.5 286.0 585.0 560.0 585.0L560.0 601.0C286.0 601.0 286.0 481.4 12.0 481.4Z"><title>Spending to Fuel, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 585.0C835.0 585.0 835.0 718.4 1098.0 718.4L1098.0 734.4C835.0 734.4 835.0 601.0 572.0 601.0Z"><title>Fuel to Circle K, 1.100 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M12.0 481.4C286.0 481.4 286.0 630.5 560.0 630.5L560.0 643.5C286.0 643.5 286.0 494.5 12.0 494.5Z"><title>Spending to Clothes, 900 kr.</title></path>
+<path class="sp-cashflow__link" data-key="5" d="M572.0 630.5C835.0 630.5 835.0 749.9 1098.0 749.9L1098.0 762.9C835.0 762.9 835.0 643.5 572.0 643.5Z"><title>Clothes to Zalando, 900 kr.</title></path></g>
+<g><rect class="sp-cashflow__node" data-key="2" x="0" y="0.0" width="12" height="266.4" rx="2"><title>Budget, 18.370 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="0" y="280.4" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="0" y="352.4" width="12" height="142.1" rx="2"><title>Spending, 9.800 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="560" y="0.0" width="12" height="179.0" rx="2"><title>Housing, 12.346 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="0.0" width="12" height="122.5" rx="2"><title>Mortgage, 8.450 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="126.5" width="12" height="22.3" rx="2"><title>Property tax, 1.540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="155.6" width="12" height="12.5" rx="2"><title>Electricity, 860 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="178.6" width="12" height="10.4" rx="2"><title>Heating, 720 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="203.0" width="12" height="5.7" rx="2"><title>Wastewater, 390 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="225.1" width="12" height="5.6" rx="2"><title>Other, 386 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="560" y="187.0" width="12" height="53.1" rx="2"><title>Transport, 3.660 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="248.9" width="12" height="44.2" rx="2"><title>Car loan, 3.050 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="301.7" width="12" height="8.8" rx="2"><title>Car insurance, 610 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="560" y="255.1" width="12" height="22.0" rx="2"><title>Insurance, 1.520 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="329.0" width="12" height="14.2" rx="2"><title>Private insurance, 980 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="354.2" width="12" height="7.8" rx="2"><title>Unemployment insurance, 540 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="560" y="304.0" width="12" height="12.2" rx="2"><title>Subscriptions, 844 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="385.9" width="12" height="4.3" rx="2"><title>Internet, 299 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="407.9" width="12" height="4.3" rx="2"><title>Phone, 298 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="2" x="1098" y="430.3" width="12" height="3.6" rx="2"><title>Streaming, 247 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="560" y="344.1" width="12" height="58.0" rx="2"><title>Savings, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="3" x="1098" y="453.1" width="12" height="58.0" rx="2"><title>Monthly saving, 4.000 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="560" y="418.1" width="12" height="60.9" rx="2"><title>Groceries, 4.200 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="523.1" width="12" height="26.8" rx="2"><title>Rema 1000, 1.850 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="553.9" width="12" height="20.3" rx="2"><title>Netto, 1.400 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="580.3" width="12" height="13.8" rx="2"><title>Føtex, 950 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="560" y="487.9" width="12" height="34.1" rx="2"><title>Home, 2.350 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="608.2" width="12" height="23.2" rx="2"><title>Ikea, 1.600 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="639.0" width="12" height="10.9" rx="2"><title>Jysk, 750 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="560" y="539.9" width="12" height="18.1" rx="2"><title>Eating out, 1.250 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="669.5" width="12" height="9.9" rx="2"><title>Sticks'n'Sushi, 680 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="692.3" width="12" height="8.3" rx="2"><title>Lagkagehuset, 570 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="560" y="585.0" width="12" height="16.0" rx="2"><title>Fuel, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="718.4" width="12" height="16.0" rx="2"><title>Circle K, 1.100 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="560" y="630.5" width="12" height="13.1" rx="2"><title>Clothes, 900 kr.</title></rect>
+<rect class="sp-cashflow__node" data-key="5" x="1098" y="749.9" width="12" height="13.1" rx="2"><title>Zalando, 900 kr.</title></rect></g>
+<g><text class="sp-cashflow__label" x="20" y="131.2"><tspan class="sp-cashflow__name">Budget</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">18.370 kr.</tspan><tspan class="sp-cashflow__share" dx="4">57%</tspan></text>
+<text class="sp-cashflow__label" x="20" y="307.4"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="20" y="421.4"><tspan class="sp-cashflow__name">Spending</tspan><tspan class="sp-cashflow__amount" x="20" dy="15">9.800 kr.</tspan><tspan class="sp-cashflow__share" dx="4">30%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="87.5"><tspan class="sp-cashflow__name">Housing</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">12.346 kr.</tspan><tspan class="sp-cashflow__share" dx="4">38%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="65.3"><tspan class="sp-cashflow__name">Mortgage</tspan><tspan class="sp-cashflow__amount" dx="6">8.450 kr.</tspan><tspan class="sp-cashflow__share" dx="4">26%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="141.7"><tspan class="sp-cashflow__name">Property tax</tspan><tspan class="sp-cashflow__amount" dx="6">1.540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="165.9"><tspan class="sp-cashflow__name">Electricity</tspan><tspan class="sp-cashflow__amount" dx="6">860 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="187.9"><tspan class="sp-cashflow__name">Heating</tspan><tspan class="sp-cashflow__amount" dx="6">720 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="209.9"><tspan class="sp-cashflow__name">Wastewater</tspan><tspan class="sp-cashflow__amount" dx="6">390 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="231.9"><tspan class="sp-cashflow__name">Other</tspan><tspan class="sp-cashflow__amount" dx="6">386 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="211.6"><tspan class="sp-cashflow__name">Transport</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">3.660 kr.</tspan><tspan class="sp-cashflow__share" dx="4">11%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="275.0"><tspan class="sp-cashflow__name">Car loan</tspan><tspan class="sp-cashflow__amount" dx="6">3.050 kr.</tspan><tspan class="sp-cashflow__share" dx="4">9%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="310.1"><tspan class="sp-cashflow__name">Car insurance</tspan><tspan class="sp-cashflow__amount" dx="6">610 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="264.1"><tspan class="sp-cashflow__name">Insurance</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">1.520 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="340.1"><tspan class="sp-cashflow__name">Private insurance</tspan><tspan class="sp-cashflow__amount" dx="6">980 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="362.1"><tspan class="sp-cashflow__name">Unemployment insurance</tspan><tspan class="sp-cashflow__amount" dx="6">540 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="308.1"><tspan class="sp-cashflow__name">Subscriptions</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">844 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="392.1"><tspan class="sp-cashflow__name">Internet</tspan><tspan class="sp-cashflow__amount" dx="6">299 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="414.1"><tspan class="sp-cashflow__name">Phone</tspan><tspan class="sp-cashflow__amount" dx="6">298 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="436.1"><tspan class="sp-cashflow__name">Streaming</tspan><tspan class="sp-cashflow__amount" dx="6">247 kr.</tspan><tspan class="sp-cashflow__share" dx="4">1%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="371.1"><tspan class="sp-cashflow__name">Savings</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="486.1"><tspan class="sp-cashflow__name">Monthly saving</tspan><tspan class="sp-cashflow__amount" dx="6">4.000 kr.</tspan><tspan class="sp-cashflow__share" dx="4">12%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="446.5"><tspan class="sp-cashflow__name">Groceries</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">4.200 kr.</tspan><tspan class="sp-cashflow__share" dx="4">13%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="540.5"><tspan class="sp-cashflow__name">Rema 1000</tspan><tspan class="sp-cashflow__amount" dx="6">1.850 kr.</tspan><tspan class="sp-cashflow__share" dx="4">6%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="568.1"><tspan class="sp-cashflow__name">Netto</tspan><tspan class="sp-cashflow__amount" dx="6">1.400 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="591.2"><tspan class="sp-cashflow__name">Føtex</tspan><tspan class="sp-cashflow__amount" dx="6">950 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="503.0"><tspan class="sp-cashflow__name">Home</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">2.350 kr.</tspan><tspan class="sp-cashflow__share" dx="4">7%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="623.8"><tspan class="sp-cashflow__name">Ikea</tspan><tspan class="sp-cashflow__amount" dx="6">1.600 kr.</tspan><tspan class="sp-cashflow__share" dx="4">5%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="648.4"><tspan class="sp-cashflow__name">Jysk</tspan><tspan class="sp-cashflow__amount" dx="6">750 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="547.0"><tspan class="sp-cashflow__name">Eating out</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">1.250 kr.</tspan><tspan class="sp-cashflow__share" dx="4">4%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="678.4"><tspan class="sp-cashflow__name">Sticks'n'Sushi</tspan><tspan class="sp-cashflow__amount" dx="6">680 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="700.4"><tspan class="sp-cashflow__name">Lagkagehuset</tspan><tspan class="sp-cashflow__amount" dx="6">570 kr.</tspan><tspan class="sp-cashflow__share" dx="4">2%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="591.0"><tspan class="sp-cashflow__name">Fuel</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="730.4"><tspan class="sp-cashflow__name">Circle K</tspan><tspan class="sp-cashflow__amount" dx="6">1.100 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" text-anchor="end" x="552" y="635.0"><tspan class="sp-cashflow__name">Clothes</tspan><tspan class="sp-cashflow__amount" x="552" dy="15">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text>
+<text class="sp-cashflow__label" x="1118" y="760.4"><tspan class="sp-cashflow__name">Zalando</tspan><tspan class="sp-cashflow__amount" dx="6">900 kr.</tspan><tspan class="sp-cashflow__share" dx="4">3%</tspan></text></g>
+</svg>
+          </div>
+      </div>
+    </div>
+    <div class="sp-stack sp-gap-8 os-cash-state">
+      <span class="doc-specimen__label">No budget sheet</span>
+      <div class="sp-card">
+        <div class="sp-card__head"><span class="sp-section-label">Cash flow</span></div>
+        <div class="sp-empty">
+          <span class="sp-empty__title">No budget yet</span>
+          <span class="sp-empty__body">Cash flow starts from the income in your budget and shows where it goes: to your accounts, your savings and your orders. Add your income and costs in Budget and it is drawn here.</span>
+          <div class="sp-row-flex sp-gap-8">
+            <a class="sp-btn sp-btn--small" href="Budget.dc.html#21a">Open Budget</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>A sub page of Statistics</b>, at <code>/statistics/cash-flow</code>. It is reached by the Orders / Cash flow switch at the right end of the period row, on every Statistics screen (<a href="#4a">4a</a>, <a href="#4g">4g</a>, <a href="#4b">4b</a>, <a href="#4c">4c</a>) and here; nothing else on Statistics changes. The period is shared with Statistics both ways, so going between them keeps the window. Cash flow has its own period row and nothing else above the card: no compare switch, no left-out orders switch, no drill path. Its top bar is the search alone.</div>
+    <div class="doc-note"><b>Drawn from the budget and the orders.</b> From the budget: the income rows, by the account they are paid into, and the cost rows, by the account they are paid from (<a href="Budget.dc.html#21d">21d</a>), each in its group. From the orders: Spending, every order in the period that Statistics counts (Ordered or Delivered, not left out of statistics), each counted once under its first category, as Stacked counts it (<a href="#4a">4a</a>), then by vendor. One new route answers both, so the page never loads the sheet or the orders: <code>GET /api/cashflow?from=2026-08&amp;to=2026-08&amp;amounts=real</code>, with the income accounts and their sums, each cost account with its groups and rows, and Spending with its categories and vendors.</div>
+    <div class="doc-note"><b>Columns, left to right.</b> The income: one bar per account income rows are paid into, usually one, named by the account, here Income. Then where it goes: each cost account in the accounts list's order, then No account when a cost row has none, then Spending, then Left. Then each account's groups and Spending's categories. Then each group's rows and each category's vendors. Groups, rows and accounts keep the budget's order; categories and vendors are largest first. Every bar is labelled with its amount and its share of the income, "Housing 12.346 kr. 36%". Left and Over show the amount alone, in their own colour: <code>Left 1.830 kr.</code> in the positive colour, <code>Over 3.229 kr.</code> in the problem colour. The first two columns carry their labels on the right of the bar, the third on the left, the last on the right in one line each.</div>
+    <div class="doc-note"><b>Colours</b> are legend keys, so a scheme or the dark theme recolours the chart with no rule of its own (<a href="Components.dc.html#c14">c14</a>). The income is key 1, the scheme's primary. Each account takes one key, and its groups and rows take the same: keys 2, 3, 4, 6, 7 in the accounts' order (Mid, Light, Pale, Sand, Grey), starting again after the fifth. Spending is always key 5, Brown, and so are its categories and vendors. Left is <code>--primary-2</code>, Over <code>--red-ink</code>.</div>
+    <div class="doc-note"><b>Pointing at a bar or a ribbon</b> lights its whole path, from the income to the rows or vendors, and steps the rest back (<code>data-focus</code> on the chart, <code>data-on</code> on what is lit). The readout is the chart tooltip (<a href="Components.dc.html#c18">c18</a>): the name and amount in its head, then Of income, then where it sits and how many rows or vendors it holds, "Budget · 6 rows", "Spending · 3 vendors". A ribbon has no readout of its own: pointing at one shows the readout of the bar it flows into, and lights that bar's path. It stands 8px clear of the pointer, on the side with room. A click or a tap keeps it until the next click, a click outside, or Escape. Nothing on the chart drills or opens another page.</div>
+    <div class="doc-note"><b>The period snaps to whole months</b>, since the budget is kept per month: a period counts every month it touches, in full, and Spending counts the orders of the same days, so the two parts always cover one span. The resolved line states the months' own dates and the note says so: "whole month" for one, "whole months" for more, "whole months to date" when the period runs to the current month. It is the one note on the line: <code>PeriodPicker</code> takes <code>shown</code>, the dates the line states, and <code>note</code>, and each replaces its own, so a running Year reads "01/01 - 31/08/2026" and "whole months to date", never the picker's "year to date" beside it. Month August is 01/08 - 31/08/2026; Week W34 is August; a week across two months is both; 30 days from 22/07 to 20/08 is 01/07 - 31/08/2026; a custom 08/03 - 19/04 is 01/03 - 30/04/2026.</div>
+    <div class="doc-note"><b>One amount per row and month</b>, as Budget shows it: the real amount once it is entered, the expected amount until then. There is no choice between them. Months still to come are not counted, since no orders are in them yet: a Quarter or Year in progress runs to the end of the current month, and the resolved line says so, 01/01 - 31/08/2026, "whole months to date".</div>
+    <div class="doc-note"><b>Other.</b> A group shows up to six rows and a category up to six vendors; with seven or more, the five largest keep their place and the rest join as one Other at the end, its readout listing them. Spending shows up to six categories in the same way, the rest joined as Other categories. Accounts and groups are never joined. Anything with nothing in the period is not drawn.</div>
+    <div class="doc-note"><b>Left and Over.</b> When the income is more than the accounts and Spending together, the rest is Left, the last bar in the second column. When it is less, Over comes in under the income, in the problem colour, and every ribbon from the income column is shared between the two in proportion. Equal draws neither.</div>
+    <div class="doc-note"><b>No budget, or no income.</b> A reader with no budget sheet for the period's year gets the empty state with Open Budget (<code>/budget</code>): the chart starts from the budget's income. A budget with no income starts at the accounts and Spending, with no Left or Over, and a line above the chart says why, with a link to Budget.</div>
+    <div class="doc-note"><b>Across, by the chart's own width, not the device's.</b> At 1100 and wider all four columns are drawn. From 640 to 1099 the last column is left out, since its labels and the third column's no longer fit side by side: the chart is the income, where it goes, and the groups and categories, each labelled on the right. A group's or category's readout then lists its rows or vendors, the three largest and "N more", with "click to open" (<code>stats.cash.clickToOpen</code>); a click opens it as a step, drawn across as itself and its rows or vendors, with a crumb (<a href="Components.dc.html#c8">c8</a>) back to the whole flow. Every width keeps one scale, so a chart with many rows runs taller, never smaller.</div>
+    <div class="doc-note"><b>Under 640, and on a phone, the chart turns downwards</b> (<code>sp-cashflow--down</code>) and shows one step at a time: the income at the top and the accounts, Spending and Left below, with the share list under it as the labels. On a phone the Orders / Cash flow switch has a row of its own under the period, full width (<code>sp-segmented--fill</code>), so the period keeps its arrows and its name (<a href="Mobile screens.dc.html#7b">7b</a>). When more goes out than comes in, the top bar is the income and Over side by side, Over in the problem colour, and Over is the list's last row, "Over 3.229 kr.", as Left is when there is some. Tapping an account or Spending, in the chart or the list, shows its groups or categories, with it as a crumb (<a href="Components.dc.html#c8">c8</a>); tapping a group or category shows its rows or vendors; removing a crumb goes back (<a href="Mobile screens.dc.html#7a">Mobile screens, Statistics</a>).</div>
+    <div class="doc-note"><b>Read by a screen reader bar by bar.</b> Each bar is in the tab order and named by the words its label draws, "Housing 12.346 kr. 36%"; focus shows its path and readout as the pointer does. Ribbons and labels are hidden from it, since the bars say the same.</div>
+    <div class="doc-note"><b>The words</b> are <code>stats.cash.*</code> in <code>language/en.json</code> and <code>da.json</code>. <code>stats.flow.*</code>, the old lens's words, is not reused.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
     <span class="doc-badge" id="4g">4g</span>
     <span class="doc-section__title">Statistics, one month</span>
   </div>
@@ -849,14 +1405,6 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
 
     <div class="os-body">
@@ -874,6 +1422,11 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
+        <span class="sp-grow"></span>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-3" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-3"><span class="sp-label">Cash flow</span></label>
+        </div>
       </div>
 
       <div class="sp-stats sp-stats--fold">
@@ -1780,14 +2333,6 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
     <div class="os-body">
       <div class="sp-period">
@@ -1804,6 +2349,11 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
+        <span class="sp-grow"></span>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-4" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-4"><span class="sp-label">Cash flow</span></label>
+        </div>
       </div>
 
       <div class="sp-card sp-card--path">
@@ -2030,14 +2580,6 @@
           <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
           <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
         </div>
-        <span class="sp-grow"></span>
-        <div class="sp-combobox">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <button type="button" class="sp-btn sp-btn--outline">Export</button>
       </div>
     <div class="os-body">
       <div class="sp-period">
@@ -2054,6 +2596,11 @@
           <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
           <span class="sp-data">Compare with 2025</span>
         </label>
+        <span class="sp-grow"></span>
+        <div class="sp-segmented" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-5" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-5"><span class="sp-label">Cash flow</span></label>
+        </div>
       </div>
 
       <div class="sp-card sp-card--path">
@@ -2699,131 +3246,6 @@
           <span class="sp-grow"></span>
           <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="doc-section">
-  <div class="doc-section__head">
-    <span class="doc-badge" id="4e">4e</span>
-    <span class="doc-section__title">The &quot;Expenses only&quot; menu</span>
-  </div>
-  <div class="doc-lede">Three options, single choice, because an order is either money out or money back and a user asking about spend means one of three things: what I paid, what came back, or the difference. The control always reads the choice, never the word &quot;Filter&quot;.</div>
-  <div class="doc-notes">
-    <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>Values:</b> <code>expenses</code> (default) · <code>refunds</code> · <code>net</code>. In the URL as <code>flow=</code>, alongside <code>period</code> and <code>crumbs</code>, so a shared link carries it.</div>
-    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders that are Ordered or Delivered. <code>refunds</code>: orders that are Returned or Sold, both money back. With none in the period the page shows the empty state "No returned or sold orders in" and the period. <code>net</code>: both, a return counted against its spend. A returned order is never an expense.</div>
-    <div class="doc-note"><b>It filters, it does not change definitions.</b> Median order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
-    <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
-    <div class="doc-note"><b>The menu sits in the top bar with Export, at its right end</b>, not in the period row. The period row holds the period alone, so its presets keep their width at every desktop width.</div>
-    <div class="doc-note"><b>Its list is the field's width</b> (<a href="Components.dc.html#c5">c5</a>) and grows only for an option that does not fit, up to 288. It is the <code>default</code> combobox: at the bar's right end the room is on the left, so the list hangs from the field's right edge and grows leftward, drawn here as <code>data-hang="end"</code>, which <code>place()</code> sets.</div>
-    <div class="doc-note"><b>The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>
-    <div class="doc-note"><b>Budget limits only apply under <code>expenses</code> and <code>net</code>.</b> A limit compared against refunds is meaningless, so the limit cards and the pace marker come out under <code>refunds</code>.</div>
-    <div class="doc-note"><b>Not a multi-select.</b> Two of three checked is either <code>net</code> or a single value, so checkboxes would offer a state that has no answer.</div>
-  </div>
-
-  <div class="doc-specimens">
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">Open</span>
-      <div class="os-menu-stage doc-frame">
-        <div class="sp-topbar">
-            <span class="sp-grow"></span>
-            <div class="sp-combobox" data-open="true">
-              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-label="Lens">
-                <span class="sp-grow">Expenses only</span>
-                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
-              </button>
-              <ul class="sp-combobox__panel" role="listbox" aria-label="Which orders" data-hang="end">
-                <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true">
-                  <span class="sp-stack sp-grow">
-                    <span class="sp-data">Expenses only</span>
-                    <span class="sp-meta">What you paid.</span>
-                  </span>
-                  <svg class="sp-combobox__check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg>
-                </button></li>
-                <li role="option"><button type="button" class="sp-combobox__option">
-                  <span class="sp-stack sp-grow">
-                    <span class="sp-data">Refunds only</span>
-                    <span class="sp-meta">Returned and sold orders.</span>
-                  </span>
-                </button></li>
-                <li role="option"><button type="button" class="sp-combobox__option">
-                  <span class="sp-stack sp-grow">
-                    <span class="sp-data">Net of refunds</span>
-                    <span class="sp-meta">What you paid, less what came back.</span>
-                  </span>
-                </button></li>
-              </ul>
-            </div>
-            <button type="button" class="sp-btn sp-btn--outline">Export</button>
-          </div>
-      
-      </div>
-    </div>
-
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">Closed, one per choice</span>
-      <div class="sp-stack sp-gap-12">
-        <div class="sp-combobox doc-w400">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Expenses only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <div class="sp-combobox doc-w400">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Refunds only</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-        <div class="sp-combobox doc-w400">
-          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
-            <span class="sp-grow">Net of refunds</span>
-            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="doc-specimen">
-      <span class="doc-specimen__label">A negative row and month, under net</span>
-      <div class="sp-card os-col-320">
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">Indbo Møbler</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount">128.900</span>
-            </div>
-            <span class="sp-gauge">
-              <meter value="100" min="0" max="100" aria-label="Indbo Møbler"></meter>
-              <span class="sp-gauge__fill" data-fill="100"></span>
-            </span>
-          </div>
-          <div class="sp-stack sp-gap-6">
-            <div class="sp-row-flex sp-gap-8">
-              <span class="sp-data">Skagerak</span>
-              <span class="sp-grow"></span>
-              <span class="sp-amount sp-ink-danger">−4.180</span>
-            </div>
-            <span class="sp-gauge">
-              <meter value="5" min="0" max="100" aria-label="Skagerak"></meter>
-              <span class="sp-gauge__fill sp-gauge__fill--negative" data-fill="5"></span>
-            </span>
-          </div>
-        <div class="sp-bars os-signed">
-          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="50"></span></span>
-          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="70"></span></span>
-          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="45"></span></span>
-          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="90"></span></span>
-        </div>
-        <div class="os-below" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span class="os-below__bar"></span>
-          <span></span>
-        </div>
-        <span class="sp-meta">March returned more than it bought.</span>
       </div>
     </div>
   </div>

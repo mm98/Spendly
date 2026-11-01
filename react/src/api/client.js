@@ -1240,6 +1240,11 @@ export async function getStatsSlice(slice, signal) {
     this month shares one answer. */
 export const thisMonthSlice = () => ({ range: 'month', windowId: today().slice(0, 7), flow: 'expenses', step: 'day' })
 
+/** Where the income of the whole months `from` to `to` (YYYY-MM) goes (4h): `{ flow }`, null with no budget sheet. */
+export async function getCashFlow(from, to, signal) {
+	return request('/api/cashflow' + qs({ from, to }), { signal })
+}
+
 /** Each of the last `count` months' spend and orders, oldest first: `{ months: [{ month, spend, orders }] }`. */
 export async function getStatsMonths(count, signal) {
 	return request('/api/stats/months' + qs({ count }), { signal })
@@ -1494,9 +1499,9 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-const orderReads = [getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getOrderLookalike, getStatuses, getViews]
-const vendorReads = [getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
-const categoryReads = [getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getLimitedCategorySpend, getCategory, getMonthlySummary]
+const orderReads = [getCashFlow, getOrders, getCounts, getVendorYear, getVendorOrdersCarrying, getRecentVendorNames, getRecentCategoryNames, getDrafts, getOrderImpact, getOrder, getStatsSlice, getStatsMonths, getSliceOrders, getSliceOrderPages, getHomeAttention, getMonthlySummary, getComparedMonth, getOftenOrders, getOrderLimits, getOrderLookalike, getStatuses, getViews]
+const vendorReads = [getCashFlow, getVendorPage, getCounts, getVendorYear, getRecentVendorNames, getVendorPages, getKnownVendorNames, getVendor, getHomeAttention]
+const categoryReads = [getCashFlow, getCategoryPage, getCounts, getVendorOrdersCarrying, getRecentCategoryNames, getNextCategoryColour, getOverLimitCategories, getCategoryPages, getKnownCategoryNames, getLimitedCategories, getLimitedCategorySpend, getCategory, getMonthlySummary]
 const bookmarkReads = [getBookmarks, getCounts, getBookmarkPages, getBookmark, getBookmarksWithoutCategory]
 const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
 
@@ -1523,5 +1528,5 @@ export function invalidateCategoryData() {
 
 /** The budget changed: the budget page, the bank check and the sidebar's count read it. */
 function invalidateBudgetData() {
-	drop(getBudgetYears, getBudgetYear, getBudgetDue, getBudgetAccounts, getBankLinks)
+	drop(getBudgetYears, getBudgetYear, getBudgetDue, getBudgetAccounts, getBankLinks, getCashFlow)
 }

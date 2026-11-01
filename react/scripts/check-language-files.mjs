@@ -119,7 +119,8 @@ const visit = (node, at) => {
 	if (node.type === 'AssignmentPattern' && node.right?.type === 'Literal' && typeof node.right.value === 'string' && /^[A-Z][a-z]/.test(node.right.value) && words(node.right.value)) at(node, node.right.value)
 	// a sentence anywhere else: a message kept in a constant, a toast, a fallback
 	else if (node.type === 'Literal' && typeof node.value === 'string' && sentence(node.value)) at(node, node.value)
-	else if (node.type === 'TemplateLiteral' && sentence(node.quasis.map(q => q.value.cooked).join('x'))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
+	// a template with no word of its own, such as an SVG path, is code
+	else if (node.type === 'TemplateLiteral' && node.quasis.some(q => words(q.value.cooked)) && sentence(node.quasis.map(q => q.value.cooked).join('x'))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
 	if (node.type === 'JSXAttribute' || node.type === 'TemplateLiteral') return
 	// a message for a developer, in the console, in the log or in an error the code throws
 	if (node.type === 'CallExpression' && ['console', 'log'].includes(node.callee?.object?.name)) return

@@ -466,6 +466,7 @@ for (const [method, path, body] of [
 	['PUT', '/settings/status-email', { weekly: true, monthly: true, zone: 'Europe/Copenhagen', locale: 'da-DK' }],
 	['GET', '/stats/home'],
 	['GET', '/stats/months?count=8'],
+	['GET', '/cashflow?from=2026-01&to=2026-06'],
 	['PUT', '/stats/summary/seen', { month: '2026-07' }],
 	['POST', '/categories/suggestions', { items: ['Ceiling lamp', 'Duvet cover'] }],
 	// the names it embedded in the background are stored by now, so the next one reads them back
