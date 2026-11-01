@@ -57,15 +57,9 @@ export const log = {
 	warn: (area, ...values) => { originalConsole.warn(`[${area}]`, ...values); queue('warn', area, values) }
 }
 
-// the browser's notice that a size watcher's answer waits one frame; the answer still arrives, so it is no fault
-const RESIZE_NOTICE = /^ResizeObserver loop /
-
 /** Once, before the app draws: sends what nothing caught, and what is printed as an error or a warning. */
 export function startLogging() {
-	window.addEventListener('error', event => {
-		if (!event.error && RESIZE_NOTICE.test(event.message)) return
-		queue('error', 'page', [event.error ?? event.message])
-	})
+	window.addEventListener('error', event => queue('error', 'page', [event.error ?? event.message]))
 	window.addEventListener('unhandledrejection', event => queue('error', 'page', [event.reason]))
 	console.error = (...values) => { originalConsole.error(...values); queue('error', 'console', values) }
 	console.warn = (...values) => { originalConsole.warn(...values); queue('warn', 'console', values) }
