@@ -16,6 +16,9 @@
 	.bg-sheet tbody td.bg-hold > .bg-held { position: sticky; left: var(--card-pad); z-index: 1; width: calc(100cqi - 2 * var(--card-pad)); }
 	/* an editor with a list open lies over the sticky cells after it, so the list is what a press reaches */
 	.bg-sheet tbody td.bg-hold > .bg-held:has([aria-expanded="true"]) { z-index: 4; }
+	/* every figure column is 128px, the room the current month's band needs: 180 + 120 + 14 x 128 */
+	.bg-sheet { min-width: 2092px; }
+	.bg-sheet .bg-col-figure { width: 128px; }
 	.bg-sheet .bg-col-name { width: 180px; }
 	.bg-sheet .bg-col-account { width: 120px; }
 	.bg-sheet tbody td.bg-opens { cursor: pointer; }

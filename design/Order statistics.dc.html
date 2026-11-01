@@ -48,7 +48,6 @@
     <div class="os-body">
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
-          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4a-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4a-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4a-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4a-period"><span class="sp-label">Quarter</span></label>
@@ -819,7 +818,7 @@
     <div class="doc-note"><b>The left and right arrow keys step to the previous or next period</b>, as they step the months on Budget. They do nothing while a field or a list has the focus, while a modifier key is held, on a custom range, or past the newest period.</div>
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
-    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
+    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
     <div class="doc-note"><b>Limits draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
     <div class="doc-note"><b>Limits holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
@@ -1377,7 +1376,7 @@
     <div class="doc-note"><b>Pointing at a bar or a ribbon</b> lights its whole path, from the income to the rows or vendors, and steps the rest back (<code>data-focus</code> on the chart, <code>data-on</code> on what is lit). The readout is the chart tooltip (<a href="Components.dc.html#c18">c18</a>): the name and amount in its head, then Of income, then where it sits and how many rows or vendors it holds, "Budget · 6 rows", "Spending · 3 vendors". A ribbon has no readout of its own: pointing at one shows the readout of the bar it flows into, and lights that bar's path. It stands 8px clear of the pointer, on the side with room. A click or a tap keeps it until the next click, a click outside, or Escape. Nothing on the chart drills or opens another page.</div>
     <div class="doc-note"><b>The period is whole months</b>, since the budget is kept per month: Month, Quarter and Year each cover their months in full, and Spending counts the orders of the same days, so the two parts always cover one span. The window names the period (August, Q3, 2026) and the row draws no resolved dates and no note: on Cash flow <code>PeriodPicker</code> takes <code>dated={false}</code>, which leaves out the date line and the note; Orders keeps both.</div>
     <div class="doc-note"><b>Amounts are hidden every time Cash flow opens</b>, as income is on Budget (<a href="Budget.dc.html#21a">Budget 21a</a>). The chart draws its bars and ribbons at their real sizes and names every bar with its share of the income; the amounts are not in the page at all while hidden, in the labels, the readout or the bars' titles, so nothing can be read from them. The readout keeps its name, its Of income share and its line, here "Budget · 6 rows". Left and Over have no share, so they show their name only. Show amounts is the same toggle button as Show income (<code>aria-pressed</code>, the eye from the register), between the period note and the Orders / Cash flow switch. Pressed, it reads Hide amounts and every amount appears in place, as the specimens below are drawn; nothing else moves. It holds until Statistics is left, and switching to Orders and back keeps it.</div>
-    <div class="doc-note"><b>Month is the shortest period on Cash flow</b>, since income is paid per month. Its period row offers Month, Quarter and Year; 30 days, Week and Custom are not in the row. Opening Cash flow while Orders is on 30 days, Week or Custom shows the month holding that period's last day, so Week W34 opens August, 30 days to 20/08 opens August and a custom 08/03 - 19/04 opens April. Orders keeps its own period: switching back returns to the Week, 30 days or custom range it was on. The left and right arrow keys step by the month, quarter or year shown.</div>
+    <div class="doc-note"><b>Month is the shortest period on Cash flow</b>, since income is paid per month. Orders offers Week, Month, Quarter, Year and Custom, and there is no 30 days; Cash flow's row offers Month, Quarter and Year. Opening Cash flow while Orders is on Week or Custom shows the month holding that period's last day, so Week W34 opens August and a custom 08/03 - 19/04 opens April. Orders keeps its own period: switching back returns to the Week or custom range it was on. The left and right arrow keys step by the month, quarter or year shown.</div>
     <div class="doc-note"><b>One amount per row and month</b>, as Budget shows it: the real amount once it is entered, the expected amount until then. There is no choice between them. Months still to come are not counted, since no orders are in them yet: a Quarter or Year in progress runs to the end of the current month.</div>
     <div class="doc-note"><b>Other.</b> A group shows up to six rows and a category up to six vendors; with seven or more, the five largest keep their place and the rest join as one Other at the end, its readout listing them. Spending shows up to six categories in the same way, the rest joined as Other categories. Accounts and groups are never joined. Anything with nothing in the period is not drawn.</div>
     <div class="doc-note"><b>Left and Over.</b> When the income is more than the accounts and Spending together, the rest is Left, the last bar in the second column. When it is less, Over comes in under the income, in the problem colour, and every ribbon from the income column is shared between the two in proportion. Equal draws neither.</div>
@@ -1408,7 +1407,6 @@
     <div class="os-body">
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
-          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4g-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4g-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4g-period" defaultChecked="{{ true }}"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4g-period"><span class="sp-label">Quarter</span></label>
@@ -1544,7 +1542,7 @@
                 <span></span><span></span><span></span><span></span><span></span>
               </div>
               <div class="sp-bars sp-bars--plot sp-bars--days">
-                <button type="button" class="sp-bars__col" data-from="2026-08-01" data-to="2026-08-01" aria-label="Saturday 1 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-01" data-to="2026-08-01" aria-label="Saturday 1 August">
                   <span class="sp-bars__stack" data-h="35">
                     <span class="sp-bars__seg" data-key="1" data-share="35"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="25"></span>
@@ -1553,7 +1551,7 @@
                   </span>
                   <span class="sp-bars__tick">1</span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-02" data-to="2026-08-02" aria-label="Sunday 2 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-02" data-to="2026-08-02" aria-label="Sunday 2 August">
                   <span class="sp-bars__stack" data-h="50">
                     <span class="sp-bars__seg" data-key="1" data-share="50"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="20"></span>
@@ -1625,7 +1623,7 @@
                   </span>
                   <span class="sp-bars__tick">9</span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-10" data-to="2026-08-10" aria-label="Monday 10 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-10" data-to="2026-08-10" aria-label="Monday 10 August">
                   <span class="sp-bars__stack" data-h="25">
                     <span class="sp-bars__seg" data-key="1" data-share="40"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="30"></span>
@@ -1634,7 +1632,7 @@
                   </span>
                   <span class="sp-bars__tick"></span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-11" data-to="2026-08-11" aria-label="Tuesday 11 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-11" data-to="2026-08-11" aria-label="Tuesday 11 August">
                   <span class="sp-bars__stack" data-h="20">
                     <span class="sp-bars__seg" data-key="1" data-share="35"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="25"></span>
@@ -1643,7 +1641,7 @@
                   </span>
                   <span class="sp-bars__tick">11</span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-12" data-to="2026-08-12" aria-label="Wednesday 12 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-12" data-to="2026-08-12" aria-label="Wednesday 12 August">
                   <span class="sp-bars__stack" data-h="65">
                     <span class="sp-bars__seg" data-key="1" data-share="50"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="20"></span>
@@ -1652,7 +1650,7 @@
                   </span>
                   <span class="sp-bars__tick"></span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-13" data-to="2026-08-13" aria-label="Thursday 13 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-13" data-to="2026-08-13" aria-label="Thursday 13 August">
                   <span class="sp-bars__stack" data-h="80">
                     <span class="sp-bars__seg" data-key="1" data-share="30"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="35"></span>
@@ -1661,7 +1659,7 @@
                   </span>
                   <span class="sp-bars__tick">13</span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-14" data-to="2026-08-14" aria-label="Friday 14 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-14" data-to="2026-08-14" aria-label="Friday 14 August">
                   <span class="sp-bars__stack" data-h="45">
                     <span class="sp-bars__seg" data-key="1" data-share="45"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="25"></span>
@@ -1670,7 +1668,7 @@
                   </span>
                   <span class="sp-bars__tick"></span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-15" data-to="2026-08-15" aria-label="Saturday 15 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-15" data-to="2026-08-15" aria-label="Saturday 15 August">
                   <span class="sp-bars__stack" data-h="30">
                     <span class="sp-bars__seg" data-key="1" data-share="40"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="30"></span>
@@ -1679,7 +1677,7 @@
                   </span>
                   <span class="sp-bars__tick">15</span>
                 </button>
-                <button type="button" class="sp-bars__col" data-from="2026-08-16" data-to="2026-08-16" aria-label="Sunday 16 August">
+                <button type="button" class="sp-bars__col" data-week="odd" data-from="2026-08-16" data-to="2026-08-16" aria-label="Sunday 16 August">
                   <span class="sp-bars__stack" data-h="50">
                     <span class="sp-bars__seg" data-key="1" data-share="35"></span>
                     <span class="sp-bars__seg" data-key="2" data-share="25"></span>
@@ -1741,25 +1739,25 @@
                 <span class="sp-bars__col" data-future aria-label="23 August">
                   <span class="sp-bars__tick">23</span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="24 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="24 August">
                   <span class="sp-bars__tick"></span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="25 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="25 August">
                   <span class="sp-bars__tick">25</span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="26 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="26 August">
                   <span class="sp-bars__tick"></span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="27 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="27 August">
                   <span class="sp-bars__tick">27</span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="28 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="28 August">
                   <span class="sp-bars__tick"></span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="29 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="29 August">
                   <span class="sp-bars__tick">29</span>
                 </span>
-                <span class="sp-bars__col" data-future aria-label="30 August">
+                <span class="sp-bars__col" data-week="odd" data-future aria-label="30 August">
                   <span class="sp-bars__tick"></span>
                 </span>
                 <span class="sp-bars__col" data-future aria-label="31 August">
@@ -2295,7 +2293,8 @@
     <div class="doc-note"><b>The four stats fold to two by two below a 996px row</b> (<code>sp-stats--fold</code>): four of 240 and three gaps. The row is 998 in a 1280 shell, so it folds as soon as the shell is narrower. It is always four across or two, never three over one. On a phone every stats row is two by two.</div>
     <div class="doc-note"><b>The period bar wraps rather than squeezing.</b> The sizes keep their full width at every desktop width. When the row has no room for everything, the window, the resolved range and the compare switch move to a second line, in that order. The day count is hidden below 1100. Below 640 the bar is the single select.</div>
     <div class="doc-note"><b>Edit on category</b> opens the categories list showing only the categories that have a limit, <code>/categories?flag=limited</code>, with the removable tag "Has a limit" (<a href="Vendors and categories.dc.html#5d">5d</a>). Each category's limit is set from there. Inside a category crumb the card is that category's alone, and Edit opens its edit page (<a href="Vendors and categories.dc.html#5f">5f</a>) with the limit field focused.</div>
-    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for 30 days, Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
+    <div class="doc-note"><b>Each bar under a figure is one step of the period, and the header names the step.</b> The step follows the period: a day for Week and Month, a week for Quarter, a month for Year. A custom period takes the smallest of the three that gives 12 bars or fewer. The header ends with <b>· by day</b>, <b>· by week</b> or <b>· by month</b> to match. The dark bar is the step that holds today, drawn to date, so it may be short. A chart always draws every step of its period, so a period that has just started shows as many bars as a past one and paging never changes the count: steps still to come are drawn empty, with no readout and no hover band, and open nothing (<code>data-future</code>).</div>
+    <div class="doc-note"><b>A month of days bands its odd weeks</b> on a faint ground (<code>--surface-2</code>), so a week reads at a glance: the band runs behind every day of an odd ISO week, ticks included, and across the gaps between them. August 2026 bands 1 - 2, 10 - 16 and 24 - 30. Days still to come keep their band; the pointed day's hover band covers it. It is <code>data-week="odd"</code> on the column, only on a chart by day.</div>
     <div class="doc-note"><b>Limits draws only the categories with spend in the period.</b> A limit is an upper limit, not a target, so a category with a limit and no spend is not drawn. The card has no foot line: limits belong to one category each and are never added together. When no category with a limit has spend, the card reads "Nothing has been spent in a category with a limit.", in the same place as the text for no limits: under the card's title, in the small grey type (<code>sp-meta</code>). Inside one category's crumb the card is that category's and is always drawn, spend or not.</div>
     <div class="doc-note"><b>Limits holds to the list cap in <a href="#4d">4d</a>.</b> It rests at its top 8 rows and one "Other N categories" line with their total. Show top P of N opens it to P rows, P being Rows per page, and under them one line reads "Top P of N. Edit on category lists them all." With P or fewer rows the button reads "Show all N".</div>
     <div class="doc-note"><b>"Ahead of pace" shows when the share used is more than 10 points over the pace</b> - Lighting at 91% against 65%, not Seating at 72%. The same rule holds in the category list (<a href="Vendors and categories.dc.html#5d">5d</a>).</div>
@@ -2335,7 +2334,6 @@
     <div class="os-body">
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
-          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4b-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4b-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4b-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4b-period"><span class="sp-label">Quarter</span></label>
@@ -2582,7 +2580,6 @@
     <div class="os-body">
       <div class="sp-period">
         <div class="sp-period__presets" role="radiogroup" aria-label="Period">
-          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4c-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4c-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4c-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4c-period"><span class="sp-label">Quarter</span></label>
@@ -3272,7 +3269,6 @@
       <div class="os-picker">
         <div class="sp-period">
         <div class="sp-period__presets" role="group" aria-label="Window size">
-          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4f-period"><span class="sp-label">30 days</span></label>
           <label class="sp-period__preset" data-label="Week"><input type="radio" name="4f-period"><span class="sp-label">Week</span></label>
           <label class="sp-period__preset" data-label="Month"><input type="radio" name="4f-period"><span class="sp-label">Month</span></label>
           <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4f-period"><span class="sp-label">Quarter</span></label>

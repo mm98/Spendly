@@ -1636,11 +1636,11 @@
               <span class="sp-meta">tap a bar to drill</span>
             </div>
             <div class="sp-bars sp-bars--days">
-              <button type="button" class="sp-bars__col" aria-label="Saturday 1 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Saturday 1 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
                 <span class="sp-bars__tick">1</span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Sunday 2 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Sunday 2 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
                 <span class="sp-bars__tick"></span>
               </button>
@@ -1672,31 +1672,31 @@
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Monday 10 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Monday 10 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Tuesday 11 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Tuesday 11 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="15"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Wednesday 12 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Wednesday 12 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Thursday 13 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Thursday 13 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
                 <span class="sp-bars__tick">13</span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Friday 14 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Friday 14 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Saturday 15 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Saturday 15 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="25"></span>
                 <span class="sp-bars__tick"></span>
               </button>
-              <button type="button" class="sp-bars__col" aria-label="Sunday 16 August">
+              <button type="button" class="sp-bars__col" data-week="odd" aria-label="Sunday 16 August">
                 <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
                 <span class="sp-bars__tick"></span>
               </button>
@@ -1725,25 +1725,25 @@
               <span class="sp-bars__col" data-future aria-label="23 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="24 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="24 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="25 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="25 August">
                 <span class="sp-bars__tick">25</span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="26 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="26 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="27 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="27 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="28 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="28 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="29 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="29 August">
                 <span class="sp-bars__tick"></span>
               </span>
-              <span class="sp-bars__col" data-future aria-label="30 August">
+              <span class="sp-bars__col" data-week="odd" data-future aria-label="30 August">
                 <span class="sp-bars__tick"></span>
               </span>
               <span class="sp-bars__col" data-future aria-label="31 August">
@@ -1792,9 +1792,9 @@
   </div>
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
-    <div class="doc-note"><b>On a phone the Statistics period is one select</b>: 30 days, Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
+    <div class="doc-note"><b>On a phone the Statistics period is one select</b>: Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
     <div class="doc-note"><b>Cash flow opens with its amounts hidden</b>, as on desktop (<a href="Order statistics.dc.html#4h">4h</a>): the top line keeps its name, the share list its names and shares, and the bars keep their sizes. Show amounts sits beside the Orders / Cash flow switch, the same button as Show income on Budget; the two other Cash flow phones are drawn with it pressed.</div>
-    <div class="doc-note"><b>On Cash flow the select lists Month, Quarter and Year</b>, since income is paid per month; 30 days, Week and Custom are left out. The period it opens on and the return to Orders follow <a href="Order statistics.dc.html#4h">4h</a>.</div>
+    <div class="doc-note"><b>On Cash flow the select lists Month, Quarter and Year</b>, since income is paid per month; Week and Custom are left out. The period it opens on and the return to Orders follow <a href="Order statistics.dc.html#4h">4h</a>.</div>
     <div class="doc-note"><b>Arrows either side of the select step the period</b> by its own length: the month before, the quarter before, the year before. Later is disabled on the period that holds today. On Custom both are disabled, since a range of its own has no next or previous (<a href="Order statistics.dc.html#4f">4f</a>). The control is <code>sp-window--select</code>, the window from 21a with the select in its middle.</div>
     <div class="doc-note"><b>Include N left-out orders</b> sits under the period select, the same switch and rules as the desktop period row (<a href="Order statistics.dc.html#4a">4a</a>): shown only when the period holds a left-out order, off by default, not remembered.</div>
     <div class="doc-note"><b>The order list keeps its own search field on a phone</b>, above Filters and Sort. It filters the list; the top bar's search is the palette, which finds records but does not filter.</div>

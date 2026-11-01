@@ -13,7 +13,7 @@ import { useToast } from '../components/Overlays.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { Failed } from '../components/Failed.jsx'
 import { cachedFetch, useApi } from '../api/useApi.js'
-import { amount, capitalised, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
+import { amount, capitalised, currency, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
 import { checkPayments, kindOf, onceKey, realAmounts } from '../api/bankStatement.js'
 import { BankControls, BankFileColumns, BankPickFile, columnsShown, useBankFile } from './BankCheck.jsx'
@@ -326,7 +326,7 @@ function Results({ file, payments, unread, checked, sheets, setSheets, setLinks,
 			</div>
 		) : null
 	})
-	const head = title => <CardHeader name={title} aside={phrase('bank.amountsIn', { symbol: currencySymbol() })} asideTone="note" />
+	const head = title => <CardHeader name={title} />
 	const nothing = text => <Empty><EmptyTitle>{text}</EmptyTitle></Empty>
 
 	const placeRow = g => {

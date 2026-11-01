@@ -38,7 +38,6 @@ import { phrase, usePhrase } from '../language/phrases.js'
 const CASH_RANGES = ['month', 'quarter', 'year']
 
 const PRESETS = [
-	{ value: 'days30', label: 'stats.preset.days30' },
 	{ value: 'week', label: 'stats.preset.week' },
 	{ value: 'month', label: 'stats.preset.month' },
 	{ value: 'quarter', label: 'stats.preset.quarter' },
@@ -152,9 +151,12 @@ export default function Statistics() {
 	// a period's id names its range by its shape; an address with neither opens on the kept choice, else this month
 	const named = RANGES.includes(params.get('range')) ? params.get('range') : RANGES.find(r => validId(r, params.get('period')))
 	const kept = named ? null : keptPeriod()
-	const ordersRange = named ?? kept?.range ?? 'month'
-	const asked = named ? params.get('period') : kept?.period
-	const ordersId = validId(ordersRange, asked) && !(ordersRange === 'days30' && asked > today()) ? asked : defaultId(ordersRange)
+	const keptRange = named ?? kept?.range ?? 'month'
+	const keptId = named ? params.get('period') : kept?.period
+	// 30 days is not offered here (4a); a saved or linked one opens as the month holding its last day
+	const ordersRange = keptRange === 'days30' ? 'month' : keptRange
+	const asked = keptRange === 'days30' && validId('days30', keptId) ? windowIdAt('month', boundsOf('days30', keptId)[1]) : keptId
+	const ordersId = validId(ordersRange, asked) ? asked : defaultId(ordersRange)
 	// a period shorter than a month shows on Cash flow as the month of its last day; the address keeps it for Orders
 	const monthOnly = cash && !CASH_RANGES.includes(ordersRange)
 	const range = monthOnly ? 'month' : ordersRange
@@ -326,7 +328,7 @@ export default function Statistics() {
 				disabled={!older} onClick={older ? () => show(range, older) : undefined}>
 				<Icon name="chevron-left" size={15} />
 			</button>
-			<Combobox value={shown === 'days30' ? stepLabel(range, id) : `${presets.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label={phrase('stats.period')}>
+			<Combobox value={`${presets.find(p => p.value === shown).label}${dot}${range === 'custom' ? nameOf(range, id) : stepLabel(range, id)}`} aria-label={phrase('stats.period')}>
 				{presets.map(p => (
 					<ComboboxOption key={p.value} selected={p.value === shown} onSelect={() => choose(p.value)}>{p.label}</ComboboxOption>
 				))}
@@ -388,7 +390,7 @@ export default function Statistics() {
 					name="statistics-period"
 					presets={presets}
 					value={shown}
-					at={range === 'days30' ? to : from}
+					at={from}
 					from={draft ? draft.from : from}
 					to={draft ? draft.to : to}
 					locale={activeLocaleCode()}
@@ -616,7 +618,6 @@ export default function Statistics() {
 
 /** The id a span of days stands for at a width, for naming the window a year before it. */
 function idOfSpan(range, span) {
-	if (range === 'days30') return span.to
 	if (range === 'custom') return `${span.from}~${span.to}`
 	return windowIdAt(range, utcOf(span.from))
 }
