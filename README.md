@@ -302,6 +302,9 @@ folder and you have backed up Spendly. The files Ask makes are in a second folde
 A copy of the container log is written to a third folder, mounted at `/logs`: one file a day, kept
 for 30 days, and at most 50 MB a day. If that folder cannot be written, the app still starts and the
 log is only in the container.
+Each line of the log starts with the time, the level (`INFO`, `WARN` or `ERROR`) and the part of
+Spendly it came from, so it can be read and searched by eye. Every error and warning is in it, also
+those the app meets in the browser.
 
 **Some features need a setting on the server.** Everything else works without them.
 

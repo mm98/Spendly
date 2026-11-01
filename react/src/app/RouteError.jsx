@@ -8,6 +8,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useShellShape } from './useMedia.js'
 import { phrase } from '../language/phrases.js'
+import { log } from './log.js'
 
 const words = error => (error?.status === 404
 	? { title: phrase('routeError.missing'), body: phrase('routeError.missingBody') }
@@ -15,9 +16,19 @@ const words = error => (error?.status === 404
 
 const reload = () => window.location.reload()
 
+/** The error the route met, written to the log once: a page that is not there as a warning, anything else as an error. */
+function useLoggedRouteError() {
+	const error = useRouteError()
+	useEffect(() => {
+		if (error?.status === 404) log.warn('route', 'No page at this address')
+		else log.error('route', 'A page could not be shown:', error)
+	}, [error])
+	return error
+}
+
 /** What a page that failed to load shows in its place, inside the shell. */
 export function RouteError() {
-	const { title, body } = words(useRouteError())
+	const { title, body } = words(useLoggedRouteError())
 	return (
 		<Empty>
 			<Mark size="medium" fill="none" aria-label={phrase('failed.mark')}><Icon name="alert-circle" /></Mark>
@@ -45,7 +56,7 @@ export function NewerVersion() {
 /** The same when the shell itself could not be shown: the centred card of 20e's first level,
     with the brand on it, since nothing else on screen carries it. */
 export function ShellError() {
-	const { title, body } = words(useRouteError())
+	const { title, body } = words(useLoggedRouteError())
 	const touch = useShellShape() === 'touch'
 	return (
 		<main className={touch ? 'sp-auth sp-touch' : 'sp-auth'}>

@@ -24,6 +24,7 @@ import { discardDraft, draftCount, draftListRow, draftsAsOrders, takeDraft } fro
 import { findLookalikeOrders } from '../lib/orderLookalike.js'
 import { words } from '../lib/phrases.js'
 import { budgetWindows } from '../lib/categoryBudgetPeriod.js'
+import { log } from '../lib/log.js'
 
 export const router = Router()
 
@@ -1029,6 +1030,7 @@ router.post('/import', requireConfirmed, async (req, res) => {
 			}
 			imported.push(getDecoratedOrder(req.user.id, id))
 		} catch (e) {
+			log.warn('import', `Order ${index + 1} of an import was not saved: ${e.message}`)
 			failed.push({ index, error: e.message })
 		}
 		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length)) {

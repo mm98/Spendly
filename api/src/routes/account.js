@@ -4,6 +4,7 @@ import https from 'node:https'
 import { Worker } from 'node:worker_threads'
 import { db } from '../db.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 const FILL_WORKER = new URL('../lib/demoFill.worker.js', import.meta.url)
 
@@ -60,8 +61,9 @@ router.post('/demo-data', (req, res) => {
 		if (streaming) res.end(JSON.stringify(line) + '\n')
 		else res.status(line.error ? 500 : 200).json(line)
 	}
-	const failed = () => {
+	const failed = reason => {
 		if (ended) return
+		log.error('demo', `Filling with demo data stopped: ${reason}`)
 		if (landed == null) return end({ error: words('demo.notWritten') })
 		refreshStatistics()
 		end({ error: words('demo.stopped'), landed })
@@ -70,10 +72,10 @@ router.post('/demo-data', (req, res) => {
 		if ('landed' in message) landed = message.landed
 		else if ('done' in message) { if (streaming) res.write(JSON.stringify(message) + '\n') }
 		else if (message.result) { refreshStatistics(); end({ ...message.result, seed }) }
-		else failed()
+		else failed(message.error ?? 'no result')
 	})
-	worker.on('error', failed)
-	worker.on('exit', failed)
+	worker.on('error', error => failed(error.message))
+	worker.on('exit', code => failed(`the work ended with code ${code}`))
 })
 
 /* Update and reload (11d): the updater beside this container (SPENDLY_UPDATER_URL, docker-compose.yml) swaps
@@ -137,7 +139,7 @@ router.post('/version/update', async (req, res) => {
 	url.searchParams.set('async', 'true')
 	const answer = await askUpdater(url)
 	if (answer.status === 'busy' || (answer.status >= 200 && answer.status < 300)) return res.status(202).json({ started: true })
-	console.error(answer.error
+	log.error('update', answer.error
 		? `The updater at ${url.host} could not be reached (${answer.error}). Check SPENDLY_UPDATER_URL.`
 		: `The updater at ${url.host} refused the update with status ${answer.status}.`
 			+ (answer.status === 401 ? ' SPENDLY_UPDATER_TOKEN must match WATCHTOWER_HTTP_API_TOKEN.' : '')

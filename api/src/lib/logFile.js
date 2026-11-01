@@ -1,6 +1,7 @@
 import { mkdirSync, openSync, writeSync, closeSync, statSync, readdirSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { todayIso } from './dates.js'
+import { isLogLine, logLine } from './log.js'
 
 const KEEP_DAYS = 30
 // a day's file stops here, so a log that runs away cannot fill the disk
@@ -11,7 +12,7 @@ const FILE_NAME = /^spendly-\d{4}-\d{2}-\d{2}\.log$/
 export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS, maxBytesPerDay = MAX_BYTES_PER_DAY } = {}) {
 	const streams = [process.stdout, process.stderr]
 	const originals = streams.map(stream => stream.write)
-	const warn = message => originals[1].call(process.stderr, `${message}\n`)
+	const warn = message => originals[1].call(process.stderr, `${logLine('WARN', 'log', message, now())}\n`)
 	let day = null
 	let fd = null
 	let bytes = 0
@@ -35,7 +36,13 @@ export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS
 		return () => {}
 	}
 
-	function copy(chunk, encoding) {
+	/* A line from log.js is copied as it is. Anything else (Node's own warnings, a library, a crash)
+	   is given the same time, level and area, and its further lines are indented below it. */
+	const asLogLines = (text, level, at) => isLogLine(text) ? text.replace(/\n+$/, '')
+		: text.replace(/\n+$/, '').split('\n').map((line, i) => i === 0 ? logLine(level, 'output', line, at) : `    ${line}`).join('\n')
+	const levelOf = (text, fromStderr) => !fromStderr ? 'INFO' : /warning/i.test(text) ? 'WARN' : 'ERROR'
+
+	function copy(chunk, encoding, fromStderr, level) {
 		if (fd === null) return
 		try {
 			const at = now()
@@ -43,11 +50,11 @@ export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS
 			if (today !== day) openDay(today)
 			if (full) return
 			const text = typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString(typeof encoding === 'string' ? encoding : 'utf8')
-			const line = `${at.toISOString()} ${text}${text.endsWith('\n') ? '' : '\n'}`
+			const line = `${asLogLines(text, level ?? levelOf(text, fromStderr), at)}\n`
 			const size = Buffer.byteLength(line)
 			if (bytes + size > maxBytesPerDay) {
 				full = true
-				writeSync(fd, `${at.toISOString()} The log for today is full. It goes on tomorrow.\n`)
+				writeSync(fd, `${logLine('WARN', 'log', 'The log for today is full. It goes on tomorrow.', at)}\n`)
 				return
 			}
 			writeSync(fd, line)
@@ -61,11 +68,11 @@ export function startLogFile(dir, { now = () => new Date(), keepDays = KEEP_DAYS
 	}
 
 	// a crash is printed by Node itself, past the output's write, so it is copied here
-	const onCrash = error => copy(`${error?.stack ?? error}\n`)
+	const onCrash = error => copy(`${error?.stack ?? error}\n`, 'utf8', true, 'FATAL')
 	process.on('uncaughtExceptionMonitor', onCrash)
 	streams.forEach((stream, i) => {
 		stream.write = function (chunk, encoding, callback) {
-			copy(chunk, encoding)
+			copy(chunk, encoding, stream === process.stderr)
 			return originals[i].call(stream, chunk, encoding, callback)
 		}
 	})

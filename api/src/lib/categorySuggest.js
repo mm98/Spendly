@@ -8,6 +8,7 @@ import { paidReadWait } from './rateLimit.js'
    or what a model proposes when asked, which can also offer a new category. At most SHOWN. */
 
 import { SHOWN, suggestFromHistory } from './categoryModel.js'
+import { log } from './log.js'
 
 export { suggestFromHistory, SHOWN }
 
@@ -59,7 +60,7 @@ export async function fromModel(userId, { items, vendor, exclude }) {
 		const call = response.content.find(b => b.type === 'tool_use' && b.name === SUGGEST_TOOL.name)
 		return { suggestions: describe(userId, without(categoryNamesOf(call?.input?.categories), exclude)).slice(0, SHOWN), failure: null }
 	} catch (error) {
-		console.error('Category suggestion failed:', error.message)
+		log.error('categories', `Category suggestion failed: ${error.message}`)
 		return { suggestions: [], failure: isBillingRefusal(error) ? 'billing' : 'failed' }
 	}
 }

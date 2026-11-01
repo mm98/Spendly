@@ -2,6 +2,7 @@ import sharp from 'sharp'
 import { createHash } from 'node:crypto'
 import { detectFileType } from './fileType.js'
 import { toSquare, toWide } from './images.js'
+import { log } from './log.js'
 
 /* A vendor's image (Images and files 17e): checked, then cut into the renditions the pages draw.
    Every refusal carries one of the reasons the vendor form names. */
@@ -76,6 +77,7 @@ export async function processVendorImage(buffer) {
 		}
 	} catch (e) {
 		if (e instanceof VendorImageRefusal) throw e
+		log.error('picture', `A shop picture could not be made: ${e.message}`)
 		refuse('failed')
 	}
 }

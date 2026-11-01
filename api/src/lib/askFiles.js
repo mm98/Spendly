@@ -7,6 +7,7 @@ import { usableLocale, writerFor } from './statusEmail.js'
 import { readStoredFile, removeStoredFile, storeFile } from './storage.js'
 import { escapeLike } from './textSearch.js'
 import { words } from './phrases.js'
+import { log } from './log.js'
 
 /* The files Ask Spendly makes from the reader's own data (Ask 24d, 24e): kept 30 days for the signed-in
    owner only, listed on Files, and a limited number a day. The bytes are on disk (lib/storage.js), not in the database. */
@@ -153,7 +154,7 @@ export function makeFile({ userId, chatId = null, day, unlimited, title, askedAt
 			row.size = content.length
 			row.storedName = storeFile(userId, FOLDER, content)
 		} catch (error) {
-			console.error('Ask file failed:', error.message)
+			log.error('ask', `A file could not be made: ${error.message}`)
 			row.failedReason = FILE_REFUSALS.failed
 		}
 	}

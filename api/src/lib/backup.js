@@ -6,6 +6,7 @@ import { dropExpiredTokens } from './tokens.js'
 import { pruneVectors } from './categoryModel.js'
 import { dropExpiredUploads } from '../routes/scan.js'
 import { todayIso as todayStamp } from './dates.js'
+import { log } from './log.js'
 
 const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backup')
 const MAX_BACKUPS = 5
@@ -53,13 +54,13 @@ const OUTLIVED = [dropExpiredUploads, dropExpiredTokens, pruneVectors]
    here, at night; a failure (it needs disk room for a second copy) must not stop the backup. */
 function compactDatabase() {
 	for (const job of OUTLIVED) {
-		try { job() } catch (err) { console.error('Nightly clean-up failed:', err) }
+		try { job() } catch (err) { log.fault('backup', 'Nightly clean-up failed', err) }
 	}
 	try {
 		db.exec('VACUUM')
 		db.pragma('wal_checkpoint(TRUNCATE)')
 	} catch (err) {
-		console.error('Nightly clean-up failed:', err)
+		log.fault('backup', 'Nightly clean-up failed', err)
 	}
 }
 
@@ -103,12 +104,12 @@ function backupExistsToday() {
    fires for real on the rare day the exact-midnight timer was skipped over entirely -- a
    container stopped across the day boundary, with nothing else left to cover that day. */
 export function scheduleDailyBackups() {
-	if (!backupExistsToday()) backupDatabase().catch(err => console.error('Daily backup failed:', err))
+	if (!backupExistsToday()) backupDatabase().catch(err => log.fault('backup', 'Daily backup failed', err))
 
 	const timer = setTimeout(function runAndReschedule() {
-		backupDatabase().catch(err => console.error('Daily backup failed:', err))
+		backupDatabase().catch(err => log.fault('backup', 'Daily backup failed', err))
 		const next = setInterval(() => {
-			backupDatabase().catch(err => console.error('Daily backup failed:', err))
+			backupDatabase().catch(err => log.fault('backup', 'Daily backup failed', err))
 		}, ONE_DAY_MS)
 		next.unref()
 	}, msUntilEndOfDay())

@@ -36,6 +36,8 @@ import { MAX_UPLOAD_MB } from './lib/constants.js'
 import { MAX_UPLOAD_FILES } from './lib/upload.js'
 import { fileSizeLabel } from './lib/copy.js'
 import { inReadersLanguage, words } from './lib/phrases.js'
+import { log, reasonOf } from './lib/log.js'
+import { browserLogRouter } from './routes/browserLog.js'
 
 export const app = express()
 
@@ -106,8 +108,7 @@ app.use((req, res, next) => (req.path === '/api/orders/import' || req.path === '
 	: req.path === '/api/budget/import' ? budgetBody : smallJson)(req, res, next))
 
 // Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
-// per request, written when the response finishes so it can carry the status and timing, but
-// stamped with the request's arrival time the way an access log is. The JSON body rides along
+// per request, written when the response finishes so it can carry the status and timing. The JSON body rides along
 // (after the parser above, so req.body is already the parsed object, not the raw stream), and
 // the method is padded to the width of the longest one (OPTIONS, 7) so the URLs, statuses and
 // timings line up in columns. Passwords and email-link codes are hidden, in the body and in the
@@ -122,7 +123,7 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 		const arrived = new Date()
 		const body = req.is('application/json') && req.body && Object.keys(req.body).length ? ' ' + redacted(req.body) : ''
 		res.on('finish', () => {
-			console.log(`${arrived.toISOString()} ${req.method.padEnd(7)} ${redactedUrl(req.originalUrl)} ${res.statusCode} (${Date.now() - arrived}ms)${body}`)
+			log.debug('request', `${req.method.padEnd(7)} ${redactedUrl(req.originalUrl)} ${res.statusCode} (${Date.now() - arrived}ms)${body}`)
 		})
 		next()
 	})
@@ -153,7 +154,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }))
 const LIGHTHOUSE = (() => {
 	if (!process.env.SPENDLY_LIGHTHOUSE) return null
 	try { return JSON.parse(process.env.SPENDLY_LIGHTHOUSE) } catch (e) {
-		console.error(`SPENDLY_LIGHTHOUSE is not JSON, so /api/version answers null for it: ${e.message}`)
+		log.error('version', `SPENDLY_LIGHTHOUSE is not JSON, so /api/version answers null for it: ${e.message}`)
 		return null
 	}
 })()
@@ -166,7 +167,7 @@ const releaseNotesOf = (text, where) => {
 		const versions = JSON.parse(text)
 		return Array.isArray(versions) ? versions : []
 	} catch (e) {
-		console.error(`The release notes of ${where} are not JSON, so none are shown: ${e.message}`)
+		log.error('version', `The release notes of ${where} are not JSON, so none are shown: ${e.message}`)
 		return []
 	}
 }
@@ -245,7 +246,8 @@ async function buildStampOf(base, digest, token, signal) {
 		const env = name => image.config?.Env?.find(e => e.startsWith(`${name}=`))?.slice(name.length + 1) || null
 		return { builtAt: env('SPENDLY_BUILD_TIME') || image.created || null, version: env('SPENDLY_VERSION'),
 			notes: releaseNotesOf(env('SPENDLY_RELEASE_NOTES'), 'the newest version') }
-	} catch {
+	} catch (error) {
+		log.error('update', `The newest version could not be read from the registry: ${reasonOf(error)}`)
 		return {}
 	}
 }
@@ -268,7 +270,7 @@ app.get('/api/version/check', requireAuth, async (req, res) => {
 	} catch (e) {
 		// fetch's own message is only "fetch failed"; the reason is in its cause
 		const error = `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}${e.cause ? ` (${e.cause.message ?? e.cause})` : ''}`
-		console.error(error)
+		log.error('update', error)
 		res.status(502).json({ error: words('update.checkFailed') })
 	}
 })
@@ -277,6 +279,7 @@ app.get('/api/version/check', requireAuth, async (req, res) => {
 app.use('/mcp', mcpRouter)
 
 app.use('/api/auth', authRouter)
+app.use('/api/log', browserLogRouter)
 app.use('/api/auth/passkey', passkeySignInRouter)
 app.use('/api/auth/two-step', twoStepSignInRouter)
 
@@ -473,6 +476,6 @@ app.use((err, req, res, next) => {
 	const refusal = parserRefusal(err)
 	if (refusal) return res.status(refusal.status).json({ error: refusal.message })
 	const status = err.status ?? 500
-	if (status === 500) console.error(err)
+	if (status === 500) log.fault('server', `${req.method} ${req.path} failed`, err)
 	res.status(status).json({ error: status === 500 ? words('error.unknown') : err.words ?? err.message })
 })

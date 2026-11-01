@@ -121,8 +121,8 @@ const visit = (node, at) => {
 	else if (node.type === 'Literal' && typeof node.value === 'string' && sentence(node.value)) at(node, node.value)
 	else if (node.type === 'TemplateLiteral' && sentence(node.quasis.map(q => q.value.cooked).join('x'))) at(node, node.quasis.map(q => q.value.cooked).join('…'))
 	if (node.type === 'JSXAttribute' || node.type === 'TemplateLiteral') return
-	// a message for a developer, in the console or in an error the code throws
-	if (node.type === 'CallExpression' && node.callee?.object?.name === 'console') return
+	// a message for a developer, in the console, in the log or in an error the code throws
+	if (node.type === 'CallExpression' && ['console', 'log'].includes(node.callee?.object?.name)) return
 	if ((node.type === 'NewExpression' || node.type === 'CallExpression') && /(Error|Exception)$/.test(node.callee?.name ?? '')) return
 	if (node.type === 'CallExpression' && node.callee?.type === 'Super') return
 	for (const k in node) {

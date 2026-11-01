@@ -7,9 +7,10 @@ import { scheduleDailyBackups } from './lib/backup.js'
 import { checkMail } from './lib/mail.js'
 import { scheduleStorageSweep } from './lib/storage.js'
 import { scheduleStatusEmails } from './lib/statusEmail.js'
+import { log } from './lib/log.js'
 
 const PORT = process.env.PORT ?? 4000
-app.listen(PORT, () => console.log(`Spendly API listening on :${PORT}`))
+app.listen(PORT, () => log.info('server', `Spendly API listening on :${PORT}`))
 scheduleDailyBackups()
 checkMail()
 scheduleStatusEmails()

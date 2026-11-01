@@ -1,5 +1,6 @@
 import sharp from 'sharp'
 import { inflateSync } from 'node:zlib'
+import { log } from './log.js'
 
 /* A picture at full size in its own format, with every tracking or device-naming block removed and
    the orientation applied first. Cut without re-encoding where the format allows; else encoded again. */
@@ -150,13 +151,13 @@ async function encodeAgain(buffer, type, meta) {
 export async function cleanOriginal(buffer, type) {
 	let meta
 	try { meta = await sharp(buffer, { limitInputPixels: false }).metadata() } catch (error) {
-		console.error('A picture could not be read to clean it:', error.message)
+		log.error('picture', `A picture could not be read to clean it: ${error.message}`)
 		return null
 	}
 	const upright = !meta.orientation || meta.orientation === 1
 	const cut = upright ? CUT[type]?.(buffer) : null
 	const data = cut ?? await encodeAgain(buffer, type, meta).catch(error => {
-		console.error('A picture could not be cleaned:', error.message)
+		log.error('picture', `A picture could not be cleaned: ${error.message}`)
 		return null
 	})
 	return data ? { data, contentType: type } : null

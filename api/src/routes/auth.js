@@ -15,6 +15,7 @@ import { limitPerVisitor, windowCounter } from '../lib/rateLimit.js'
 import { openTicket, twoStepOn } from '../lib/twoStep.js'
 import { securityLog } from '../lib/securityLog.js'
 import { emailLanguageOf, words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 export const router = Router()
 
@@ -208,7 +209,7 @@ const endSessions = db.prepare('DELETE FROM user_sessions WHERE user_id = ?')
 const removePasskeys = db.prepare('DELETE FROM user_passkeys WHERE user_id = ?')
 const noMail = res => res.status(409).json({ error: words('mail.unavailable') })
 const notSent = (res, e) => {
-	console.error(`[mail] could not send: ${e.message}`)
+	log.error('mail', `Could not send: ${e.message}`)
 	return res.status(409).json({ error: words('mail.failed') })
 }
 

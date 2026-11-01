@@ -2,6 +2,7 @@ import path from 'node:path'
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, statSync, writeFileSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import { DB_PATH } from '../db.js'
+import { log } from './log.js'
 
 /* Files kept on disk outside the database, so its backup leaves them out: one folder per account,
    each file under a random name. Removing an account's folder removes everything it kept. */
@@ -84,9 +85,9 @@ export function scheduleStorageSweep() {
 	const sweep = () => {
 		try {
 			const removed = removeEmptyFolders()
-			if (removed) console.log(`[storage] removed ${removed} empty folder${removed === 1 ? '' : 's'}`)
+			if (removed) log.info('storage', `Removed ${removed} empty folder${removed === 1 ? '' : 's'}`)
 		} catch (error) {
-			console.error(`[storage] the daily clean-up stopped: ${error.message}`)
+			log.error('storage', `The daily clean-up stopped: ${error.message}`)
 		}
 	}
 	sweep()

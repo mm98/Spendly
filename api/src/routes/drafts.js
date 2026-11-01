@@ -5,6 +5,7 @@ import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { keyOfType } from '../lib/statuses.js'
 import { discardDraft, draftCount, draftListRow, draftRow, draftsAsOrders, keepForm, makeDraft } from '../lib/orderDrafts.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 /* Orders not created yet (lib/orderDrafts.js): the form kept as it is edited, Discard, and Home's
    Drafts card, which counts the orders whose status is Draft as drafts too (10a). */
@@ -45,7 +46,8 @@ router.get('/:id', (req, res) => {
 	const row = draftRow(req.user.id, req.params.id)
 	if (!row) return res.status(404).json({ error: 'No draft ' + req.params.id })
 	let form = null
-	try { form = row.form ? JSON.parse(row.form) : null } catch { /* a form that cannot be read opens empty */ }
+	// a form that cannot be read opens empty
+	try { form = row.form ? JSON.parse(row.form) : null } catch (error) { log.error('drafts', `The form of draft ${row.id} could not be read: ${error.message}`) }
 	res.json({
 		id: row.id, form,
 		file: row.upload_id ? { key: row.upload_id, name: row.name, kind: row.kind, hasThumbnail: Boolean(row.has_thumbnail) } : null

@@ -6,6 +6,7 @@ import { findVendorIdByAnyName, findVendorIdForReceipt, resolveVendor } from './
 import { describe } from './categorySuggest.js'
 import { sep, fileSizeLabel } from './copy.js'
 import { refusal, words } from './phrases.js'
+import { log } from './log.js'
 
 /* An order not created yet (migrations/236): the form as it was left, and its scan when it has one.
    The API shows a draft as an order with status Draft; Create makes the order. */
@@ -152,7 +153,12 @@ export const heldBy = (userId, uploadId) => selectDraftOfUpload.get(uploadId, us
 export const draftRow = (userId, id) => selectDraft.get(id, userId) ?? null
 export const draftCount = userId => countDrafts.get(userId).c
 
-const parse = text => { try { return text ? JSON.parse(text) : null } catch { return null } }
+const parse = text => {
+	try { return text ? JSON.parse(text) : null } catch (error) {
+		log.error('drafts', `A saved draft could not be read: ${error.message}`)
+		return null
+	}
+}
 const uploadOf = row => ({ id: row.upload_id, name: row.name, size: row.size, kind: row.kind, pages: row.pages, has_thumbnail: row.has_thumbnail })
 
 /** The form as it was left, or as the reading starts it when it was never changed. `origin` is the

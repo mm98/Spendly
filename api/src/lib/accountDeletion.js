@@ -3,6 +3,7 @@ import { forgetModel } from './categoryModel.js'
 import { forgetTrashOf } from './orderTrash.js'
 import { removeAccountFolder } from './storage.js'
 import { closeTicketsOf } from './twoStep.js'
+import { log } from './log.js'
 
 /* First at once: the account is marked, its address freed and every way in ended. Then in the background,
    orders in batches so other requests run between, and the users row, which every per-account table cascades from. */
@@ -45,7 +46,7 @@ async function removeRows(userId) {
 let removals = Promise.resolve()
 const queueRemoval = userId => {
 	removals = removals.then(() => removeRows(userId))
-		.catch(e => console.error(`[account] deleting ${userId} stopped, and finishes when the server starts again: ${e.message}`))
+		.catch(e => log.error('account', `Deleting ${userId} stopped, and finishes when the server starts again: ${e.message}`))
 	return removals
 }
 
