@@ -125,7 +125,7 @@ Everything that needs you, on one page.
 
 ![Statistics for the month, by day and by category](docs/statistics.png)
 
-- **Periods** - 30 days, week, month, quarter, year or your own dates, with shortcuts for this
+- **Periods** - Week, month, quarter, year or your own dates, with shortcuts for this
   month, last month, year to date and all time. Step to the previous or next period with the arrows
   beside its name, or with the left and right arrow keys.
 - **Count** money paid, and compare with the same period a year earlier. A returned order and an
