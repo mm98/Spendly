@@ -1986,7 +1986,6 @@
 	"stats.cash.vendors": "{count, plural, one {# forhandler} other {# forhandlere}}",
 	"stats.cash.view": "Visning",
 	"stats.cash.view.cash": "Pengestrøm",
-	"stats.cash.view.cashShort": "Strøm",
 	"stats.cash.view.orders": "Ordrer",
 	"stats.cash.where": "{place} · {count}",
 	"stats.clickToNarrow": "klik for at indsnævre",

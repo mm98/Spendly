@@ -66,7 +66,7 @@
         <span class="sp-grow"></span>
         <div class="sp-segmented" role="radiogroup" aria-label="View">
           <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-1" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
-          <label class="sp-segmented__item" data-label="Cash flow" data-short="Flow"><input type="radio" aria-label="Cash flow" name="view-1"><span class="sp-label"><span class="sp-segmented__full">Cash flow</span><span class="sp-segmented__short">Flow</span></span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-1"><span class="sp-label">Cash flow</span></label>
         </div>
       </div>
 
@@ -827,7 +827,7 @@
     <div class="doc-note"><b>The monthly limit is named in the legend</b>, beside the series, with a dashed amber key. The dashed line in the plot carries no label of its own, so no bar is ever covered by one. The line is drawn only when the chart's step is the limit's period: a monthly limit on a chart by month. A yearly limit, or a monthly one on a chart by day or by week, draws no line and has no legend key.</div>
     <div class="doc-note"><b>Spend by month's readout stands above the bar it describes</b>, centred on it, 8px clear of the top of the tallest of that bar and its two neighbours, so it covers none of the three. Near the chart's left or right end its edge sits on the bar's outer edge. It is never held inside the plot or the card: where there is no room above the bars, it stands above the plot, as August here (<a href="Layout rules.dc.html#15f">15f</a>).</div>
     <div class="doc-note"><b>Hovering a bar shows its readout</b>, the same <code>.sp-tip--panel</code> as Spend by month without the category rows: the step and its value in the head, the step's order count beneath. The bars are not buttons and do not drill in; the chart below does that for the same steps, and keyboard and screen-reader users read the figures there.</div>
-    <div class="doc-note"><b>On a phone the View switch reads Orders and Flow.</b> "Cash flow" does not fit its half of the switch at 375px, so below 640px and on touch the option shows its short label (<code>data-short</code>, <code>.sp-segmented__short</code>). The view itself is still Cash flow everywhere else it is named, and a screen reader names the option Cash flow on a phone too (<code>aria-label</code> on its input).</div>
+    <div class="doc-note"><b>On a phone Show amounts is the cash icon alone</b> (<code>cash</code> from the register), an outline icon button at the end of the View row, so the switch keeps its full labels, Orders and Cash flow (<a href="Mobile screens.dc.html">Mobile screens</a>, the cash flow frames). It is the same toggle, named Show amounts or Hide amounts by its <code>aria-label</code>.</div>
     <div class="doc-note"><b>Saved compares amounts, like the other three.</b> The pill is the change in kroner against the previous period, the meta line that period's saving. Never a percentage.</div>
   </div>
 </section>
@@ -864,7 +864,7 @@
         <button type="button" class="sp-btn sp-btn--outline" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show amounts</button>
         <div class="sp-segmented" role="radiogroup" aria-label="View">
           <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="4h-view"><span class="sp-label">Orders</span></label>
-          <label class="sp-segmented__item" data-label="Cash flow" data-short="Flow"><input type="radio" aria-label="Cash flow" name="4h-view" defaultChecked="{{ true }}"><span class="sp-label"><span class="sp-segmented__full">Cash flow</span><span class="sp-segmented__short">Flow</span></span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="4h-view" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
         </div>
       </div>
 
@@ -1422,7 +1422,7 @@
         <span class="sp-grow"></span>
         <div class="sp-segmented" role="radiogroup" aria-label="View">
           <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-3" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
-          <label class="sp-segmented__item" data-label="Cash flow" data-short="Flow"><input type="radio" aria-label="Cash flow" name="view-3"><span class="sp-label"><span class="sp-segmented__full">Cash flow</span><span class="sp-segmented__short">Flow</span></span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-3"><span class="sp-label">Cash flow</span></label>
         </div>
       </div>
 
@@ -2348,7 +2348,7 @@
         <span class="sp-grow"></span>
         <div class="sp-segmented" role="radiogroup" aria-label="View">
           <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-4" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
-          <label class="sp-segmented__item" data-label="Cash flow" data-short="Flow"><input type="radio" aria-label="Cash flow" name="view-4"><span class="sp-label"><span class="sp-segmented__full">Cash flow</span><span class="sp-segmented__short">Flow</span></span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-4"><span class="sp-label">Cash flow</span></label>
         </div>
       </div>
 
@@ -2594,7 +2594,7 @@
         <span class="sp-grow"></span>
         <div class="sp-segmented" role="radiogroup" aria-label="View">
           <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="view-5" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
-          <label class="sp-segmented__item" data-label="Cash flow" data-short="Flow"><input type="radio" aria-label="Cash flow" name="view-5"><span class="sp-label"><span class="sp-segmented__full">Cash flow</span><span class="sp-segmented__short">Flow</span></span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="view-5"><span class="sp-label">Cash flow</span></label>
         </div>
       </div>
 

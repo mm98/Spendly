@@ -1,57 +1,75 @@
-# Smaller buttons on the phone (Brief-phone-button-size.md), and Flow on the Statistics switch
+# Small buttons that still fill the width on a phone (Brief-phone-small-button-width.md), and buttons stacked on a phone
 
-## Fixed from handoff_phone_button_size
+## Fixed from handoff_phone_small_button_width_fixed
 
-- **Section 3, screen reader name (answered):** a screen reader names the option "Cash flow" on a phone as well. Each View switch's Cash flow input carries `aria-label="Cash flow"`, so the accessible name stays the full one while the option shows "Flow". Where: `Order statistics.dc.html`, every View switch and the note beside 4a. App: `react/src/pages/Statistics.jsx`, the Cash flow option's input takes the full label (the existing phrase) as `aria-label`.
-- **Section 2, overlapping tap areas (answered):** when two small buttons are stacked less than 14px apart, their tap areas overlap and the nearer button takes the tap. This is accepted. No change.
+- **Show amounts on a phone shows the cash icon instead of the eye.** The toggle at the end of the Cash flow View row is the same outline icon button, with the same `aria-pressed`, `aria-label` (Show amounts / Hide amounts) and pressed tint. Only its icon changes, to `cash`. Where: `Mobile screens.dc.html`, the three cash flow frames and their note. `Order statistics.dc.html`, the note at 4a. `icons.js` gains `cash` (Tabler outline `icons/outline/cash.svg`, path data unmodified, MIT), registered in `Icon legend.dc.html` 19a after camera. App: add `cash` to the icon register (`react/src/components/icons`) and use it for the toggle in `react/src/pages/Statistics.jsx` on touch. Desktop keeps the labelled button with the eye.
 
-Built on `design/` from `mm98/Spendly` main, pulled 2026-11-01T14:11Z. Every file here is main's with only the changes below applied. `later.md` on main was read first: its one entry, Recently deleted, is kept for later and nothing in this package settles it.
+## Fixed from handoff_phone_small_button_width
 
-## 1. The Views card head, and every xsmall button on a phone
+- **Cash flow keeps its full label; Show amounts is the icon alone on a phone** (the eye, since replaced by cash, see above). The short label "Flow" from `handoff_phone_button_size_fixed` is removed. The problem was that Show amounts, a default button beside the View switch, takes the full width on touch, which squeezed the switch to nothing. On a phone it is now an outline icon button (48px) at the end of the View row, with `aria-pressed` and `aria-label` "Show amounts" or "Hide amounts". Its pressed state is the icon button's pressed tint. Where: `Mobile screens.dc.html`, the three cash flow frames, and the note beside them. `Order statistics.dc.html`, every View switch back to the plain label, with a note at 4a. `styles/components.css`: `.sp-segmented__short`, `.sp-segmented__full` and `.sp-segmented__item[data-short]::after` are removed. App: `react/src/pages/Statistics.jsx` drops the short label and, on touch, renders the toggle as `IconButton variant="outline"` with the eye.
+- **The "You already have this order" sheet rises from the foot of the phone.** In Mobile screens 3c it was drawn hanging from the top, under the status bar. The frame now sits the status bar in `.ms-layer` and the sheet at the foot (`ms-device--bottom`), like the other sheet frames. This was a drawing fault only, with no component change.
+- **A check for a button squeezing its neighbour.** `styles/check.js` now fails a default `sp-btn sp-flex-none` in a `sp-row-flex` on a touch frame, since on touch it fills the row.
 
-**The problem.** More > Views: Edit, and Done while editing, drew 48px high, 4px from the card's top edge, and pushed into the first row ("All orders ... locked"). On touch every button takes `min-height: var(--control-h-touch)` (48px). `.sp-touch .sp-btn--xsmall` set `height: 34px`, but the min-height won. Below 640px the media query gave xsmall no rule of its own at all.
+Follow-up to `handoff_phone_button_size_fixed`. Built on `design/` from `mm98/Spendly` main, pulled 2026-11-01T14:31Z. Main's `design/` does not have that package's changes yet, so this package carries them too (small and xsmall at 34px on touch). Every other file is main's. `later.md` on main was read first: its one entry, Recently deleted, is kept for later.
 
-**What changed.** An xsmall button on touch and below 640px draws 34px (`--btn-h-small`) at its own width, with the 48px touch height as an invisible `::before` area above and below, the same as a small button in a card head. This is not limited to card heads, so it also covers Clear all in the Orders filter panel head and Resend in the confirm-your-email banner.
+## 1. A small button directly in a card
 
-**Where.** `styles/components.css`: `.sp-touch .sp-btn--xsmall`, `.sp-touch .sp-btn--xsmall::before`, and `.sp-btn--xsmall` / `::before` in `@media (max-width: 639.98px)`. Components c6 (the touch note under States). App: `CardHeader actionSize="xsmall"` and `size="xsmall"` need no code change.
+**The problem.** A card is a flex column, so a button placed in it as its own child stretches to the card's width: 327px on a phone, and full width on desktop too. This happened to Vendor edit and Category edit ("See more in statistics", "See all N orders"), and also to "Archive vendor" (Vendors and categories) and "Open hay.dk" (Bookmarks summary). Card c10 already says that every card action goes in its footer and never loose in the card.
+
+**What changed.** These buttons now sit in `.sp-card__footer`, at its start and at their own width, on every screen. No CSS change was needed for this case: the footer is a row, so it does not stretch the button.
+
+**Where.** `Vendors and categories.dc.html`: 5c and 5f (Spend card, Recent orders card, End of its life card). `Bookmarks.dc.html`: Bookmark summary (two frames). Components c6 note. App: `react/src/pages/VendorEdit.jsx`, `CategoryEdit.jsx`, `BookmarkEdit.jsx` (or wherever the summary card is) wrap the button in `CardFooter`.
 
 **What is still open.** Nothing.
 
-## 2. Small buttons in a page body on a phone
+## 2. One button alone in a card footer
 
-**The problem.** Every `size="small"` button outside a card head or list toolbar drew 48px on a phone, often full width (Vendor edit, Category edit, Order compare, Statistics, Vendors, Ask, Settings > Account and Import, and the dialog and popover commits).
+**The problem.** `.sp-card__footer > .sp-btn:only-child:not([class*="--text"]) { width: 100%; }` made a single button fill the footer, including small ones, on every screen. On Statistics this hit "Show all 10 categories" and "Edit on category".
 
-**What changed.**
-- A small button on touch and below 640px draws 34px at its own width wherever it stands (page body, card, banner, dialog, popover), with the 48px touch height as an invisible area. The old card-head and toolbar-only exception is replaced by this one rule.
-- Small buttons keep their own width. They never fill the column. The width rule already excluded them, so a full-width small button in the app comes from the page's own layout (a stretching flex column or `block`) and should be removed there.
-- Ask: the suggested questions follow the rule (34px, own width).
-- Ask: Send beside the chat field is the one exception. It stays 48px so the composer row is one height. The selector is `.sp-chat__composer > .sp-btn--small`.
-- Small commits in dialogs and popovers (Apply, Cancel, Undo, Rename, Remove, Later, Update) follow the rule.
+**What changed.** The rule now fills only a default-size button. A small or xsmall button alone in a footer keeps its own width, at the footer's start, on every screen.
 
-**Where.** `styles/components.css`: `.sp-touch .sp-btn--small`, `.sp-touch .sp-btn--small::before`, `.sp-touch .sp-chat__composer > .sp-btn--small` (and `::before`), and the same four rules in `@media (max-width: 639.98px)`. The comment above `.sp-touch .sp-btn` is updated. Components c6 notes (States) and the "Touch is the same component" note at the top of Components. App: `react/src/pages/VendorEdit.jsx`, `CategoryEdit.jsx`, `OrderCompare.jsx`, `Statistics.jsx`, `Vendors.jsx`, `Ask.jsx`, `Settings.jsx` (Account, Import). Check each one for a page rule that stretches a small button to full width, and remove it.
+**Where.** `styles/components.css`: `.sp-card__footer > .sp-btn:only-child:not([class*="--text"], .sp-btn--small, .sp-btn--xsmall)`. Components c6 note.
 
-**What is still open.** Nothing. Small buttons stacked less than 14px apart have overlapping tap areas, and the nearer button takes the tap. Confirmed as acceptable.
+**What is still open.** Nothing.
 
-## 3. Cash flow reads Flow on a phone
+## 3. Load more under a card grid
 
-**The problem.** On a phone, "Cash flow" does not fit its half of the Orders / Cash flow switch on Statistics.
+**The problem.** `.sp-touch .sp-list__footer--loose .sp-btn { width: 100%; }` made Load more fill the width on touch (Vendors 361px, and every `ListMore loose`).
 
-**What changed.** On touch and below 640px the option reads "Flow". "Cash flow" is unchanged on desktop and everywhere else the view is named. This is a new state of the segmented control (c5): the option carries `data-short="Flow"`, and its label holds both forms, `.sp-segmented__full` and `.sp-segmented__short`. The option's measured width (`::after`) uses `data-short` on touch, so selecting an option still does not shift the layout.
+**What changed.** On touch, a small or xsmall button in the loose footer keeps its own width and is centred under the grid. A default-size button still fills the width.
 
-**Where.** `Order statistics.dc.html`: every View switch (4a, 4h and the other frames), and the note beside 4a. `styles/components.css`: `.sp-segmented__short`, `.sp-segmented__full`, `.sp-segmented__item[data-short]::after`, under `.sp-touch` and in the 640px query. App: `react/src/pages/Statistics.jsx` (the View switch), plus a short phrase key beside the Cash flow label in `language/en.json` and `da.json`.
+**Where.** `styles/components.css`: `.sp-touch .sp-list__footer--loose .sp-btn:not(.sp-btn--small, .sp-btn--xsmall)` and `.sp-touch .sp-list__footer--loose > .sp-btn:is(.sp-btn--small, .sp-btn--xsmall) { align-self: center; }`. App: no change, since `ListMore loose` already uses the small button.
 
-**What is still open.** Nothing. The input carries `aria-label="Cash flow"`, so a screen reader reads the full name on a phone too.
+**What is still open.** Nothing.
+
+## 4. Buttons stacked on a phone
+
+**The problem.** The "You already have this order" sheet stacked five full-width buttons on a phone, even where two would fit side by side.
+
+**What changed.** On a phone, buttons sit two to a row. Each one takes half the row (`.sp-dialog__actions` with `sp-btn--block`), and a button left over takes a row of its own. In this sheet the rows are: Open that order and Compare the files, then Open that draft, then Create anyway and Read it again, then Discard.
+
+**Where.** `Order create.dc.html`: the dialog on a phone, and its note. `Mobile screens.dc.html`: 3c. App: the sheet in `react/src/pages/OrderCreate.jsx` (the duplicate dialog) wraps each pair in `.sp-dialog__actions`.
+
+**What is still open.** Nothing.
+
+## Carried from handoff_phone_button_size_fixed
+
+Small and xsmall buttons are 34px on touch, with a 48px tap area that cannot be seen. Send beside the chat field stays 48px. That package's Flow label is withdrawn, as described at the top of this note. See that package's CHANGES.md for the full sections. The files are included here because main's `design/` does not have them yet.
 
 ## Files
 
 - `README.md` - the design overview, unchanged from the project root.
 - `CHANGES.md` - this note, with the fix at the top.
-- `Components.dc.html` - c6 touch note, and the "Touch is the same component" note.
-- `Order statistics.dc.html` - the Flow short label on every View switch, and its note.
-- `styles/components.css` - the small, xsmall and segmented rules above.
-- `styles/check.js` - three new assertions: xsmall is 34px on touch and below 640px, and small is 34px on touch and below 640px. These replace the old head-only assertion.
-- `styles/COMPONENT-STATUS.md` - the 2026-11-01 entry.
-- `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/order-statistics.css`, `support.js`, `components.js`, `view.js` - unchanged from main. They are included because the two pages load them.
+- `Vendors and categories.dc.html`, `Bookmarks.dc.html` - card actions moved into the footer.
+- `Order create.dc.html`, `Mobile screens.dc.html` - sheet buttons in pairs. Mobile screens also gets the cash-icon toggle and the sheet at the foot.
+- `Order statistics.dc.html` - the plain Cash flow label, and the note about the cash icon on a phone.
+- `Icon legend.dc.html` - `cash` registered in 19a.
+- `Components.dc.html` - the c6 notes.
+- `styles/components.css` - the footer, loose-footer, small and xsmall rules. The short-label rules are removed.
+- `styles/check.js` - asserts: small and xsmall at 34px on touch, buttons on a phone two to a row, a small button keeps its width in a footer and under a grid, and a card action sits in its footer.
+- `styles/COMPONENT-STATUS.md` - the 2026-11-01 entries.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/order-statistics.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css`, `styles/pages/order-create.css`, `styles/pages/icon-legend.css`, `support.js`, `components.js`, `view.js` - unchanged from main.
+- `icons.js` - main's, with `cash` added. They are included because the pages load them.
 
 ## styles/check.js
 

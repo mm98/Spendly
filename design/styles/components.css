@@ -238,8 +238,9 @@
    it fills it. No page has to remember --block for this - the structure says it.
    A pair uses --split, which is already a 1fr/1fr grid, so both halves match.
    A text button is excluded: it is a link, and a link that spans a card reads as
-   a button while behaving like navigation. */
-.sp-card__footer > .sp-btn:only-child:not([class*="--text"]) { width: 100%; }
+   a button while behaving like navigation. A small or xsmall button is excluded too:
+   it keeps its own width at the footer's start, on every screen (brief small-button-width). */
+.sp-card__footer > .sp-btn:only-child:not([class*="--text"], .sp-btn--small, .sp-btn--xsmall) { width: 100%; }
 a.sp-card { text-decoration: none; color: inherit; }
 @media (hover: hover) {
   a.sp-card:hover { border-color: var(--line-3); }
@@ -1250,7 +1251,9 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* below a card grid there is no list border to sit inside, so the footer takes
    the grid's own width: the count at one edge, Load more at the other */
 .sp-touch .sp-list__footer--loose { flex-direction: column; gap: var(--sp-8); }
-.sp-touch .sp-list__footer--loose .sp-btn { width: 100%; }
+.sp-touch .sp-list__footer--loose .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
+/* a small Load more keeps its own width, centred under the grid (brief small-button-width) */
+.sp-touch .sp-list__footer--loose > .sp-btn:is(.sp-btn--small, .sp-btn--xsmall) { align-self: center; }
 .sp-list__footer--loose { padding: 0; }
 
 .sp-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -1784,17 +1787,6 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   place-items: center;
 }
 .sp-segmented__item:has(:focus-visible) { box-shadow: var(--ring); }
-/* short label: an option whose label does not fit a phone's half of the switch carries a
-   short form (Cash flow - Flow), shown on touch and below 640px, measured from data-short */
-.sp-segmented__short { display: none; }
-.sp-touch .sp-segmented__item[data-short]::after { content: attr(data-short); }
-.sp-touch .sp-segmented__full { display: none; }
-.sp-touch .sp-segmented__short { display: inline; }
-@media (max-width: 639.98px) {
-  .sp-segmented__item[data-short]::after { content: attr(data-short); }
-  .sp-segmented__full { display: none; }
-  .sp-segmented__short { display: inline; }
-}
 /* small: the small button's height, for a card head or a toolbar of small buttons (c5) */
 .sp-segmented--small { height: var(--btn-h-small); padding: var(--sp-4); gap: var(--sp-4); }
 .sp-segmented--small > .sp-segmented__item { padding: 0 var(--sp-8); font-size: var(--t-12); }

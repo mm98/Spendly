@@ -142,6 +142,12 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 /* a sheet's buttons go full width, stacked, the commit on top (Layout rules, 18b); it is written last */
 .sp-sheet .sp-dialog__actions { flex-direction: column-reverse; align-items: stretch; }
 .sp-sheet .sp-dialog__actions > .sp-btn { flex: none; }
+/* off a phone, a small button alone in a card footer fills it, the loading shape too; on a phone it keeps its own width (c6) */
+@media (min-width: 640px) {
+	body:not(.sp-touch) .sp-card__footer > .sp-btn--small:only-child,
+	body:not(.sp-touch) .sp-card__footer > .lb-hold:only-child,
+	body:not(.sp-touch) .sp-card__footer > .lb-hold:only-child .sp-btn--small { width: 100%; }
+}
 
 /* one toast at a time, under a notice waiting for an answer, at the window's bottom (c18, 6d) */
 .sp-toast-region {

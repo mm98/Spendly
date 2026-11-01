@@ -217,8 +217,8 @@
       </div>
     <div class="sp-stack sp-gap-12 ms-w375">
         <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">SCAN - YOU ALREADY HAVE THIS ORDER</span><span class="sp-meta sp-ink-5">3c</span></div>
-        <div class="sp-phone sp-touch ms-device">
-          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div>
+        <div class="sp-phone sp-touch ms-device ms-device--bottom">
+          <div class="ms-layer"><div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div></div>
           <div class="sp-scrim"></div>
         <div class="sp-sheet" role="dialog" aria-label="You already have this order">
           <span class="sp-sheet__handle" aria-hidden="true"></span>
@@ -231,7 +231,7 @@
               <span class="sp-meta">SPENDLY-447 · 12/08/2026 · 4 lines · 7.635,00 kr.</span>
             </div>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
+          <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
           <div class="sp-list-item sp-list-item--top">
             <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
             <div class="sp-stacked sp-grow">
@@ -239,11 +239,10 @@
               <span class="sp-meta">Draft · scanned 14 Aug · 7.635,00 kr.</span>
             </div>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that draft</button></div>
+          <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that draft</button></div>
           <div class="sp-stack sp-gap-8">
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Create anyway</button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read it again</button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Create anyway</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read it again</button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button></div>
           </div>
         </div>
         </div>
@@ -310,7 +309,7 @@
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-1"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-1" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
           </div>
-          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show amounts</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-flex-none" aria-pressed="false" aria-label="Show amounts" data-tip="Show amounts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" /><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" /><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /></svg></button>
           </div>
           </div>
         </div>
@@ -356,7 +355,7 @@
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-over"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-over" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
           </div>
-          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide amounts</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-flex-none" aria-pressed="true" aria-label="Hide amounts" data-tip="Hide amounts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" /><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" /><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /></svg></button>
           </div>
           </div>
         </div>
@@ -402,7 +401,7 @@
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-2"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-2" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
           </div>
-          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide amounts</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-flex-none" aria-pressed="true" aria-label="Hide amounts" data-tip="Hide amounts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" /><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" /><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /></svg></button>
           </div>
           </div>
         </div>
@@ -863,7 +862,7 @@
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
-          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show income</button>
+          <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-flex-none" aria-pressed="false" aria-label="Show income" data-tip="Show income"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg></button>
           <button type="button" class="sp-btn sp-btn--outline sp-flex-none">Edit</button>
           </div></div>
         <div class="ms-scroll ms-scroll--pad">
@@ -1793,6 +1792,7 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>On a phone the Statistics period is one select</b>: Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
+    <div class="doc-note"><b>On a phone Show amounts is the cash icon alone</b>, a 48px outline icon button at the end of the View row, so the switch keeps the rest of the row and its full labels, Orders and Cash flow. It is the same toggle as on desktop (<code>aria-pressed</code>), named Show amounts or Hide amounts by its <code>aria-label</code>; pressed, it takes the pressed tint.</div>
     <div class="doc-note"><b>Cash flow opens with its amounts hidden</b>, as on desktop (<a href="Order statistics.dc.html#4h">4h</a>): the top line keeps its name, the share list its names and shares, and the bars keep their sizes. Show amounts sits beside the Orders / Cash flow switch, the same button as Show income on Budget; the two other Cash flow phones are drawn with it pressed.</div>
     <div class="doc-note"><b>On Cash flow the select lists Month, Quarter and Year</b>, since income is paid per month; Week and Custom are left out. The period it opens on and the return to Orders follow <a href="Order statistics.dc.html#4h">4h</a>.</div>
     <div class="doc-note"><b>Arrows either side of the select step the period</b> by its own length: the month before, the quarter before, the year before. Later is disabled on the period that holds today. On Custom both are disabled, since a range of its own has no next or previous (<a href="Order statistics.dc.html#4f">4f</a>). The control is <code>sp-window--select</code>, the window from 21a with the select in its middle.</div>

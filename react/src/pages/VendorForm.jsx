@@ -1,7 +1,7 @@
 import { useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardHeader } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { TextField } from '../components/Inputs.jsx'
 import { Combobox } from '../components/Combobox.jsx'
@@ -485,7 +485,7 @@ function VendorSummary({ vendor, name, colour }) {
 				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>{phrase('vendor.saved')}</Sum>
 				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>{phrase('vendor.returned')}</Sum>
 			</div>
-			<Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>{phrase('library.seeMoreStatistics')}</Button>
+			<CardFooter><Button variant="outline" size="small" to={`/statistics?crumbs=vendor:${vendor.id}`}>{phrase('library.seeMoreStatistics')}</Button></CardFooter>
 		</Card>
 	)
 }

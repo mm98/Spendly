@@ -1360,7 +1360,7 @@
         <div class="doc-note"><b>Asked once.</b> Once answered, the dialog does not open again for the same orders on the same scan or form. It opens again only when a change makes the order match a different one.</div>
         <div class="doc-note"><b>Every order that holds the file is found.</b> An order with no vendor and a file that sits on one of an order's lines both count as holding it; a scan of either opens this dialog rather than going straight to the review. An order with no vendor is named by its reference.</div>
         <div class="doc-note"><b>Store the reading, not just the hash.</b> SHA-256 of the bytes as received, on the upload and the attachment, with the reading kept against it, so Create anyway on the same file costs no second reading. The cost is ours and stays out of the UI: no amounts, no counters.</div>
-        <div class="doc-note"><b>On a phone it is a sheet</b> holding the same list, every button full width and stacked, primary first: each row's buttons under it, then Create anyway, Read it again and Discard.</div>
+        <div class="doc-note"><b>On a phone it is a sheet</b> holding the same list. Buttons sit two to a row, each taking half (<code>.sp-dialog__actions</code> with <code>sp-btn--block</code>), and one left over takes the whole row: under each row its Open and Compare the files, primary first, then Create anyway and Read it again, then Discard.</div>
       </div>
     </div>
   </div>
@@ -1381,7 +1381,7 @@
               <span class="sp-meta">SPENDLY-447 · 12/08/2026 · 4 lines · 7.635,00 kr.</span>
             </div>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
+          <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--block">Open that order</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Compare the files</button></div>
           <div class="sp-list-item sp-list-item--top">
             <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
             <div class="sp-stacked sp-grow">
@@ -1389,11 +1389,10 @@
               <span class="sp-meta">Draft · scanned 14 Aug · 7.635,00 kr.</span>
             </div>
           </div>
-          <div class="sp-stack sp-gap-8"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that draft</button></div>
+          <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Open that draft</button></div>
           <div class="sp-stack sp-gap-8">
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Create anyway</button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read it again</button>
-            <button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Create anyway</button><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Read it again</button></div>
+            <div class="sp-dialog__actions"><button type="button" class="sp-btn sp-btn--outline sp-btn--block">Discard</button></div>
           </div>
         </div>
       </div>

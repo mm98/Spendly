@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
 import { useStatuses, useStatusTypes } from '../app/statuses.js'
 import { Choice, Switch } from '../components/Choice.jsx'
@@ -342,15 +342,19 @@ export default function Statistics() {
 	const announce = <span className="sp-announce" aria-live="polite">{said}</span>
 	// amounts on Cash flow show only once asked for, until the reader leaves Statistics (4h)
 	const [amounts, setAmounts] = useState(false)
-	const amountsButton = (
-		<Button variant="outline" iconStart="eye" aria-pressed={amounts} onClick={() => setAmounts(!amounts)}>
-			{phrase('stats.cash.amounts', { shown: String(amounts) })}
-		</Button>
-	)
+	const amountsLabel = phrase('stats.cash.amounts', { shown: String(amounts) })
+	// on a phone the toggle is the icon alone, so the View switch keeps its room (Mobile screens)
+	const amountsButton = touch
+		? <IconButton icon="cash" variant="outline" aria-pressed={amounts} aria-label={amountsLabel} data-tip={amountsLabel} onClick={() => setAmounts(!amounts)} />
+		: (
+			<Button variant="outline" iconStart="eye" aria-pressed={amounts} onClick={() => setAmounts(!amounts)}>
+				{amountsLabel}
+			</Button>
+		)
 	// the switch keeps the address's period, so Orders gets back a week or dates Cash flow showed as a month (4h)
 	const viewSwitch = (
 		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')} fullWidth={touch}
-			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase(touch ? 'stats.cash.view.cashShort' : 'stats.cash.view.cash') }]}
+			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase('stats.cash.view.cash') }]}
 			value={cash ? 'cash' : 'orders'}
 			onChange={v => navigate({ pathname: v === 'cash' ? '/statistics/cash-flow' : '/statistics', search: location.search })} />
 	)

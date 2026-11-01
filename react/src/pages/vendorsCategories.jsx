@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Card, CardHeader, Panel } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxEmpty, ComboboxOption, usePanelPlace, usePanelRest } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
@@ -201,7 +201,7 @@ export function SummaryLoading({ label, sums, action, children }) {
 			<div className="sp-stack">
 				{sums.map(([name, w]) => <Sum key={name} value={<Skeleton shape="end" data-w={w} data-h="13" />}>{name}</Sum>)}
 			</div>
-			{action ? <Held shape={<Button variant="outline" size="small">{action}</Button>} /> : null}
+			{action ? <CardFooter><Held shape={<Button variant="outline" size="small">{action}</Button>} /></CardFooter> : null}
 		</Card>
 	)
 }
@@ -217,7 +217,7 @@ export function RecentLoading() {
 					<Bar role="sp-title" w="88" h="13" end />
 				</ListItem>
 			))}
-			<Held shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} />
+			<CardFooter><Held shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} /></CardFooter>
 		</Card>
 	)
 }
@@ -546,7 +546,7 @@ export function RecentOrders({ filter, to, total }) {
 		<Card>
 			<CardHeader name={phrase('library.recentOrders')} />
 			{orders.map(order => <RecentOrder key={order.id} order={order} />)}
-			<Button variant="outline" size="small" to={to}>{phrase('library.seeAll', { orders: plural(total, 'order') })}</Button>
+			<CardFooter><Button variant="outline" size="small" to={to}>{phrase('library.seeAll', { orders: plural(total, 'order') })}</Button></CardFooter>
 		</Card>
 	)
 }

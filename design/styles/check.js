@@ -1332,6 +1332,52 @@
     if (!/@media \(max-width: 639\.98px\) \{[^@]*\n  \.sp-btn--xsmall \{[^}]*min-height: 0;[^}]*height: var\(--btn-h-small\)/.test(bare)) fail('an xsmall button is 34px below 640px', 'components.css', 'the touch query gives .sp-btn--xsmall the 48px min-height');
   }
 
+  /* On a phone, buttons are never stacked when two fit side by side: they sit two to a row
+     in .sp-dialog__actions, each sp-btn--block taking half, and an odd one takes a row of its
+     own. Caught: the You already have this order sheet stacked five full-width buttons. */
+  for (const f of pages) {
+    const s = src[f];
+    for (const m of s.matchAll(/<div class="sp-stack[^"]*">((?:\s*<(?:button|a)[^>]*class="sp-btn[^"]*"[^>]*>[^<]*<\/(?:button|a)>){2,})\s*<\/div>/g)) {
+      const before = s.slice(0, m.index);
+      const phone = before.lastIndexOf('sp-phone');
+      if (phone >= 0 && before.lastIndexOf('</section>') < phone && !/sp-btn--small/.test(m[1])) fail('buttons on a phone sit two to a row', f, 'stacked: ' + (m[1].match(/>([^<]+)<\//g) || []).join(' '));
+    }
+  }
+
+  /* Brief small-button-width: a small or xsmall button keeps its own width on every screen.
+     Caught: one alone in a card footer filled it, Load more under a card grid filled it on
+     touch, and See all N orders sat loose in a card, which stretched it to the card's width. */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    if (!/\.sp-card__footer > \.sp-btn:only-child:not\(\[class\*="--text"\], \.sp-btn--small, \.sp-btn--xsmall\) \{ width: 100%; \}/.test(bare)) fail('a small button keeps its width alone in a footer', 'components.css', 'the footer fill rule takes small buttons');
+    if (/\.sp-list__footer--loose \.sp-btn \{ width: 100%/.test(bare)) fail('a small Load more keeps its width', 'components.css', 'the loose footer fills every button');
+    for (const f of pages) {
+      const s = src[f];
+      for (const m of s.matchAll(/<(?:a|button)[^>]*class="sp-btn[^"]*sp-btn--x?small[^"]*"[^>]*>([^<]*)<\/(?:a|button)>/g)) {
+        // the button's parent: walk back over the divs, skipping closed ones
+        let depth = 0, i = m.index, parent = null;
+        const tags = [...s.slice(Math.max(0, m.index - 6000), m.index).matchAll(/<div\b[^>]*>|<\/div>/g)].reverse();
+        for (const t of tags) { if (t[0] === '</div>') depth++; else if (depth) depth--; else { parent = t[0]; break; } }
+        if (parent && /class="sp-card(?: sp-card--[a-z-]+)*"/.test(parent)) fail('a card action sits in its footer', f, m[1]);
+      }
+    }
+  }
+
+  /* On touch a default button fills its column, so one set beside another control in a row
+     (sp-flex-none) takes the whole row and squeezes its neighbour to nothing. Caught: Show
+     amounts beside the View switch on a phone left the switch 0px wide. */
+  for (const f of pages) {
+    const s = src[f];
+    for (const m of s.matchAll(/<button[^>]*class="sp-btn(?![^"]*sp-btn--(?:x?small|text|block))[^"]*\bsp-flex-none\b[^"]*"[^>]*>/g)) {
+      const before = s.slice(0, m.index);
+      const phone = before.lastIndexOf('sp-touch');
+      if (phone < 0 || before.lastIndexOf('</section>') > phone) continue;
+      let depth = 0, parent = '';
+      for (const t of [...before.slice(-6000).matchAll(/<div\b[^>]*>|<\/div>/g)].reverse()) { if (t[0] === '</div>') depth++; else if (depth) depth--; else { parent = t[0]; break; } }
+      if (/class="sp-row-flex\b/.test(parent)) fail('a button beside a control on touch keeps its width', f, m[0].slice(0, 90));
+    }
+  }
+
   /* Brief 36. The Showing bar is a card with a head, not a row of its own: as one row
      its path wrapped, the name drifted to the row's middle and "Open in orders" ran
      101px past a phone's edge. A head button on touch keeps its 34px box with the 48px

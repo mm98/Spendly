@@ -1986,7 +1986,6 @@
 	"stats.cash.vendors": "{count, plural, one {# vendor} other {# vendors}}",
 	"stats.cash.view": "View",
 	"stats.cash.view.cash": "Cash flow",
-	"stats.cash.view.cashShort": "Flow",
 	"stats.cash.view.orders": "Orders",
 	"stats.cash.where": "{place} · {count}",
 	"stats.clickToNarrow": "click to narrow down",

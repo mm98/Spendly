@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
-import { Card, CardHeader } from '../components/Card.jsx'
+import { Card, CardFooter, CardHeader } from '../components/Card.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -391,7 +391,7 @@ function CategorySummary({ category, preview, budget, period }) {
 				<Sum value={currency(category.monthAverage ?? 0, 0)}>{phrase('category.average')}</Sum>
 				<Sum value={amount(category.orders, 0)}>{phrase('page.orders')}</Sum>
 			</div>
-			<Button variant="outline" size="small" to={`/statistics?crumbs=category:${category.id}`}>{phrase('library.seeMoreStatistics')}</Button>
+			<CardFooter><Button variant="outline" size="small" to={`/statistics?crumbs=category:${category.id}`}>{phrase('library.seeMoreStatistics')}</Button></CardFooter>
 		</Card>
 	)
 }
