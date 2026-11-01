@@ -116,8 +116,8 @@ export const routes = [
 					{ path: ':id/compare', element: <OrderCompare />, handle: { title: 'page.compareWithReceipt', navKey: 'orders' } }
 				] },
 
-				{ path: 'statistics', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
-				{ path: 'statistics/cash-flow', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
+				// one route for both views, so a choice made on one is kept on the other (4h)
+				{ path: 'statistics/:view?', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
 
 				{ path: 'vendors', children: [
 					{ index: true, element: <Vendors />, handle: { title: 'page.vendors', navKey: 'vendors', remember: true } },

@@ -305,9 +305,12 @@
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
           </div>
-          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+          <div class="sp-row-flex sp-gap-8">
+          <div class="sp-segmented sp-segmented--fill sp-grow" role="radiogroup" aria-label="View">
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-1"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-1" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Show amounts</button>
           </div>
           </div>
         </div>
@@ -315,9 +318,9 @@
         
         <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
           <div class="sp-cashflow sp-cashflow--down" role="img" aria-label="Where the money went">
-            <div class="sp-cashflow__top"><span class="sp-grow">Income</span><span class="sp-amount">34.000 kr.</span></div>
+            <div class="sp-cashflow__top"><span class="sp-grow">Income</span></div>
             <svg class="sp-cashflow__plot" viewBox="0 0 309 102" width="309" height="102" aria-hidden="true"><g><path class="sp-cashflow__link" data-key="2" d="M0.0 10C0.0 51 0.0 51 0.0 92L162.1 92C162.1 51 167.0 51 167.0 10Z"></path><path class="sp-cashflow__link" data-key="3" d="M167.0 10C167.0 51 165.1 51 165.1 92L200.4 92C200.4 51 203.3 51 203.3 10Z"></path><path class="sp-cashflow__link" data-key="5" d="M203.3 10C203.3 51 203.4 51 203.4 92L289.9 92C289.9 51 292.4 51 292.4 10Z"></path><path class="sp-cashflow__link" data-key="saved" d="M292.4 10C292.4 51 292.9 51 292.9 92L309.0 92C309.0 51 309.0 51 309.0 10Z"></path></g><g><rect class="sp-cashflow__node" data-key="income" x="0" y="0" width="309" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="0.0" y="92" width="162.1" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="3" x="165.1" y="92" width="35.3" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="5" x="203.4" y="92" width="86.5" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="saved" x="292.9" y="92" width="16.1" height="10" rx="2"></rect></g></svg>
-            <div class="sp-shares"><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Budget</span><span class="sp-grow"></span><span class="sp-amount">18.370 kr.</span><span class="sp-shares__value">54%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span class="sp-truncate">Savings</span><span class="sp-grow"></span><span class="sp-amount">4.000 kr.</span><span class="sp-shares__value">12%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="5"></span><span class="sp-truncate">Spending</span><span class="sp-grow"></span><span class="sp-amount">9.800 kr.</span><span class="sp-shares__value">29%</span></button><div class="sp-shares__row"><span class="sp-legend__key" data-key="saved"></span><span class="sp-truncate">Left</span><span class="sp-grow"></span><span class="sp-amount">1.830 kr.</span><span class="sp-shares__value"></span></div></div>
+            <div class="sp-shares"><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Budget</span><span class="sp-grow"></span><span class="sp-shares__value">54%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span class="sp-truncate">Savings</span><span class="sp-grow"></span><span class="sp-shares__value">12%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="5"></span><span class="sp-truncate">Spending</span><span class="sp-grow"></span><span class="sp-shares__value">29%</span></button><div class="sp-shares__row"><span class="sp-legend__key" data-key="saved"></span><span class="sp-truncate">Left</span><span class="sp-grow"></span></div></div>
           </div>
         </div>
         </div></div>
@@ -348,9 +351,12 @@
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
           </div>
-          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+          <div class="sp-row-flex sp-gap-8">
+          <div class="sp-segmented sp-segmented--fill sp-grow" role="radiogroup" aria-label="View">
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-over"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-over" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide amounts</button>
           </div>
           </div>
         </div>
@@ -391,9 +397,12 @@
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
           </div>
-          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+          <div class="sp-row-flex sp-gap-8">
+          <div class="sp-segmented sp-segmented--fill sp-grow" role="radiogroup" aria-label="View">
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-2"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-2" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+          <button type="button" class="sp-btn sp-btn--outline sp-flex-none" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>Hide amounts</button>
           </div>
           </div>
         </div>
@@ -1784,6 +1793,8 @@
   <div class="doc-notes">
     <span class="doc-notes__label">Notes for implementation</span>
     <div class="doc-note"><b>On a phone the Statistics period is one select</b>: 30 days, Week, Month, Quarter, Year, Custom, with the window it resolves to beside the name ("Year · 2026"). It is the same six presets as the desktop row (<a href="Order statistics.dc.html#4a">4a</a>).</div>
+    <div class="doc-note"><b>Cash flow opens with its amounts hidden</b>, as on desktop (<a href="Order statistics.dc.html#4h">4h</a>): the top line keeps its name, the share list its names and shares, and the bars keep their sizes. Show amounts sits beside the Orders / Cash flow switch, the same button as Show income on Budget; the two other Cash flow phones are drawn with it pressed.</div>
+    <div class="doc-note"><b>On Cash flow the select lists Month, Quarter and Year</b>, since income is paid per month; 30 days, Week and Custom are left out. The period it opens on and the return to Orders follow <a href="Order statistics.dc.html#4h">4h</a>.</div>
     <div class="doc-note"><b>Arrows either side of the select step the period</b> by its own length: the month before, the quarter before, the year before. Later is disabled on the period that holds today. On Custom both are disabled, since a range of its own has no next or previous (<a href="Order statistics.dc.html#4f">4f</a>). The control is <code>sp-window--select</code>, the window from 21a with the select in its middle.</div>
     <div class="doc-note"><b>Include N left-out orders</b> sits under the period select, the same switch and rules as the desktop period row (<a href="Order statistics.dc.html#4a">4a</a>): shown only when the period holds a left-out order, off by default, not remembered.</div>
     <div class="doc-note"><b>The order list keeps its own search field on a phone</b>, above Filters and Sort. It filters the list; the top bar's search is the palette, which finds records but does not filter.</div>

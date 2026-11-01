@@ -1,63 +1,53 @@
-# Cash flow follow-up: three things the app could not draw as the design said (Brief-cash-flow-follow-up.md)
+# Cash flow: whole months, amounts hidden
 
-This package builds on `handoff_cash_flow_fixed`, whose design changes are not on main's `design/` yet, so every file here is main's with both packages applied. This note covers the follow-up brief only; the first package's `CHANGES.md` still describes Cash flow itself.
+Answers the request that Cash flow use no period shorter than a month, since income is paid per month, and open with its amounts hidden, as Budget hides income. Built on `design/` from main at 2026-11-01T09:58Z.
 
-## 1. The phone period row
+## 1. Month is the shortest period
 
-**The problem.** On a phone, Statistics draws the period as the dropdown between two arrows (`sp-window sp-window--select`, Mobile screens 7b). The design put the Orders / Cash flow switch in the same row, which leaves the dropdown 141px wide at 393 and no room for "Month · October".
+**The problem.** Cash flow offered 30 days, Week and Custom. The budget is kept per month and income is paid per month, so a week or a custom range could not be shown as it reads: it was widened to whole months behind the reader's back.
 
-**What changed.** The switch has a row of its own, directly under the period control, full width (`sp-segmented--fill`): Orders and Cash flow share the width equally. The period keeps its arrows and its full width. On Statistics the switch comes before Include N left-out orders. This is what the app already does.
+**What changed.** Cash flow's period row offers Month, Quarter and Year only. Opening Cash flow while Orders is on 30 days, Week or Custom shows the month holding that period's last day: Week W34 opens August, 30 days to 20/08 opens August, a custom 08/03 - 19/04 opens April. Orders keeps its own period, so switching back returns to the Week, 30 days or custom range it was on. The arrows step by the month, quarter or year shown. On a phone the period select lists Month, Quarter and Year.
 
-**Where.** `Mobile screens`: the 7b Statistics frames (Statistics, Statistics · one month), and the cash flow frames (Statistics, cash flow; Cash flow, more out than in; Cash flow, one account), now drawn with the arrows. The simpler Statistics frame in 7a takes the same row under its select. `Order statistics 4h`, note Under 640. App: `react/src/pages/Statistics.jsx`.
-
-**What is still open.** Nothing.
-
-## 2. The date line for whole months
-
-**The problem.** `PeriodPicker` works out the date line and its note from the preset and takes no dates, so a running year on Cash flow read "01/01 - 01/11/2026" with two notes: "whole months to date" passed as `extra`, and the picker's own "year to date".
-
-**What changed.** `PeriodPicker` takes two new props. `shown`, `{ from, to }`, is the dates the date line states, in place of the ones the period resolves to. `note` is the word after the date line, in place of the period's own. Each replaces its own and nothing else changes. Cash flow passes the whole months and its note (`stats.cash.wholeMonths` or `stats.cash.wholeMonthsToDate`), so a running year reads "01/01 - 31/08/2026 · whole months to date", one note. `extra` is no longer used for it. An unordered or half `shown` is reported with `console.error`. `note` is no longer in the list of props the picker rejects.
-
-**Where.** `react_handoff/DatePickers.jsx`, `PeriodPicker` (JSDoc updated); `Order statistics 4h`, note The period snaps to whole months. App: `react/src/components/DatePickers.jsx`, `react/src/pages/Statistics.jsx`.
+**Where.** `Order statistics 4h` (the period row, note Month is the shortest period on Cash flow); `Mobile screens` note On Cash flow the select lists Month, Quarter and Year. App: `react/src/pages/` Cash flow page, passing `presets` to `PeriodPicker` without `custom`.
 
 **What is still open.** Nothing.
 
-## 3. Over on a phone
+## 2. No date line and no note on Cash flow
 
-**The problem.** `CashFlow` with `down` added Left as the last share row but never Over, so on a phone a month with more out than in showed no sign of it.
+**The problem.** With only whole months to choose, the date line ("01/08 - 31/08/2026") and the note ("whole month") repeated what the window already says (August).
 
-**What changed.** On the first step, when more goes out than comes in, the top bar is the income and Over side by side, Over in the problem colour, and Over is the list's last row, "Over 3.229 kr." in the problem colour with no share, as Left is drawn. A step inside an account or Spending shows neither.
+**What changed.** Cash flow's period row draws neither. `PeriodPicker` takes `dated`, true by default; `dated={false}` leaves out the date line and the note. The Back to the present button still takes the note's place when the reader has stepped away. The `shown` and `note` props added in `handoff_cash_flow_follow_up` are removed, since Cash flow was their only user, and so are the phrases `stats.cash.wholeMonths` and `stats.cash.wholeMonthsToDate`. Orders is unchanged.
 
-**Where.** `Mobile screens`, the new frame Cash flow, more out than in (December 2025); `Order statistics 4h`, note Under 640; `react_handoff/Data.jsx` `CashFlow` (the downward form). App: `react/src/components/Data.jsx`; `storybook/stories/Data.stories.jsx` `WhereTheMoneyWentDownwards` gains an Over case.
+**Where.** `Order statistics 4h`, notes The period is whole months and One amount per row and month; `react_handoff/DatePickers.jsx` `PeriodPicker` (JSDoc updated); `language/en.json`, `language/da.json`. App: `react/src/components/DatePickers.jsx`, the Cash flow page, `react/src/language/*.json`.
 
 **What is still open.** Nothing.
 
-## 4. A ribbon's readout
+## 3. Amounts hidden by default
 
-**The problem.** The package had words for a ribbon's own readout ("Housing to Mortgage") and for a costs total, but `CashFlow` reads out bars only.
+**The problem.** Cash flow showed every amount, the income included, as soon as it opened, while Budget hides income until asked.
 
-**What changed.** A ribbon has no readout of its own: pointing at one shows the readout of the bar it flows into and lights that bar's path, as `CashFlow` already does. `stats.cash.costs` and `stats.cash.to` are removed from `language/en.json` and `da.json`, as the app left them out.
+**What changed.** Cash flow opens with its amounts hidden, every time. The bars and ribbons keep their real sizes, and each bar shows its name and its share of the income; Left and Over show their name only. The amounts are not in the page while hidden: not in the labels, the readout or the bars' titles. The readout keeps its name, Of income and its line ("Budget · 6 rows"). A Show amounts button, the same toggle as Show income on Budget (`aria-pressed`, the eye icon), sits before the Orders / Cash flow switch; pressed, it reads Hide amounts and every amount appears in place. It holds until Statistics is left, and switching to Orders and back keeps it. On a phone the button sits beside the Orders / Cash flow switch; the top line keeps its name and the share list its names and shares.
 
-**Where.** `Order statistics 4h`, note Pointing at a bar or a ribbon; `react_handoff/Data.jsx` (`tip` JSDoc); `language/*.json`.
+**Where.** `Order statistics 4h` (the first screen drawn hidden, the specimens below drawn shown; note Amounts are hidden every time Cash flow opens); `Mobile screens` cash flow frames (the first hidden, the Over and One account frames with the button pressed; note Cash flow opens with its amounts hidden). App: the Cash flow page and `CashFlow` in `react/src/components/Data.jsx`, which needs a way to draw its labels and readout without amounts; phrases for Show amounts and Hide amounts.
 
 **What is still open.** Nothing.
 
 ## later.md
 
-Read on main before this brief. "Reconcile's matching notes in the design are out of date" is settled in `Order list 2j` (in `handoff_cash_flow` and here); please remove it. "A deleted record should not be removed for good at once" is an idea for later and is not touched.
+Read on main before this task. Its one entry, Recently deleted, is an idea for later and not a design fix; nothing settled.
 
 ## Files
 
 - `README.md` - the design's overview, unchanged.
 - `CHANGES.md` - this note.
-- `Mobile screens.dc.html` - the switch's own row under the period on every Statistics and Cash flow frame; the cash flow frames drawn with the arrows; the new Over frame.
-- `Order statistics.dc.html` - 4h notes: one date line and note, a ribbon's readout, the phone row and Over.
-- `react_handoff/DatePickers.jsx` - main's `react/src/components/DatePickers.jsx` with `shown` and `note` on `PeriodPicker`.
-- `react_handoff/Data.jsx` - `CashFlow`'s downward form shows Over.
-- `language/en.json`, `language/da.json` - `stats.cash.costs` and `stats.cash.to` removed.
-- `Components.dc.html`, `Order list.dc.html`, `index.html`, `styles/components.css`, `styles/tokens.css`, `styles/check.js`, `styles/pages/order-statistics.css` - as in `handoff_cash_flow_fixed`, unchanged here.
-- `support.js`, `components.js`, `icons.js`, `view.js`, `styles/schemes.css`, `styles/doc.css`, `styles/pages/mobile-screens.css`, `styles/pages/budget.css`, `styles/pages/order-list.css` - what the pages load to open from the folder.
+- `Order statistics.dc.html` - 4h period row, amounts hidden, notes.
+- `Mobile screens.dc.html` - cash flow frames and notes.
+- `react_handoff/DatePickers.jsx` - `PeriodPicker` `dated`, `shown` and `note` removed.
+- `language/en.json`, `language/da.json` - from `react/src/language/` on main, the two whole-months phrases removed.
+- `support.js`, `components.js`, `icons.js`, `view.js` - what the pages load.
+- `styles/tokens.css`, `styles/schemes.css`, `styles/components.css`, `styles/doc.css` - unchanged from main.
+- `styles/pages/order-statistics.css`, `styles/pages/budget.css`, `styles/pages/mobile-screens.css` - the page stylesheets the two pages link, unchanged.
 
-## styles/check.js
+## Check
 
-0 findings across 28 pages.
+`styles/check.js`: 0 findings across 28 pages.

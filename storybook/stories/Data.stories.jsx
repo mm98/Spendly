@@ -231,3 +231,15 @@ export const WhereTheMoneyWentDownwardsOver = {
 		await expect(canvasElement.querySelector('.sp-cashflow__node[data-key="over"]')).not.toBeNull()
 	}
 }
+
+// every bar with its amount left out, as the Cash flow page draws it until Show amounts is pressed
+const withoutAmount = bar => ({ ...bar, amount: '', ...(bar.groups ? { groups: bar.groups.map(withoutAmount) } : {}), ...(bar.lines ? { lines: bar.lines.map(withoutAmount) } : {}) })
+
+export const WhereTheMoneyWentWithoutAmounts = {
+	args: { ...WhereTheMoneyWent.args, income: CASH_INCOME.map(withoutAmount), branches: CASH_BRANCHES.map(withoutAmount), left: { value: 1830, amount: '' } },
+	render: WhereTheMoneyWent.render,
+	play: async ({ canvas, canvasElement }) => {
+		await expect(await canvas.findByRole('img', { name: 'Housing 36%' })).toBeVisible()
+		await expect(canvasElement.querySelector('.sp-cashflow').textContent).not.toMatch(/kr\./)
+	}
+}
