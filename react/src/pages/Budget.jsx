@@ -685,16 +685,20 @@ function useMonthStrip(from, count) {
 	const [seen, setSeen] = useState(from)
 	const [way, setWay] = useState(0)
 	const [moving, setMoving] = useState(false)
+	const latest = useRef(from)
 	if (seen !== from) {
 		const box = ref.current
 		const gap = box?.firstElementChild ? parseFloat(getComputedStyle(box.firstElementChild).columnGap) || 0 : 0
 		const well = box ? (box.clientWidth - gap * (count - 1)) / count + gap : 0
 		const steps = Math.abs(from - seen) === 1 ? 1 : count
+		latest.current = from
 		setSeen(from)
 		setWay(Math.sign(from - seen) * steps * well)
 		setMoving(true)
 	}
-	return { ref, way, moving, settled: () => setMoving(false) }
+	// AnimatePresence can call the end of one move in the commit that starts the next; only the latest move ends the clip
+	const settled = () => { if (latest.current === from) setMoving(false) }
+	return { ref, way, moving, settled }
 }
 
 /** The month in front, on the dark card: what is left, and how much of the income is used. */
