@@ -17,7 +17,7 @@ import { Pill } from '../components/Pill.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
-import { CashFlowCard, wholeMonths, wholeMonthsNote } from './CashFlow.jsx'
+import { CashFlowCard, lastDayOf, wholeMonths, wholeMonthsNote } from './CashFlow.jsx'
 import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
@@ -333,7 +333,7 @@ export default function Statistics() {
 	const announce = <span className="sp-announce" aria-live="polite">{said}</span>
 	// the period is shared both ways, so the switch keeps the address's period (4h)
 	const viewSwitch = (
-		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')}
+		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')} fullWidth={touch}
 			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase('stats.cash.view.cash') }]}
 			value={cash ? 'cash' : 'orders'}
 			onChange={v => navigate({ pathname: v === 'cash' ? '/statistics/cash-flow' : '/statistics', search: location.search })} />
@@ -379,15 +379,14 @@ export default function Statistics() {
 					// a custom range has no stepper (4f): choosing the selected Custom again opens its dates
 					onClick={ev => { if (range === 'custom' && !draft && ev.target.matches('input[value="custom"]')) openCustom() }}
 					stepper={stepper}
-					extra={cash
-						? <span className="sp-period__note">{wholeMonthsNote(months)}</span>
-						: leftOut
-							? (
-								<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
-									{phrase('stats.include', { orders: plural(leftOut, 'left out order') })}
-								</Choice>
-							)
-							: null}
+					{...(cash ? { shown: { from: `${months.from}-01`, to: lastDayOf(months.to) }, note: wholeMonthsNote(months) } : {})}
+					extra={leftOut
+						? (
+							<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
+								{phrase('stats.include', { orders: plural(leftOut, 'left out order') })}
+							</Choice>
+						)
+						: null}
 					actions={viewSwitch}
 				>
 					{cash

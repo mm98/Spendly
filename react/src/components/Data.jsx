@@ -591,7 +591,7 @@ function pathOf(id, ribbons) {
  * @param {(CashFlowBar & { spending?: boolean, groups: (CashFlowBar & { lines: CashFlowBar[] })[] })[]} [props.branches] Where the income goes: each cost account with its groups and rows, then Spending with its categories and vendors.
  * @param {{ value: number, amount: string }} [props.left] What is left of the income, when there is some.
  * @param {{ value: number, amount: string }} [props.over] What goes out over the income, when it does.
- * @param {(bar: CashFlowBar, how: { opens: boolean }) => import('react').ReactNode} [props.tip] The readout for a pointed bar: a ChartTip. `opens` is true from 640 to 1099 for a group or category, whose readout then lists its three largest rows or vendors and "click to open".
+ * @param {(bar: CashFlowBar, how: { opens: boolean }) => import('react').ReactNode} [props.tip] The readout for a pointed bar, or for the bar a pointed ribbon flows into: a ChartTip. `opens` is true from 640 to 1099 for a group or category, whose readout then lists its three largest rows or vendors and "click to open".
  * @param {boolean} [props.down] Draw downwards, one step at a time.
  * @param {string} props.label The chart's name for a screen reader.
  */
@@ -635,6 +635,8 @@ export function CashFlow({ income = [], branches = [], left, over, tip, down = f
 			: branch
 				? branch.groups.map(g => ({ ...g, key, opens: true }))
 				: [...branches.map((b, i) => ({ ...b, key: keys[i], opens: true })), ...(named.left && income.length ? [{ id: 'left', key: 'saved', ...named.left }] : [])]
+		// Over is drawn in the top bar, beside the income it adds to, and as the list's last row
+		const overPart = !branch && named.over && income.length ? named.over : null
 		const sum = items.reduce((a, n) => a + n.value, 0) || 1
 		const w = width || 309, gap = 3, rows = 92, bar = 10
 		const kk = (w - gap * (items.length - 1)) / sum
@@ -665,7 +667,8 @@ export function CashFlow({ income = [], branches = [], left, over, tip, down = f
 				<svg className="sp-cashflow__plot" viewBox={`0 0 ${w} ${rows + bar}`} aria-hidden="true">
 					<g>{parts.map(p => <path className="sp-cashflow__link" data-key={pick(FLOW_KEY, p.key, 'key', 'CashFlow')} d={`M${p.x0} ${bar}C${p.x0} ${my} ${p.b0} ${my} ${p.b0} ${rows}L${p.b1} ${rows}C${p.b1} ${my} ${p.x1} ${my} ${p.x1} ${bar}Z`} key={p.id} onClick={open(p)} />)}</g>
 					<g>
-						<rect className="sp-cashflow__node" data-key={key ?? (income.length ? 'income' : keys[0])} x="0" y="0" width={w} height={bar} rx="2" />
+						<rect className="sp-cashflow__node" data-key={key ?? (income.length ? 'income' : keys[0])} x="0" y="0" width={overPart ? w * (1 - overPart.value / sum) : w} height={bar} rx="2" />
+						{overPart ? <rect className="sp-cashflow__node" data-key="over" x={w * (1 - overPart.value / sum)} y="0" width={w * overPart.value / sum} height={bar} rx="2" /> : null}
 						{parts.map(p => <rect className="sp-cashflow__node" data-key={p.key} x={p.b0} y={rows} width={p.b1 - p.b0} height={bar} rx="2" key={p.id} onClick={open(p)} />)}
 					</g>
 				</svg>
@@ -673,6 +676,7 @@ export function CashFlow({ income = [], branches = [], left, over, tip, down = f
 					{parts.map(p => (
 						<ShareRow series={p.key} value={p.id === 'left' ? '' : p.share} amount={p.amount} onClick={open(p)} key={p.id}>{p.name}</ShareRow>
 					))}
+					{overPart ? <ShareRow series="over" value="" amount={overPart.amount}>{overPart.name}</ShareRow> : null}
 				</Shares>
 			</div>
 		)

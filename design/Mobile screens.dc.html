@@ -256,6 +256,7 @@
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
           <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
+        <div class="sp-stack sp-gap-8">
         <div class="sp-row-flex sp-gap-8">
           <div class="sp-combobox sp-combobox--grow">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Year">
@@ -263,10 +264,11 @@
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
-          <div class="sp-segmented" role="radiogroup" aria-label="View">
-            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-0" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
-            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-0"><span class="sp-label">Cash flow</span></label>
-          </div>
+        </div>
+        <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+          <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-0" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+          <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-0"><span class="sp-label">Cash flow</span></label>
+        </div>
         </div>
         <div class="sp-fields">
           <div class="sp-card"><span class="sp-meta">Total spend</span><span class="sp-stat__figure">486.320</span></div><div class="sp-card"><span class="sp-meta">Orders</span><span class="sp-stat__figure">128</span></div><div class="sp-card"><span class="sp-meta">Average</span><span class="sp-stat__figure">1.961</span></div><div class="sp-card"><span class="sp-meta">Saved</span><span class="sp-stat__figure">138.410</span></div>
@@ -290,19 +292,26 @@
                   <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
-          <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
-        <div class="sp-row-flex sp-gap-8">
-          <div class="sp-combobox sp-combobox--grow">
+          <div class="ms-pane">
+        <div class="ms-head">
+          <div class="sp-stack sp-gap-8">
+          <div class="sp-window sp-window--select">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-combobox">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
-                    <span class="sp-grow">August 2026</span>
+                    <span class="sp-grow">Month · August 2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
-          <div class="sp-segmented" role="radiogroup" aria-label="View">
+            <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-1"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-1" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
           </div>
+          </div>
         </div>
+        <div class="ms-scroll ms-scroll--pad">
         
         <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
           <div class="sp-cashflow sp-cashflow--down" role="img" aria-label="Where the money went">
@@ -320,25 +329,75 @@
         </div>
       </div>
     <div class="sp-stack sp-gap-12 ms-w375">
+        <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">CASH FLOW, MORE OUT THAN IN</span><span class="sp-meta sp-ink-5">4h</span></div>
+        <div class="sp-phone sp-touch ms-device">
+          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div><div class="sp-topbar sp-topbar--touch"><div class="sp-picker__search">
+                  <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                  <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
+                </div></div>
+          <div class="ms-pane">
+        <div class="ms-head">
+          <div class="sp-stack sp-gap-8">
+          <div class="sp-window sp-window--select">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-combobox">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
+                    <span class="sp-grow">Month · December 2025</span>
+                    <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+            <button type="button" class="sp-window__btn" aria-label="Later month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-over"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-over" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+          </div>
+        </div>
+        <div class="ms-scroll ms-scroll--pad">
+        
+        <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
+          <div class="sp-cashflow sp-cashflow--down" role="img" aria-label="Where the money went">
+            <div class="sp-cashflow__top"><span class="sp-grow">Income</span><span class="sp-amount">34.000 kr.</span></div>
+            <svg class="sp-cashflow__plot" viewBox="0 0 309 102" width="309" height="102" aria-hidden="true"><g><path class="sp-cashflow__link" data-key="2" d="M0.0 10C0.0 51 0.0 51 0.0 92L151.2 92C151.2 51 154.2 51 154.2 10Z"></path><path class="sp-cashflow__link" data-key="3" d="M154.2 10C154.2 51 154.2 51 154.2 92L186.8 92C186.8 51 187.4 51 187.4 10Z"></path><path class="sp-cashflow__link" data-key="5" d="M187.4 10C187.4 51 189.8 51 189.8 92L309.0 92C309.0 51 309.0 51 309.0 10Z"></path></g><g><rect class="sp-cashflow__node" data-key="income" x="0" y="0" width="282.2" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="over" x="282.2" y="0" width="26.8" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="0.0" y="92" width="151.2" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="3" x="154.2" y="92" width="32.6" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="5" x="189.8" y="92" width="119.2" height="10" rx="2"></rect></g></svg>
+            <div class="sp-shares"><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Budget</span><span class="sp-grow"></span><span class="sp-amount">18.580 kr.</span><span class="sp-shares__value">55%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span class="sp-truncate">Savings</span><span class="sp-grow"></span><span class="sp-amount">4.000 kr.</span><span class="sp-shares__value">12%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="5"></span><span class="sp-truncate">Spending</span><span class="sp-grow"></span><span class="sp-amount">14.649 kr.</span><span class="sp-shares__value">43%</span></button><div class="sp-shares__row"><span class="sp-legend__key" data-key="over"></span><span class="sp-truncate">Over</span><span class="sp-grow"></span><span class="sp-amount">3.229 kr.</span><span class="sp-shares__value"></span></div></div>
+          </div>
+        </div>
+        </div></div>
+          <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta sp-strong">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta">More</span>
+              </button></div>
+        </div>
+      </div>
+    <div class="sp-stack sp-gap-12 ms-w375">
         <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">CASH FLOW, ONE ACCOUNT</span><span class="sp-meta sp-ink-5">4h</span></div>
         <div class="sp-phone sp-touch ms-device">
           <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div><div class="sp-topbar sp-topbar--touch"><div class="sp-picker__search">
                   <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
                   <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
                 </div></div>
-          <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
-        <div class="sp-row-flex sp-gap-8">
-          <div class="sp-combobox sp-combobox--grow">
+          <div class="ms-pane">
+        <div class="ms-head">
+          <div class="sp-stack sp-gap-8">
+          <div class="sp-window sp-window--select">
+            <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+            <div class="sp-combobox">
                   <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
-                    <span class="sp-grow">August 2026</span>
+                    <span class="sp-grow">Month · August 2026</span>
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
-          <div class="sp-segmented" role="radiogroup" aria-label="View">
+            <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
             <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-2"><span class="sp-label">Orders</span></label>
             <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-2" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
           </div>
+          </div>
         </div>
+        <div class="ms-scroll ms-scroll--pad">
         
         <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
           <nav aria-label="Showing">
@@ -1381,6 +1440,10 @@
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later year" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
           </div>
+          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-7b-view-3" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-7b-view-3"><span class="sp-label">Cash flow</span></label>
+          </div>
           <label class="sp-row-flex sp-gap-8">
             <input class="sp-switch" type="checkbox" role="switch">
             <span class="sp-data">Include 1 left-out order</span>
@@ -1510,6 +1573,7 @@
                 </div></div>
         <div class="ms-pane">
         <div class="ms-head">
+          <div class="sp-stack sp-gap-8">
           <div class="sp-window sp-window--select">
             <button type="button" class="sp-window__btn" aria-label="Earlier month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
             <div class="sp-combobox">
@@ -1519,6 +1583,11 @@
                   </button>
                 </div>
             <button type="button" class="sp-window__btn" aria-label="Later month" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+          </div>
+          <div class="sp-segmented sp-segmented--fill" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-7b-view-4" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-7b-view-4"><span class="sp-label">Cash flow</span></label>
+          </div>
           </div>
         </div>
         <div class="ms-scroll ms-scroll--pad">

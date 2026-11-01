@@ -222,3 +222,12 @@ export const WhereTheMoneyWentDownwards = {
 		await expect(await canvas.findByRole('button', { name: 'Remove Budget' })).toBeVisible()
 	}
 }
+
+export const WhereTheMoneyWentDownwardsOver = {
+	args: { ...WhereTheMoneyWent.args, left: undefined, over: { value: 3229, amount: '3.229 kr.' }, down: true },
+	render: WhereTheMoneyWent.render,
+	play: async ({ canvas, canvasElement }) => {
+		await expect(canvas.getByText('Over')).toBeVisible()
+		await expect(canvasElement.querySelector('.sp-cashflow__node[data-key="over"]')).not.toBeNull()
+	}
+}

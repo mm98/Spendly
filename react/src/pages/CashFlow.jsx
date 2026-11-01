@@ -22,6 +22,9 @@ export function wholeMonths(fromIso, toIso, todayIso) {
 	return { from, to, count, toDate: to === now }
 }
 
+/** The last day of a month, YYYY-MM, as YYYY-MM-DD. */
+export const lastDayOf = month => new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5)), 0)).toISOString().slice(0, 10)
+
 /** The words under the period: whole month, whole months, or whole months to date. */
 export const wholeMonthsNote = ({ count, toDate }) => (toDate ? phrase('stats.cash.wholeMonthsToDate') : phrase('stats.cash.wholeMonths', { count }))
 

@@ -643,10 +643,13 @@ export function PeriodWindow({ label, unit = 'month', previousLabel, nextLabel, 
     @param {() => void} [props.onPresent]
     @param {import('react').ReactNode} [props.extra] A second switch after the comparison.
     @param {import('react').ReactNode} [props.actions] Buttons at the end of the row.
+    @param {{ from: string, to: string }} [props.shown] The dates the date line states, in place of the ones the period resolves to: Cash flow's whole months (4h).
+    @param {string} [props.note] The word after the date line, in place of the period's own, such as whole months to date.
     @param {import('react').ReactNode} [props.children] One Selected, which draws what the chosen period is.
     @param {string} [props.locale] How dates are written, such as da-DK. */
-export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, children, locale, ...rest }) {
-	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, extra, actions, shown, note: ownNote, children, locale, ...rest }) {
+	reject(rest, 'PeriodPicker', ['compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
+	if (shown && (!shown.from || !shown.to || shown.from > shown.to)) console.error('<PeriodPicker> shown is the pair the date line states, in order: ' + JSON.stringify(shown))
 	const phrase = usePhrase()
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -680,8 +683,9 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	const now = iso(today)
 	const current = !!dates && value !== 'custom' && dates[0] <= now && now <= dates[1]
 	// the window still running reads to today, never into days that have not happened
-	const resolved = dates ? numericRange(current ? [dates[0], now] : dates, locale) : null
-	const note = dates ? periodNote(value, dates, now) : null
+	// a page that counts other days than the period's own (whole months, 4h) says which, once
+	const resolved = shown ? numericRange([shown.from, shown.to], locale) : dates ? numericRange(current ? [dates[0], now] : dates, locale) : null
+	const note = ownNote ?? (dates ? periodNote(value, dates, now) : null)
 	const returns = value !== 'custom' && !!onPresent && !!PERIODS[value]
 	const away = !!dates && returns && !current
 	useLayoutEffect(() => {
