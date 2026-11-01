@@ -1784,6 +1784,17 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   place-items: center;
 }
 .sp-segmented__item:has(:focus-visible) { box-shadow: var(--ring); }
+/* short label: an option whose label does not fit a phone's half of the switch carries a
+   short form (Cash flow - Flow), shown on touch and below 640px, measured from data-short */
+.sp-segmented__short { display: none; }
+.sp-touch .sp-segmented__item[data-short]::after { content: attr(data-short); }
+.sp-touch .sp-segmented__full { display: none; }
+.sp-touch .sp-segmented__short { display: inline; }
+@media (max-width: 639.98px) {
+  .sp-segmented__item[data-short]::after { content: attr(data-short); }
+  .sp-segmented__full { display: none; }
+  .sp-segmented__short { display: inline; }
+}
 /* small: the small button's height, for a card head or a toolbar of small buttons (c5) */
 .sp-segmented--small { height: var(--btn-h-small); padding: var(--sp-4); gap: var(--sp-4); }
 .sp-segmented--small > .sp-segmented__item { padding: 0 var(--sp-8); font-size: var(--t-12); }
@@ -1957,9 +1968,8 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
 
 /* ---------- touch: the same components, bigger targets ---------- */
 
-/* Touch sizes the controls a finger aims at. Every button reaches the 44px floor,
-   the small variant included - it stays narrow rather than short, since the width
-   rule below is the one that excludes it. */
+/* Touch sizes the controls a finger aims at. A default button draws the touch height;
+   small and xsmall draw 34px inside an invisible touch-height area (rules below). */
 .sp-touch .sp-input,
 .sp-touch .sp-btn { min-height: var(--control-h-touch); }
 .sp-touch .sp-btn { font-size: var(--t-14); }
@@ -1968,16 +1978,20 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
    A bar lays its own buttons out in a row, so a button in one keeps its own width -
    otherwise two commits and their label cannot share 375px. */
 .sp-touch .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
-/* xsmall is a desktop size: on touch it is the small button, height and width */
-.sp-touch .sp-btn--xsmall { width: auto; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; border-radius: var(--r-field); }
-/* A small button in a head - a card's or a list toolbar's - keeps its 34px box on touch,
-   so the 54px head keeps the space above and below it, and takes the touch height as
-   an invisible area above and below, as the bookmark chip does (Brief 36). The area is
-   placed from the padding box, so it reaches out past the 1px border too. */
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-btn--small,
-.sp-touch .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
-.sp-touch .sp-card > .sp-card__head:first-child > .sp-btn--small::before,
-.sp-touch .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
+/* xsmall is a desktop size: on touch it is the small button, height and width. It keeps
+   the 34px box and takes the touch height as an invisible area, as a small head button does:
+   min-height 48 had drawn Done in the Views head at 48px, over the row below it */
+.sp-touch .sp-btn--xsmall { width: auto; min-height: 0; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; border-radius: var(--r-field); position: relative; }
+.sp-touch .sp-btn--xsmall::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
+/* A small button keeps its 34px box and its own width on touch, wherever it stands - a
+   card head, a toolbar, a page body, a dialog - and takes the touch height as an invisible
+   area above and below, as the bookmark chip does (Brief 36, brief phone-button-size).
+   The area is placed from the padding box, so it reaches out past the 1px border too. */
+.sp-touch .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
+.sp-touch .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
+/* except Send beside the chat field, which stands at the field's height so the row is one height */
+.sp-touch .sp-chat__composer > .sp-btn--small { min-height: var(--control-h-touch); height: auto; }
+.sp-touch .sp-chat__composer > .sp-btn--small::before { content: none; }
 /* inside a phone the bar is --phone-bar-h exactly, so a 48px control sits in it
    without the card padding pushing the bar past the height every other bar holds */
 .sp-phone .sp-savebar { height: var(--phone-bar-h); padding-top: 0; padding-bottom: 0; }
@@ -2005,10 +2019,12 @@ label.sp-option--swatch[data-chosen="true"]:has(:focus-visible) {
   .sp-input,
   .sp-btn { min-height: var(--control-h-touch); }
   .sp-btn:not(.sp-btn--small, .sp-btn--xsmall) { width: 100%; }
-  .sp-card > .sp-card__head:first-child > .sp-btn--small,
-  .sp-list__toolbar > .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
-  .sp-card > .sp-card__head:first-child > .sp-btn--small::before,
-  .sp-list__toolbar > .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
+  .sp-btn--small { min-height: 0; height: var(--btn-h-small); position: relative; }
+  .sp-btn--small::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
+  .sp-chat__composer > .sp-btn--small { min-height: var(--control-h-touch); height: auto; }
+  .sp-chat__composer > .sp-btn--small::before { content: none; }
+  .sp-btn--xsmall { width: auto; min-height: 0; height: var(--btn-h-small); padding: 0 var(--sp-16); font-weight: 600; border-radius: var(--r-field); position: relative; }
+  .sp-btn--xsmall::before { content: ""; position: absolute; inset: calc((var(--control-h-touch) - var(--btn-h-small)) / -2 - 1px) -1px; }
 }
 
 /* a measurement arrives as a data attribute with its own rule below, so no

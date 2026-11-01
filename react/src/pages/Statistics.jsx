@@ -350,7 +350,7 @@ export default function Statistics() {
 	// the switch keeps the address's period, so Orders gets back a week or dates Cash flow showed as a month (4h)
 	const viewSwitch = (
 		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')} fullWidth={touch}
-			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase('stats.cash.view.cash') }]}
+			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase(touch ? 'stats.cash.view.cashShort' : 'stats.cash.view.cash') }]}
 			value={cash ? 'cash' : 'orders'}
 			onChange={v => navigate({ pathname: v === 'cash' ? '/statistics/cash-flow' : '/statistics', search: location.search })} />
 	)

@@ -1323,6 +1323,15 @@
     for (const r of raw) fail('the small button height is written with --btn-h-small', 'components.css', r);
   }
 
+  /* A rail head action (xsmall: Views - Done, Filters - Clear all) is 34px on touch with the
+     48px area invisible. Caught: min-height 48 won over its height, so Done stood 48px tall
+     and covered the locked row under it, under .sp-touch and below 640px alike. */
+  {
+    const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
+    if (!/\.sp-touch \.sp-btn--xsmall \{[^}]*min-height: 0;[^}]*height: var\(--btn-h-small\)/.test(bare)) fail('an xsmall button is 34px on touch', 'components.css', '.sp-touch .sp-btn--xsmall takes the 48px min-height');
+    if (!/@media \(max-width: 639\.98px\) \{[^@]*\n  \.sp-btn--xsmall \{[^}]*min-height: 0;[^}]*height: var\(--btn-h-small\)/.test(bare)) fail('an xsmall button is 34px below 640px', 'components.css', 'the touch query gives .sp-btn--xsmall the 48px min-height');
+  }
+
   /* Brief 36. The Showing bar is a card with a head, not a row of its own: as one row
      its path wrapped, the name drifted to the row's middle and "Open in orders" ran
      101px past a phone's edge. A head button on touch keeps its 34px box with the 48px
@@ -1336,8 +1345,10 @@
       if (!/<div class="sp-card__head">\s*$/.test(before)) fail('the Showing bar is a card with a head', f, 'the name is not the first child of a head row');
       if (!/<div class="sp-card sp-card--path(?: [^"]*)?">\s*<div class="sp-card__head">\s*$/.test(src[f].slice(Math.max(0, m.index - 120), m.index))) fail('the Showing bar holds its path in the head line when it fits', f, 'no sp-card--path');
     }
-    if (!/\.sp-touch \.sp-card > \.sp-card__head:first-child > \.sp-btn--small,\n\.sp-touch \.sp-list__toolbar > \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no touch rule');
-    if (!/\.sp-touch \.sp-list__toolbar > \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a head button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
+    /* brief phone-button-size: every small button keeps 34px on touch, not only one in a head */
+    if (!/\n\.sp-touch \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp)) fail('a small button keeps its 34px box on touch', 'components.css', 'no touch rule');
+    if (!/\n\.sp-touch \.sp-btn--small::before \{ content: ""; position: absolute; inset: calc\(\(var\(--control-h-touch\) - var\(--btn-h-small\)\) \/ -2 - 1px\)/.test(comp)) fail('a small button keeps its 34px box on touch', 'components.css', 'no invisible touch area');
+    if (!/@media \(max-width: 639\.98px\) \{[^@]*\n  \.sp-btn--small \{ min-height: 0; height: var\(--btn-h-small\)/.test(comp.replace(/\/\*[\s\S]*?\*\//g, ''))) fail('a small button keeps its 34px box below 640px', 'components.css', 'no rule in the touch query');
     for (const v of ['.sp-card--spread', '.sp-combobox--narrow', '.sp-segmented--narrow', '.sp-row-opens:hover', '.sp-row-opens:focus-visible'])
       if (!comp.includes(v + ' {')) fail('a part changes only through the design', 'components.css', v + ' missing');
     for (const [f, css] of Object.entries(pageCss))
