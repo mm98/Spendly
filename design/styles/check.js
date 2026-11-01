@@ -1349,7 +1349,10 @@
      touch, and See all N orders sat loose in a card, which stretched it to the card's width. */
   {
     const bare = comp.replace(/\/\*[\s\S]*?\*\//g, '');
-    if (!/\.sp-card__footer > \.sp-btn:only-child:not\(\[class\*="--text"\], \.sp-btn--small, \.sp-btn--xsmall\) \{ width: 100%; \}/.test(bare)) fail('a small button keeps its width alone in a footer', 'components.css', 'the footer fill rule takes small buttons');
+    /* on a phone only: on a computer a small button alone in a footer fills it (brief
+       small-button-full-width-on-desktop), so the fill for it must sit behind 640px and not touch */
+    if (!/\.sp-card__footer > \.sp-btn:only-child:not\(\[class\*="--text"\], \.sp-btn--small, \.sp-btn--xsmall\) \{ width: 100%; \}/.test(bare)) fail('a small button keeps its width alone in a footer on a phone', 'components.css', 'the footer fill rule takes small buttons on touch');
+    if (!/@media \(min-width: 640px\) \{\s*\.sp-card__footer > \.sp-btn--small:only-child:not\(\.sp-touch \*\) \{ width: 100%; \}/.test(bare)) fail('a small button fills its footer on a computer', 'components.css', 'no 640px-and-not-touch fill rule for a small footer button');
     if (/\.sp-list__footer--loose \.sp-btn \{ width: 100%/.test(bare)) fail('a small Load more keeps its width', 'components.css', 'the loose footer fills every button');
     for (const f of pages) {
       const s = src[f];

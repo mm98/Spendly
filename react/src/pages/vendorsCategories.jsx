@@ -119,9 +119,9 @@ export function useFold() {
 
 /** A skeleton over the part it stands in for: `shape` is that part, laid out unseen, so a loading
     page is the loaded page's size (6b). With no children the skeleton fills the part. */
-export function Held({ shape, children }) {
+export function Held({ shape, footer = false, children }) {
 	return (
-		<span className="lb-hold">
+		<span className={footer ? 'lb-hold lb-hold--footer' : 'lb-hold'}>
 			<span className="lb-ghost" aria-hidden="true" inert>{shape}</span>
 			<span className="lb-state">{children ?? <Skeleton shape="fill" />}</span>
 		</span>
@@ -201,7 +201,7 @@ export function SummaryLoading({ label, sums, action, children }) {
 			<div className="sp-stack">
 				{sums.map(([name, w]) => <Sum key={name} value={<Skeleton shape="end" data-w={w} data-h="13" />}>{name}</Sum>)}
 			</div>
-			{action ? <CardFooter><Held shape={<Button variant="outline" size="small">{action}</Button>} /></CardFooter> : null}
+			{action ? <CardFooter><Held footer shape={<Button variant="outline" size="small">{action}</Button>} /></CardFooter> : null}
 		</Card>
 	)
 }
@@ -217,7 +217,7 @@ export function RecentLoading() {
 					<Bar role="sp-title" w="88" h="13" end />
 				</ListItem>
 			))}
-			<CardFooter><Held shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} /></CardFooter>
+			<CardFooter><Held footer shape={<Button variant="outline" size="small">{phrase('library.seeAllOrders')}</Button>} /></CardFooter>
 		</Card>
 	)
 }

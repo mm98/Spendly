@@ -238,9 +238,14 @@
    it fills it. No page has to remember --block for this - the structure says it.
    A pair uses --split, which is already a 1fr/1fr grid, so both halves match.
    A text button is excluded: it is a link, and a link that spans a card reads as
-   a button while behaving like navigation. A small or xsmall button is excluded too:
-   it keeps its own width at the footer's start, on every screen (brief small-button-width). */
+   a button while behaving like navigation. A small or xsmall button keeps its own width
+   at the footer's start on touch and below 640px (brief small-button-width); on a computer,
+   640px and wider and not touch, a small one fills the footer as a default one does
+   (brief small-button-full-width-on-desktop). */
 .sp-card__footer > .sp-btn:only-child:not([class*="--text"], .sp-btn--small, .sp-btn--xsmall) { width: 100%; }
+@media (min-width: 640px) {
+  .sp-card__footer > .sp-btn--small:only-child:not(.sp-touch *) { width: 100%; }
+}
 a.sp-card { text-decoration: none; color: inherit; }
 @media (hover: hover) {
   a.sp-card:hover { border-color: var(--line-3); }
