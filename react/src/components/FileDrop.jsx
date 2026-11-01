@@ -155,7 +155,7 @@ export function pasteAnywhere(ev) {
     @param {import('./Mark.jsx').MarkSize} [props.size] The size of the box, as a Mark's sizes.
     @param {string} [props.kind] What the picture is, shown on it, such as Photo.
     @param {string} [props.word] The word in the empty box, such as Add.
-    @param {string} [props.name]
+    @param {string} [props.name] What the picture is, as its box and buttons name it, such as The vendor's image.
     @param {boolean} [props.start] Align the box to the top of its row.
     @param {string} [props.accept] The file types it takes.
     @param {(file: File) => Promise<string | null> | string | null} [props.inspect] Checks a file and answers why it is refused, or null. Replaces the type and size check.
@@ -209,6 +209,8 @@ export function Slot({ id, src, size = 'large', kind, word, name, start = false,
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={actions ? undefined : id}
+				// on a phone the box is no longer the input's label, so it is the picture, named as the slot names it
+				aria-label={actions ? name : undefined}
 				data-tip={actions ? undefined : what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}

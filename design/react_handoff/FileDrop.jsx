@@ -4,6 +4,7 @@ import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Spinner } from './Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { phrase, usePhrase } from '../language/phrases.js'
 
 /** What a photo place takes, and what an attachment place takes: a photo, or a PDF besides. */
 export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
@@ -41,17 +42,17 @@ export async function sniffedProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE
 	let head
 	try { head = new Uint8Array(await file.slice(0, 12).arrayBuffer()) } catch { return null }
 	return SIGNATURES.some(parts => parts.every(([at, bytes]) => bytes.every((byte, i) => head[at + i] === byte)))
-		? null : 'Not a supported type'
+		? null : phrase('file.unsupported')
 }
 
 /** Why a file cannot be taken where `accept` (the input's own list) names what can, in the words its
-    tile shows (17b): "Not a supported type" or "Too large". Null when it can be taken. */
+    tile shows (17b), in the language in use. Null when it can be taken. */
 export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 	const { ending, types } = typesOf(file)
 	const fits = String(accept).split(',').map(a => a.trim().toLowerCase()).filter(Boolean).some(a =>
 		a.startsWith('.') ? a === '.' + ending : a.endsWith('/*') ? types.some(t => t.startsWith(a.slice(0, -1))) : types.includes(a))
-	if (!fits) return 'Not a supported type'
-	if (file.size > maxMb * 1024 * 1024) return 'Too large'
+	if (!fits) return phrase('file.unsupported')
+	if (file.size > maxMb * 1024 * 1024) return phrase('file.tooLarge')
 	return null
 }
 
@@ -133,7 +134,7 @@ export function pasteAnywhere(ev) {
 	if (!file) return
 	const open = [...document.querySelectorAll('[aria-modal="true"]')].filter(shown).at(-1)
 	const takes = input => Boolean(input && !input.disabled && shown(holderOf(input)) && (!open || open.contains(input))
-		&& fileProblem(file, input.accept || FILE_TYPES, Infinity) !== 'Not a supported type')
+		&& fileProblem(file, input.accept || FILE_TYPES, Infinity) !== phrase('file.unsupported'))
 	const place = places.findLast(p => takes(p.input.current))
 	if (place) { ev.preventDefault(); return place.take(file) }
 	const input = [...(open ?? document).querySelectorAll('input[type="file"]')].find(takes)
@@ -154,7 +155,7 @@ export function pasteAnywhere(ev) {
     @param {import('./Mark.jsx').MarkSize} [props.size] The size of the box, as a Mark's sizes.
     @param {string} [props.kind] What the picture is, shown on it, such as Photo.
     @param {string} [props.word] The word in the empty box, such as Add.
-    @param {string} [props.name]
+    @param {string} [props.name] What the picture is, as its box and buttons name it, such as The vendor's image.
     @param {boolean} [props.start] Align the box to the top of its row.
     @param {string} [props.accept] The file types it takes.
     @param {(file: File) => Promise<string | null> | string | null} [props.inspect] Checks a file and answers why it is refused, or null. Replaces the type and size check.
@@ -167,8 +168,12 @@ export function pasteAnywhere(ev) {
     @param {import('react').ReactNode} [props.trail] Set by the Field around it.
     @param {import('react').ReactNode} [props.unit] Set by the Field around it.
     @param {string} [props['aria-describedby']] */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+export function Slot({ id, src, size = 'large', kind, word, name, start = false, accept = PHOTO_TYPES, inspect, problem, busy = false, onFile, onRemove, onRetry, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
+	const phrase = usePhrase()
+	kind ??= phrase('slot.photo')
+	word ??= phrase('action.add')
+	name ??= phrase('slot.theImage')
 	const [refused, setRefused] = useState(null)
 	const field = useRef(null)
 	const take = async file => {
@@ -179,12 +184,12 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 	}
 	usePastePlace(field, take)
 	const failed = refused?.problem ?? problem
-	const what = src ? `Replace ${name}` : `Add ${name}`
+	const what = phrase(src ? 'slot.replace' : 'slot.add', { name })
 	// on a phone a filled slot is the image and its Replace and Remove buttons beside it; the image is not the target
 	const actions = useShellShape() === 'touch' && Boolean(src) && !failed
 	const input = (
 		<input ref={field} id={id} type="file" accept={accept} aria-describedby={describedBy}
-			aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? `${what}, still sending` : what}
+			aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : busy ? phrase('slot.stillSending', { what }) : what}
 			onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 	)
 	return (
@@ -204,6 +209,8 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 				text={src && !failed && !busy ? kind : undefined}
 				danger={failed || undefined}
 				htmlFor={actions ? undefined : id}
+				// on a phone the box is no longer the input's label, so it is the picture, named as the slot names it
+				aria-label={actions ? name : undefined}
 				data-tip={actions ? undefined : what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}
@@ -215,14 +222,14 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			{actions
 				? (
 					<span className="sp-slot__actions">
-						<label className="sp-icon-btn sp-icon-btn--outline" aria-label={busy ? `${what}, still sending` : what}><Icon name="upload" />{input}</label>
-						<button type="button" className="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="trash" /></button>
+						<label className="sp-icon-btn sp-icon-btn--outline" aria-label={busy ? phrase('slot.stillSending', { what }) : what}><Icon name="upload" />{input}</label>
+						<button type="button" className="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label={phrase('slot.remove', { name })} onClick={onRemove}><Icon name="trash" /></button>
 					</span>
 				)
 				: refused
-					? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-					: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={`Send ${name} again`} onClick={onRetry}>Retry</button>
-						: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+					? <button type="button" className="sp-slot__remove" aria-label={phrase('slot.remove', { name: refused.name })} onClick={() => setRefused(null)}>{phrase('action.remove')}</button>
+					: problem && onRetry ? <button type="button" className="sp-slot__remove" aria-label={phrase('slot.sendAgain', { name })} onClick={onRetry}>{phrase('action.retry')}</button>
+						: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>{phrase('action.remove')}</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }
