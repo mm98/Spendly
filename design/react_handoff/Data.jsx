@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Skeleton } from './Utilities.jsx'
 import { count, useStill } from './motion.js'
+import { usePhrase } from '../language/phrases.js'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -254,6 +255,8 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 }
 
 const SERIES = { 1: '1', 2: '2', 3: '3', 4: '4' }
+// a share list under a cash flow names its groups by keys 2 to 7, and Saved and Over by their own (4h)
+const SHARE_SERIES = { ...SERIES, 5: '5', 6: '6', 7: '7', saved: 'saved', over: 'over' }
 
 /** A chart step's readout (c18, the tooltip as a panel): its name and total, a row per series
     drawn, and a line under them. Bars hangs it beside the column it reads.
@@ -325,7 +328,7 @@ export function Shares({ children, ...rest }) {
 /** One share: its series key, what it is, its `amount` when shown, and its value. A share is a filter, so it
     is a button; in an answer it opens its orders, so it is a link to `href` (Ask 24d).
     @param {object} props
-    @param {keyof typeof SERIES} [props.series] The series colour, 1 to 4.
+    @param {keyof typeof SHARE_SERIES} [props.series] The series colour, 1 to 7, or `saved` or `over` under a cash flow.
     @param {string} props.value The share, such as 42 %.
     @param {string} [props.amount] The amount, when it is shown.
     @param {string} [props.href] In an answer: the address of the share's orders. The row is then a link.
@@ -337,7 +340,7 @@ export function ShareRow({ series = 1, value, amount, href, onClick, children, .
 	if ('aria-label' in rest) { console.error('<ShareRow> is named by the words it draws: an aria-label is not taken'); delete rest['aria-label'] }
 	const body = (
 		<>
-			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'ShareRow')} />
+			<span className="sp-legend__key" data-key={pick(SHARE_SERIES, series, 'series', 'ShareRow')} />
 			<span className="sp-truncate">{children}</span>
 			<span className="sp-grow" />
 			{amount === undefined ? null : <span className="sp-amount">{amount}</span>}
@@ -483,3 +486,260 @@ export function Sum({ variant = 'default', tone = 'default', named = false, edit
 	)
 }
 
+/* ---------- cash flow (c14, Order statistics 4h) ---------- */
+
+const BAR = 12
+// the least room a node's label takes, by column: the income and where it goes, a group or category, a row or vendor
+const SLOT = [34, 36, 36, 18]
+// an account's key, in the accounts' order; Spending is always key 5
+const ACCOUNT_KEYS = ['2', '3', '4', '6', '7']
+const FLOW_KEY = { income: 'income', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', saved: 'saved', over: 'over' }
+const keysOf = branches => {
+	let n = 0
+	return branches.map(b => b.key ?? (b.spending ? '5' : ACCOUNT_KEYS[n++ % ACCOUNT_KEYS.length]))
+}
+// under this width the last column is left out: its labels and the third column's no longer fit side by side
+const FOUR_COLUMNS = 1100
+
+/** Bars stacked in their slots and ribbons between them, for a box `width` wide. Every column shares
+    one scale, so a column holding small nodes may run taller than the others, never shorter. The income
+    column is shared between the accounts, Spending and Left in proportion, Over beside it when there is one. */
+function layCashFlow(width, { income, branches, left, over }, three = false) {
+	const hasIncome = income.length > 0
+	const xs = three
+		? [0, hasIncome ? Math.round(width * 0.40) : 0, width - 200, null]
+		: [0, hasIncome ? Math.round(width * 0.22) : 0, Math.round(width * (hasIncome ? 0.56 : 0.42)), width - 236]
+	const keys = keysOf(branches)
+	const most = Math.max(...[income.reduce((a, n) => a + n.value, 0) + (over?.value ?? 0), branches.reduce((a, b) => a + b.value, 0) + (left?.value ?? 0)], 1)
+	const k = 500 / most
+	const cols = [[], [], [], []]
+	if (hasIncome) {
+		income.forEach(n => cols[0].push({ ...n, key: n.key ?? 'income', col: 0 }))
+		if (over) cols[0].push({ id: 'over', ...over, key: 'over', col: 0, tone: 'over' })
+	}
+	branches.forEach((b, i) => {
+		cols[1].push({ ...b, key: keys[i], col: 1 })
+		b.groups.forEach(g => {
+			cols[2].push({ ...g, key: keys[i], col: 2, under: b.id })
+			if (!three) g.lines.forEach(l => cols[3].push({ ...l, key: keys[i], col: 3, under: g.id }))
+		})
+	})
+	if (left && hasIncome) cols[1].push({ id: 'left', ...left, key: 'saved', col: 1, tone: 'saved' })
+	let height = 0
+	cols.forEach((col, c) => {
+		let y = 0
+		col.forEach((n, i) => {
+			if (i) y += c === 1 ? 14 : n.under !== col[i - 1].under ? (c === 3 ? 12 : 16) : (c === 3 ? 4 : 8)
+			const h = Math.max(n.value * k, 2)
+			const slot = Math.max(h, SLOT[c])
+			Object.assign(n, { x: xs[c], h, y: y + (slot - h) / 2, cy: y + slot / 2 })
+			y += slot
+		})
+		height = Math.max(height, y)
+	})
+	const nodes = cols.flat()
+	const links = []
+	const inTotal = cols[0].reduce((a, n) => a + n.value, 0) || 1
+	cols[0].forEach(s => cols[1].forEach(t => links.push({ from: s, to: t, value: s.value * t.value / inTotal, key: t.id === 'left' ? 'saved' : s.key })))
+	cols[2].forEach(g => links.push({ from: cols[1].find(b => b.id === g.under), to: g, value: g.value, key: g.key }))
+	cols[3].forEach(l => links.push({ from: cols[2].find(g => g.id === l.under), to: l, value: l.value, key: l.key }))
+	const out = {}, into = {}
+	const ribbons = links.map(l => {
+		const s0 = out[l.from.id] ?? l.from.y, t0 = into[l.to.id] ?? l.to.y
+		const s1 = s0 + l.value * k, t1 = t0 + l.value * k
+		out[l.from.id] = s1
+		into[l.to.id] = t1
+		const sx = l.from.x + BAR, tx = l.to.x, mx = (sx + tx) / 2
+		return { ...l, d: `M${sx} ${s0}C${mx} ${s0} ${mx} ${t0} ${tx} ${t0}L${tx} ${t1}C${mx} ${t1} ${mx} ${s1} ${sx} ${s1}Z` }
+	})
+	return { nodes, ribbons, height: Math.ceil(height) }
+}
+
+/** Every node a pointed one leads to and comes from, so its whole path lights. Downstream does not
+    leave the income column unless an income bar is the pointed one, so an account lights the income
+    it comes from, not its neighbours. */
+function pathOf(id, ribbons) {
+	if (!id) return null
+	const on = new Set([id])
+	const spread = (from, to) => {
+		for (let grew = true; grew;) {
+			grew = false
+			for (const r of ribbons) if (on.has(from(r)) && !on.has(to(r))) { on.add(to(r)); grew = true }
+		}
+	}
+	spread(r => r.from.id, r => r.to.id)
+	const down = new Set(on)
+	on.clear()
+	on.add(id)
+	spread(r => r.to.id, r => r.from.id)
+	for (const n of down) on.add(n)
+	return on
+}
+
+/** @typedef {{ id: string, name: string, value: number, amount: string, share: string }} CashFlowBar */
+
+/**
+ * Where the income goes in a period (c14, Order statistics 4h): the income, the accounts the budget pays
+ * from and Spending, each account's groups and rows, Spending's categories and vendors, and what is Left.
+ * Every amount and share arrives written out; `value` only sizes the drawing. Across draws four columns at
+ * 1100 and wider and three from 640, where a click on a group or category opens it as a step. Accounts, groups and rows
+ * come in the budget's order, categories and vendors largest first, Other already joined. `down` draws it
+ * downwards one step at a time with the share list as its labels: on touch and in a box under 640.
+ *
+ * @param {object} props
+ * @param {CashFlowBar[]} [props.income] The accounts income is paid into, usually one. None for a budget with no income.
+ * @param {(CashFlowBar & { spending?: boolean, groups: (CashFlowBar & { lines: CashFlowBar[] })[] })[]} [props.branches] Where the income goes: each cost account with its groups and rows, then Spending with its categories and vendors.
+ * @param {{ value: number, amount: string }} [props.left] What is left of the income, when there is some.
+ * @param {{ value: number, amount: string }} [props.over] What goes out over the income, when it does.
+ * @param {(bar: CashFlowBar, how: { opens: boolean }) => import('react').ReactNode} [props.tip] The readout for a pointed bar: a ChartTip. `opens` is true from 640 to 1099 for a group or category, whose readout then lists its three largest rows or vendors and "click to open".
+ * @param {boolean} [props.down] Draw downwards, one step at a time.
+ * @param {string} props.label The chart's name for a screen reader.
+ */
+export function CashFlow({ income = [], branches = [], left, over, tip, down = false, label, ...rest }) {
+	reject(rest, 'CashFlow')
+	const phrase = usePhrase()
+	const box = useRef(null)
+	const [width, setWidth] = useState(0)
+	const [focus, setFocus] = useState(null)
+	const [kept, setKept] = useState(null)
+	const [path, setPath] = useState([])
+	useLayoutEffect(() => {
+		const el = box.current
+		if (!el) return
+		const fit = () => setWidth(el.clientWidth)
+		fit()
+		const watch = new ResizeObserver(fit)
+		watch.observe(el)
+		return () => watch.disconnect()
+	}, [])
+	useEffect(() => {
+		if (!kept) return
+		const away = ev => { if (ev.key === 'Escape' || (ev.type === 'pointerdown' && !box.current?.contains(ev.target))) { setKept(null); setFocus(null) } }
+		document.addEventListener('keydown', away)
+		document.addEventListener('pointerdown', away)
+		return () => { document.removeEventListener('keydown', away); document.removeEventListener('pointerdown', away) }
+	}, [kept])
+	const named = {
+		left: left ? { name: phrase('stats.cash.left'), ...left } : null,
+		over: over ? { name: phrase('stats.cash.over'), ...over } : null
+	}
+	const keys = keysOf(branches)
+	if (down || (width && width < 640)) {
+		// one step: the income and where it goes, then a branch and its groups, then a group and its rows
+		const branch = branches.find(b => b.id === path[0])
+		const group = branch?.groups.find(g => g.id === path[1])
+		const key = branch ? keys[branches.indexOf(branch)] : null
+		const top = group ?? branch ?? (income.length === 1 ? income[0] : { name: phrase('stats.cash.income'), amount: '' })
+		const items = group
+			? group.lines.map(l => ({ ...l, key }))
+			: branch
+				? branch.groups.map(g => ({ ...g, key, opens: true }))
+				: [...branches.map((b, i) => ({ ...b, key: keys[i], opens: true })), ...(named.left && income.length ? [{ id: 'left', key: 'saved', ...named.left }] : [])]
+		const sum = items.reduce((a, n) => a + n.value, 0) || 1
+		const w = width || 309, gap = 3, rows = 92, bar = 10
+		const kk = (w - gap * (items.length - 1)) / sum
+		let tx = 0, bx = 0
+		const parts = items.map(n => {
+			const nw = Math.max(n.value * kk, 2), tw = n.value * (w / sum)
+			const p = { ...n, x0: tx, x1: tx + tw, b0: bx, b1: bx + nw }
+			tx += tw
+			bx += nw + gap
+			return p
+		})
+		const my = (bar + rows) / 2
+		const open = p => (p.opens ? () => setPath(was => [...was, p.id]) : undefined)
+		const crumbs = [branch, group].filter(Boolean)
+		return (
+			<div className="sp-cashflow sp-cashflow--down" ref={box} role="group" aria-label={label}>
+				{crumbs.length ? (
+					<nav aria-label={phrase('stats.cash.showing')}>
+						<ol className="sp-crumbs">
+							<li><span className="sp-crumbs__root">{income.length === 1 ? income[0].name : phrase('stats.cash.income')}</span></li>
+							{crumbs.map((c, i) => (
+								<li key={c.id}><span className="sp-crumb"><span className="sp-crumb__label">{c.name}</span>{i === crumbs.length - 1 ? <button type="button" className="sp-crumb__remove" aria-label={phrase('stats.cash.remove', { name: c.name })} onClick={() => setPath(was => was.slice(0, -1))}>×</button> : null}</span></li>
+							))}
+						</ol>
+					</nav>
+				) : null}
+				<div className="sp-cashflow__top"><span className="sp-grow">{top.name}</span><span className="sp-amount">{top.amount}</span></div>
+				<svg className="sp-cashflow__plot" viewBox={`0 0 ${w} ${rows + bar}`} aria-hidden="true">
+					<g>{parts.map(p => <path className="sp-cashflow__link" data-key={pick(FLOW_KEY, p.key, 'key', 'CashFlow')} d={`M${p.x0} ${bar}C${p.x0} ${my} ${p.b0} ${my} ${p.b0} ${rows}L${p.b1} ${rows}C${p.b1} ${my} ${p.x1} ${my} ${p.x1} ${bar}Z`} key={p.id} onClick={open(p)} />)}</g>
+					<g>
+						<rect className="sp-cashflow__node" data-key={key ?? (income.length ? 'income' : keys[0])} x="0" y="0" width={w} height={bar} rx="2" />
+						{parts.map(p => <rect className="sp-cashflow__node" data-key={p.key} x={p.b0} y={rows} width={p.b1 - p.b0} height={bar} rx="2" key={p.id} onClick={open(p)} />)}
+					</g>
+				</svg>
+				<Shares>
+					{parts.map(p => (
+						<ShareRow series={p.key} value={p.id === 'left' ? '' : p.share} amount={p.amount} onClick={open(p)} key={p.id}>{p.name}</ShareRow>
+					))}
+				</Shares>
+			</div>
+		)
+	}
+	// from 640 to 1099: three columns, and a group or category opened as a step, itself and its rows or vendors
+	const three = width < FOUR_COLUMNS
+	const opened = three ? branches.flatMap((b, i) => b.groups.map(g => ({ ...g, key: keys[i], branch: b }))).find(g => g.id === path[0]) : null
+	const drawn = opened
+		? { income: [{ ...opened, key: opened.key }], branches: opened.lines.map(l => ({ ...l, key: opened.key, groups: [] })) }
+		: { income, branches, left: named.left, over: named.over }
+	const { nodes, ribbons, height } = width ? layCashFlow(width, drawn, three) : { nodes: [], ribbons: [], height: 0 }
+	const lit = pathOf(kept ?? focus, ribbons)
+	const pointed = nodes.find(n => n.id === (kept ?? focus))
+	const point = id => ({
+		onPointerEnter: () => setFocus(id),
+		onPointerLeave: () => setFocus(was => (was === id ? null : was)),
+		onFocus: () => setFocus(id),
+		onBlur: () => setFocus(was => (was === id ? null : was)),
+		// at the middle width a group or category opens as a step; anything else keeps its readout
+		onClick: () => (three && !opened && nodes.find(n => n.id === id)?.col === 2 ? setPath([id]) : setKept(was => (was === id ? null : id)))
+	})
+	return (
+		<div className="sp-cashflow" ref={box} {...(lit ? { 'data-focus': '' } : {})}>
+			{opened ? (
+				<nav aria-label={phrase('stats.cash.showing')}>
+					<ol className="sp-crumbs">
+						<li><span className="sp-crumbs__root">{income.length === 1 ? income[0].name : phrase('stats.cash.income')}</span></li>
+						<li><span className="sp-crumb"><span className="sp-crumb__label">{opened.branch.name}</span></span></li>
+						<li><span className="sp-crumb"><span className="sp-crumb__label">{opened.name}</span><button type="button" className="sp-crumb__remove" aria-label={phrase('stats.cash.remove', { name: opened.name })} onClick={() => setPath([])}>×</button></span></li>
+					</ol>
+				</nav>
+			) : null}
+			<svg className="sp-cashflow__plot" width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="group" aria-label={label}>
+				<g aria-hidden="true">
+					{ribbons.map(r => <path className="sp-cashflow__link" data-key={pick(FLOW_KEY, r.key, 'key', 'CashFlow')} {...(lit?.has(r.from.id) && lit?.has(r.to.id) ? { 'data-on': '' } : {})} d={r.d} key={r.from.id + '>' + r.to.id} {...point(r.to.id)} />)}
+				</g>
+				<g>
+					{nodes.map(n => (
+						<rect className="sp-cashflow__node" data-key={n.key} {...(lit?.has(n.id) ? { 'data-on': '' } : {})} x={n.x} y={n.y} width={BAR} height={n.h} rx="2" tabIndex={0} role="img" aria-label={[n.name, n.amount, n.tone ? null : n.share].filter(Boolean).join(' ')} key={n.id} {...point(n.id)} />
+					))}
+				</g>
+				<g aria-hidden="true">
+					{nodes.map(n => {
+						const onLeft = n.col === 2 && !three
+						const x = onLeft ? n.x - 8 : n.x + BAR + 8
+						return n.col === 3 ? (
+							<text className="sp-cashflow__label" x={x} y={n.cy + 4} key={n.id}>
+								<tspan className="sp-cashflow__name">{n.name}</tspan>
+								<tspan className="sp-cashflow__amount" dx="6">{n.amount}</tspan>
+								<tspan className="sp-cashflow__share" dx="4">{n.share}</tspan>
+							</text>
+						) : (
+							<text className="sp-cashflow__label" textAnchor={onLeft ? 'end' : undefined} x={x} y={n.cy - 2} key={n.id}>
+								<tspan className="sp-cashflow__name">{n.name}</tspan>
+								<tspan className="sp-cashflow__amount" {...(n.tone ? { 'data-tone': n.tone } : {})} x={x} dy="15">{n.amount}</tspan>
+								{n.tone ? null : <tspan className="sp-cashflow__share" dx="4">{n.share}</tspan>}
+							</text>
+						)
+					})}
+				</g>
+			</svg>
+			{pointed && tip ? (
+				// 8 clear of the bar, on the side with room
+				<span className="sp-cashflow__tip" style={pointed.x + BAR + 8 + 220 < width ? { left: pointed.x + BAR + 8, top: pointed.y } : { right: width - pointed.x + 8, top: pointed.y }}>
+					{tip(pointed, { opens: three && !opened && pointed.col === 2 })}
+				</span>
+			) : null}
+		</div>
+	)
+}

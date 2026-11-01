@@ -1,4 +1,4 @@
-import { Gauge, GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum } from '../../react/src/components/Data.jsx'
+import { Gauge, GaugeKey, Bars, CashFlow, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum } from '../../react/src/components/Data.jsx'
 import { Card, CardHeader, Cards } from '../../react/src/components/Card.jsx'
 import { Mark } from '../../react/src/components/Mark.jsx'
 import { Icon } from '../../react/src/components/Icon.jsx'
@@ -10,7 +10,7 @@ const percent = { control: { type: 'range', min: 0, max: 100, step: 1 } }
 export default {
 	title: 'Data/Charts and figures',
 	component: Gauge,
-	subcomponents: { GaugeKey, Bars, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum }
+	subcomponents: { GaugeKey, Bars, CashFlow, ChartTip, Donut, Shares, ShareRow, Legend, LegendItem, Plot, Stat, SumHead, Sum }
 }
 
 export const OneGauge = {
@@ -177,4 +177,48 @@ export const SumThatOpens = {
 			</Card>
 		</div>
 	)
+}
+
+// one month's income, the two accounts the budget pays from, and the orders (Order statistics 4h)
+const flowBar = (id, name, value, share) => ({ id, name, value, amount: `${String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} kr.`, share: `${share}%` })
+const CASH_INCOME = [flowBar('income', 'Income', 34000, 100)]
+const CASH_BRANCHES = [
+	{ ...flowBar('budget', 'Budget', 18370, 54), groups: [
+		{ ...flowBar('housing', 'Housing', 12346, 36), lines: [flowBar('mortgage', 'Mortgage', 8450, 25), flowBar('tax', 'Property tax', 1540, 5), flowBar('power', 'Electricity', 860, 3), flowBar('heat', 'Heating', 720, 2), flowBar('water', 'Wastewater', 390, 1), flowBar('housing-other', 'Other', 386, 1)] },
+		{ ...flowBar('transport', 'Transport', 3660, 11), lines: [flowBar('car', 'Car loan', 3050, 9), flowBar('insurance-car', 'Car insurance', 610, 2)] },
+		{ ...flowBar('insurance', 'Insurance', 1520, 4), lines: [flowBar('private', 'Private insurance', 980, 3), flowBar('a-kasse', 'Unemployment insurance', 540, 2)] },
+		{ ...flowBar('subs', 'Subscriptions', 844, 2), lines: [flowBar('net', 'Internet', 299, 1), flowBar('phone', 'Phone', 298, 1), flowBar('stream', 'Streaming', 247, 1)] }
+	] },
+	{ ...flowBar('savings', 'Savings', 4000, 12), groups: [{ ...flowBar('saving', 'Savings', 4000, 12), lines: [flowBar('monthly', 'Monthly saving', 4000, 12)] }] },
+	{ ...flowBar('spending', 'Spending', 9800, 29), spending: true, groups: [
+		{ ...flowBar('groceries', 'Groceries', 4200, 12), lines: [flowBar('rema', 'Rema 1000', 1850, 5), flowBar('netto', 'Netto', 1400, 4), flowBar('fotex', 'Føtex', 950, 3)] },
+		{ ...flowBar('home', 'Home', 2350, 7), lines: [flowBar('ikea', 'Ikea', 1600, 5), flowBar('jysk', 'Jysk', 750, 2)] },
+		{ ...flowBar('eating', 'Eating out', 1250, 4), lines: [flowBar('sushi', 'Sticks\'n\'Sushi', 680, 2), flowBar('lagkage', 'Lagkagehuset', 570, 2)] },
+		{ ...flowBar('clothes', 'Clothes', 2000, 6), lines: [flowBar('zalando', 'Zalando', 2000, 6)] }
+	] }
+]
+
+export const WhereTheMoneyWent = {
+	args: { income: CASH_INCOME, branches: CASH_BRANCHES, left: { value: 1830, amount: '1.830 kr.' }, over: undefined, down: false, label: 'Where the money went' },
+	render: args => (
+		<Card>
+			<CardHeader name="Cash flow" />
+			<CashFlow {...args} tip={bar => <ChartTip title={bar.name} value={bar.amount} rows={bar.share ? [{ key: 'share', name: 'Of income', value: bar.share }] : []} />} />
+		</Card>
+	),
+	play: async ({ canvas, canvasElement }) => {
+		const housing = await canvas.findByRole('img', { name: 'Housing 12.346 kr. 36%' })
+		await userEvent.hover(housing)
+		await expect(canvasElement.querySelector('.sp-cashflow__tip')).not.toBeNull()
+		await expect(canvasElement.querySelector('.sp-cashflow').hasAttribute('data-focus')).toBe(true)
+	}
+}
+
+export const WhereTheMoneyWentDownwards = {
+	args: { ...WhereTheMoneyWent.args, down: true },
+	render: WhereTheMoneyWent.render,
+	play: async ({ canvas }) => {
+		await userEvent.click(canvas.getByText('Budget', { selector: '.sp-truncate' }))
+		await expect(await canvas.findByRole('button', { name: 'Remove Budget' })).toBeVisible()
+	}
 }

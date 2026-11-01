@@ -93,6 +93,23 @@
     fail('nothing but search in the top bar', 'components.css', 'a rule lays out page controls in .sp-topbar');
   for (const f of pages) for (const m of src[f].matchAll(/<div class="sp-topbar">((?:(?!sp-topbar)[\s\S]){0,1500}?)<\/div>\s*<div class="sp-shell__body/g))
     if (/sp-btn|sp-combobox/.test(m[1])) fail('nothing but search in the top bar', f.replace('.dc.html',''), 'the desktop top bar carries page controls');
+  /* A desktop top bar holds the search and nothing else, on every page and whatever follows it:
+     no button, menu, switch or segmented control. A phone task's bar keeps its Back. Caught: an
+     Orders / Cash flow switch was put in Statistics' top bar, and the lens and Export sat there. */
+  for (const f of pages) {
+    const s = src[f];
+    for (let at = s.indexOf('<div class="sp-topbar'); at >= 0; at = s.indexOf('<div class="sp-topbar', at + 1)) {
+      // the bar itself, to its own closing tag
+      const tags = /<\/?div\b/g;
+      tags.lastIndex = at;
+      let depth = 0, end = s.length;
+      for (let t; (t = tags.exec(s));) { depth += t[0] === '<div' ? 1 : -1; if (!depth) { end = t.index; break; } }
+      const bar = s.slice(at, end)
+      const desktop = s.startsWith('<div class="sp-topbar">', at)
+      const what = (bar.match(desktop ? /sp-(segmented|combobox|btn|icon-btn|switch|chip)\b/ : /sp-(segmented|combobox|switch|chip)\b/) || [])[1]
+      if (what) fail('nothing but search in the top bar', f.replace('.dc.html',''), 'the top bar carries ' + what)
+    }
+  }
 
   /* A hover state shows only where a pointer can hover (iPhone touch brief, 1). Caught: a phone
      keeps :hover on the last thing tapped, so an order row opened and closed stayed grey. */

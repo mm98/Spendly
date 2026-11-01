@@ -11,6 +11,7 @@ import { router as ordersBankCheckRouter } from './routes/ordersBankCheck.js'
 import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as countsRouter } from './routes/counts.js'
 import { router as budgetRouter } from './routes/budget.js'
+import { router as cashflowRouter } from './routes/cashflow.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as accountRouter, ownsServer, updaterAvailable } from './routes/account.js'
 import { router as profileRouter } from './routes/profile.js'
@@ -301,6 +302,7 @@ app.use('/api/orders', ordersRouter)
 app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/counts', countsRouter)
 app.use('/api/budget', budgetRouter)
+app.use('/api/cashflow', cashflowRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/account/passkeys', passkeysRouter)
 app.use('/api/account/mcp-tokens', mcpTokensRouter)

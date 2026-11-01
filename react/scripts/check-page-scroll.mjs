@@ -36,7 +36,7 @@ function settingsPages() {
 const PAGES = {
 	'': '/', 'orders': '/orders', 'new': ['/orders/new', '/vendors/new', '/categories/new', '/bookmarks/new'],
 	':id': '/orders/:order', ':id/edit': ['/orders/:order/edit', '/vendors/:vendor/edit', '/categories/:category/edit', '/bookmarks/:bookmark/edit'],
-	':id/compare': '/orders/:order/compare', 'statistics': '/statistics', 'vendors': '/vendors', 'categories': '/categories',
+	':id/compare': '/orders/:order/compare', 'statistics': '/statistics', 'statistics/cash-flow': '/statistics/cash-flow', 'vendors': '/vendors', 'categories': '/categories',
 	'bookmarks': '/bookmarks', 'budget/check': '/budget/check', 'budget/:year?': '/budget', 'ask': '/ask', 'ask/files': '/ask/files', 'ask/chats': '/ask/chats',
 	'ask/:chatId': '/ask/no-such-chat',
 	'settings/:section?': ['/settings', ...settingsPages()],

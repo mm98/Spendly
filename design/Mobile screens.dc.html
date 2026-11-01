@@ -263,6 +263,10 @@
                     <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
                   </button>
                 </div>
+          <div class="sp-segmented" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-0" defaultChecked="{{ true }}"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-0"><span class="sp-label">Cash flow</span></label>
+          </div>
         </div>
         <div class="sp-fields">
           <div class="sp-card"><span class="sp-meta">Total spend</span><span class="sp-stat__figure">486.320</span></div><div class="sp-card"><span class="sp-meta">Orders</span><span class="sp-stat__figure">128</span></div><div class="sp-card"><span class="sp-meta">Average</span><span class="sp-stat__figure">1.961</span></div><div class="sp-card"><span class="sp-meta">Saved</span><span class="sp-stat__figure">138.410</span></div>
@@ -271,6 +275,84 @@
           <div class="sp-bars"><div class="sp-bars__bar sp-bars__bar--muted" data-h="40"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="55"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="45"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="70"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="60"></div><div class="sp-bars__bar" data-h="90"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="45"></div><div class="sp-bars__bar sp-bars__bar--muted" data-h="65"></div></div></div>
         <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">BY CATEGORY</span></div>
           <div class="sp-stack"><div class="sp-sum"><span>Decor</span><span class="sp-grow"></span><span class="sp-strong">142.310</span></div><div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="100"></div></div></div><div class="sp-stack"><div class="sp-sum"><span>Seating</span><span class="sp-grow"></span><span class="sp-strong">98.740</span></div><div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="70"></div></div></div><div class="sp-stack"><div class="sp-sum"><span>Lighting</span><span class="sp-grow"></span><span class="sp-strong">64.180</span></div><div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="45"></div></div></div><div class="sp-stack"><div class="sp-sum"><span>Textiles</span><span class="sp-grow"></span><span class="sp-strong">38.920</span></div><div class="sp-gauge sp-gauge--thin"><div class="sp-gauge__fill" data-fill="25"></div></div></div></div>
+        </div></div>
+          <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta sp-strong">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta">More</span>
+              </button></div>
+        </div>
+      </div>
+    <div class="sp-stack sp-gap-12 ms-w375">
+        <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">STATISTICS, CASH FLOW</span><span class="sp-meta sp-ink-5">4h</span></div>
+        <div class="sp-phone sp-touch ms-device">
+          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div><div class="sp-topbar sp-topbar--touch"><div class="sp-picker__search">
+                  <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                  <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
+                </div></div>
+          <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
+        <div class="sp-row-flex sp-gap-8">
+          <div class="sp-combobox sp-combobox--grow">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
+                    <span class="sp-grow">August 2026</span>
+                    <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+          <div class="sp-segmented" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-1"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-1" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+        </div>
+        
+        <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
+          <div class="sp-cashflow sp-cashflow--down" role="img" aria-label="Where the money went">
+            <div class="sp-cashflow__top"><span class="sp-grow">Income</span><span class="sp-amount">34.000 kr.</span></div>
+            <svg class="sp-cashflow__plot" viewBox="0 0 309 102" width="309" height="102" aria-hidden="true"><g><path class="sp-cashflow__link" data-key="2" d="M0.0 10C0.0 51 0.0 51 0.0 92L162.1 92C162.1 51 167.0 51 167.0 10Z"></path><path class="sp-cashflow__link" data-key="3" d="M167.0 10C167.0 51 165.1 51 165.1 92L200.4 92C200.4 51 203.3 51 203.3 10Z"></path><path class="sp-cashflow__link" data-key="5" d="M203.3 10C203.3 51 203.4 51 203.4 92L289.9 92C289.9 51 292.4 51 292.4 10Z"></path><path class="sp-cashflow__link" data-key="saved" d="M292.4 10C292.4 51 292.9 51 292.9 92L309.0 92C309.0 51 309.0 51 309.0 10Z"></path></g><g><rect class="sp-cashflow__node" data-key="income" x="0" y="0" width="309" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="0.0" y="92" width="162.1" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="3" x="165.1" y="92" width="35.3" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="5" x="203.4" y="92" width="86.5" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="saved" x="292.9" y="92" width="16.1" height="10" rx="2"></rect></g></svg>
+            <div class="sp-shares"><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Budget</span><span class="sp-grow"></span><span class="sp-amount">18.370 kr.</span><span class="sp-shares__value">54%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span class="sp-truncate">Savings</span><span class="sp-grow"></span><span class="sp-amount">4.000 kr.</span><span class="sp-shares__value">12%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="5"></span><span class="sp-truncate">Spending</span><span class="sp-grow"></span><span class="sp-amount">9.800 kr.</span><span class="sp-shares__value">29%</span></button><div class="sp-shares__row"><span class="sp-legend__key" data-key="saved"></span><span class="sp-truncate">Left</span><span class="sp-grow"></span><span class="sp-amount">1.830 kr.</span><span class="sp-shares__value"></span></div></div>
+          </div>
+        </div>
+        </div></div>
+          <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>
+              </button><button type="button" class="sp-tabbar__item" aria-current="page"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg><span class="sp-meta sp-strong">Statistics</span>
+              </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg><span class="sp-meta">More</span>
+              </button></div>
+        </div>
+      </div>
+    <div class="sp-stack sp-gap-12 ms-w375">
+        <div class="sp-row-flex sp-gap-8 sp-baseline"><span class="sp-section-label">CASH FLOW, ONE ACCOUNT</span><span class="sp-meta sp-ink-5">4h</span></div>
+        <div class="sp-phone sp-touch ms-device">
+          <div class="ms-status"><span>9:41</span><span class="sp-ink-5">▮▮▮</span></div><div class="sp-topbar sp-topbar--touch"><div class="sp-picker__search">
+                  <span class="sp-field__lead"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+                  <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search" aria-label="Search">
+                </div></div>
+          <div class="ms-pane"><div class="ms-scroll ms-scroll--pad">
+        <div class="sp-row-flex sp-gap-8">
+          <div class="sp-combobox sp-combobox--grow">
+                  <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Period">
+                    <span class="sp-grow">August 2026</span>
+                    <svg class="sp-combobox__chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+                  </button>
+                </div>
+          <div class="sp-segmented" role="radiogroup" aria-label="View">
+            <label class="sp-segmented__item" data-label="Orders"><input type="radio" name="ms-view-2"><span class="sp-label">Orders</span></label>
+            <label class="sp-segmented__item" data-label="Cash flow"><input type="radio" name="ms-view-2" defaultChecked="{{ true }}"><span class="sp-label">Cash flow</span></label>
+          </div>
+        </div>
+        
+        <div class="sp-card"><div class="sp-card__head"><span class="sp-section-label">CASH FLOW</span></div>
+          <nav aria-label="Showing">
+            <ol class="sp-crumbs">
+              <li><span class="sp-crumbs__root">Income</span></li>
+              <li><span class="sp-crumb"><span class="sp-crumb__label">Budget</span><button type="button" class="sp-crumb__remove" aria-label="Remove Budget">×</button></span></li>
+            </ol>
+          </nav>
+          <div class="sp-cashflow sp-cashflow--down" role="img" aria-label="Where the money for Budget went">
+            <div class="sp-cashflow__top"><span class="sp-grow">Budget</span><span class="sp-amount">18.370 kr.</span></div>
+            <svg class="sp-cashflow__plot" viewBox="0 0 309 102" width="309" height="102" aria-hidden="true"><g><path class="sp-cashflow__link" data-key="2" d="M0.0 10C0.0 51 0.0 51 0.0 92L201.6 92C201.6 51 207.7 51 207.7 10Z"></path><path class="sp-cashflow__link" data-key="2" d="M207.7 10C207.7 51 204.6 51 204.6 92L264.4 92C264.4 51 269.2 51 269.2 10Z"></path><path class="sp-cashflow__link" data-key="2" d="M269.2 10C269.2 51 267.4 51 267.4 92L292.2 92C292.2 51 294.8 51 294.8 10Z"></path><path class="sp-cashflow__link" data-key="2" d="M294.8 10C294.8 51 295.2 51 295.2 92L309.0 92C309.0 51 309.0 51 309.0 10Z"></path></g><g><rect class="sp-cashflow__node" data-key="2" x="0" y="0" width="309" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="0.0" y="92" width="201.6" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="204.6" y="92" width="59.8" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="267.4" y="92" width="24.8" height="10" rx="2"></rect><rect class="sp-cashflow__node" data-key="2" x="295.2" y="92" width="13.8" height="10" rx="2"></rect></g></svg>
+            <div class="sp-shares"><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Housing</span><span class="sp-grow"></span><span class="sp-amount">12.346 kr.</span><span class="sp-shares__value">36%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Transport</span><span class="sp-grow"></span><span class="sp-amount">3.660 kr.</span><span class="sp-shares__value">11%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Insurance</span><span class="sp-grow"></span><span class="sp-amount">1.520 kr.</span><span class="sp-shares__value">4%</span></button><button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span class="sp-truncate">Subscriptions</span><span class="sp-grow"></span><span class="sp-amount">844 kr.</span><span class="sp-shares__value">2%</span></button></div>
+          </div>
+        </div>
         </div></div>
           <div class="sp-tabbar sp-tabbar--band"><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg><span class="sp-meta">Home</span>
               </button><button type="button" class="sp-tabbar__item"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg><span class="sp-meta">Orders</span>

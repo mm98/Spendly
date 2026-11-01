@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Failed } from '../components/Failed.jsx'
 import { Button } from '../components/Button.jsx'
 import { Card, CardFooter, CardHeader, Panel } from '../components/Card.jsx'
@@ -17,6 +17,7 @@ import { Pill } from '../components/Pill.jsx'
 import { Segmented } from '../components/Segmented.jsx'
 import { Empty, EmptyBody, EmptyTitle, Hold, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { Halves } from '../components/Well.jsx'
+import { CashFlowCard, wholeMonths, wholeMonthsNote } from './CashFlow.jsx'
 import { carryPeriod, useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { CategoryChips, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
@@ -42,12 +43,6 @@ const PRESETS = [
 	{ value: 'custom', label: 'period.custom' }
 ]
 
-/* The lens (4e): which orders the page adds up. In the address as flow=, and never a crumb. */
-const FLOWS = [
-	{ value: 'expenses', label: 'stats.flow.expenses', help: 'stats.flow.expensesHelp' },
-	{ value: 'refunds', label: 'stats.flow.refunds', help: 'stats.flow.refundsHelp' },
-	{ value: 'net', label: 'stats.flow.net', help: 'stats.flow.netHelp' }
-]
 
 const share = (part, whole) => (whole > 0 ? (part / whole) * 100 : 0)
 /** How many times a limit counts in a period of `months` months (4a): a monthly one once a month, a yearly
@@ -147,6 +142,10 @@ export default function Statistics() {
 	// Layout rules: below 900 the paired cards stack
 	const stacked = useMedia('(max-width: 899.98px)')
 	const [params, setParams] = useSearchParams()
+	// Cash flow (4h) is this page's other view: the same period row, then its own card
+	const location = useLocation()
+	const navigate = useNavigate()
+	const cash = location.pathname.endsWith('/cash-flow')
 	// a period's id names its range by its shape; an address with neither opens on the kept choice, else this month
 	const named = RANGES.includes(params.get('range')) ? params.get('range') : RANGES.find(r => validId(r, params.get('period')))
 	const kept = named ? null : keptPeriod()
@@ -154,7 +153,8 @@ export default function Statistics() {
 	const asked = named ? params.get('period') : kept?.period
 	const id = validId(range, asked) && !(range === 'days30' && asked > today()) ? asked : defaultId(range)
 	const compareOn = params.get('compare') !== 'off'
-	const flow = FLOWS.some(f => f.value === params.get('flow')) ? params.get('flow') : 'expenses'
+	// the page counts money paid: Ordered or Delivered, not refunds (4a)
+	const flow = 'expenses'
 	// orders left out of statistics count again only while the address says so (4a)
 	const including = params.get('excluded') === 'include'
 	const [fromMs, toMs] = boundsOf(range, id)
@@ -170,7 +170,7 @@ export default function Statistics() {
 	// each step of the chart carries its own median order, so the request names the step the chart draws
 	const step = unitOf(range, Math.round((toMs - fromMs) / DAY_MS) + 1, fromMs)
 	const statsArgs = [{ ...base, step, ...filter }]
-	const stats = useCurrent(getStatsSlice, statsArgs)
+	const stats = useCurrent(getStatsSlice, statsArgs, { enabled: !cash })
 	// the window still running is compared with the same number of days of the earlier one
 	const [pastFrom, pastTo] = boundsOf(range, before)
 	const daysIn = Math.floor((todayUtc() - fromMs) / DAY_MS) + 1
@@ -191,7 +191,7 @@ export default function Statistics() {
 	const { pages, setPages, restored } = useListMemory()
 	const size = usePageSize()
 	const readArgs = [{ ...base, ...filter }, size, pages]
-	const read = useCurrent(getSliceOrderPages, readArgs, { enabled: !touch && size != null })
+	const read = useCurrent(getSliceOrderPages, readArgs, { enabled: !touch && size != null && !cash })
 	// everything but the period: while only the period moves, the cards keep the last period's answers
 	const same = JSON.stringify({ flow, including, filter, comparing, touch, size })
 	const statsAnswers = useAnswers(stats, statsArgs, same)
@@ -202,7 +202,7 @@ export default function Statistics() {
 	const loadedRows = answerFor(readAnswers, range, id)?.data
 	const loadMore = () => (read.error ? read.refresh() : setPages(pages + 1))
 	// the window goes back to where the reader left it once the rows are drawn, or there are none to draw
-	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!loadedRows || !!read.error))
+	const drawn = cash || !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!loadedRows || !!read.error))
 	useLayoutEffect(() => { if (drawn) restored() }, [drawn, restored])
 
 	const retry = () => {
@@ -211,11 +211,10 @@ export default function Statistics() {
 
 	// the range is always in the address, since an address without one opens on the kept choice;
 	// everything else only where it differs from the page's own default
-	const write = ({ range: r = range, id: i = id, compare: c = compareOn, flow: f = flow, crumbs: cr = crumbs, including: inc = including }) => setParams({
+	const write = ({ range: r = range, id: i = id, compare: c = compareOn, crumbs: cr = crumbs, including: inc = including }) => setParams({
 		range: r,
 		...(r !== 'custom' && i === defaultId(r) ? {} : { period: i }),
 		...(c ? {} : { compare: 'off' }),
-		...(f === 'expenses' ? {} : { flow: f }),
 		...(cr.length ? { crumbs: writeCrumbs(cr) } : {}),
 		...(inc ? { excluded: 'include' } : {})
 	})
@@ -332,22 +331,33 @@ export default function Statistics() {
 		</div>
 	)
 	const announce = <span className="sp-announce" aria-live="polite">{said}</span>
+	// the period is shared both ways, so the switch keeps the address's period (4h)
+	const viewSwitch = (
+		<Segmented name="statistics-view" aria-label={phrase('stats.cash.view')}
+			options={[{ value: 'orders', label: phrase('stats.cash.view.orders') }, { value: 'cash', label: phrase('stats.cash.view.cash') }]}
+			value={cash ? 'cash' : 'orders'}
+			onChange={v => navigate({ pathname: v === 'cash' ? '/statistics/cash-flow' : '/statistics', search: location.search })} />
+	)
+	const months = wholeMonths(from, to, today())
+	// Cash flow counts whole months; Statistics' own switches are not on it (4h)
+	const leftOut = cash ? 0 : view?.leftOut
 	const period = touch
 		? (
 			<>
 				{announce}
 				<Controls>
-					{view?.leftOut
+					{leftOut
 						? (
 							<div className="sp-stack sp-gap-8 sp-grow">
 								{picker}
+								{viewSwitch}
 								<label className="sp-row-flex sp-gap-8">
 									<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />
-									<span className="sp-data">{phrase('stats.include', { orders: plural(view.leftOut, 'left out order') })}</span>
+									<span className="sp-data">{phrase('stats.include', { orders: plural(leftOut, 'left out order') })}</span>
 								</label>
 							</div>
 						)
-						: picker}
+						: <div className="sp-stack sp-gap-8 sp-grow">{picker}{viewSwitch}</div>}
 				</Controls>
 				{draft ? <RangeSheet onClose={() => setDraft(null)}>{rangePicker}</RangeSheet> : null}
 			</>
@@ -369,21 +379,28 @@ export default function Statistics() {
 					// a custom range has no stepper (4f): choosing the selected Custom again opens its dates
 					onClick={ev => { if (range === 'custom' && !draft && ev.target.matches('input[value="custom"]')) openCustom() }}
 					stepper={stepper}
-					extra={view?.leftOut
-						? (
-							<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
-								{phrase('stats.include', { orders: plural(view.leftOut, 'left out order') })}
-							</Choice>
-						)
-						: null}
+					extra={cash
+						? <span className="sp-period__note">{wholeMonthsNote(months)}</span>
+						: leftOut
+							? (
+								<Choice control={<Switch checked={including} onChange={ev => write({ including: ev.target.checked })} />}>
+									{phrase('stats.include', { orders: plural(leftOut, 'left out order') })}
+								</Choice>
+							)
+							: null}
+					actions={viewSwitch}
 				>
-					<Selected>
-						{span => (
-							<Choice control={<Switch checked={compareOn} onChange={ev => write({ compare: ev.target.checked })} />}>
-								{phrase('stats.compareWith', { period: nameOf(range, yearEarlier(range, idOfSpan(range, span.selected)), true) })}
-							</Choice>
+					{cash
+						? null
+						: (
+							<Selected>
+								{span => (
+									<Choice control={<Switch checked={compareOn} onChange={ev => write({ compare: ev.target.checked })} />}>
+										{phrase('stats.compareWith', { period: nameOf(range, yearEarlier(range, idOfSpan(range, span.selected)), true) })}
+									</Choice>
+								)}
+							</Selected>
 						)}
-					</Selected>
 				</PeriodPicker>
 			</>
 		)
@@ -414,6 +431,15 @@ export default function Statistics() {
 			onDrop={(i, focused) => { if (focused && crumbs.length === 1) refocus.current = true; write({ crumbs: crumbs.filter((c, j) => j !== i) }) }}
 			onReset={() => write({ crumbs: [] })} />
 		: null
+
+	if (cash) {
+		return (
+			<>
+				{period}
+				<CashFlowCard from={months.from} to={months.to} touch={touch} />
+			</>
+		)
+	}
 
 	if (stats.error) {
 		return (

@@ -128,13 +128,15 @@ Everything that needs you, on one page.
 - **Periods** - 30 days, week, month, quarter, year or your own dates, with shortcuts for this
   month, last month, year to date and all time. Step to the previous or next period with the arrows
   beside its name, or with the left and right arrow keys.
-- **Count** expenses only, refunds only, or net of refunds, and compare with the same period a year earlier.
-  A returned order and an order of the kind Sold are money back; every other order is money paid.
+- **Count** money paid, and compare with the same period a year earlier. A returned order and an
+  order of the kind Sold are money back, and are not counted.
 - **Figures** - total spend, orders, median order and saved, each with its change.
 - **Charts and breakdowns** - spend over time, stacked by category; by category, status and vendor;
   spend against saving; and how each limit is doing.
 - **Drill down** - click a month, a category, a vendor or a status to look closer, up to three
   steps, and open the orders behind any view.
+- **Cash flow** - a second view that shows where the income of whole months goes: to the budget's
+  accounts and their groups and rows, to the orders by category and vendor, and what is left or over.
 
 ### Budget
 
@@ -165,7 +167,7 @@ Everything that needs you, on one page.
 - **Categories** - an icon from a large library, a colour, and a **limit** for each month or for the
   whole year. Each row shows this month or this year against its limit. Spendly warns you when a
   monthly limit you type would have been passed in most of the last 12 months.
-- **Spend** for a vendor or a category is money paid, as in Statistics' "Expenses only". A returned
+- **Spend** for a vendor or a category is money paid, as Statistics counts it. A returned
   order and an order of the kind Sold are listed and counted as orders, but add nothing to it. The
   same holds for the total over the order list.
 - **Category suggestions** come from a small language model that runs on your own server and

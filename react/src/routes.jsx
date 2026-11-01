@@ -117,6 +117,7 @@ export const routes = [
 				] },
 
 				{ path: 'statistics', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
+				{ path: 'statistics/cash-flow', element: <Statistics />, handle: { title: 'page.statistics', navKey: 'statistics', remember: true } },
 
 				{ path: 'vendors', children: [
 					{ index: true, element: <Vendors />, handle: { title: 'page.vendors', navKey: 'vendors', remember: true } },
