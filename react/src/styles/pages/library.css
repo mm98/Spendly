@@ -7,10 +7,8 @@
 	.lb-ghost,
 	.lb-state { grid-area: 1 / 1; display: grid; align-items: center; min-width: 0; }
 	.lb-ghost { visibility: hidden; }
-	/* a held footer button is as wide as the one it stands in for: full on a computer (c6) */
-	@media (min-width: 640px) {
-		.lb-hold--footer:not(.sp-touch *),
-		.lb-hold--footer:not(.sp-touch *) > .lb-ghost > * { width: 100%; }
-	}
+	/* a held footer button is as wide as the one it stands in for, which fills the footer */
+	.lb-hold--footer,
+	.lb-hold--footer > .lb-ghost > * { width: 100%; }
 
 }
