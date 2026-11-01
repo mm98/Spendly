@@ -161,10 +161,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	.sp-touch .sp-stack { gap: var(--sp-2); }
 }
 
-/* ---------- the user's choice, not yet in the design ---------- */
-
-/* On a phone only a card head or list toolbar button is small; the rest keep the touch height.
-   Unlayered, so it wins over the design's own touch rules. */
+/* On a phone only a card head or list toolbar button is small; unlayered to win over the design's touch rules */
 .sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *) { min-height: var(--control-h-touch); }
 .sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *)::before { content: none; }
 .sp-touch .sp-card__footer > .sp-btn:only-child:not([class*="--text"]),
