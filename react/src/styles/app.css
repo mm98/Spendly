@@ -163,8 +163,7 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 
 /* ---------- the user's choice, not yet in the design ---------- */
 
-/* On a phone only a button in a card head or a list toolbar is drawn small. Every other small
-   button takes the touch height, a lone one in a card footer fills it, and Load more fills the width.
+/* On a phone only a card head or list toolbar button is small; the rest keep the touch height.
    Unlayered, so it wins over the design's own touch rules. */
 .sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *) { min-height: var(--control-h-touch); }
 .sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *)::before { content: none; }
