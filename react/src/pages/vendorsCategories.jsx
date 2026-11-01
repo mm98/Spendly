@@ -386,11 +386,11 @@ export function MergePicker({ kind, source, anchor, position = 'end', onPick, on
 export function MergeButton({ merge, size = 'standard', disabled = false, children }) {
 	const touch = useShellShape() === 'touch'
 	const box = useRef(null)
-	// a phone's picker is a sheet with its own way out; a small button keeps its own width on touch (c6)
+	// a phone's picker is a sheet with its own way out
 	useDismiss(box, merge.open && !touch, merge.onClose)
 	return (
 		<Anchor ref={box} open={merge.open && !touch}>
-			<Button variant="outline" size={size} fullWidth={!(touch && size === 'small')} aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
+			<Button variant="outline" size={size} fullWidth aria-haspopup="dialog" aria-expanded={merge.open ? 'true' : 'false'} disabled={disabled}
 				onClick={merge.onToggle}>{children}</Button>
 			<Leaving>{merge.open ? merge.picker(box) : null}</Leaving>
 		</Anchor>

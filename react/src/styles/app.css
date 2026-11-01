@@ -161,6 +161,21 @@ body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
 	.sp-touch .sp-stack { gap: var(--sp-2); }
 }
 
+/* ---------- the user's choice, not yet in the design ---------- */
+
+/* On a phone only a button in a card head or a list toolbar is drawn small. Every other small
+   button takes the touch height, a lone one in a card footer fills it, and Load more fills the width.
+   Unlayered, so it wins over the design's own touch rules. */
+.sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *) { min-height: var(--control-h-touch); }
+.sp-touch .sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *)::before { content: none; }
+.sp-touch .sp-card__footer > .sp-btn:only-child:not([class*="--text"]),
+.sp-touch .sp-list__footer--loose .sp-btn { width: 100%; }
+@media (max-width: 639.98px) {
+	.sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *) { min-height: var(--control-h-touch); }
+	.sp-btn:is(.sp-btn--small, .sp-btn--xsmall):not(.sp-card > .sp-card__head:first-child > *, .sp-list__toolbar > *)::before { content: none; }
+	.sp-card__footer > .sp-btn:only-child:not([class*="--text"]) { width: 100%; }
+}
+
 /* ---------- what a design note states in words, with no rule in the design's stylesheet yet ---------- */
 
 /* a real picture fills the box its placeholder drew (17c, 17d): cover, centred, the box's corners */
