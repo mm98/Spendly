@@ -387,10 +387,15 @@ function Arrive({ section, visit, room, children }) {
 			cards.style.paddingBottom = need ? need + 'px' : ''
 		}
 		fit()
-		const watch = new ResizeObserver(fit)
+		// the room is changed in the next frame: changed inside the watcher, it makes the page taller while
+		// the page's height is watched too (listMemory.js), and the browser reports that as a page error
+		let frame = 0
+		const fitNextFrame = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit) }
+		const watch = new ResizeObserver(fitNextFrame)
 		watch.observe(cards)
 		window.addEventListener('resize', fit)
 		return () => {
+			cancelAnimationFrame(frame)
 			watch.disconnect()
 			window.removeEventListener('resize', fit)
 			cards.style.removeProperty('padding-bottom')

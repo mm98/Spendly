@@ -268,6 +268,12 @@ quiet fallback: a site or service that refuses or does not answer, a file or pic
 read, a background job that stops. An error nobody can see cannot be fixed. A value a reader sent
 that is not valid (a bad web address, a broken form) is a refusal, not an error, and is not logged.
 
+### An error in the log is fixed at its cause, never left out of the log
+
+When the log shows an error, find what causes it and change that, in a safe way. Do not make the
+logger skip a message, even one the browser calls harmless: a list of skipped messages grows, and a
+real fault can then hide in it. When the cause cannot be fixed, ask the user what to do.
+
 ## The API's migrations
 
 ### A migration that any database may have run is never edited
