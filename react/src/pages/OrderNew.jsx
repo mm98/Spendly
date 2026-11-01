@@ -298,7 +298,7 @@ export function Reading({ file, documentKey, onCancel, onDiscard }) {
 				{found ? done(phrase('scan.vendorFound')) : null}
 				{lines ? done(phrase('scan.linesFound', { count: lines })) : null}
 				<div className="sp-row-flex sp-gap-8">
-					<Mark size="small" fill="plain" aria-hidden="true"><Spinner /></Mark>
+					<Mark size="small" fill="plain" aria-hidden="true" aria-label={doing}><Spinner /></Mark>
 					<strong className="sp-data">{doing}</strong>
 				</div>
 				{reads && file.key
