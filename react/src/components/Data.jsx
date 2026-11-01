@@ -120,24 +120,13 @@ function useTickStep(box, columns, skip) {
 	return step
 }
 
-/** The ISO week number of a day written `yyyy-mm-dd`. */
-function isoWeekOfDay(day) {
-	const at = new Date(`${day}T00:00:00Z`)
-	// to the Thursday of its week, whose year owns the week
-	at.setUTCDate(at.getUTCDate() + 3 - ((at.getUTCDay() + 6) % 7))
-	const jan4 = new Date(Date.UTC(at.getUTCFullYear(), 0, 4))
-	jan4.setUTCDate(jan4.getUTCDate() + 3 - ((jan4.getUTCDay() + 6) % 7))
-	return 1 + Math.round((at - jan4) / (7 * 86400000))
-}
-
 /** @typedef {{ key: string, height?: number, tick?: string, label?: string, from?: string, to?: string,
     muted?: boolean, future?: boolean, inert?: boolean, pair?: number[], segments?: { key: string, share: number }[],
     tip?: import('react').ReactNode, readout?: import('react').ReactNode }} BarsColumn */
 
 /** `selected` is the pressed column: the drilled value, or the month on Home that holds today (10a).
     `tip` is a column's readout on hover or focus; `inert` opens nothing (4d's Other); `future` is a step still to come;
-    A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g), a day of an odd ISO
-    week, read from its `from`, standing on its week's band. A column that opens
+    A `card` variant is the plot at a card's height (10a); `days` is one bar per day (4g). A column that opens
     nothing may carry `readout`, its chart tooltip, and `label`, its name for a screen reader; `open` is the
     column a finger tapped, whose readout stays until a tap elsewhere (Ask 24d).
     @param {object} props
@@ -197,7 +186,6 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 				const readout = tip ? <span className="sp-bars__tip" id={tipId} ref={placeTip} {...side}>{tip}</span> : null
 				// a figure card's readout hangs above the bar itself, a chart's beside its column (4a)
 				const onBar = variant === 'spark'
-				const band = days && column.from && isoWeekOfDay(column.from) % 2 ? { 'data-week': 'odd' } : {}
 				const body = (
 					<>
 						{onBar ? null : readout}
@@ -236,7 +224,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 					: {}
 				// a column that opens nothing still shows its readout on hover, focus or a tap (Ask 24d); `open` is the tapped one
 				if (!onSelect && column.readout) return (
-					<span className="sp-bars__col" tabIndex={0} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} {...band} key={i}>
+					<span className="sp-bars__col" tabIndex={0} aria-label={column.label} data-open={open === column.key ? 'true' : undefined} key={i}>
 						{body}
 						{column.readout}
 					</span>
@@ -244,7 +232,7 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 				if (!onSelect || column.inert) {
 					// an inert column among buttons is read by its label, as a picture is
 					const read = column.inert && column.label ? { role: 'img', 'aria-label': column.label } : {}
-					return <span className="sp-bars__col" key={i} {...read} {...peeking} {...band} {...(column.future ? { 'data-future': '' } : {})}>{body}</span>
+					return <span className="sp-bars__col" key={i} {...read} {...peeking} {...(column.future ? { 'data-future': '' } : {})}>{body}</span>
 				}
 				return (
 					<button
@@ -253,7 +241,6 @@ export function Bars({ columns = [], variant = 'default', days = false, selected
 						aria-label={column.label}
 						{...(selected === undefined ? {} : { 'aria-pressed': selected === column.key ? 'true' : 'false' })}
 						{...peeking}
-						{...band}
 						data-from={column.from}
 						data-to={column.to}
 						onClick={() => onSelect(column.key, column.from, column.to)}
