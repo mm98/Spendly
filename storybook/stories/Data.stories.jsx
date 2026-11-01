@@ -81,6 +81,32 @@ export const SpendByMonth = {
 	}
 }
 
+// August 2026, one column a day; the days from the 26th are still to come
+const AUGUST_DAYS = Array.from({ length: 31 }, (_, i) => {
+	const day = `2026-08-${String(i + 1).padStart(2, '0')}`
+	return { key: day, tick: String(i + 1), label: `${i + 1} August 2026`, from: day, to: day, height: [40, 72, 18, 55, 90, 33, 61][i % 7], future: i >= 25 }
+})
+
+export const SpendByDay = {
+	args: { onSelect: fn() },
+	parameters: { variantsOf: Bars },
+	render: ({ onSelect }) => (
+		<Card>
+			<CardHeader name="Spend by day" />
+			<Plot axis={['3k', '2k', '1k', '0']}>
+				<Bars variant="plot" days columns={AUGUST_DAYS} onSelect={onSelect} />
+			</Plot>
+		</Card>
+	),
+	// the odd ISO weeks of August 2026 are the 1st - 2nd, 10th - 16th and 24th - 30th
+	play: async ({ args, canvas, canvasElement }) => {
+		const odd = [...canvasElement.querySelectorAll('.sp-bars__col[data-week="odd"]')].map(c => c.getAttribute('aria-label'))
+		await expect(odd).toEqual([1, 2, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 27, 28, 29, 30].map(d => `${d} August 2026`))
+		await userEvent.click(canvas.getByRole('button', { name: '10 August 2026' }))
+		await expect(args.onSelect).toHaveBeenCalledWith('2026-08-10', '2026-08-10', '2026-08-10')
+	}
+}
+
 export const ColumnsWithReadout = {
 	args: { open: 'aug', variant: 'default' },
 	argTypes: { open: { control: 'inline-radio', options: ['apr', 'may', 'jun', 'jul', 'aug', 'sep'] } },

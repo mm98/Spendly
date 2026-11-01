@@ -304,7 +304,7 @@ function SheetLoading() {
 			<Toolbar>
 				{bar('130', '11', 'sp-section-label')}
 				<span className="sp-grow" />
-				<span className="sp-note">{phrase('budget.greyExpected')}{dot}{phrase('bank.amountsIn', { symbol: currencySymbol() })}</span>
+				<span className="sp-note">{phrase('budget.greyExpected')}</span>
 			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll">
@@ -332,7 +332,22 @@ function SheetLoading() {
 	)
 }
 
-/** The sheet's columns and its header row of months, the month it is now in the accent ink. */
+/** The cells of the month it is now carry `data-current`, so its column stands on the band down the sheet (21b). */
+const currentOf = (month, thisMonth) => (month === thisMonth ? { 'data-current': 'true' } : {})
+
+/** A row that spans the sheet, split around the month it is now so its band does not break (21b). */
+function SpanCells({ thisMonth, children }) {
+	if (thisMonth < 0) return <td colSpan={MONTHS + 4}>{children}</td>
+	return (
+		<>
+			<td colSpan={2 + thisMonth}>{children}</td>
+			<td data-current="true" />
+			<td colSpan={MONTHS + 1 - thisMonth} />
+		</>
+	)
+}
+
+/** The sheet's columns and its header row of months, the month it is now in the accent ink on its band. */
 function SheetColumns({ short, thisMonth = -1 }) {
 	return (
 		<>
@@ -340,14 +355,14 @@ function SheetColumns({ short, thisMonth = -1 }) {
 			<colgroup>
 				<col className="bg-col-name" />
 				<col className="bg-col-account" />
-				{Array.from({ length: MONTHS + 2 }, (_, m) => <col className="sp-col-date" key={m} />)}
+				{Array.from({ length: MONTHS + 2 }, (_, m) => <col className="bg-col-figure" key={m} />)}
 			</colgroup>
 			<thead>
 				<tr>
 					<th scope="col">{phrase('budget.head.row')}</th>
 					<th scope="col">{phrase('budget.head.account')}</th>
 					{short.map((name, m) => (
-						<th scope="col" className="sp-col-number" key={m}>
+						<th scope="col" className="sp-col-number" key={m} {...currentOf(m, thisMonth)}>
 							{m === thisMonth ? <span className="sp-ink-accent">{name} ({m + 1})</span> : `${name} (${m + 1})`}
 						</th>
 					))}
@@ -1230,7 +1245,7 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 		const draft = `${line.id}:${month}`
 		const unsaved = drafts.has(draft)
 		return (
-			<td className="sp-col-number" key={month}>
+			<td className="sp-col-number" key={month} {...currentOf(month, thisMonth)}>
 				<NumberField cell locale={LOCALE} value={unsaved ? drafts.get(draft) : m.real} data-cell={key} aria-invalid={unsaved ? 'true' : undefined}
 					placeholder={m.real == null && m.expected != null ? amount(m.expected) : undefined}
 					aria-label={phrase('budget.realAmount', { name: line.name, month: long[month] })}
@@ -1265,7 +1280,7 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 		<tr key={key} className={grey ? 'sp-ink-5' : undefined}>
 			<td>{ink ? <span className="sp-strong">{label}</span> : <span className="sp-cell-flex"><span className="sp-truncate">{label}</span></span>}</td>
 			<td />
-			{values.map((v, m) => <td key={m} className={signed && !hide ? join('sp-col-number', inkOf(v)) : 'sp-col-number'}>{hide ? <Redacted /> : figure(v)}</td>)}
+			{values.map((v, m) => <td key={m} className={signed && !hide ? join('sp-col-number', inkOf(v)) : 'sp-col-number'} {...currentOf(m, thisMonth)}>{hide ? <Redacted /> : figure(v)}</td>)}
 			<td className={join('sp-col-number', ink && 'sp-strong', signed && !hide && inkOf(sum(values)))}>{hide ? <Redacted /> : figure(sum(values))}</td>
 			<td className={join('sp-col-number', signed && !hide && inkOf(sum(values)))}>{hide ? <Redacted /> : figure(sum(values) / MONTHS)}</td>
 		</tr>
@@ -1284,7 +1299,7 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 			<Toolbar>
 				<span className="sp-section-label">{phrase('budget.of', { year: sheet.year })}</span>
 				<span className="sp-grow" />
-				<span className="sp-note">{phrase('budget.greyExpected')}{dot}{phrase('bank.amountsIn', { symbol: currencySymbol() })}</span>
+				<span className="sp-note">{phrase('budget.greyExpected')}</span>
 			</Toolbar>
 			<div className="bg-view">
 				<div className="bg-scroll" ref={scroller}>
@@ -1295,14 +1310,14 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 								const groups = sheet.groups.filter(g => g.kind === kind)
 								return (
 									<Fragment key={kind}>
-										<tr><td colSpan={span}><span className="sp-section-label">{phrase(title)}</span></td></tr>
+										<tr><SpanCells thisMonth={thisMonth}><span className="sp-section-label">{phrase(title)}</span></SpanCells></tr>
 										{groups.map((g, gi) => (
 											<Fragment key={g.id}>
 												{isOpen('group', g.id)
 													? wide('group', <GroupEditor sheet={sheet} group={g} index={gi} count={groups.length} write={write} onClose={close} />)
 													: (
 														<tr>
-															<td colSpan={span}>
+															<SpanCells thisMonth={thisMonth}>
 																{editing
 																	? (
 																		// the outer span is what holds still at the left while the sheet scrolls
@@ -1315,7 +1330,7 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 																		</span>
 																	)
 																	: <span className="sp-title">{g.name}</span>}
-															</td>
+															</SpanCells>
 														</tr>
 													)}
 												{g.lines.map((line, i) => (isOpen('row', line.id)
@@ -1332,7 +1347,7 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 																</span>
 															</td>
 															<td className="sp-truncate">{sheet.accounts.find(a => a.id === line.accountId)?.name ?? ''}</td>
-															{hide(g) ? line.months.map((_, m) => <td className="sp-col-number" key={m}><Redacted /></td>) : line.months.map((_, m) => cell(line, m))}
+															{hide(g) ? line.months.map((_, m) => <td className="sp-col-number" key={m} {...currentOf(m, thisMonth)}><Redacted /></td>) : line.months.map((_, m) => cell(line, m))}
 															<td className="sp-col-number">{hide(g) ? <Redacted /> : figure(sum(line.months.map(m => shown(m) ?? 0)))}</td>
 															<td className="sp-col-number">{hide(g) ? <Redacted /> : figure(sum(line.months.map(m => shown(m) ?? 0)) / MONTHS)}</td>
 														</tr>
@@ -1348,10 +1363,10 @@ function SheetView({ sheet, write, editing, covered, panel, setPanel }) {
 									</Fragment>
 								)
 							})}
-							<tr><td colSpan={span}><span className="sp-section-label">{phrase('budget.totals')}</span></td></tr>
+							<tr><SpanCells thisMonth={thisMonth}><span className="sp-section-label">{phrase('budget.totals')}</span></SpanCells></tr>
 							{byAccount.length ? (
 								<>
-									<tr><td colSpan={span}><span className="sp-title">{phrase('budget.costsByAccount')}</span></td></tr>
+									<tr><SpanCells thisMonth={thisMonth}><span className="sp-title">{phrase('budget.costsByAccount')}</span></SpanCells></tr>
 									{byAccount.map(a => sumRow(a.key, a.label, sumMonths(a.lines), { grey: a.grey }))}
 								</>
 							) : null}
