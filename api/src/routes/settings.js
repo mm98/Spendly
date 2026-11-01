@@ -7,6 +7,7 @@ import { mailAvailable } from '../lib/mail.js'
 import { DEFAULT_SCHEME, SCHEME_IDS } from '../lib/schemes.js'
 import { STATUS_EMAILS, chooseStatusEmail, sendTestStatusEmail } from '../lib/statusEmail.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 export const router = Router()
 
@@ -89,7 +90,7 @@ router.post('/status-email/test', async (req, res) => {
 	try {
 		res.json({ email: await sendTestStatusEmail(req.user.id, { zone: String(req.body?.zone ?? ''), locale: String(req.body?.locale ?? '') }) })
 	} catch (e) {
-		console.error(`[mail] test status email: ${e.message}`)
+		log.error('mail', `Test status email: ${e.message}`)
 		res.status(502).json({ error: words('settings.testFailed') })
 	}
 })

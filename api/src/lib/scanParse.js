@@ -6,6 +6,7 @@ import { readPage, wordsHold } from './pageText.js'
 import { todayIso } from './dates.js'
 import { categoryNamesOf, vatNumberOf, webAddressOf } from './names.js'
 import { fromPrintedLineTotals, reconcileWithTotal } from './lineTotals.js'
+import { log } from './log.js'
 
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
@@ -289,7 +290,7 @@ export async function parseReceipt(upload, today = todayIso(), onProgress, categ
 		return { read: call ? normalise(call.input, today) : null, failure: null }
 	} catch (error) {
 		// The log is the one place a bad key, a timeout or a rate limit is told apart.
-		console.error('Receipt read failed:', error.message)
+		log.error('receipt', `Receipt read failed: ${error.message}`)
 		return { read: null, failure: isBillingRefusal(error) ? 'billing' : 'failed' }
 	}
 }

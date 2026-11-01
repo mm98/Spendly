@@ -1,4 +1,5 @@
 import { CURRENCIES } from './constants.js'
+import { log, reasonOf } from './log.js'
 
 /* Restates a scanned document's amounts in the account's currency at the document's date. The
    rate request carries two currency codes and a date -- nothing from the document. */
@@ -12,10 +13,16 @@ const KNOWN = new Set(CURRENCIES.map(c => c.code))
 export async function rateFor(from, to, date, fetchRate = fetch) {
 	try {
 		const response = await fetchRate(`${RATE_URL}/${date ?? 'latest'}?base=${from}&symbols=${to}`, { signal: AbortSignal.timeout(RATE_TIMEOUT_MS) })
-		if (!response.ok) return null
+		if (!response.ok) {
+			log.error('exchange', `The exchange rate site answered ${response.status} for ${from} to ${to}`)
+			return null
+		}
 		const rate = (await response.json())?.rates?.[to]
-		return typeof rate === 'number' && Number.isFinite(rate) && rate > 0 ? rate : null
-	} catch {
+		if (typeof rate === 'number' && Number.isFinite(rate) && rate > 0) return rate
+		log.error('exchange', `The exchange rate site sent no rate for ${from} to ${to}`)
+		return null
+	} catch (error) {
+		log.error('exchange', `The exchange rate for ${from} to ${to} could not be read: ${reasonOf(error)}`)
 		return null
 	}
 }

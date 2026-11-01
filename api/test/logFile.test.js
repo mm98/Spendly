@@ -4,16 +4,30 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { startLogFile } from '../src/lib/logFile.js'
+import { log } from '../src/lib/log.js'
 
 const scratch = () => mkdtempSync(path.join(tmpdir(), 'spendly-logs-'))
 
-test('what the app prints is also written to the day file, with its time', () => {
+test('other output is written to the day file with a time, a level and an area', () => {
 	const dir = scratch()
 	const stop = startLogFile(dir, { now: () => new Date(2026, 9, 26, 12, 0, 0) })
-	console.error('Ask answer failed: something')
+	console.error('something failed\n    at a place')
+	console.error('(node:1) Warning: something is old')
 	stop()
 	const text = readFileSync(path.join(dir, 'spendly-2026-10-26.log'), 'utf8')
-	assert.match(text, /^\d{4}-\d{2}-\d{2}T\S+ Ask answer failed: something\n$/)
+	assert.match(text, /^\d{4}-\d{2}-\d{2}T\S+Z ERROR \[output\] something failed\n {8}at a place\n\S+ WARN  \[output\] \(node:1\) Warning: something is old\n$/)
+})
+
+test('a line from the logger is written to the day file as it is', () => {
+	const dir = scratch()
+	const stop = startLogFile(dir, { now: () => new Date(2026, 9, 26, 12, 0, 0) })
+	log.error('mail', 'Could not send: no answer')
+	log.fault('backup', 'Daily backup failed', new Error('disk full'))
+	stop()
+	const lines = readFileSync(path.join(dir, 'spendly-2026-10-26.log'), 'utf8').split('\n')
+	assert.match(lines[0], /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z ERROR \[mail\] Could not send: no answer$/)
+	assert.match(lines[1], /^\S+Z ERROR \[backup\] Daily backup failed: disk full$/)
+	assert.match(lines[2], /^ {4}at /)
 })
 
 test('a new day starts a new file, and only the newest days are kept', () => {

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { securityLog } from '../lib/securityLog.js'
 import { mcpTokenUser } from '../lib/mcpTokens.js'
 import { callTool, toolList } from '../lib/mcpTools.js'
+import { log } from '../lib/log.js'
 
 // The MCP endpoint (Streamable HTTP, stateless, JSON answers). The token names the account,
 // as `Authorization: Bearer <token>` or as the address /mcp/<token> for a client that takes only an address.
@@ -48,7 +49,7 @@ async function answer(message, token, self) {
 			const result = await callTool(params?.name, params?.arguments ?? {}, token, self)
 			return result ? reply(id, result) : refuse(id, INVALID_PARAMS, `No tool named ${params?.name}.`)
 		} catch (e) {
-			console.error(e)
+			log.fault('assistant', `The tool ${params?.name} failed`, e)
 			return refuse(id, INTERNAL_ERROR, 'Spendly could not answer. Try again.')
 		}
 	}

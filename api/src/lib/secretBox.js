@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 import { chmodSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { DB_PATH } from '../db.js'
+import { log } from './log.js'
 
 /* The key is SPENDLY_SECRET_KEY when set, else a file beside the database made on first use.
    Changing or losing it makes every locked secret unreadable. */
@@ -37,7 +38,7 @@ export function secretBoxReady() {
 	try {
 		return Boolean(loadKey())
 	} catch (e) {
-		console.error(`[two-step] no key to lock with: ${e.message}`)
+		log.error('two-step', `No key to lock with: ${e.message}`)
 		return false
 	}
 }
@@ -57,7 +58,8 @@ export function unlockSecret(stored) {
 		const decipher = createDecipheriv('aes-256-gcm', loadKey(), box.subarray(0, 12))
 		decipher.setAuthTag(box.subarray(12, 28))
 		return Buffer.concat([decipher.update(box.subarray(28)), decipher.final()])
-	} catch {
+	} catch (error) {
+		log.error('two-step', `A locked secret could not be opened: ${error.message}`)
 		return null
 	}
 }

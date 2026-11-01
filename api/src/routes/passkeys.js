@@ -12,6 +12,7 @@ import { limitPerVisitor } from '../lib/rateLimit.js'
 import { securityLog } from '../lib/securityLog.js'
 import { MAX_NAME, checkPassword, cleanName, locked } from './auth.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 /* Passkeys (20a, 20b, Settings > Passkeys): signing in with one, before the auth gate, and the
    account's own list, behind it. A passkey sits beside the password, never instead of it. */
@@ -65,7 +66,7 @@ signInRouter.post('/finish', async (req, res) => {
 		credential: { id: row.id, publicKey: new Uint8Array(row.public_key), counter: row.counter, transports: transportsOf(row) },
 		requireUserVerification: false
 	}).catch(error => {
-		console.error('[passkey] the check failed:', error.message)
+		log.error('passkey', `The check failed: ${error.message}`)
 		return null
 	})
 	if (!result?.verified) {
@@ -113,7 +114,7 @@ router.post('/', async (req, res) => {
 		response: req.body?.response, expectedChallenge: challenge, expectedOrigin: site.origin, expectedRPID: site.rpID,
 		requireUserVerification: false
 	}).catch(error => {
-		console.error('[passkey] the check failed:', error.message)
+		log.error('passkey', `The check failed: ${error.message}`)
 		return null
 	})
 	if (!result?.verified) {

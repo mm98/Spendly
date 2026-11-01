@@ -10,6 +10,7 @@ import { keyOfType } from './statuses.js'
 import { attentionCounts, limitsPassed, periodSummary } from './stats.js'
 import { forgetReads } from './readCache.js'
 import { issueToken, readToken, useToken } from './tokens.js'
+import { log } from './log.js'
 
 /* The status email (20f, emails/README.md): Weekly on Monday at 08:00 for the week just ended,
    Monthly on the 1st at 08:00 for the month just ended, in the account's own time zone. Either,
@@ -363,7 +364,7 @@ export function sendDueStatusEmails(now = new Date()) {
 export function scheduleStatusEmails() {
 	if (!mailAvailable()) return
 	const tick = () => {
-		try { sendDueStatusEmails() } catch (e) { console.error(`[mail] status emails: ${e.message}`) }
+		try { sendDueStatusEmails() } catch (e) { log.error('mail', `Status emails: ${e.message}`) }
 	}
 	tick()
 	setInterval(tick, 60 * 1000).unref()

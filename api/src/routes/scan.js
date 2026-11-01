@@ -18,6 +18,7 @@ import { UPLOAD_TTL_SECONDS, answerOf, discardDraft, draftOfUpload, draftRow, dr
 import { forgetReads } from '../lib/readCache.js'
 import { paidReadWait } from '../lib/rateLimit.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 export const router = Router()
 
@@ -142,7 +143,7 @@ router.post('/documents', requireConfirmed, upload.single('file'), async (req, r
 function scanned(req, answer) {
 	if (req.query.scan !== '1' || answer.seen) return answer
 	const row = selectUploadForRead.get(answer.key, req.user.id)
-	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(error => console.error('Receipt read failed:', error.message))
+	if (process.env.ANTHROPIC_API_KEY && row.ai_read_json == null) readOnce(req.user.id, row, req.today).catch(error => log.error('receipt', `Receipt read failed: ${error.message}`))
 	return answer
 }
 
@@ -275,7 +276,7 @@ function readOnce(userId, upload, today, onProgress, res) {
 			.finally(() => { readings.delete(upload.id); forgetReads(userId) })
 		reading = { promise, listeners }
 		readings.set(upload.id, reading)
-		promise.catch(error => console.error('Receipt read failed:', error.message))
+		promise.catch(error => log.error('receipt', `Receipt read failed: ${error.message}`))
 	}
 	if (onProgress) {
 		reading.listeners.add(onProgress)

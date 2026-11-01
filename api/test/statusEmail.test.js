@@ -32,7 +32,7 @@ async function subjectsOf(run) {
 	const subjects = []
 	const log = console.log
 	console.log = line => {
-		const found = String(line).match(new RegExp(`^\\[mail\\] to ${EMAIL}: (.*)`))
+		const found = String(line).match(new RegExp(`\\[mail\\] to ${EMAIL}: (.*)`))
 		if (found) subjects.push(found[1])
 	}
 	try {

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { log } from './log.js'
 
 /* Mail for the account's single-use links, sent through the SMTP server in SPENDLY_SMTP_*. Without
    one, SPENDLY_MAIL_LOG=1 writes each message to the server's own log instead. */
@@ -39,16 +40,16 @@ export async function sendMail({ to, subject, text, html, headers, attachments }
 	if (smtp) return void await smtp.sendMail({ from, to, subject, text, html, headers, attachments })
 	if (!mailAvailable()) throw new Error('This server cannot send email.')
 	const attached = attachments?.length ? `\n[attached: ${attachments.map(a => `${a.filename} (${a.content.length} bytes)`).join(', ')}]` : ''
-	console.log(`[mail] to ${to}: ${subject}\n${text}${attached}\n`)
+	log.info('mail', `to ${to}: ${subject}`, `${text}${attached}`)
 }
 
 /** Sends without holding up the answer; a failure goes to the log. */
-export const inBackground = sending => sending.catch(e => console.error(`[mail] could not send: ${e.message}`))
+export const inBackground = sending => sending.catch(e => log.error('mail', `Could not send: ${e.message}`))
 
 /** Signs in to the SMTP server once at start, so a wrong password shows in the log before anyone needs a link. */
 export function checkMail() {
-	if (host && missing.length) console.error(`[mail] email is off until ${missing.join(' and ')} is set`)
+	if (host && missing.length) log.warn('mail', `Email is off until ${missing.join(' and ')} is set`)
 	smtp?.verify().then(
-		() => console.log(`[mail] sending as ${from} through ${host}`),
-		e => console.error(`[mail] cannot sign in to ${host}: ${e.message}`))
+		() => log.info('mail', `Sending as ${from} through ${host}`),
+		e => log.error('mail', `Cannot sign in to ${host}: ${e.message}`))
 }

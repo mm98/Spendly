@@ -4,6 +4,7 @@ import { MCP_TOOLS, callTool } from './mcpTools.js'
 import { askedAtIn, fileWriter } from './askFiles.js'
 import { MAKERS, makersFor, nothingMade } from '../format/index.js'
 import { HEADING_MOST, nameChat, sweepChats } from './askChats.js'
+import { log } from './log.js'
 
 /* Ask: a question about the reader's own money, answered by Claude with the
    same read-only tools /mcp offers, run as the signed-in reader over this server's own port, and the
@@ -127,7 +128,10 @@ export async function answerQuestion({ turns, token, self, today, signal, userId
 				return { type: 'tool_result', tool_use_id: call.id, content: said }
 			}
 			const result = await callTool(call.name, call.input ?? {}, token, self)
-				.catch(() => ({ content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }))
+				.catch(error => {
+					log.error('ask', `The tool ${call.name} failed: ${error.message}`)
+					return { content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }
+				})
 			return result
 				? { type: 'tool_result', tool_use_id: call.id, content: result.content, is_error: !!result.isError }
 				: { type: 'tool_result', tool_use_id: call.id, content: `No tool named ${call.name}.`, is_error: true }
@@ -150,7 +154,7 @@ export async function writeChatHeading(chatId, question, answer) {
 		}, { timeout: REQUEST_TIMEOUT_MS })
 		nameChat(chatId, textOf(response.content))
 	} catch (error) {
-		console.error('Chat heading failed:', error.message)
+		log.error('ask', `Chat heading failed: ${error.message}`)
 	}
 }
 
@@ -214,7 +218,10 @@ export async function filtersFor({ list, text, token, self, today, signal }) {
 		const calls = response.content.filter(b => b.type === 'tool_use')
 		const results = await Promise.all(calls.map(async call => {
 			const result = await callTool(call.name, call.input ?? {}, token, self)
-				.catch(() => ({ content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }))
+				.catch(error => {
+					log.error('ask', `The tool ${call.name} failed: ${error.message}`)
+					return { content: [{ type: 'text', text: 'Spendly could not read this.' }], isError: true }
+				})
 			return result
 				? { type: 'tool_result', tool_use_id: call.id, content: result.content, is_error: !!result.isError }
 				: { type: 'tool_result', tool_use_id: call.id, content: `No tool named ${call.name}.`, is_error: true }

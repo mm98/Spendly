@@ -9,6 +9,7 @@ import { askMakes, madeIn, madeOf, placesIn } from '../format/index.js'
 import { mailAvailable } from '../lib/mail.js'
 import { ownsServer } from './account.js'
 import { words } from '../lib/phrases.js'
+import { log } from '../lib/log.js'
 
 /* Ask (lib/ask.js): whether it is there with the questions left today, one question
    answered, the chats kept (Chats, 24f), the saved questions, the files it made (Files, 24e), and a
@@ -89,7 +90,7 @@ router.post('/', async (req, res) => {
 		endTurn(turn.turnId, stop.signal.aborted ? 'stopped' : 'failed')
 		if (stop.signal.aborted) return
 		// the log is the one place a bad key, a timeout or a refused account is told apart
-		console.error('Ask answer failed:', isBillingRefusal(error) ? 'billing' : error.message)
+		log.error('ask', `The answer failed: ${isBillingRefusal(error) ? 'billing' : error.message}`)
 		res.end(JSON.stringify({ error: words('ask.noAnswer'), status: 502 }) + '\n')
 	}
 })
@@ -117,7 +118,7 @@ router.post('/filters', async (req, res) => {
 		res.json({ filters, left: state.left === null ? null : state.left - 1 })
 	} catch (error) {
 		if (stop.signal.aborted) return
-		console.error('Ask filters failed:', isBillingRefusal(error) ? 'billing' : error.message)
+		log.error('ask', `The filters failed: ${isBillingRefusal(error) ? 'billing' : error.message}`)
 		res.status(502).json({ error: words('ask.noAnswer') })
 	}
 })
@@ -216,7 +217,7 @@ router.post('/email', async (req, res) => {
 	try {
 		res.json({ email: await emailConversation(req.user.id, { chatId, turns, day: req.today, locale: String(req.body?.locale ?? '') }) })
 	} catch (e) {
-		console.error(`[mail] conversation email: ${e.message}`)
+		log.error('mail', `Conversation email: ${e.message}`)
 		lastEmail.delete(req.user.id)
 		res.status(502).json({ error: words('mail.failedRetry') })
 	}

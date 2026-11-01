@@ -2,6 +2,7 @@ import { lookup } from 'node:dns'
 import http from 'node:http'
 import https from 'node:https'
 import { BlockList, isIP } from 'node:net'
+import { log } from './log.js'
 
 /* The one place this server fetches an address a user typed, so every hop is refused unless it
    connects to a public address, and nothing reports a failure: every way it fails is "nothing found". */
@@ -60,7 +61,7 @@ function getPublic(at, accept) {
 			headers: { 'User-Agent': 'Spendly/1.0 (+bookmark link preview)', 'Accept': accept }
 		}, settle)
 		ask.on('error', error => {
-			console.error(`Link preview: ${at.host} could not be reached: ${error.message}`)
+			log.error('link preview', `${at.host} could not be reached: ${error.message}`)
 			settle(null)
 		})
 	})
@@ -157,7 +158,7 @@ export async function fetchPagePreview(url) {
 		const contentType = res.headers['content-type'] ?? ''
 		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.includes('html')) {
 			res.destroy()
-			if (res.statusCode < 200 || res.statusCode > 299) console.error(`Link preview: ${at.href} answered ${res.statusCode}`)
+			if (res.statusCode < 200 || res.statusCode > 299) log.error('link preview', `${at.href} answered ${res.statusCode}`)
 			return NOTHING
 		}
 
@@ -176,7 +177,7 @@ export async function fetchPagePreview(url) {
 				if (/<\/head>/i.test(seen) || bytes >= MAX_BYTES) break
 			}
 		} catch (error) {
-			console.error(`Link preview: reading ${at.href} failed: ${error.message}`)
+			log.error('link preview', `reading ${at.href} failed: ${error.message}`)
 			return NOTHING
 		} finally {
 			res.destroy()
@@ -209,7 +210,7 @@ export async function fetchImage(url) {
 		const contentType = res.headers['content-type'] ?? ''
 		if (res.statusCode < 200 || res.statusCode > 299 || !contentType.startsWith('image/')) {
 			res.destroy()
-			if (res.statusCode < 200 || res.statusCode > 299) console.error(`Link preview: ${at.href} answered ${res.statusCode}`)
+			if (res.statusCode < 200 || res.statusCode > 299) log.error('link preview', `${at.href} answered ${res.statusCode}`)
 			return null
 		}
 
@@ -224,7 +225,7 @@ export async function fetchImage(url) {
 				chunks.push(value)
 			}
 		} catch (error) {
-			console.error(`Link preview: reading ${at.href} failed: ${error.message}`)
+			log.error('link preview', `reading ${at.href} failed: ${error.message}`)
 			return null
 		} finally {
 			res.destroy()

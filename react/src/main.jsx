@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider, createHashRouter } from 'react-router'
 import { routes } from './routes.jsx'
 import { applyTheme } from './app/theme.js'
+import { startLogging } from './app/log.js'
 import { MotionShell } from './components/motion.js'
 import './styles/fonts.css'
 import './styles/tokens.css'
@@ -10,6 +11,8 @@ import './styles/schemes.css'
 import './styles/components.css'
 import './styles/app.css'
 import './styles/pages.js'
+
+startLogging()
 
 // before first paint, so a dark reader never sees a light frame
 applyTheme()

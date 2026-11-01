@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { foldName } from './names.js'
+import { log } from './log.js'
 
 /* What an item's name means, as a vector, from a multilingual language model run in this process (the image
    keeps its files); without them, from word shapes, which relate names of one language only. */
@@ -54,7 +55,7 @@ async function load() {
 			}
 		}
 	} catch (error) {
-		console.error('The language model for category suggestions was not loaded; word shapes are used instead:', error.message)
+		log.warn('categories', `The language model for category suggestions was not loaded, so word shapes are used instead: ${error.message}`)
 		return null
 	}
 }

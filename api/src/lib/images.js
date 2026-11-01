@@ -5,6 +5,7 @@ import { compressBlob } from './blobCompression.js'
 import { cleanOriginal } from './cleanImage.js'
 import { detectFileType, detectKind } from './fileType.js'
 import { refusal } from './phrases.js'
+import { log } from './log.js'
 
 /* Every image attachment (a manual upload or a scan) is resized on the way in, not stored at
    whatever resolution the source produced — a phone photo is routinely 4000x3000 and several
@@ -48,7 +49,8 @@ export async function processImage(buffer) {
 	try {
 		const [display, thumbnail] = await Promise.all([toWide(buffer), toSquare(buffer)])
 		return { data: display, contentType: 'image/webp', size: display.length, thumbnail, thumbnailContentType: 'image/webp' }
-	} catch {
+	} catch (error) {
+		log.error('picture', `An uploaded picture could not be read: ${error.message}`)
 		return null
 	}
 }
@@ -91,9 +93,19 @@ function inPdfWorker(workerData) {
 		   down with it. A worker that already sent its message exits by itself within
 		   milliseconds regardless, so nothing here waits on terminate() for that case. Only a
 		   genuinely hung worker -- the timeout below -- still needs it. */
-		const timer = setTimeout(() => { worker.terminate(); settle(null) }, PDF_RENDER_TIMEOUT_MS)
-		worker.on('message', settle)
-		worker.on('error', () => settle(null))
+		const timer = setTimeout(() => {
+			log.error('picture', `A PDF page was not drawn within ${PDF_RENDER_TIMEOUT_MS / 1000} seconds`)
+			worker.terminate()
+			settle(null)
+		}, PDF_RENDER_TIMEOUT_MS)
+		worker.on('message', message => {
+			if (message?.error) log.error('picture', `A PDF page could not be drawn: ${message.error}`)
+			settle(message)
+		})
+		worker.on('error', error => {
+			log.error('picture', `The PDF drawing stopped: ${error.message}`)
+			settle(null)
+		})
 		worker.on('exit', () => settle(null))
 	})
 }
@@ -108,7 +120,8 @@ export async function processPdfThumbnail(buffer) {
 	if (!png) return null
 	try {
 		return { thumbnail: await toSquare(png), thumbnailContentType: 'image/webp', pages }
-	} catch {
+	} catch (error) {
+		log.error('picture', `The first page of a PDF could not be made small: ${error.message}`)
 		return null
 	}
 }
@@ -121,7 +134,8 @@ export async function processPdfPage(buffer, index) {
 	if (!png) return { image: null, pages: pages ?? 0 }
 	try {
 		return { image: await toWide(png), contentType: 'image/webp', pages }
-	} catch {
+	} catch (error) {
+		log.error('picture', `Page ${index + 1} of a PDF could not be shown: ${error.message}`)
 		return { image: null, pages }
 	}
 }
@@ -131,7 +145,7 @@ export async function processPdfPage(buffer, index) {
 export async function processPicture(buffer) {
 	let square, wide
 	try { [square, wide] = await Promise.all([toSquare(buffer), toWide(buffer)]) } catch (error) {
-		console.error('A bookmark picture could not be read:', error.message)
+		log.error('picture', `A bookmark picture could not be read: ${error.message}`)
 		return null
 	}
 	const [s, w] = await Promise.all([compressBlob(square, 'image/webp'), compressBlob(wide, 'image/webp')])

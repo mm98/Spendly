@@ -2,6 +2,7 @@ import { db } from '../db.js'
 import { DIM, FALLBACK_ID, embedder } from './embed.js'
 import { resolveVendor } from './findOrCreate.js'
 import { foldName } from './names.js'
+import { log } from './log.js'
 
 /* The categories an account files items like these under, learned from its own orders: an item name is
    a vector, and a new item takes the labels of its nearest neighbours, backed only as far as a held-out check allows. */
@@ -69,7 +70,7 @@ function warm(userId, emb, titles) {
 	if (warming.has(id) || !titles.size) return
 	warming.add(id)
 	vectorsOf(userId, emb, titles)
-		.catch(error => console.error('Embedding item names failed:', error.message))
+		.catch(error => log.error('categories', `Embedding item names failed: ${error.message}`))
 		.finally(() => { warming.delete(id); forgetModel(userId) })
 }
 
