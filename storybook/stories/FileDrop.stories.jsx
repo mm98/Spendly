@@ -87,3 +87,17 @@ export const Viewing = {
 			: <Viewer items={items} at={at} onMove={next => { setAt(next); onMove(next) }} onClose={() => { setAt(null); onClose() }} />
 	}
 }
+
+// on a phone a filled slot is the picture with Replace and Remove beside it, and the picture takes the slot's name
+export const PictureSlotFilledOnPhone = {
+	parameters: { variantsOf: Slot },
+	globals: { viewport: { value: 'phone', isRotated: false } },
+	args: { size: 'large', kind: 'Photo', name: "The vendor's image", src: RECEIPT, onFile: fn(), onRemove: fn() },
+	argTypes: Object.fromEntries(['title', 'meta', 'icon', 'action', 'children'].map(prop => [prop, { control: false, table: { disable: true } }])),
+	render: ({ title, meta, icon, onFiles, ...args }) => <Field label="Photo"><Slot {...args} /></Field>,
+	play: async ({ args, canvas }) => {
+		await expect(canvas.getByRole('img', { name: args.name })).toBeVisible()
+		await userEvent.click(canvas.getByRole('button', { name: `Remove ${args.name}` }))
+		await expect(args.onRemove).toHaveBeenCalledOnce()
+	}
+}

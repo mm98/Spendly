@@ -3737,7 +3737,7 @@
           <span class="sp-heading">Edit line</span>
           <div class="sp-line-editor sp-line-editor--sheet">
             <span class="sp-slot">
-              <span class="sp-mark sp-mark--medium sp-mark--photo"><span class="sp-mark__text">Photo</span></span>
+              <span class="sp-mark sp-mark--medium sp-mark--photo" role="img" aria-label="The image"><span class="sp-mark__text">Photo</span></span>
               <span class="sp-slot__actions">
                 <label class="sp-icon-btn sp-icon-btn--outline" for="c15-slot-3" aria-label="Replace the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg><input id="c15-slot-3" type="file" accept="image/*"></label>
                 <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
@@ -4103,7 +4103,7 @@
             <span class="sp-meta">Add</span>
           </span>
           <span class="sp-slot">
-            <span class="sp-mark sp-mark--large sp-mark--photo"><span class="sp-mark__text">Photo</span></span>
+            <span class="sp-mark sp-mark--large sp-mark--photo" role="img" aria-label="The image"><span class="sp-mark__text">Photo</span></span>
             <span class="sp-slot__actions">
               <label class="sp-icon-btn sp-icon-btn--outline" for="c17-m2" aria-label="Replace the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg><input id="c17-m2" type="file" accept="image/*"></label>
               <button type="button" class="sp-icon-btn sp-icon-btn--outline sp-ink-danger" aria-label="Remove the image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg></button>
@@ -4129,6 +4129,7 @@
     <div class="doc-notes__label">Slots</div>
     <div class="doc-note">Thumb: the frame at one of the mark sizes, and under it either the word that says what goes there or Remove once something does. Document: the kind, the file name, its size and state, and the remove button.</div>
     <div class="doc-note"><b>A filled thumb on a phone</b> is a row: the image, then two bordered icon buttons on one line beside it (<code>.sp-slot__actions</code>), Replace (<code>upload</code>, a <code>&lt;label&gt;</code> over the file input) and Remove (<code>trash</code>, in <code>sp-ink-danger</code>, as a document's remove button). The image is not the target there and Remove is not under it. An empty thumb and the desktop keep the frame as the target and Remove under it. The line editor's sheet (<a href="#c15">c15</a>) and Layout rules 15b show it.</div>
+    <div class="doc-note"><b>Its name.</b> Once the image is not the input's label, it is a picture with a name of its own: <code>role="img"</code> and <code>aria-label</code> from the slot's <code>name</code> (The vendor's image, The bookmark's picture, The image). A screen reader reads the picture, then Replace and Remove beside it, which name it again. Every slot takes this from the slot, so a page passes nothing new.</div>
     <div class="doc-notes__label">Fixed</div>
     <div class="doc-note">The frame is a <code>&lt;label&gt;</code> over a hidden <code>&lt;input type="file"&gt;</code>, so it needs no script and gets the platform dialog - on touch that dialog offers the camera or the library, which is why there is no separate Take a photo. A thumb is a mark, so it is 64, 42 or 24 - the three sizes in <a href="#c2">c2</a> and nothing between them; empty it is the dashed <code>.sp-mark--empty</code> with the camera glyph, filled it shows the image with its kind along the bottom. A document slot is the field radius <code>--r-field</code>, dashed while empty and solid once filled, with the kind as a <code>--mark-medium</code> tile.</div>
     <div class="doc-notes__label">States</div>

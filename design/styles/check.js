@@ -1700,6 +1700,29 @@
     }
   }
 
+  /* ---- a box is named, or is a picker's label ---------------------------- */
+
+  /* A Mark is named by an aria-label, or is a file picker's label (as="label"), whose input
+     carries the name. Caught: the filled slot on a phone dropped as="label" for its Replace
+     button and took no name, so Mark warned on every draw (Slot, c17), and the reading
+     spinner was hidden with no aria-label (3a step 2). A conditional as is not a label. */
+  {
+    for (const f of (await ls('react_handoff')).filter(x => x.endsWith('.jsx'))) {
+      if (f === 'Mark.jsx') continue;
+      const s = await readFile('react_handoff/' + f);
+      for (const m of s.matchAll(/<Mark\b((?:[^>{]|\{[^}]*\})*)>/g))
+        if (!/aria-label=|as="label"|\{\.\.\./.test(m[1]))
+          fail('a box is named', f + ':' + s.slice(0, m.index).split('\n').length, 'a <Mark> with no aria-label that is not as="label"');
+    }
+    for (const [f, s] of Object.entries(src))
+      for (const m of s.matchAll(/<span class="sp-mark\b[^"]*"([^>]*)>(?:(?!<span class="sp-mark\b)[\s\S]){0,200}?<\/span>\s*<span class="sp-slot__actions">/g))
+        if (!/role="img"/.test(m[1]) || !/aria-label="/.test(m[1]))
+          fail('a box is named', f.replace('.dc.html', ''), 'a filled slot on a phone draws its image with no role="img" and aria-label');
+    for (const [f, s] of Object.entries(src))
+      for (const m of s.matchAll(/<span class="sp-mark\b[^"]*"([^>]*)><span class="sp-spinner"><\/span><\/span>/g))
+        if (!/aria-label="/.test(m[1])) fail('a box is named', f.replace('.dc.html', ''), 'a spinner mark with no aria-label');
+  }
+
   /* ---- report ------------------------------------------------------------ */
 
   const byRule = {};

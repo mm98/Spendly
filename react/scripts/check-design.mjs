@@ -580,6 +580,13 @@ for (const [p, ast] of parsed) {
 					fail('Back is labelled Back', lineOf(n), `back control labelled "${literal(label) ?? '(not a word)'}"`)
 			}
 
+			// a Mark is named by an aria-label or a name it derives from, or is a picker's label whose input carries the name
+			if (tag === 'Mark' && !has('aria-label') && literal(attr(n, 'as')) !== 'label' && !spreads(n)) {
+				const inner = kids(n.children)
+				const derives = inner.length === 0 && n.children.some(c => (c.type === 'JSXText' && c.value.trim()) || c.type === 'JSXExpressionContainer')
+				if (!derives) fail('a box is named', lineOf(n), 'a <Mark> with no aria-label that is not as="label"')
+			}
+
 			// a chip that adds a value under a field ("+ Lighting") is the suggestion chip, smaller on touch
 			if (tag === 'Chip' && n.closingElement) {
 				const inner = text.slice(n.openingElement.end, n.closingElement.start).trim()
@@ -1494,6 +1501,7 @@ const DESIGN_RULES = {
 	'Motion never holds a clip': 'Motion never holds a clip',
 	'mark letters reach 4.5:1': COPY,
 	'Back is labelled Back': 'Back is labelled Back',
+	'a box is named': 'a box is named',
 	'figures in an answer fit a phone': COPY,
 	'the chat placeholder is one line': COPY,
 	'a saved question is cut at the column': COPY,
